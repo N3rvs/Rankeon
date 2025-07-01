@@ -14,7 +14,6 @@ import { db } from '@/lib/firebase/client';
 import { Button } from '../ui/button';
 import {
   UserPlus,
-  UserCheck,
   Clock,
   Check,
   X,

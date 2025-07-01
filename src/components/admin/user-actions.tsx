@@ -26,8 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { updateUserStatus } from '@/lib/actions/users';
 import { useAuth } from '@/contexts/auth-context';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
+import { sendMessageToFriend } from '@/lib/actions/messages';
 import { EditProfileDialog } from '../profile/edit-profile-dialog';
 
 interface UserActionsProps {
@@ -35,7 +34,7 @@ interface UserActionsProps {
 }
 
 export function UserActions({ user }: UserActionsProps) {
-  const { user: currentUser, userProfile: currentUserProfile } = useAuth();
+  const { user: currentUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -62,33 +61,14 @@ export function UserActions({ user }: UserActionsProps) {
   };
 
   const handleMessageUser = async () => {
-    if (!currentUser || !currentUserProfile) {
+    if (!currentUser) {
         toast({ title: 'Authentication Error', description: 'You must be logged in to message a player.', variant: 'destructive' });
         return;
     }
     
     startTransition(async () => {
         try {
-            const conversationId = [currentUser.uid, user.id].sort().join('_');
-            const conversationRef = doc(db, 'conversations', conversationId);
-            const docSnap = await getDoc(conversationRef);
-
-            if (!docSnap.exists()) {
-                await setDoc(conversationRef, {
-                    participantIds: [currentUser.uid, user.id],
-                    participants: {
-                        [currentUser.uid]: {
-                        name: currentUserProfile.name,
-                        avatarUrl: currentUserProfile.avatarUrl,
-                        },
-                        [user.id]: {
-                        name: user.name,
-                        avatarUrl: user.avatarUrl,
-                        }
-                    },
-                    lastMessage: null,
-                });
-            }
+            await sendMessageToFriend({ to: user.id, content: `Hi, this is a message from an admin.` });
             router.push('/messages');
         } catch (error) {
             console.error("Error starting conversation: ", error);
