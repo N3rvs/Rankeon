@@ -66,7 +66,7 @@ export default function MessagesPage() {
             });
             setChats(filteredChats);
 
-            // Fetch participant profiles for the filtered chats
+            // Fetch participant profiles for the filtered chats in parallel
             const profilesToFetch = new Set<string>();
             filteredChats.forEach(chat => {
                 chat.members.forEach(memberId => {
@@ -78,12 +78,13 @@ export default function MessagesPage() {
 
             if (profilesToFetch.size > 0) {
                 const newProfiles: { [id: string]: UserProfile } = {};
-                for (const profileId of Array.from(profilesToFetch)) {
+                const profilePromises = Array.from(profilesToFetch).map(async (profileId) => {
                     const userDoc = await getDoc(doc(db, "users", profileId));
                     if (userDoc.exists()) {
                         newProfiles[profileId] = { id: userDoc.id, ...userDoc.data() } as UserProfile;
                     }
-                }
+                });
+                await Promise.all(profilePromises);
                 setParticipantProfiles(prev => ({...prev, ...newProfiles}));
             }
             
