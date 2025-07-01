@@ -51,7 +51,7 @@ export interface Chat {
 
 export type NotificationType =
   | 'new_message'
-  | 'friend_request_received'
+  | 'friend_request'
   | 'friend_request_accepted'
   | 'friend_removed'
   | 'team_invite_received'
@@ -67,7 +67,7 @@ export interface Notification {
   timestamp: Timestamp;
 
   // Type-specific fields
-  relatedRequestId?: string; // For friend_request_received
+  relatedRequestId?: string; // For friend_request
   content?: string; // For new_message
   teamId?: string; // For team notifications
   chatId?: string; // for new_message

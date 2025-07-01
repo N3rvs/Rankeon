@@ -90,7 +90,7 @@ export function NotificationItem({ notification }: { notification: Notification 
   const getNotificationDetails = () => {
     const name = fromUser?.name || 'Someone';
     switch (notification.type) {
-      case 'friend_request_received':
+      case 'friend_request':
         return {
           icon: UserPlus,
           message: `${name} sent you a friend request.`,
@@ -171,7 +171,7 @@ export function NotificationItem({ notification }: { notification: Notification 
                 })
               : ''}
           </p>
-          {notification.type === 'friend_request_received' && (
+          {notification.type === 'friend_request' && (
             <div className="flex gap-2 pt-1">
               <Button
                 size="sm"
