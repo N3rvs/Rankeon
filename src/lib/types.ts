@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export type UserRole = 'admin' | 'moderator' | 'founder' | 'coach' | 'player';
 
 export interface UserProfile {
@@ -28,11 +30,21 @@ export interface Message {
     id: string;
     senderId: string;
     text: string;
-    timestamp: number;
+    timestamp: Timestamp;
 }
 
 export interface Conversation {
     id: string;
-    participant: UserProfile;
-    lastMessage: Message;
+    participantIds: string[];
+    participants: {
+        [uid: string]: {
+            name: string;
+            avatarUrl: string;
+        }
+    };
+    lastMessage: {
+        text: string;
+        timestamp: Timestamp;
+        senderId: string;
+    } | null;
 }
