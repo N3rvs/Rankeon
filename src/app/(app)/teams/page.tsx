@@ -1,11 +1,51 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockUserTeams } from "@/lib/mock-data";
-import { PlusCircle, Settings } from "lucide-react";
-import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { db } from '@/lib/firebase/client';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import type { Team } from '@/lib/types';
+import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
+import { TeamCard } from '@/components/teams/team-card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Users } from 'lucide-react';
 
 export default function TeamsPage() {
+    const { user, userProfile } = useAuth();
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const canCreateTeam = userProfile && ['admin', 'moderator', 'founder'].includes(userProfile.role);
+
+    useEffect(() => {
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
+        setLoading(true);
+        const q = query(
+            collection(db, 'teams'),
+            where('memberIds', 'array-contains', user.uid),
+            orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const teamsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as Team));
+            setTeams(teamsData);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching teams: ", error);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [user]);
+
+    const loadingSkeletons = [...Array(3)].map((_, i) => (
+        <Skeleton key={i} className="h-[350px] w-full rounded-lg" />
+    ));
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -13,47 +53,34 @@ export default function TeamsPage() {
                     <h1 className="text-3xl font-bold font-headline tracking-tight">My Teams</h1>
                     <p className="text-muted-foreground">Manage your teams or create a new one.</p>
                 </div>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create Team
-                </Button>
+                {canCreateTeam && <CreateTeamDialog />}
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {mockUserTeams.map((team) => (
-                    <Card key={team.id} className="overflow-hidden">
-                        <div className="relative h-32 w-full">
-                            <Image src="https://placehold.co/600x200.png" alt={`${team.name} banner`} fill style={{ objectFit: 'cover' }} data-ai-hint="gaming banner" />
-                            <div className="absolute bottom-[-2rem] left-4">
-                                <Avatar className="h-16 w-16 border-4 border-card">
-                                    <AvatarImage src={team.avatarUrl} alt={team.name} data-ai-hint="team logo" />
-                                    <AvatarFallback>{team.name.slice(0,2)}</AvatarFallback>
-                                </Avatar>
-                            </div>
-                        </div>
-                        <CardHeader className="pt-10">
-                            <CardTitle className="font-headline">{team.name}</CardTitle>
-                            <CardDescription>{team.game}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex -space-x-2 overflow-hidden">
-                                {team.members.map(member => (
-                                     <Avatar key={member.id} className="inline-block h-8 w-8 ring-2 ring-card">
-                                        <AvatarImage src={member.avatarUrl} alt={member.name} data-ai-hint="player avatar" />
-                                        <AvatarFallback>{member.name.slice(0,2)}</AvatarFallback>
-                                     </Avatar>
-                                ))}
-                                {team.members.length > 5 && <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted ring-2 ring-card">+{team.members.length - 5}</div>}
-                            </div>
-                            <p className="mt-4 text-sm text-muted-foreground">{team.description}</p>
-                        </CardContent>
-                        <CardFooter>
-                            <Button variant="outline" className="w-full">
-                                <Settings className="mr-2 h-4 w-4" /> Manage Team
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
-            </div>
+
+            {loading ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {loadingSkeletons}
+                </div>
+            ) : teams.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {teams.map((team) => (
+                        <TeamCard key={team.id} team={team} />
+                    ))}
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center mt-8">
+                    <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h3 className="mt-4 text-xl font-semibold">No Teams Found</h3>
+                    <p className="mt-2 text-muted-foreground">
+                        You are not a member of any team yet.
+                        {canCreateTeam ? " Why not create one?" : ""}
+                    </p>
+                    {canCreateTeam && (
+                       <div className="mt-6">
+                         <CreateTeamDialog />
+                       </div>
+                    )}
+                </div>
+            )}
         </div>
-    )
+    );
 }

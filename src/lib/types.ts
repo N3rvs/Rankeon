@@ -26,10 +26,11 @@ export interface Team {
   avatarUrl: string;
   game: string;
   ownerId: string;
-  members: UserProfile[];
+  memberIds: string[];
   lookingForPlayers: boolean;
   recruitingRoles: string[];
   description: string;
+  createdAt?: Timestamp;
 }
 
 export interface ChatMessage {
