@@ -82,17 +82,23 @@ export function NotificationItem({
     let requestId = notification.relatedRequestId;
 
     if (!requestId && notification.type === 'friend_request' && user && notification.from) {
-      try {
+       try {
+        // This is a more robust way to find the request ID, avoiding complex queries
+        // that might require a custom composite index in Firestore.
         const q = query(
           collection(db, 'friendRequests'),
-          where('from', '==', notification.from),
-          where('to', '==', user.uid),
-          where('status', '==', 'pending'),
-          limit(1)
+          where('to', '==', user.uid)
         );
         const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          requestId = querySnapshot.docs[0].id;
+        
+        // Filter on the client side to find the correct pending request from the sender.
+        const requestDoc = querySnapshot.docs.find(doc => {
+          const data = doc.data();
+          return data.from === notification.from && data.status === 'pending';
+        });
+
+        if (requestDoc) {
+          requestId = requestDoc.id;
         }
       } catch (e) {
         console.error("Error querying for friend request ID:", e);
