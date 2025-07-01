@@ -1,7 +1,7 @@
 // src/components/inbox/notification-item.tsx
 'use client';
 
-import type { Notification, UserProfile, FriendRequest } from '@/lib/types';
+import type { Notification, UserProfile } from '@/lib/types';
 import { useTransition, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -81,28 +81,20 @@ export function NotificationItem({
   const handleResponse = async (accept: boolean) => {
     if (!user || !notification.from) return;
 
-    let requestId = notification.relatedRequestId;
+    let requestId = notification.extraData?.requestId;
 
     // If the notification doesn't have the ID, find it manually.
     if (!requestId && notification.type === 'friend_request') {
       try {
         const q = query(
-          collection(db, 'friendRequests'),
-          where('participantIds', 'array-contains', user.uid)
+          collection(db, "friendRequests"),
+          where("from", "==", notification.from),
+          where("to", "==", user.uid),
+          where("status", "==", "pending")
         );
         const querySnapshot = await getDocs(q);
-
-        const requestDoc = querySnapshot.docs.find((doc) => {
-          const data = doc.data() as FriendRequest;
-          return (
-            data.from === notification.from &&
-            data.to === user.uid &&
-            data.status === 'pending'
-          );
-        });
-
-        if (requestDoc) {
-          requestId = requestDoc.id;
+        if (!querySnapshot.empty) {
+          requestId = querySnapshot.docs[0].id;
         }
       } catch (e) {
         console.error('Error querying for friend request ID:', e);
@@ -180,7 +172,7 @@ export function NotificationItem({
           icon: UserPlus,
           message: `${name} sent you a friend request.`,
         };
-      case 'friend_request_accepted':
+      case 'friend_accepted':
         return {
           icon: UserCheck,
           message: `You are now friends with ${name}.`,
@@ -289,7 +281,7 @@ export function NotificationItem({
               </p>
             </div>
           )}
-          {(notification.type === 'friend_request_accepted' || notification.type === 'new_message') && (
+          {(notification.type === 'friend_accepted' || notification.type === 'new_message') && (
             <div className="flex gap-2 pt-1">
                 <Button
                     size="sm"

@@ -53,7 +53,7 @@ export interface Chat {
 export type NotificationType =
   | 'new_message'
   | 'friend_request'
-  | 'friend_request_accepted'
+  | 'friend_accepted'
   | 'friend_removed'
   | 'team_invite_received'
   | 'team_joined'
@@ -66,18 +66,15 @@ export interface Notification {
   from: string; // UID of the user who sent it
   read: boolean;
   timestamp: Timestamp;
-
-  // Type-specific fields
-  relatedRequestId?: string; // For friend_request
-  content?: string; // For new_message
-  teamId?: string; // For team notifications
-  chatId?: string; // for new_message
+  content?: string; // For new_message, etc.
+  extraData?: { [key: string]: any }; // For IDs like requestId, teamId, chatId
 }
 
 export interface FriendRequest {
   id: string;
   from: string;
   to: string;
+  /** Best practice: include an array of both UIDs for easier querying */
   participantIds: string[];
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: Timestamp;
