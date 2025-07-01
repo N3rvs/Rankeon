@@ -151,11 +151,14 @@ export default function MessagesPage() {
 
      const handleRemoveFriend = () => {
         if (!selectedChat || !otherParticipant) return;
+        const chatToRemoveId = selectedChat.id;
         startTransition(async () => {
             const result = await removeFriend(otherParticipant.id);
             if (result.success) {
                 toast({ title: "Friend Removed", description: `You are no longer friends with ${otherParticipant.name}.` });
                 setSelectedChat(null); // Close the chat window
+                // Instantly remove the chat from the list for better UX
+                setChats(prev => prev.filter(c => c.id !== chatToRemoveId));
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -165,11 +168,14 @@ export default function MessagesPage() {
 
     const handleBlockUser = () => {
         if (!selectedChat || !otherParticipant) return;
+        const chatToRemoveId = selectedChat.id;
         startTransition(async () => {
             const result = await blockUser(otherParticipant.id);
             if (result.success) {
                 toast({ title: "User Blocked", description: `You have blocked ${otherParticipant.name}.` });
                 setSelectedChat(null); // Close the chat window
+                // Instantly remove the chat from the list for better UX
+                setChats(prev => prev.filter(c => c.id !== chatToRemoveId));
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
