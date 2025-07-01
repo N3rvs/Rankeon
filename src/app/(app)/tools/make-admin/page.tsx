@@ -17,15 +17,26 @@ import Link from 'next/link';
 
 const scriptContent = `const admin = require('firebase-admin');
 
+// --- ¡IMPORTANTE! ---
+// Reemplaza la siguiente línea con tu Project ID real.
+const projectId = 'AQUÍ_TU_PROJECT_ID';
+// --------------------
+
 // En Cloud Shell, la autenticación es automática. ¡No se necesita un archivo de clave!
 admin.initializeApp({
   credential: admin.credential.applicationDefault(),
+  projectId: projectId,
 });
 
 // --- ¡IMPORTANTE! ---
 // Reemplaza la siguiente línea con tu UID real, que puedes copiar de esta página.
 const uid = 'AQUÍ_TU_UID';
 // --------------------
+
+if (projectId === 'AQUÍ_TU_PROJECT_ID' || !projectId) {
+  console.error('❌ ERROR: Reemplaza el texto "AQUÍ_TU_PROJECT_ID" en el script con tu Project ID real antes de ejecutar.');
+  process.exit(1);
+}
 
 if (uid === 'AQUÍ_TU_UID' || !uid) {
   console.error('❌ ERROR: Reemplaza el texto "AQUÍ_TU_UID" en el script con tu User ID real antes de ejecutar.');
@@ -52,6 +63,7 @@ admin
 export default function MakeAdminPage() {
   const { user, loading } = useAuth();
   const { toast } = useToast();
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
   const handleCopyToClipboard = (text: string) => {
     if (!text) return;
@@ -71,7 +83,7 @@ export default function MakeAdminPage() {
             Solución Definitiva: Script de Administrador
           </CardTitle>
           <CardDescription>
-            Los métodos anteriores fallaron. Usemos la forma más fiable: un script directo en Google Cloud.
+            Usemos la forma más fiable: un script directo en Google Cloud. Esto solucionará el problema del "Project ID".
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
@@ -113,6 +125,28 @@ export default function MakeAdminPage() {
           <div>
              <h3 className="font-semibold mb-2 flex items-center gap-2">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">3</span>
+                Reemplaza tu Project ID en el script
+            </h3>
+            <p className="text-sm text-muted-foreground mb-2 ml-10">
+              Copia tu Project ID de abajo y pégalo en el script, reemplazando el texto <strong>'AQUÍ_TU_PROJECT_ID'</strong>.
+            </p>
+            {projectId ? (
+              <div className="flex items-center gap-2 ml-10">
+                <code className="relative flex-1 rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+                  {projectId}
+                </code>
+                <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(projectId)}>
+                  Copiar Project ID
+                </Button>
+              </div>
+            ) : (
+                <p className="text-sm text-destructive ml-10">No se pudo encontrar `NEXT_PUBLIC_FIREBASE_PROJECT_ID` en tus variables de entorno.</p>
+            )}
+          </div>
+
+          <div>
+             <h3 className="font-semibold mb-2 flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">4</span>
                 Reemplaza tu User ID (UID) en el script
             </h3>
             <p className="text-sm text-muted-foreground mb-2 ml-10">
@@ -134,7 +168,7 @@ export default function MakeAdminPage() {
           
            <div>
              <h3 className="font-semibold mb-2 flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">4</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">5</span>
                 Instala las dependencias y ejecuta el script
             </h3>
             <p className="text-sm text-muted-foreground mb-3 ml-10">
@@ -169,3 +203,4 @@ export default function MakeAdminPage() {
     </div>
   );
 }
+
