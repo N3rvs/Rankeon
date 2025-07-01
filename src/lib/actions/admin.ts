@@ -1,41 +1,26 @@
 'use server';
-/**
- * @fileOverview Server actions for administrative tasks.
- *
- * - grantAdminRole - A function that assigns the 'admin' role to a specific user.
- */
 
 import { getAdminInstances } from '@/lib/firebase/admin';
 
-interface GrantAdminRoleInput {
-  uid: string;
-}
-
-interface GrantAdminRoleOutput {
-  message: string;
-}
-
-export async function grantAdminRole(input: GrantAdminRoleInput): Promise<GrantAdminRoleOutput> {
-  const { uid } = input;
-
+export async function grantAdminRole({ uid }: { uid: string }) {
   if (!uid) {
-    // This case should not be reached if called from the UI, but it's good practice.
-    throw new Error('User ID was not provided.');
+    throw new Error('User ID is required.');
   }
 
   try {
     const { adminAuth, adminDb } = getAdminInstances();
-    const user = await adminAuth.getUser(uid);
-    const existingClaims = user.customClaims || {};
+    
+    // Set custom claim for role-based access
+    await adminAuth.setCustomUserClaims(uid, { role: 'admin' });
 
-    // Set the custom claim and update the user's role in Firestore
-    await adminAuth.setCustomUserClaims(uid, { ...existingClaims, role: 'admin' });
-    await adminDb.collection("users").doc(uid).set({ role: 'admin' }, { merge: true });
-
-    return { message: `Successfully assigned 'admin' role to user ${uid}` };
+    // Also update the user's document in Firestore to keep the data in sync
+    await adminDb.collection('users').doc(uid).set({
+      role: 'admin'
+    }, { merge: true });
+    
+    return { message: `Admin role successfully assigned to user ${uid}.` };
   } catch (error: any) {
-    console.error("Error granting admin role:", error);
-    // Re-throw the error with a more context-specific message.
+    console.error('Error granting admin role:', error);
     throw new Error(`Failed to assign admin role: ${error.message}`);
   }
 }
