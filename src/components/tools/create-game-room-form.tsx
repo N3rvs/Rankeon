@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { createGameRoom } from '@/lib/actions/game-rooms';
-import { Sparkles, Bot } from 'lucide-react';
+import { Sparkles, Terminal } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Room name must be at least 3 characters.').max(50, 'Room name must be less than 50 characters.'),
@@ -22,6 +24,7 @@ export function CreateGameRoomForm() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<{ channelId: string } | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -33,6 +36,7 @@ export function CreateGameRoomForm() {
     const onSubmit = async (values: FormValues) => {
         setIsLoading(true);
         setResult(null);
+        setError(null);
         try {
             const response = await createGameRoom(values.name);
             if (response.success && response.discordChannelId) {
@@ -47,9 +51,11 @@ export function CreateGameRoomForm() {
             }
         } catch (error: any) {
             console.error(error);
+            const errorMessage = error.message || 'Failed to create game room. Please try again.';
+            setError(errorMessage);
             toast({
                 title: 'Error',
-                description: error.message || 'Failed to create game room. Please try again.',
+                description: errorMessage,
                 variant: 'destructive'
             });
         } finally {
@@ -91,7 +97,21 @@ export function CreateGameRoomForm() {
                         </Button>
                     </form>
                 </Form>
-                {result && (
+
+                {error && (
+                    <Alert variant="destructive" className="mt-6">
+                        <Terminal className="h-4 w-4" />
+                        <AlertTitle>Function Error</AlertTitle>
+                        <AlertDescription>
+                            <p>The server returned an error. This is often a configuration issue.</p>
+                            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold mt-2 block">
+                                {error}
+                            </code>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {result && !error && (
                     <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg text-center">
                         <h4 className="font-semibold text-green-300">Success!</h4>
                         <p className="text-sm text-green-400/80">
