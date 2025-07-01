@@ -24,6 +24,9 @@ import {
   Search,
   Users2,
   Shield,
+  Lightbulb,
+  Bot,
+  ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -35,12 +38,16 @@ import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from './ui/skeleton';
 import { InboxIcon } from './inbox/inbox-icon';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { cn } from '@/lib/utils';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, userProfile, loading } = useAuth();
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [isToolsOpen, setIsToolsOpen] = useState(pathname.startsWith('/tools'));
+
 
   useEffect(() => {
     if (!user) {
@@ -134,18 +141,44 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/tools/team-name-generator')}
-                tooltip="Tools"
-              >
-                <Link href="/tools/team-name-generator">
-                  <Wrench />
-                  <span>Tools</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <Collapsible asChild onOpenChange={setIsToolsOpen} open={isToolsOpen}>
+              <SidebarMenuItem className="flex flex-col items-start !gap-0">
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton className="w-full" isActive={pathname.startsWith('/tools')} tooltip="Tools">
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Wrench />
+                            <span>Tools</span>
+                        </div>
+                        <ChevronRight className={cn("h-4 w-4 shrink-0 transition-transform duration-200", isToolsOpen && "rotate-90")} />
+                      </div>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent asChild>
+                    <div className="w-full pl-6 group-data-[collapsible=icon]:hidden">
+                      <SidebarMenu className="gap-0 py-1">
+                        <SidebarMenuItem>
+                          <SidebarMenuButton asChild variant="ghost" size="sm" className="w-full justify-start" isActive={pathname === '/tools/team-name-generator'}>
+                            <Link href="/tools/team-name-generator">
+                              <Lightbulb />
+                              <span>Name Generator</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                           <SidebarMenuButton asChild variant="ghost" size="sm" className="w-full justify-start" isActive={pathname === '/tools/create-game-room'}>
+                            <Link href="/tools/create-game-room">
+                              <Bot />
+                              <span>Discord Room</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      </SidebarMenu>
+                    </div>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>

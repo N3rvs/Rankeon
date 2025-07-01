@@ -2,7 +2,7 @@
 
 import { generateTeamName } from "@/ai/flows/team-name-generator";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -67,10 +67,11 @@ export function TeamNameGeneratorForm() {
     }
 
     return (
-        <div className="grid md:grid-cols-2 gap-6">
+        <>
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Generator Settings</CardTitle>
+                    <CardDescription>Configure the AI to generate the perfect name.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -177,6 +178,6 @@ export function TeamNameGeneratorForm() {
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </>
     )
 }
