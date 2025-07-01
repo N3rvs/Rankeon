@@ -54,9 +54,11 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
   const [isFriend, setIsFriend] = useState<boolean | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Effect 1: Real-time listener for friendship status from the 'friends' subcollection.
   useEffect(() => {
     if (!user) {
       setStatus('loading');
+      setIsFriend(null);
       return;
     }
     if (user.uid === targetUser.id) {
@@ -64,7 +66,8 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
       return;
     }
     
-    // Use a direct listener on the subcollection for real-time friend status
+    // A direct listener on the friends subcollection is the most reliable way 
+    // to get real-time friend status for both users.
     const friendDocRef = doc(db, 'friends', user.uid, 'list', targetUser.id);
     const unsubscribeFriend = onSnapshot(friendDocRef, (doc) => {
         setIsFriend(doc.exists());
@@ -73,50 +76,54 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
     return () => unsubscribeFriend();
   }, [user, targetUser.id]);
   
-  
+  // Effect 2: Determines button state based on friendship status or pending requests.
   useEffect(() => {
+    // Wait until we know the friendship status
     if (isFriend === null || !user) {
       setStatus('loading');
       return;
     }
 
+    // If they are friends, the status is clear.
     if (isFriend) {
       setStatus('friends');
       return;
     }
 
     // If they are not friends, check for any pending friend requests.
+    // This query is more robust as it doesn't require a custom composite index.
     const q = query(
       collection(db, 'friendRequests'),
-      where('participantIds', 'array-contains', user.uid),
-      where('status', '==', 'pending')
+      where('participantIds', 'array-contains', user.uid)
     );
 
     const unsubscribeRequests = onSnapshot(q, (snapshot) => {
-      // Re-check friendship status in case it changed while setting up listener
+      // It's possible to become friends while this listener is active, so we re-check.
       if (isFriend) {
           setStatus('friends');
           return;
       }
 
-      let foundRequest = false;
-      for (const doc of snapshot.docs) {
-        const request = doc.data() as FriendRequest;
-        // Check if the request involves the target user
-        if (request.participantIds.includes(targetUser.id)) {
-          foundRequest = true;
-          setRequestId(doc.id);
+      // Filter on the client-side to find the specific pending request.
+      const relevantRequestDoc = snapshot.docs.find(doc => {
+          const request = doc.data();
+          return request.participantIds.includes(targetUser.id) && request.status === 'pending';
+      });
+
+      if (relevantRequestDoc) {
+          const request = relevantRequestDoc.data() as FriendRequest;
+          setRequestId(relevantRequestDoc.id);
           setStatus(
             request.from === user.uid ? 'request_sent' : 'request_received'
           );
-          break; // Found the relevant request, no need to check others
-        }
-      }
-
-      if (!foundRequest) {
+      } else {
+        // No pending request found between these two users
         setStatus('not_friends');
         setRequestId(null);
       }
+    }, (error) => {
+        console.error("Error listening to friend requests:", error);
+        setStatus('not_friends'); // Fallback to a safe state
     });
 
     return () => unsubscribeRequests();
