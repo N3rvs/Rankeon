@@ -1,29 +1,34 @@
-'use client';
+'use server';
 
-import { auth } from "@/lib/firebase/client";
+import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { revalidatePath } from 'next/cache';
+import type { UserRole } from '../types';
 
-export async function setUserRole(uid: string, role: string) {
-    const user = auth.currentUser;
-    if (!user) {
-        throw new Error("You must be logged in to perform this action.");
-    }
+export async function updateUserRole({
+  uid,
+  role,
+}: {
+  uid: string;
+  role: string;
+}): Promise<{ success: boolean; message: string }> {
+  const validRoles: UserRole[] = ['admin', 'moderator', 'founder', 'coach', 'player'];
+
+  if (!uid || !role || !validRoles.includes(role as UserRole)) {
+    return { success: false, message: 'Invalid arguments.' };
+  }
+  
+  try {
+    const userToUpdate = await adminAuth.getUser(uid);
+    const existingClaims = userToUpdate.customClaims || {};
+
+    await adminAuth.setCustomUserClaims(uid, { ...existingClaims, role });
+    await adminDb.collection('users').doc(uid).set({ role }, { merge: true });
+
+    revalidatePath('/profile'); // Invalidate cache for the profile page
     
-    const token = await user.getIdToken();
-
-    const response = await fetch('/api/assign-role', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ uid, role }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.error || 'Failed to set user role.');
-    }
-
-    return data;
+    return { success: true, message: `Role "${role}" assigned to user ${uid}` };
+  } catch (error: any) {
+    console.error('❌ Error updating role:', error);
+    return { success: false, message: `Failed to update role: ${error.message}` };
+  }
 }

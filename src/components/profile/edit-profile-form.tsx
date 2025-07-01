@@ -13,7 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import { setUserRole } from '@/lib/actions/users';
+import { updateUserRole } from '@/lib/actions/users';
+import { useTransition } from 'react';
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
@@ -26,6 +27,8 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -37,36 +40,45 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   });
 
   const onSubmit = async (data: ProfileFormValues) => {
-    try {
-      // Update general profile data
-      const { role, ...profileData } = data;
-      const userDocRef = doc(db, 'users', userProfile.id);
-      await updateDoc(userDocRef, profileData);
+    startTransition(async () => {
+      try {
+        // Update general profile data
+        const { role, ...profileData } = data;
+        const userDocRef = doc(db, 'users', userProfile.id);
+        await updateDoc(userDocRef, profileData);
 
-      // Update role if changed and user is admin
-      if (userProfile.role === 'admin' && data.role !== userProfile.role) {
-        await setUserRole(userProfile.id, data.role);
-        // Note: The user might need to sign out and back in for the new role to be reflected in their token.
+        let roleUpdated = false;
+        // Update role if changed and user is admin
+        if (userProfile.role === 'admin' && data.role !== userProfile.role) {
+            const result = await updateUserRole({ uid: userProfile.id, role: data.role});
+            if (!result.success) {
+                throw new Error(result.message);
+            }
+            roleUpdated = true;
+        } 
+        
+        if (roleUpdated) {
+             toast({
+                title: 'Profile and Role Updated',
+                description: 'Your profile has been successfully updated. Role change may require a fresh login.',
+            });
+        } else {
+             toast({
+                title: 'Profile Updated',
+                description: 'Your profile has been successfully updated.',
+             });
+        }
+        
+        onFinished();
+      } catch (error: any) {
+        console.error(error);
         toast({
-          title: 'Role Updated',
-          description: 'User role has been changed. Changes may require a fresh login to take full effect.',
+          title: 'Error',
+          description: `Failed to update profile: ${error.message}`,
+          variant: 'destructive',
         });
-      } else {
-         toast({
-            title: 'Profile Updated',
-            description: 'Your profile has been successfully updated.',
-         });
       }
-      
-      onFinished();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update profile. Please try again.',
-        variant: 'destructive',
-      });
-    }
+    });
   };
 
   const validRoles: UserRole[] = ["admin", "moderator", "founder", "coach", "player"];
@@ -145,8 +157,8 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
           />
         )}
 
-        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
+        <Button type="submit" className="w-full" disabled={isPending || form.formState.isSubmitting}>
+          {isPending ? 'Saving...' : 'Save Changes'}
         </Button>
       </form>
     </Form>
