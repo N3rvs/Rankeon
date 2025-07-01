@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import type { GameRoom, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, CheckCircle2 } from 'lucide-react';
+import { Eye, CheckCircle2, Globe } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Skeleton } from '../ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
-import { Tooltip, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface GameRoomCardProps {
   room: GameRoom;
@@ -46,21 +46,29 @@ export function GameRoomCard({ room }: GameRoomCardProps) {
                 <CardTitle className="font-headline">{room.name}</CardTitle>
                 <CardDescription>Para {room.game}</CardDescription>
             </div>
-            {room.discordChannelId && (
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger>
-                           <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-green-500/20">
-                                <CheckCircle2 className="h-3 w-3 mr-1.5"/>
-                                Discord
-                            </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Canal de Discord creado</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            )}
+            <div className="flex flex-col items-end gap-2">
+                {room.server && (
+                    <Badge variant="outline">
+                        <Globe className="h-3 w-3 mr-1.5" />
+                        {room.server}
+                    </Badge>
+                )}
+                {room.discordChannelId && (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                            <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-green-500/20">
+                                    <CheckCircle2 className="h-3 w-3 mr-1.5"/>
+                                    Discord
+                                </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Canal de Discord creado</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
+            </div>
         </div>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">

@@ -8,6 +8,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 const CreateRoomSchema = z.object({
   name: z.string().min(3, { message: 'El nombre debe tener al menos 3 caracteres.' }).max(50),
   game: z.string().min(1, { message: 'Por favor, introduce un juego.' }),
+  server: z.string().min(1, { message: 'Por favor, selecciona un servidor.' }),
 });
 
 type ActionResponse = {
@@ -36,7 +37,7 @@ export async function createRoom(
       return { success: false, message: 'Datos del formulario no válidos.' };
     }
     
-    const { name, game } = validatedFields.data;
+    const { name, game, server } = validatedFields.data;
     
     const newRoomRef = adminDb.collection('gameRooms').doc();
     
@@ -44,6 +45,7 @@ export async function createRoom(
       id: newRoomRef.id,
       name,
       game,
+      server,
       createdBy: uid,
       discordChannelId: null,
       createdAt: FieldValue.serverTimestamp(),

@@ -84,6 +84,7 @@ export interface GameRoom {
   id: string;
   name: string;
   game: string;
+  server?: string;
   createdBy: string; // UID of creator
   createdAt: Timestamp;
   discordChannelId?: string | null;

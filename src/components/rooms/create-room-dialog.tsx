@@ -12,11 +12,22 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle } from 'lucide-react';
 import { createRoom } from '@/lib/actions/rooms';
 import { useAuth } from '@/contexts/auth-context';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50, 'El nombre debe tener menos de 50 caracteres.'),
-  game: z.string().min(1, 'Por favor, introduce un juego.'),
+  game: z.string().min(1, 'Por favor, introduce un juego.').default('Valorant'),
+  server: z.string().min(1, 'Por favor, selecciona un servidor.'),
 });
+
+const valorantServers = [
+    { value: 'NA', label: 'Norteamérica (NA)' },
+    { value: 'EU', label: 'Europa (EU)' },
+    { value: 'LATAM', label: 'Latinoamérica (LATAM)' },
+    { value: 'BR', label: 'Brasil (BR)' },
+    { value: 'KR', label: 'Corea (KR)' },
+    { value: 'AP', label: 'Asia-Pacífico (AP)' },
+];
 
 export function CreateRoomDialog() {
   const { toast } = useToast();
@@ -28,7 +39,8 @@ export function CreateRoomDialog() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      game: '',
+      game: 'Valorant',
+      server: '',
     },
   });
 
@@ -89,8 +101,30 @@ export function CreateRoomDialog() {
                 <FormItem>
                   <FormLabel>Juego</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Valorant" {...field} />
+                    <Input {...field} readOnly />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="server"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Servidor</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un servidor de Valorant" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {valorantServers.map(server => (
+                        <SelectItem key={server.value} value={server.value}>{server.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
