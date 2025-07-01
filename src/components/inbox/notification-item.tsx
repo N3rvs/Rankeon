@@ -277,9 +277,6 @@ export function NotificationItem({
           </div>
         )}
       </div>
-       {!notification.read && (
-          <div className="h-2 w-2 rounded-full bg-primary self-center" />
-      )}
     </div>
   );
 }
