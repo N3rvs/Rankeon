@@ -19,6 +19,7 @@ import {
   X,
   Users,
   UserX,
+  Inbox,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -218,12 +219,7 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
     case 'request_sent':
       return <Button className="w-full" variant="outline" disabled><Clock className="mr-2 h-4 w-4" /> Request Sent</Button>;
     case 'request_received':
-      return (
-        <div className="flex w-full gap-2">
-          <Button className="flex-1" onClick={() => handleResponse(true)} disabled={isPending}><Check className="mr-2 h-4 w-4" /> Accept</Button>
-          <Button className="flex-1" variant="destructive" onClick={() => handleResponse(false)} disabled={isPending}><X className="mr-2 h-4 w-4" /> Decline</Button>
-        </div>
-      );
+      return <Button className="w-full" variant="outline" disabled><Inbox className="mr-2 h-4 w-4" /> Request Received</Button>;
     case 'friends':
       return (
         <DropdownMenu>
