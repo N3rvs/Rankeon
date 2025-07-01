@@ -13,7 +13,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {
-  Users,
+  Gamepad2,
   LayoutDashboard,
   MessageSquare,
   UserCircle,
@@ -52,7 +52,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">
-            <Users className="h-8 w-8 text-primary" />
+            <Gamepad2 className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold font-headline">SquadUp</h1>
           </div>
         </SidebarHeader>
