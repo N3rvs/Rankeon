@@ -14,12 +14,16 @@ import {
 } from 'firebase/firestore';
 import type { Notification } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Bell, CheckCheck } from 'lucide-react';
+import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { markAllAsRead } from '@/lib/actions/notifications';
+import {
+  markAllAsRead,
+  clearNotificationHistory,
+} from '@/lib/actions/notifications';
 import { NotificationItem } from './notification-item';
 import { ScrollArea } from '../ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 export function InboxContent() {
   const { user } = useAuth();
@@ -27,6 +31,7 @@ export function InboxContent() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const [isClearing, startClearingTransition] = useTransition();
 
   useEffect(() => {
     if (!user) {
@@ -78,26 +83,58 @@ export function InboxContent() {
     });
   };
 
+  const handleClearHistory = () => {
+    startClearingTransition(async () => {
+      if (!user || notifications.length === 0) return;
+
+      const { success, message } = await clearNotificationHistory();
+      if (success) {
+        toast({ title: 'Success', description: message });
+      } else {
+        toast({ title: 'Error', description: message, variant: 'destructive' });
+      }
+    });
+  };
+
   const hasUnread = notifications.some((n) => !n.read);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[calc(80vh)] md:h-full">
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold font-headline">Notifications</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleMarkAllRead}
-            disabled={isPending || !hasUnread}
-          >
-            <CheckCheck className="mr-2 h-4 w-4" />
-            Mark all as read
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMarkAllRead}
+              disabled={isPending || !hasUnread}
+            >
+              <CheckCheck className="mr-2 h-4 w-4" />
+              Mark all as read
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  onClick={handleClearHistory}
+                  disabled={isClearing || notifications.length === 0}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Clear history</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Clear all notifications</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
-      
-      <ScrollArea className="flex-1 max-h-[70vh]">
+
+      <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {loading ? (
             <div className="space-y-2 p-2">
@@ -108,7 +145,7 @@ export function InboxContent() {
           ) : notifications.length === 0 ? (
             <div className="flex min-h-[200px] flex-col items-center justify-center text-center p-6 text-muted-foreground">
               <Bell className="h-10 w-10" />
-              <p className="mt-4 text-sm font-semibold">No new notifications</p>
+              <p className="mt-4 text-sm font-semibold">No notifications</p>
               <p className="text-xs">
                 Friend requests and other updates will appear here.
               </p>
