@@ -18,6 +18,11 @@ function initializeAdminApp(): admin.app.App {
 
   // A more robust check to ensure all parts of the service account are present.
   if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
+    console.error('❌ Firebase Admin credentials check failed inside initializeAdminApp:');
+    console.error('  - FIREBASE_ADMIN_PROJECT_ID:', serviceAccount.projectId ? 'FOUND' : 'MISSING');
+    console.error('  - FIREBASE_ADMIN_CLIENT_EMAIL:', serviceAccount.clientEmail ? 'FOUND' : 'MISSING');
+    console.error('  - FIREBASE_ADMIN_PRIVATE_KEY:', serviceAccount.privateKey ? 'FOUND' : 'MISSING');
+    
     throw new Error(
       '❌ Firebase Admin credentials are missing or incomplete. Please ensure FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY are all set in your .env file.'
     );
