@@ -25,9 +25,11 @@ export function InboxIcon() {
     let unsubscribe: Unsubscribe | undefined;
 
     if (user) {
+      // We count everything except new messages for the popover badge
       const q = query(
         collection(db, 'inbox', user.uid, 'notifications'),
-        where('read', '==', false)
+        where('read', '==', false),
+        where('type', '!=', 'new_message')
       );
 
       unsubscribe = onSnapshot(
@@ -63,7 +65,7 @@ export function InboxIcon() {
           <span className="sr-only">Open Inbox</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end">
+      <PopoverContent className="w-[90vw] max-w-sm p-0" align="end">
         <InboxContent />
       </PopoverContent>
     </Popover>

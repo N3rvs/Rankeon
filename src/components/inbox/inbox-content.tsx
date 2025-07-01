@@ -36,8 +36,11 @@ export function InboxContent() {
     }
 
     setLoading(true);
+    // We filter out 'new_message' notifications from the popover
     const q = query(
       collection(db, 'inbox', user.uid, 'notifications'),
+      where('type', '!=', 'new_message'),
+      orderBy('type', 'asc'), // needed for the inequality filter
       orderBy('timestamp', 'desc'),
       limit(20)
     );
@@ -94,7 +97,7 @@ export function InboxContent() {
         </div>
       </div>
       
-      <ScrollArea className="flex-1" style={{ height: '400px' }}>
+      <ScrollArea className="flex-1 max-h-[70vh]">
         <div className="p-2 space-y-1">
           {loading ? (
             <div className="space-y-2 p-2">
