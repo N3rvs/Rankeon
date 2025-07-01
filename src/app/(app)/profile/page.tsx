@@ -1,12 +1,38 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockCurrentUser } from "@/lib/mock-data";
+import { useAuth } from "@/contexts/auth-context";
 import { Edit } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
-    const user = mockCurrentUser;
+    const { userProfile, loading } = useAuth();
+
+    if (loading || !userProfile) {
+        return (
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader className="flex flex-col items-center text-center space-y-4">
+                        <Skeleton className="h-24 w-24 rounded-full" />
+                        <div>
+                            <Skeleton className="h-8 w-48 mb-2" />
+                            <Skeleton className="h-4 w-64" />
+                        </div>
+                        <Skeleton className="h-10 w-32" />
+                    </CardHeader>
+                    <CardContent className="mt-4 border-t pt-6">
+                         <Skeleton className="h-48 w-full" />
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
+
+    const user = userProfile;
+
     return (
         <div className="space-y-6">
             <Card>
@@ -31,22 +57,22 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="md:col-span-1">
                             <h3 className="font-semibold font-headline mb-2">About Me</h3>
-                            <p className="text-muted-foreground text-sm">{user.bio}</p>
+                            <p className="text-muted-foreground text-sm">{user.bio || 'No bio yet.'}</p>
                         </div>
                         <div className="md:col-span-1">
                             <h3 className="font-semibold font-headline mb-2">Primary Games</h3>
                             <div className="flex flex-wrap gap-2">
-                                {user.games.map(game => (
+                                {user.games && user.games.length > 0 ? user.games.map(game => (
                                     <Badge key={game} variant="secondary">{game}</Badge>
-                                ))}
+                                )) : <p className="text-sm text-muted-foreground">No games added yet.</p>}
                             </div>
                         </div>
                         <div className="md:col-span-1">
                             <h3 className="font-semibold font-headline mb-2">Skills / Roles</h3>
                             <div className="flex flex-wrap gap-2">
-                                {user.skills.map(skill => (
+                                {user.skills && user.skills.length > 0 ? user.skills.map(skill => (
                                     <Badge key={skill} variant="outline">{skill}</Badge>
-                                ))}
+                                )) : <p className="text-sm text-muted-foreground">No skills added yet.</p>}
                             </div>
                         </div>
                     </div>

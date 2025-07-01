@@ -1,8 +1,32 @@
+
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Rocket, Users } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/auth-context';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
+
+  if (loading || user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Skeleton className="h-24 w-24 rounded-full" />
+      </div>
+    );
+  }
+  
   return (
     <div className="flex flex-col min-h-screen">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -12,10 +36,10 @@ export default function Home() {
         </div>
         <nav className="flex items-center gap-4">
           <Button variant="ghost" asChild>
-            <Link href="/dashboard">Login</Link>
+            <Link href="/login">Login</Link>
           </Button>
           <Button asChild>
-            <Link href="/dashboard">Get Started</Link>
+            <Link href="/register">Get Started</Link>
           </Button>
         </nav>
       </header>
@@ -33,7 +57,7 @@ export default function Home() {
               SquadUp is the ultimate platform for gamers to connect, form teams, and dominate the competitive scene. Whether you're a player looking for a team or a team scouting for talent, we've got you covered.
             </p>
             <Button size="lg" asChild>
-              <Link href="/dashboard">
+              <Link href="/register">
                 <Rocket className="mr-2 h-5 w-5" />
                 Launch the App
               </Link>

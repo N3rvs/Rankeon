@@ -1,14 +1,19 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { mockConversations, mockCurrentUser } from "@/lib/mock-data";
+import { mockConversations } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { MoreVertical, Search, Send } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function MessagesPage() {
+    const { userProfile } = useAuth();
+
     return (
         <div className="h-[calc(100vh-theme(spacing.24))]">
             <Card className="h-full flex">
@@ -55,7 +60,7 @@ export default function MessagesPage() {
                     <ScrollArea className="flex-1 p-6">
                         <div className="space-y-6">
                             <ChatMessage sender="other" text="Hey, saw your profile. Are you still looking for a team?" timestamp={Date.now() - 1000 * 60 * 5} />
-                            <ChatMessage sender="me" text="Yeah, I am! Your team looks interesting. What role are you looking to fill?" timestamp={Date.now() - 1000 * 60 * 3} />
+                            <ChatMessage sender="me" text="Yeah, I am! Your team looks interesting. What role are you looking to fill?" timestamp={Date.now() - 1000 * 60 * 3} userAvatar={userProfile?.avatarUrl} userName={userProfile?.name} />
                             <ChatMessage sender="other" text="We're looking for a duelist, your Jett stats are impressive." timestamp={Date.now() - 1000 * 60 * 1} />
                         </div>
                     </ScrollArea>
@@ -73,7 +78,7 @@ export default function MessagesPage() {
     )
 }
 
-function ChatMessage({ sender, text }: { sender: 'me' | 'other', text: string, timestamp: number }) {
+function ChatMessage({ sender, text, userAvatar, userName }: { sender: 'me' | 'other', text: string, timestamp: number, userAvatar?: string, userName?: string }) {
     const isMe = sender === 'me';
     return (
         <div className={cn("flex items-end gap-2", isMe ? "justify-end" : "justify-start")}>
@@ -84,7 +89,12 @@ function ChatMessage({ sender, text }: { sender: 'me' | 'other', text: string, t
             )}>
                 <p className="text-sm">{text}</p>
             </div>
-            {isMe && <Avatar className="h-8 w-8"><AvatarImage src={mockCurrentUser.avatarUrl} data-ai-hint="male avatar"/><AvatarFallback>{mockCurrentUser.name.slice(0, 2)}</AvatarFallback></Avatar>}
+            {isMe && userAvatar && (
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={userAvatar} data-ai-hint="male avatar"/>
+                    <AvatarFallback>{userName?.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+            )}
         </div>
     );
 }

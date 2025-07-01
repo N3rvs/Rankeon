@@ -23,14 +23,24 @@ import {
   Users2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { mockCurrentUser } from '@/lib/mock-data';
+import { useAuth } from '@/contexts/auth-context';
+import { auth } from '@/lib/firebase/client';
+import { Skeleton } from './ui/skeleton';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, userProfile, loading } = useAuth();
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/login');
+  };
+
 
   const isActive = (path: string) => {
     return pathname.startsWith(path);
@@ -112,11 +122,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Logout">
-                <Link href="/">
-                  <LogOut />
-                  <span>Logout</span>
-                </Link>
+              <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
+                <LogOut />
+                <span>Logout</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -133,10 +141,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-4">
             <Button variant="outline">Create a Team</Button>
-            <Avatar>
-              <AvatarImage src={mockCurrentUser.avatarUrl} alt={mockCurrentUser.name} data-ai-hint="male avatar" />
-              <AvatarFallback>{mockCurrentUser.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+            {loading ? <Skeleton className="h-10 w-10 rounded-full" /> : (
+              <Avatar>
+                <AvatarImage src={userProfile?.avatarUrl} alt={userProfile?.name} data-ai-hint="male avatar" />
+                <AvatarFallback>{userProfile?.name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+              </Avatar>
+            )}
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
