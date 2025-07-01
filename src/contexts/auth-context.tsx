@@ -12,7 +12,9 @@ import { onIdTokenChanged, User as FirebaseUser } from 'firebase/auth';
 import {
   doc,
   onSnapshot,
-  getDocFromServer,
+  getDoc,
+  setDoc,
+  serverTimestamp,
   updateDoc,
   Unsubscribe,
 } from 'firebase/firestore';
@@ -56,15 +58,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const tokenResult = await authUser.getIdTokenResult(true);
         setToken(tokenResult.token);
 
+        const userDocRef = doc(db, 'users', authUser.uid);
+        
+        // This is a robust check to ensure the user profile document exists.
+        // It runs every time auth state changes, fixing cases where a user
+        // exists in Auth but not in Firestore.
+        const userSnap = await getDoc(userDocRef);
+        if (!userSnap.exists()) {
+          try {
+            await setDoc(userDocRef, {
+              id: authUser.uid,
+              email: authUser.email,
+              role: 'player',
+              name: authUser.displayName || authUser.email?.split('@')[0] || 'New Player',
+              avatarUrl: authUser.photoURL || `https://placehold.co/100x100.png`,
+              bio: '',
+              games: [],
+              skills: [],
+              friends: [], // Ensure friends array is created
+              blocked: [], // Ensure blocked array is created
+              lookingForTeam: false,
+              country: '',
+              disabled: false,
+              createdAt: serverTimestamp(),
+            });
+          } catch (error) {
+            console.error("Error creating user document in AuthProvider:", error);
+          }
+        }
+        
+        // This syncs the 'admin' role from Custom Claims to Firestore if needed.
         if (tokenResult.claims.role === 'admin') {
-          const userDocRef = doc(db, 'users', authUser.uid);
-          const docSnap = await getDocFromServer(userDocRef);
-          if (docSnap.exists() && docSnap.data().role !== 'admin') {
+          // We can re-use the userSnap from the check above.
+          if (userSnap.exists() && userSnap.data().role !== 'admin') {
             await updateDoc(userDocRef, { role: 'admin' });
           }
         }
         
-        const userDocRef = doc(db, 'users', authUser.uid);
+        // Finally, set up the real-time listener for profile changes.
         unsubscribeProfile = onSnapshot(
           userDocRef,
           (docSnap) => {
