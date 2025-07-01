@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { respondToFriendRequest } from '@/lib/actions/friends';
 import {
   doc,
-  updateDoc,
   getDoc,
   query,
   collection,
@@ -78,89 +77,83 @@ export function NotificationItem({
     };
   }, [notification.id, notification.from]);
 
-  const handleResponse = async (accept: boolean) => {
+  const findRequestId = async (): Promise<string | null> => {
+    // 1. Check the notification data first
+    if (notification.extraData?.requestId) {
+        return notification.extraData.requestId;
+    }
+
+    // 2. If not found, fall back to a direct query
+    if (notification.type === 'friend_request' && user) {
+        try {
+            const q = query(
+                collection(db, "friendRequests"),
+                where("from", "==", notification.from),
+                where("to", "==", user.uid),
+                where("status", "==", "pending")
+            );
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                // Return the ID of the first (and should be only) pending request
+                return querySnapshot.docs[0].id;
+            }
+        } catch (error) {
+            console.error('Error querying for friend request ID:', error);
+            toast({
+                title: "Database Error",
+                description: "Could not search for the friend request.",
+                variant: "destructive"
+            });
+            return null;
+        }
+    }
+    return null;
+  }
+
+  const handleResponse = (accept: boolean) => {
     if (!user || !notification.from) return;
 
-    let requestId = notification.extraData?.requestId;
-
-    // If the notification doesn't have the ID, find it manually.
-    if (!requestId && notification.type === 'friend_request') {
-      try {
-        const q = query(
-          collection(db, "friendRequests"),
-          where("from", "==", notification.from),
-          where("to", "==", user.uid),
-          where("status", "==", "pending")
-        );
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          requestId = querySnapshot.docs[0].id;
-        }
-      } catch (e) {
-        console.error('Error querying for friend request ID:', e);
-      }
-    }
-
-    if (!requestId) {
-      toast({
-        title: 'Request Unavailable',
-        description: 'This friend request has already been resolved.',
-      });
-      // Clean up the stale notification from the inbox
-      await clearNotificationHistory([notification.id]);
-      return;
-    }
-
     startResponding(async () => {
-      const result = await respondToFriendRequest({
-        requestId: requestId!,
-        accept,
-      });
-      if (result.success) {
-        setIsActionTaken(true);
-        toast({
-          title: 'Success',
-          description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
-        });
-        markAsRead(); // Mark as read after action
-      } else {
-        // Check for specific error messages from the backend
-        if (result.message.includes('not-found') || result.message.includes('already been responded to') || result.message.includes('resolved')) {
-           toast({
-              title: "Request Unavailable",
-              description: "This friend request has already been resolved.",
-            });
-            // Clean up the stale notification from the inbox
-            await clearNotificationHistory([notification.id]);
-        } else {
-          toast({
-            title: 'Error',
-            description: result.message,
-            variant: 'destructive',
-          });
-        }
-      }
-    });
-  };
+        const requestId = await findRequestId();
 
-  const markAsRead = async () => {
-    if (notification.read || !user) return;
-    try {
-      const notifRef = doc(
-        db,
-        'inbox',
-        user.uid,
-        'notifications',
-        notification.id
-      );
-      await updateDoc(notifRef, { read: true });
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
+        if (!requestId) {
+            toast({
+                title: 'Request Unavailable',
+                description: 'This friend request may have been resolved already. The notification will be cleared.',
+            });
+            await clearNotificationHistory([notification.id]);
+            return;
+        }
+
+        const result = await respondToFriendRequest({ requestId, accept });
+
+        if (result.success) {
+            setIsActionTaken(true);
+            toast({
+                title: 'Success',
+                description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
+            });
+        } else {
+             if (result.message.includes('not-found') || result.message.includes('resolved')) {
+               toast({
+                  title: "Request Unavailable",
+                  description: "This friend request has already been resolved.",
+                });
+                await clearNotificationHistory([notification.id]);
+            } else {
+              toast({
+                title: 'Error',
+                description: result.message,
+                variant: 'destructive',
+              });
+            }
+        }
+    });
   };
   
   const handleNavigate = (path: string) => {
-    markAsRead();
+    // This action implicitly marks the notification as read on the backend
+    // or the backend should handle deleting it after navigation.
     router.push(path);
   }
 
@@ -217,9 +210,8 @@ export function NotificationItem({
 
   return (
     <div
-      onClick={markAsRead}
       className={cn(
-        'flex items-start gap-3 p-3 transition-colors hover:bg-accent rounded-lg cursor-pointer',
+        'flex items-start gap-3 p-3 transition-colors hover:bg-accent rounded-lg',
         !notification.read && 'bg-primary/5 hover:bg-primary/10'
       )}
     >
@@ -272,7 +264,7 @@ export function NotificationItem({
             </p>
           </div>
         )}
-        {(notification.type === 'friend_accepted' || notification.type === 'new_message') && (
+        {(notification.type === 'friend_accepted') && (
           <div className="flex gap-2 pt-1">
               <Button
                   size="sm"
