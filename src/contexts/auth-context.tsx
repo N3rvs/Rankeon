@@ -11,7 +11,7 @@ import {
   onIdTokenChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, getDocFromServer } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
@@ -41,10 +41,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onIdTokenChanged(auth, async (authUser) => {
       if (authUser) {
         setUser(authUser);
-        const freshToken = await authUser.getIdToken(true);
-        setToken(freshToken);
-
+        const tokenResult = await authUser.getIdTokenResult(true);
+        setToken(tokenResult.token);
+        
         const userDocRef = doc(db, 'users', authUser.uid);
+
+        // Self-healing: Sync Firestore role with Auth token claim if mismatched
+        if (tokenResult.claims.role === 'admin') {
+            const docSnap = await getDocFromServer(userDocRef);
+            if (docSnap.exists() && docSnap.data().role !== 'admin') {
+                await updateDoc(userDocRef, { role: 'admin' });
+            }
+        }
+
         const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             setUserProfile(docSnap.data() as UserProfile);
