@@ -8,7 +8,7 @@ import {
   collection,
   query,
   where,
-  onSnapshot,
+  getDocs,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Button } from '../ui/button';
@@ -53,62 +53,78 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (!user || !userProfile) {
-      setStatus('loading');
-      return;
-    }
+    let isMounted = true;
 
-    if (user.uid === targetUser.id) {
-      setStatus('self');
-      return;
-    }
+    const determineStatus = async () => {
+        if (!user || !userProfile) {
+            if (isMounted) setStatus('loading');
+            return;
+        }
 
-    // Step 1: Check friendship status from the user's profile friends array.
-    // This is now the primary source of truth, updated in real-time via AuthContext.
-    const areFriends = userProfile.friends?.includes(targetUser.id) ?? false;
-    if (areFriends) {
-      setStatus('friends');
-      return;
-    }
+        if (user.uid === targetUser.id) {
+            if (isMounted) setStatus('self');
+            return;
+        }
+        
+        // 1. Primary check: Are we friends?
+        if (userProfile.friends?.includes(targetUser.id)) {
+            if (isMounted) setStatus('friends');
+            return;
+        }
 
-    // Step 2: If not friends, check for a pending friend request.
-    // This relies on your backend function adding a `participantIds` array to the friend request document.
-    const q = query(
-      collection(db, 'friendRequests'),
-      where('status', '==', 'pending'),
-      where('participantIds', 'array-contains', user.uid)
-    );
+        // 2. If not friends, check for a pending request
+        try {
+            // Check for requests sent BY ME to the target user
+            const sentQuery = query(
+                collection(db, 'friendRequests'),
+                where('from', '==', user.uid),
+                where('to', '==', targetUser.id),
+                where('status', '==', 'pending')
+            );
+            const sentSnapshot = await getDocs(sentQuery);
 
-    const unsubscribeRequests = onSnapshot(q, (snapshot) => {
-      // Re-check friendship in case the status changed while the listener was being set up.
-      if (userProfile.friends?.includes(targetUser.id)) {
-        setStatus('friends');
-        return;
-      }
+            if (!sentSnapshot.empty) {
+                if (isMounted) {
+                    setRequestId(sentSnapshot.docs[0].id);
+                    setStatus('request_sent');
+                }
+                return;
+            }
 
-      // Filter on the client to find the specific request involving the target user.
-      const relevantRequestDoc = snapshot.docs.find(doc => {
-        const request = doc.data();
-        return request.participantIds.includes(targetUser.id);
-      });
+            // Check for requests sent TO ME from the target user
+            const receivedQuery = query(
+                collection(db, 'friendRequests'),
+                where('from', '==', targetUser.id),
+                where('to', '==', user.uid),
+                where('status', '==', 'pending')
+            );
+            const receivedSnapshot = await getDocs(receivedQuery);
 
-      if (relevantRequestDoc) {
-        const request = relevantRequestDoc.data() as FriendRequest;
-        setRequestId(relevantRequestDoc.id);
-        setStatus(
-          request.from === user.uid ? 'request_sent' : 'request_received'
-        );
-      } else {
-        // No pending request found between these two users.
-        setStatus('not_friends');
-        setRequestId(null);
-      }
-    }, (error) => {
-        console.error("Error listening to friend requests:", error);
-        setStatus('not_friends'); // Fallback to a safe state
-    });
+            if (!receivedSnapshot.empty) {
+                if (isMounted) {
+                    setRequestId(receivedSnapshot.docs[0].id);
+                    setStatus('request_received');
+                }
+                return;
+            }
 
-    return () => unsubscribeRequests();
+            // 3. If no friendship and no pending request, we are not friends.
+            if (isMounted) {
+              setStatus('not_friends');
+              setRequestId(null);
+            }
+
+        } catch (error) {
+            console.error("Error checking friendship status:", error);
+            if (isMounted) setStatus('not_friends');
+        }
+    };
+
+    determineStatus();
+
+    return () => {
+        isMounted = false;
+    };
   }, [user, userProfile, targetUser.id]);
 
 
@@ -120,8 +136,9 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           title: 'Success',
           description: 'Friend request sent.',
         });
+        // Manually update status to give instant feedback
+        setStatus('request_sent');
       } else {
-        // Your backend now handles the "already sent" case, but this is a good fallback.
         if (result.message.includes('already-exists') || result.message.includes('already sent')) {
              toast({
                 title: 'Request Already Pending',
@@ -129,6 +146,8 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
                 variant: 'destructive',
                 duration: 8000,
             });
+            // Correct the state if the backend confirms a request exists
+            setStatus('request_sent');
         } else {
             toast({
                 title: 'Error',
@@ -149,6 +168,7 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           title: 'Success',
           description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
         });
+        // State will update automatically via the useEffect hook re-running
       } else {
         toast({
           title: 'Error',
@@ -161,13 +181,13 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
 
   const handleRemoveFriend = () => {
     startTransition(async () => {
-      // This calls your new, improved backend function.
       const result = await removeFriend(targetUser.id);
       if (result.success) {
         toast({
           title: 'Friend Removed',
           description: `You are no longer friends with ${targetUser.name}.`,
         });
+        // State will update automatically via the useEffect hook re-running
       } else {
         toast({
           title: 'Error',
