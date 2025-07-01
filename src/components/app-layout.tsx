@@ -110,11 +110,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/tools/make-admin')}
-                tooltip="Make Admin"
+                tooltip="Guía Admin"
               >
                 <Link href="/tools/make-admin">
                   <Shield />
-                  <span>Make Admin (Setup)</span>
+                  <span>Guía Admin (Setup)</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
