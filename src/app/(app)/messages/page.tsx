@@ -38,7 +38,7 @@ export default function MessagesPage() {
 
 
     useEffect(() => {
-        if (!user) {
+        if (!user || !userProfile) {
             setLoadingChats(false);
             setChats([]);
             return;
@@ -49,16 +49,25 @@ export default function MessagesPage() {
         
         const unsubscribe = onSnapshot(q, async (querySnapshot) => {
             const chatData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
-            chatData.sort((a, b) => {
+            
+            // Filter chats to only include current friends.
+            const friends = userProfile.friends || [];
+            const filteredChats = chatData.filter(chat => {
+                const otherId = chat.members.find(id => id !== user.uid);
+                // Keep the chat if the other person is in the friends list.
+                return otherId ? friends.includes(otherId) : false;
+            });
+
+            filteredChats.sort((a, b) => {
                 const timeA = a.lastMessage?.createdAt?.toMillis() || a.createdAt?.toMillis() || 0;
                 const timeB = b.lastMessage?.createdAt?.toMillis() || b.createdAt?.toMillis() || 0;
                 return timeB - timeA;
             });
-            setChats(chatData);
+            setChats(filteredChats);
 
-            // Fetch participant profiles
+            // Fetch participant profiles for the filtered chats
             const profilesToFetch = new Set<string>();
-            chatData.forEach(chat => {
+            filteredChats.forEach(chat => {
                 chat.members.forEach(memberId => {
                     if (memberId !== user.uid && !participantProfiles[memberId]) {
                         profilesToFetch.add(memberId);
@@ -84,7 +93,7 @@ export default function MessagesPage() {
         });
 
         return () => unsubscribe();
-    }, [user, participantProfiles]);
+    }, [user, userProfile]);
 
     useEffect(() => {
         if (!selectedChat || !user) {
