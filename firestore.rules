@@ -2,56 +2,52 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+    // Users can read any profile, but only write/update their own.
     match /users/{userId} {
-      // Anyone authenticated can view user profiles.
       allow read: if request.auth != null;
-      // A user can only create or update their own profile.
-      allow write: if request.auth.uid == userId;
+      allow create: if request.auth.uid == userId;
+      allow update: if request.auth.uid == userId;
     }
 
+    // Teams can be read by any authenticated user.
     match /teams/{teamId} {
-      // Anyone can view team profiles.
       allow read: if request.auth != null;
-      // Team management rules would go here (e.g., only owner can update).
-    }
-    
-    match /inbox/{userId}/{documents=**} {
-      // A user can only access their own inbox and its subcollections.
-      allow read, write: if request.auth.uid == userId;
-    }
-    
-    match /friends/{userId}/{documents=**} {
-      // A user can only manage their own friends list.
-      allow read, write: if request.auth.uid == userId;
-    }
-    
-    match /friendRequests/{requestId} {
-      // A user can read a request if they are part of it.
-      allow read: if request.auth.uid in resource.data.participantIds;
-      // A user can create a request if they are the sender.
-      allow create: if request.auth.uid == request.resource.data.from;
-      // A user can update (accept/reject) a request if they are the recipient.
-      allow update: if request.auth.uid == resource.data.to;
-      // Either user can delete the request (e.g. sender cancels, receiver rejects and cleans up)
-      allow delete: if request.auth.uid in resource.data.participantIds;
+      // Writes are handled by secure server actions, deny on client.
+      allow write: if false;
     }
 
+    // Chats and messages are read-only on client. Writes are via functions.
     match /chats/{chatId} {
-      // A user can access a chat document if they are a member.
+      // allow update for lastMessage field when sending a message
       allow read, update: if request.auth.uid in resource.data.members;
-      // Chat creation is handled by the cloud function 'sendMessageToFriend'
-      allow create: if request.auth.uid in request.resource.data.members;
+      // Chat creation is handled by the sendMessageToFriend function
+      allow create: if false;
 
       match /messages/{messageId} {
-        // A user can read messages in a chat they belong to.
-        allow read: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-        // A user can create a message if they are the sender and a member.
-        allow create: if request.auth.uid == request.resource.data.sender &&
-                       request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-        // A user can only delete their own messages.
-        allow delete: if resource.data.sender == request.auth.uid;
+        allow read: if get(/databases/$(database)/documents/chats/$(chatId)).data.members.hasAny([request.auth.uid]);
+        // Writing/deleting messages is handled by secure backend functions.
+        allow write: if false;
       }
+    }
+
+    // Friend requests are read-only on the client, for the two people involved.
+    // This allows the friendship button to check for pending requests.
+    match /friendRequests/{requestId} {
+      allow read: if request.auth.uid == resource.data.from || request.auth.uid == resource.data.to;
+      // Writing to friend requests is handled by secure backend functions.
+      allow write: if false;
+    }
+
+    // Inbox notifications are private. A user can only access their own.
+    match /inbox/{userId}/{document=**} {
+      // Allow writing to update the 'read' status of a notification.
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Game rooms are created by a backend function and are read-only on the client.
+    match /gameRooms/{roomId} {
+      allow read: if request.auth != null;
+      allow write: if false;
     }
   }
 }
