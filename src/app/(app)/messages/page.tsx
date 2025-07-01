@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useTransition } from 'react';
 import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase/client";
-import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, doc, updateDoc, Timestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, doc, updateDoc, Timestamp, DocumentReference } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,9 +11,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { MoreVertical, Search, Send, MessageSquare } from "lucide-react";
+import { MoreVertical, Search, Send, MessageSquare, Trash2 } from "lucide-react";
 import type { Conversation, Message, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deleteMessage } from '@/lib/actions/messages';
 
 export default function MessagesPage() {
     const { user, userProfile } = useAuth();
@@ -27,8 +30,8 @@ export default function MessagesPage() {
 
     useEffect(() => {
         if (!user) {
-            setConversations([]);
             setLoadingConversations(false);
+            setConversations([]);
             return;
         }
 
@@ -54,7 +57,6 @@ export default function MessagesPage() {
     useEffect(() => {
         if (!selectedConversation || !user) {
             setMessages([]);
-            setLoadingMessages(false);
             return;
         }
 
@@ -88,13 +90,15 @@ export default function MessagesPage() {
         const conversationRef = doc(db, 'conversations', selectedConversation.id);
 
         try {
-            await addDoc(messagesRef, {
+            const messageDocRef = await addDoc(messagesRef, {
                 senderId: user.uid,
                 text: currentMessageText,
                 timestamp: serverTimestamp(),
             });
+
             await updateDoc(conversationRef, {
                 lastMessage: {
+                    id: messageDocRef.id,
                     text: currentMessageText,
                     senderId: user.uid,
                     timestamp: serverTimestamp(),
@@ -191,7 +195,7 @@ export default function MessagesPage() {
                                         </div>
                                     ) : (
                                         messages.map(msg => (
-                                            <ChatMessage key={msg.id} message={msg} currentUser={userProfile} otherUser={otherParticipant} />
+                                            <ChatMessage key={msg.id} message={msg} currentUser={userProfile} otherUser={otherParticipant} conversationId={selectedConversation.id} />
                                         ))
                                     )}
                                     <div ref={messagesEndRef} />
@@ -224,30 +228,74 @@ export default function MessagesPage() {
     )
 }
 
-function ChatMessage({ message, currentUser, otherUser }: { message: Message, currentUser: UserProfile | null, otherUser: {name: string, avatarUrl: string} | null }) {
+function ChatMessage({ message, currentUser, otherUser, conversationId }: { message: Message, currentUser: UserProfile | null, otherUser: {name: string, avatarUrl: string} | null, conversationId: string }) {
     const isMe = message.senderId === currentUser?.id;
     const participant = isMe ? currentUser : otherUser;
+    const [isAlertOpen, setIsAlertOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const { toast } = useToast();
+
+    const handleDelete = () => {
+        startTransition(async () => {
+            const result = await deleteMessage({ conversationId, messageId: message.id });
+            if (!result.success) {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+            // No success toast needed, the change is reflected instantly.
+            setIsAlertOpen(false);
+        });
+    };
     
     return (
-        <div className={cn("flex items-end gap-2", isMe ? "justify-end" : "justify-start")}>
-            {!isMe && (
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={participant?.avatarUrl} data-ai-hint="person avatar" />
-                    <AvatarFallback>{participant?.name?.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-            )}
-            <div className={cn(
-                "max-w-xs md:max-w-md rounded-lg p-3",
-                isMe ? "bg-primary text-primary-foreground" : "bg-muted"
-            )}>
-                <p className="text-sm">{message.text}</p>
+        <>
+            <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete this message. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            {isPending ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <div className={cn("group flex items-end gap-2", isMe ? "justify-end" : "justify-start")}>
+                {isMe && (
+                     <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                        onClick={() => setIsAlertOpen(true)}
+                        disabled={isPending}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete message</span>
+                    </Button>
+                )}
+                {!isMe && (
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={participant?.avatarUrl} data-ai-hint="person avatar" />
+                        <AvatarFallback>{participant?.name?.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                )}
+                <div className={cn(
+                    "max-w-xs md:max-w-md rounded-lg p-3",
+                    isMe ? "bg-primary text-primary-foreground" : "bg-muted"
+                )}>
+                    <p className="text-sm">{message.text}</p>
+                </div>
+                {isMe && (
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={participant?.avatarUrl} data-ai-hint="male avatar" />
+                        <AvatarFallback>{participant?.name?.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                )}
             </div>
-            {isMe && (
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={participant?.avatarUrl} data-ai-hint="male avatar" />
-                    <AvatarFallback>{participant?.name?.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-            )}
-        </div>
+        </>
     );
 }

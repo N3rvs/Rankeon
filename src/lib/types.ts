@@ -48,6 +48,7 @@ export interface Conversation {
     };
   };
   lastMessage: {
+    id: string;
     text: string;
     timestamp: Timestamp;
     senderId: string;
