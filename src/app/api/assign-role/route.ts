@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { getAdminInstances } from '@/lib/firebase/admin-sdk';
 import { headers } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
+    const { adminAuth, adminDb } = getAdminInstances();
     const authorization = headers().get('Authorization');
     if (!authorization?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Permission denied: No token.' }, { status: 401 });

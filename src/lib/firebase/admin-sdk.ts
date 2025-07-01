@@ -1,11 +1,4 @@
 import * as admin from 'firebase-admin';
-import { config } from 'dotenv';
-import path from 'path';
-
-// This is for the Genkit dev server, which doesn't automatically load .env
-if (process.env.GENKIT_ENV === 'dev') {
-  config({ path: path.resolve(process.cwd(), '.env') });
-}
 
 export function getAdminInstances() {
   if (!admin.apps.length) {

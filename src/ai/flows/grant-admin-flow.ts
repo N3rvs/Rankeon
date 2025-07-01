@@ -8,7 +8,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { getAdminInstances } from '@/lib/firebase/admin-sdk';
 import { z } from 'genkit';
 
 const GrantAdminRoleInputSchema = z.object({
@@ -34,6 +34,7 @@ const grantAdminRoleFlow = ai.defineFlow(
   },
   async ({ uid }) => {
     try {
+      const { adminAuth, adminDb } = getAdminInstances();
       const user = await adminAuth.getUser(uid);
       const existingClaims = user.customClaims || {};
 
