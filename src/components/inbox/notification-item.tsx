@@ -38,14 +38,19 @@ export function NotificationItem({ notification }: { notification: Notification 
         .then((docSnap) => {
           if (docSnap.exists()) {
             setFromUser({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+          } else {
+            setFromUser(null);
           }
         })
-        .catch((error) => console.error("Error fetching user for notification:", error))
+        .catch((error) => {
+          console.error("Error fetching user for notification:", error)
+          setFromUser(null);
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
-  }, [notification.from]);
+  }, [notification.id, notification.from]);
 
   const handleResponse = async (accept: boolean) => {
     if (!notification.relatedRequestId) return;
