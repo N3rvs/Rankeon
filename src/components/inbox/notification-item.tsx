@@ -27,44 +27,60 @@ export function NotificationItem({ notification }: { notification: Notification 
   const { user } = useAuth();
   const { toast } = useToast();
   const [isResponding, startResponding] = useTransition();
+  const [isActionTaken, setIsActionTaken] = useState(false); // State for immediate feedback
   const [fromUser, setFromUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     if (notification.from) {
       setLoading(true);
       const userDocRef = doc(db, 'users', notification.from);
       getDoc(userDocRef)
         .then((docSnap) => {
-          if (docSnap.exists()) {
-            setFromUser({ id: docSnap.id, ...docSnap.data() } as UserProfile);
-          } else {
-            setFromUser(null);
+          if (isMounted) {
+            if (docSnap.exists()) {
+              setFromUser({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+            } else {
+              setFromUser(null);
+            }
           }
         })
         .catch((error) => {
           console.error("Error fetching user for notification:", error)
-          setFromUser(null);
+          if (isMounted) setFromUser(null);
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
     } else {
       setLoading(false);
     }
+    return () => { isMounted = false; };
   }, [notification.id, notification.from]);
 
   const handleResponse = async (accept: boolean) => {
-    if (!notification.relatedRequestId) return;
+    if (!notification.relatedRequestId) {
+        toast({
+            title: "Error",
+            description: "Could not find the related friend request.",
+            variant: "destructive"
+        });
+        return;
+    };
     startResponding(async () => {
       const result = await respondToFriendRequest({
         requestId: notification.relatedRequestId!,
         accept,
       });
       if (result.success) {
+        setIsActionTaken(true); // Set state on success
         toast({
           title: 'Success',
           description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
         });
-        // Also mark as read after responding
+        // The backend should handle removing this notification.
+        // We'll mark it as read client-side as a fallback.
         markAsRead();
       } else {
         toast({
@@ -140,7 +156,7 @@ export function NotificationItem({ notification }: { notification: Notification 
   }
 
   const { icon: Icon, message } = getNotificationDetails();
-  const fallbackInitials = fromUser?.name?.slice(0, 2) || fromUser?.email?.slice(0, 2);
+  const fallbackInitials = fromUser?.name?.slice(0, 2) || fromUser?.email?.slice(0, 2) || '?';
 
   return (
     <div
@@ -177,7 +193,7 @@ export function NotificationItem({ notification }: { notification: Notification 
                 })
               : ''}
           </p>
-          {notification.type === 'friend_request' && (
+          {notification.type === 'friend_request' && !isActionTaken && (
             <div className="flex gap-2 pt-1">
               <Button
                 size="sm"
@@ -202,6 +218,11 @@ export function NotificationItem({ notification }: { notification: Notification 
               >
                 <X className="h-4 w-4 mr-1" /> Decline
               </Button>
+            </div>
+          )}
+           {notification.type === 'friend_request' && isActionTaken && (
+            <div className="pt-1">
+              <p className="text-xs text-muted-foreground italic">Response sent.</p>
             </div>
           )}
         </div>
