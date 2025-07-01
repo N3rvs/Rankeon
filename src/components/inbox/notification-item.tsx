@@ -31,6 +31,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { useRouter } from 'next/navigation';
+import { clearNotificationHistory } from '@/lib/actions/notifications';
 
 export function NotificationItem({
   notification,
@@ -83,7 +84,6 @@ export function NotificationItem({
     let requestId = notification.relatedRequestId;
 
     // If the notification doesn't have the ID, find it manually.
-    // This makes it more robust if the ID wasn't attached when the notification was created.
     if (!requestId && notification.type === 'friend_request') {
       try {
         const q = query(
@@ -92,7 +92,6 @@ export function NotificationItem({
         );
         const querySnapshot = await getDocs(q);
 
-        // Find the specific request: from the sender, to me, and still pending.
         const requestDoc = querySnapshot.docs.find((doc) => {
           const data = doc.data() as FriendRequest;
           return (
@@ -107,16 +106,16 @@ export function NotificationItem({
         }
       } catch (e) {
         console.error('Error querying for friend request ID:', e);
-        // Let it fall through to the requestId check to show a toast.
       }
     }
 
     if (!requestId) {
       toast({
-        title: 'Error',
-        description: 'Could not find the related friend request. It might have been resolved already.',
-        variant: 'destructive',
+        title: 'Request Unavailable',
+        description: 'This friend request has already been resolved.',
       });
+      // Clean up the stale notification from the inbox
+      await clearNotificationHistory([notification.id]);
       return;
     }
 
@@ -133,11 +132,21 @@ export function NotificationItem({
         });
         markAsRead(); // Mark as read after action
       } else {
-        toast({
-          title: 'Error',
-          description: result.message,
-          variant: 'destructive',
-        });
+        // Check for specific error messages from the backend
+        if (result.message.includes('not-found') || result.message.includes('already been responded to') || result.message.includes('resolved')) {
+           toast({
+              title: "Request Unavailable",
+              description: "This friend request has already been resolved.",
+            });
+            // Clean up the stale notification from the inbox
+            await clearNotificationHistory([notification.id]);
+        } else {
+          toast({
+            title: 'Error',
+            description: result.message,
+            variant: 'destructive',
+          });
+        }
       }
     });
   };
