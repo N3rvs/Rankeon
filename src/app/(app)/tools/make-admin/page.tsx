@@ -21,8 +21,8 @@ export default function MakeAdminPage() {
     if (user?.uid) {
       navigator.clipboard.writeText(user.uid);
       toast({
-        title: 'Copied!',
-        description: 'Your User ID has been copied to the clipboard.',
+        title: '¡Copiado!',
+        description: 'Tu ID de usuario ha sido copiado al portapapeles.',
       });
     }
   };
@@ -34,19 +34,19 @@ export default function MakeAdminPage() {
       <Card className="max-w-2xl mx-auto">
         <CardHeader className="text-center">
           <ShieldCheck className="mx-auto h-12 w-12 text-primary" />
-          <CardTitle className="font-headline">Set Up Your Admin Account</CardTitle>
+          <CardTitle className="font-headline">Configura tu Cuenta de Administrador</CardTitle>
           <CardDescription>
-            Follow these steps in the Firebase Console to securely assign the
-            <strong> admin </strong>
-            role to your account. This is a one-time setup.
+            Sigue estos pasos en la Consola de Firebase para asignar de forma segura el rol de
+            <strong> administrador </strong>
+            a tu cuenta. Es una configuración única.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Your User ID (UID)</label>
+            <label className="text-sm font-medium">Tu ID de Usuario (UID)</label>
             <div className="flex items-center gap-2">
               <code className="bg-muted px-2 py-1 rounded w-full overflow-x-auto">
-                {user?.uid ?? 'Loading...'}
+                {user?.uid ?? 'Cargando...'}
               </code>
               <Button variant="outline" size="icon" onClick={copyToClipboard} disabled={!user?.uid}>
                 <Copy className="h-4 w-4" />
@@ -57,24 +57,24 @@ export default function MakeAdminPage() {
           <div className="prose prose-sm prose-invert max-w-none text-muted-foreground">
             <ol className="list-decimal list-inside space-y-4">
               <li>
-                Open the Firebase Console Authentication page for your project.
+                Abre la página de Autenticación de la Consola de Firebase para tu proyecto.
                 <Button variant="link" asChild className="p-1 h-auto">
                   <Link href={firebaseConsoleUrl} target="_blank" rel="noopener noreferrer">
-                    Open Firebase Console
+                    Abrir Consola de Firebase
                   </Link>
                 </Button>
               </li>
-              <li>Find the user with the UID shown above and click the three-dot menu on the right.</li>
-              <li>Select <strong>"Edit user"</strong>.</li>
-              <li>In the dialog, click <strong>"Add custom claim"</strong>.</li>
+              <li>Busca el usuario con el UID que se muestra arriba y haz clic en el menú de tres puntos a la derecha.</li>
+              <li>Selecciona <strong>"Editar usuario"</strong>.</li>
+              <li>En el cuadro de diálogo, haz clic en <strong>"Añadir atributo personalizado"</strong>.</li>
               <li>
-                Enter <code className="bg-muted px-1 py-0.5 rounded">role</code> for the Key and
-                <code className="bg-muted px-1 py-0.5 rounded">admin</code> for the Value.
+                Introduce <code className="bg-muted px-1 py-0.5 rounded">role</code> para la Clave (Key) y
+                <code className="bg-muted px-1 py-0.5 rounded">admin</code> para el Valor (Value).
               </li>
-              <li>Click <strong>"Add"</strong> and then <strong>"Save"</strong>.</li>
+              <li>Haz clic en <strong>"Añadir"</strong> y luego en <strong>"Guardar"</strong>.</li>
               <li>
-                To apply the changes, <strong>log out</strong> of this application and
-                <strong> log back in</strong>.
+                Para aplicar los cambios, <strong>cierra sesión</strong> en esta aplicación y
+                <strong> vuelve a iniciar sesión</strong>.
               </li>
             </ol>
           </div>
