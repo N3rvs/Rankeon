@@ -1,4 +1,10 @@
 'use server';
+
+import { config } from 'dotenv';
+import path from 'path';
+
+config({ path: path.resolve(process.cwd(), '.env') });
+
 import { getAdminInstances } from '@/lib/firebase/admin';
 
 export async function grantFirstAdminRole(
@@ -11,11 +17,9 @@ export async function grantFirstAdminRole(
   try {
     const { adminAuth, adminDb } = getAdminInstances();
 
-    // 1. Verify the token to get the user's UID securely
     const decodedToken = await adminAuth.verifyIdToken(token);
     const uid = decodedToken.uid;
 
-    // 2. Check if any admins already exist (Security Check)
     const listUsersResult = await adminAuth.listUsers(1000);
     const existingAdmin = listUsersResult.users.find(
       (user) => user.customClaims?.role === 'admin'
@@ -28,10 +32,8 @@ export async function grantFirstAdminRole(
       };
     }
 
-    // 3. Set the custom claim
     await adminAuth.setCustomUserClaims(uid, { role: 'admin' });
 
-    // 4. Also update Firestore document for consistency
     await adminDb.collection('users').doc(uid).set({ role: 'admin' }, { merge: true });
 
     return {
