@@ -14,7 +14,7 @@ import { Shield } from 'lucide-react';
 import { useTransition } from 'react';
 
 export default function MakeAdminPage() {
-  const { user, token } = useAuth(); // ✅ ahora también usamos el token
+  const { user, token } = useAuth();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
@@ -22,34 +22,36 @@ export default function MakeAdminPage() {
     if (!user || !token) {
       toast({
         title: 'Error',
-        description: 'You must be logged in.',
+        description: 'You must be logged in to perform this action.',
         variant: 'destructive',
       });
       return;
     }
 
     startTransition(() => {
-      fetch('/api/admin/assign-role', {
+      fetch('/api/assign-role', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // ✅ token válido
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ uid: user.uid, role: 'admin' }),
       })
         .then(async (res) => {
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to grant admin role.');
+          }
           toast({
             title: 'Success!',
-            description: `${data.message}. Please log out and log back in for the changes to take effect.`,
+            description: `${data.message}. Please log out and log back in.`,
           });
         })
         .catch((error) => {
-          console.error(error);
+          console.error('❌ Grant admin role failed:', error);
           toast({
             title: 'Error',
-            description: error.message ?? 'Failed to grant admin role.',
+            description: error.message,
             variant: 'destructive',
           });
         });
@@ -69,13 +71,14 @@ export default function MakeAdminPage() {
         <CardContent>
           <div className="flex flex-col items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              Your User ID: <code className="bg-muted px-1 py-0.5 rounded">{user?.uid ?? 'Loading...'}</code>
+              Your User ID:{' '}
+              <code className="bg-muted px-1 py-0.5 rounded">{user?.uid ?? 'Loading...'}</code>
             </p>
             <Button onClick={handleMakeAdmin} disabled={isPending || !user}>
               {isPending ? 'Assigning Role...' : 'Make Me Admin'}
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-2">
-              After clicking, you must log out and log back in for the new role to be applied to your session.
+              After clicking, you must log out and log back in for the new role to take effect.
             </p>
           </div>
         </CardContent>
