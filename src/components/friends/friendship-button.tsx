@@ -22,6 +22,7 @@ import {
   Check,
   X,
   Users,
+  UserX,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
