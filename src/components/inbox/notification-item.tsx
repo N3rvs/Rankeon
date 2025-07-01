@@ -1,7 +1,7 @@
 // src/components/inbox/notification-item.tsx
 'use client';
 
-import type { Notification, UserProfile } from '@/lib/types';
+import type { Notification, UserProfile, FriendRequest } from '@/lib/types';
 import { useTransition, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,6 @@ import {
   collection,
   where,
   getDocs,
-  limit,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { cn } from '@/lib/utils';
@@ -79,36 +78,43 @@ export function NotificationItem({
   }, [notification.id, notification.from]);
 
   const handleResponse = async (accept: boolean) => {
+    if (!user || !notification.from) return;
+
     let requestId = notification.relatedRequestId;
 
-    if (!requestId && notification.type === 'friend_request' && user && notification.from) {
-       try {
-        // This is a more robust way to find the request ID, avoiding complex queries
-        // that might require a custom composite index in Firestore.
+    // If the notification doesn't have the ID, find it manually.
+    // This makes it more robust if the ID wasn't attached when the notification was created.
+    if (!requestId && notification.type === 'friend_request') {
+      try {
         const q = query(
           collection(db, 'friendRequests'),
-          where('to', '==', user.uid)
+          where('participantIds', 'array-contains', user.uid)
         );
         const querySnapshot = await getDocs(q);
-        
-        // Filter on the client side to find the correct pending request from the sender.
-        const requestDoc = querySnapshot.docs.find(doc => {
-          const data = doc.data();
-          return data.from === notification.from && data.status === 'pending';
+
+        // Find the specific request: from the sender, to me, and still pending.
+        const requestDoc = querySnapshot.docs.find((doc) => {
+          const data = doc.data() as FriendRequest;
+          return (
+            data.from === notification.from &&
+            data.to === user.uid &&
+            data.status === 'pending'
+          );
         });
 
         if (requestDoc) {
           requestId = requestDoc.id;
         }
       } catch (e) {
-        console.error("Error querying for friend request ID:", e);
+        console.error('Error querying for friend request ID:', e);
+        // Let it fall through to the requestId check to show a toast.
       }
     }
 
     if (!requestId) {
       toast({
         title: 'Error',
-        description: 'Could not find the related friend request.',
+        description: 'Could not find the related friend request. It might have been resolved already.',
         variant: 'destructive',
       });
       return;
@@ -125,7 +131,7 @@ export function NotificationItem({
           title: 'Success',
           description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
         });
-        markAsRead();
+        markAsRead(); // Mark as read after action
       } else {
         toast({
           title: 'Error',
