@@ -51,3 +51,17 @@ export async function removeFriend(friendId: string): Promise<ActionResponse> {
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function blockUser(userId: string): Promise<ActionResponse> {
+  try {
+    const block = httpsCallable(functions, 'blockUser');
+    await block({ uid: userId });
+    return { success: true, message: 'User blocked.' };
+  } catch (error: any) {
+    console.error('Error blocking user:', error);
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
+  }
+}
