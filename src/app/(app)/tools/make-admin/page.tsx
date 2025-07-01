@@ -38,10 +38,23 @@ export default function MakeAdminPage() {
         body: JSON.stringify({ uid: user.uid, role: 'admin' }),
       })
         .then(async (res) => {
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error || 'Failed to grant admin role.');
+          const contentType = res.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            // The server returned an HTML error page or something else
+            throw new Error('Invalid response from server. Expected JSON.');
           }
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            // The server returned a JSON error
+            throw new Error(data.error || `Request failed with status ${res.status}`);
+          }
+          
+          return data; // Pass successful data to the next .then()
+        })
+        .then((data) => {
+          // This block only runs for successful responses
           toast({
             title: 'Success!',
             description: `${data.message}. Please log out and log back in.`,
