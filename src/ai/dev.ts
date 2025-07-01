@@ -5,4 +5,3 @@ import path from 'path';
 config({ path: path.resolve(process.cwd(), '.env') });
 
 import '@/ai/flows/team-name-generator.ts';
-import '@/ai/flows/grant-admin-flow.ts';
