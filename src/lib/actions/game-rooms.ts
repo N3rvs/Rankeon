@@ -28,6 +28,9 @@ export async function createGameRoom(
     }
   } catch (error: any) {
     console.error('Error creating game room:', error);
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    // The `details` property of an HttpsError from Firebase Functions contains richer error information.
+    // By checking for `error.details`, we can provide a more useful message to the user.
+    const errorMessage = error.details?.message || error.message || 'An unexpected error occurred.';
+    return { success: false, message: errorMessage };
   }
 }
