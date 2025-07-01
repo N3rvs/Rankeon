@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,73 +9,74 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Shield } from 'lucide-react';
-import { useTransition } from 'react';
-import { assignAdminRole } from '@/lib/actions/users';
+import { ShieldCheck, Copy } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function MakeAdminPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
 
-  const handleMakeAdmin = () => {
-    if (!user) {
+  const copyToClipboard = () => {
+    if (user?.uid) {
+      navigator.clipboard.writeText(user.uid);
       toast({
-        title: 'Error',
-        description: 'You must be logged in to perform this action.',
-        variant: 'destructive',
+        title: 'Copied!',
+        description: 'Your User ID has been copied to the clipboard.',
       });
-      return;
     }
-
-    startTransition(async () => {
-      try {
-        const result = await assignAdminRole({ uid: user.uid });
-        if (result.success) {
-          toast({
-            title: 'Success!',
-            description: `${result.message}. Please log out and log back in.`,
-          });
-        } else {
-          toast({
-            title: 'Error',
-            description: result.message || 'An unknown error occurred.',
-            variant: 'destructive',
-          });
-        }
-      } catch (error: any) {
-        console.error('❌ Grant admin role failed:', error);
-        toast({
-          title: 'Request Failed',
-          description: error.message,
-          variant: 'destructive',
-        });
-      }
-    });
   };
+
+  const firebaseConsoleUrl = `https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}/authentication/users`;
 
   return (
     <div className="space-y-6">
-      <Card className="max-w-md mx-auto">
+      <Card className="max-w-2xl mx-auto">
         <CardHeader className="text-center">
-          <Shield className="mx-auto h-12 w-12 text-primary" />
-          <CardTitle className="font-headline">Grant Admin Privileges</CardTitle>
+          <ShieldCheck className="mx-auto h-12 w-12 text-primary" />
+          <CardTitle className="font-headline">Set Up Your Admin Account</CardTitle>
           <CardDescription>
-            Click the button below to assign the <strong>admin</strong> role to your currently logged-in account.
+            Follow these steps in the Firebase Console to securely assign the
+            <strong> admin </strong>
+            role to your account. This is a one-time setup.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Your User ID:{' '}
-              <code className="bg-muted px-1 py-0.5 rounded">{user?.uid ?? 'Loading...'}</code>
-            </p>
-            <Button onClick={handleMakeAdmin} disabled={isPending || !user}>
-              {isPending ? 'Assigning Role...' : 'Make Me Admin'}
-            </Button>
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              After clicking, you must log out and log back in for the new role to take effect.
-            </p>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Your User ID (UID)</label>
+            <div className="flex items-center gap-2">
+              <code className="bg-muted px-2 py-1 rounded w-full overflow-x-auto">
+                {user?.uid ?? 'Loading...'}
+              </code>
+              <Button variant="outline" size="icon" onClick={copyToClipboard} disabled={!user?.uid}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="prose prose-sm prose-invert max-w-none text-muted-foreground">
+            <ol className="list-decimal list-inside space-y-4">
+              <li>
+                Open the Firebase Console Authentication page for your project.
+                <Button variant="link" asChild className="p-1 h-auto">
+                  <Link href={firebaseConsoleUrl} target="_blank" rel="noopener noreferrer">
+                    Open Firebase Console
+                  </Link>
+                </Button>
+              </li>
+              <li>Find the user with the UID shown above and click the three-dot menu on the right.</li>
+              <li>Select <strong>"Edit user"</strong>.</li>
+              <li>In the dialog, click <strong>"Add custom claim"</strong>.</li>
+              <li>
+                Enter <code className="bg-muted px-1 py-0.5 rounded">role</code> for the Key and
+                <code className="bg-muted px-1 py-0.5 rounded">admin</code> for the Value.
+              </li>
+              <li>Click <strong>"Add"</strong> and then <strong>"Save"</strong>.</li>
+              <li>
+                To apply the changes, <strong>log out</strong> of this application and
+                <strong> log back in</strong>.
+              </li>
+            </ol>
           </div>
         </CardContent>
       </Card>
