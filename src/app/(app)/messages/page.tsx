@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useTransition } from 'react';
@@ -343,7 +344,6 @@ export default function MessagesPage() {
 
 function ChatMessageDisplay({ message, currentUser, otherUser, chatId }: { message: ChatMessage, currentUser: UserProfile | null, otherUser: UserProfile | null, chatId: string }) {
     const isMe = message.sender === currentUser?.id;
-    const participant = isMe ? currentUser : otherUser;
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
@@ -390,10 +390,10 @@ function ChatMessageDisplay({ message, currentUser, otherUser, chatId }: { messa
                         <span className="sr-only">Delete message</span>
                     </Button>
                 )}
-                {!isMe && (
+                {!isMe && otherUser && (
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={participant?.avatarUrl} data-ai-hint="person avatar" />
-                        <AvatarFallback>{participant?.name?.slice(0, 2)}</AvatarFallback>
+                        <AvatarImage src={otherUser.avatarUrl} data-ai-hint="person avatar" />
+                        <AvatarFallback>{otherUser.name?.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                 )}
                 <div className={cn(
@@ -402,10 +402,10 @@ function ChatMessageDisplay({ message, currentUser, otherUser, chatId }: { messa
                 )}>
                     <p className="text-sm">{message.content}</p>
                 </div>
-                {isMe && (
+                {isMe && currentUser && (
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={participant?.avatarUrl} data-ai-hint="male avatar" />
-                        <AvatarFallback>{participant?.name?.slice(0, 2)}</AvatarFallback>
+                        <AvatarImage src={currentUser.avatarUrl} data-ai-hint="male avatar" />
+                        <AvatarFallback>{currentUser.name?.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                 )}
             </div>
