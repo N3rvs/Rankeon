@@ -92,7 +92,11 @@ export function InboxContent() {
     startClearingTransition(async () => {
       if (!user || notifications.length === 0) return;
 
-      const { success, message } = await clearNotificationHistory();
+      const notificationIdsToClear = notifications.map((n) => n.id);
+      const { success, message } = await clearNotificationHistory(
+        notificationIdsToClear
+      );
+
       if (success) {
         toast({ title: 'Success', description: message });
       } else {
@@ -105,7 +109,7 @@ export function InboxContent() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-[calc(80vh)] md:h-full">
+      <div className="flex flex-col h-[calc(80vh)] md:h-[500px] w-[90vw] max-w-sm">
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold font-headline">
