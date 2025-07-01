@@ -60,8 +60,8 @@ export default function MessagesPage() {
             });
 
             filteredChats.sort((a, b) => {
-                const timeA = a.lastMessage?.createdAt?.toMillis() || a.createdAt?.toMillis() || 0;
-                const timeB = b.lastMessage?.createdAt?.toMillis() || b.createdAt?.toMillis() || 0;
+                const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
+                const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
                 return timeB - timeA;
             });
             setChats(filteredChats);
@@ -258,9 +258,9 @@ export default function MessagesPage() {
                                                 <p className="font-semibold truncate">{other?.name}</p>
                                                 <p className="text-sm text-muted-foreground truncate">{chat.lastMessage?.content}</p>
                                             </div>
-                                            {chat.lastMessage?.createdAt && (
+                                            {chat.lastMessageAt && (
                                                 <p className="text-xs text-muted-foreground shrink-0">
-                                                    {formatDistanceToNow(chat.lastMessage.createdAt.toDate(), { addSuffix: true })}
+                                                    {formatDistanceToNow(chat.lastMessageAt.toDate(), { addSuffix: true })}
                                                 </p>
                                             )}
                                         </div>
