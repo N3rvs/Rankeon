@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import type { UserProfile, FriendRequest } from '@/lib/types';
+import type { UserProfile } from '@/lib/types';
 import {
   collection,
   query,
@@ -56,25 +56,28 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
     let isMounted = true;
 
     const determineStatus = async () => {
+        // Guard against missing user/profile
         if (!user || !userProfile) {
             if (isMounted) setStatus('loading');
             return;
         }
 
+        // Don't show button for self
         if (user.uid === targetUser.id) {
             if (isMounted) setStatus('self');
             return;
         }
         
-        // 1. Primary check: Are we friends?
+        // --- STEP 1: Check friendship status directly from the user profile ---
+        // This is the primary source of truth.
         if (userProfile.friends?.includes(targetUser.id)) {
             if (isMounted) setStatus('friends');
             return;
         }
 
-        // 2. If not friends, check for a pending request
+        // --- STEP 2: If not friends, check for a pending friend request ---
         try {
-            // Check for requests sent BY ME to the target user
+            // Query for a request sent FROM ME TO TARGET
             const sentQuery = query(
                 collection(db, 'friendRequests'),
                 where('from', '==', user.uid),
@@ -82,16 +85,16 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
                 where('status', '==', 'pending')
             );
             const sentSnapshot = await getDocs(sentQuery);
-
+            
             if (!sentSnapshot.empty) {
                 if (isMounted) {
                     setRequestId(sentSnapshot.docs[0].id);
                     setStatus('request_sent');
                 }
-                return;
+                return; // Found a request, stop here.
             }
-
-            // Check for requests sent TO ME from the target user
+            
+            // Query for a request sent FROM TARGET TO ME
             const receivedQuery = query(
                 collection(db, 'friendRequests'),
                 where('from', '==', targetUser.id),
@@ -105,10 +108,10 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
                     setRequestId(receivedSnapshot.docs[0].id);
                     setStatus('request_received');
                 }
-                return;
+                return; // Found a request, stop here.
             }
 
-            // 3. If no friendship and no pending request, we are not friends.
+            // --- STEP 3: If no friendship and no requests, they are not friends ---
             if (isMounted) {
               setStatus('not_friends');
               setRequestId(null);
@@ -116,12 +119,13 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
 
         } catch (error) {
             console.error("Error checking friendship status:", error);
-            if (isMounted) setStatus('not_friends');
+            if (isMounted) setStatus('not_friends'); // Default to safe state on error
         }
     };
 
     determineStatus();
 
+    // Cleanup function
     return () => {
         isMounted = false;
     };
