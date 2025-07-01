@@ -24,17 +24,17 @@ export function NotificationItem({ notification }: { notification: Notification 
   const { toast } = useToast();
   const [isResponding, startResponding] = useTransition();
 
-  const handleResponse = async (response: 'accepted' | 'rejected') => {
+  const handleResponse = async (accept: boolean) => {
     if (!notification.relatedRequestId) return;
     startResponding(async () => {
       const result = await respondToFriendRequest({
         requestId: notification.relatedRequestId!,
-        response,
+        accept,
       });
       if (result.success) {
         toast({
           title: 'Success',
-          description: `Friend request ${response}.`,
+          description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
         });
       } else {
         toast({
@@ -104,7 +104,7 @@ export function NotificationItem({ notification }: { notification: Notification 
                 <Button
                 size="sm"
                 className="h-7 px-2"
-                onClick={(e) => { e.stopPropagation(); handleResponse('accepted'); }}
+                onClick={(e) => { e.stopPropagation(); handleResponse(true); }}
                 disabled={isResponding}
                 >
                 <Check className="h-4 w-4 mr-1" /> Accept
@@ -113,7 +113,7 @@ export function NotificationItem({ notification }: { notification: Notification 
                 size="sm"
                 variant="outline"
                 className="h-7 px-2"
-                onClick={(e) => { e.stopPropagation(); handleResponse('rejected'); }}
+                onClick={(e) => { e.stopPropagation(); handleResponse(false); }}
                 disabled={isResponding}
                 >
                 <X className="h-4 w-4 mr-1" /> Decline

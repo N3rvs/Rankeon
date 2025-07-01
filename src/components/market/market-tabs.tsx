@@ -12,8 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { MessageSquare } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, getDoc, setDoc } from 'firebase/firestore';
+import { useState, useEffect, useTransition } from 'react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, UserProfile } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { FriendshipButton } from '../friends/friendship-button';
+import { sendMessageToFriend } from '@/lib/actions/messages';
 
 export function MarketTabs() {
   const { user, userProfile } = useAuth();
@@ -30,7 +31,7 @@ export function MarketTabs() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [loadingTeams, setLoadingTeams] = useState(true);
-  const [isMessaging, setIsMessaging] = useState<string | null>(null);
+  const [isMessaging, startMessagingTransition] = useTransition();
 
   useEffect(() => {
     let unsubscribePlayers: (() => void) | undefined;
@@ -76,38 +77,17 @@ export function MarketTabs() {
         toast({ title: 'Authentication Error', description: 'You must be logged in to message a player.', variant: 'destructive' });
         return;
     }
-    setIsMessaging(player.id);
-    
-    try {
-      const conversationId = [user.uid, player.id].sort().join('_');
-      const conversationRef = doc(db, 'conversations', conversationId);
-      const docSnap = await getDoc(conversationRef);
-
-      if (!docSnap.exists()) {
-        await setDoc(conversationRef, {
-          participantIds: [user.uid, player.id],
-          participants: {
-            [user.uid]: {
-              name: userProfile.name,
-              avatarUrl: userProfile.avatarUrl,
-            },
-            [player.id]: {
-              name: player.name,
-              avatarUrl: player.avatarUrl,
-            }
-          },
-          lastMessage: null,
-        });
+    startMessagingTransition(async () => {
+      try {
+        // This function will create the chat if it doesn't exist.
+        // We send a default message to initialize it.
+        await sendMessageToFriend({ to: player.id, content: "Hey! I saw your profile on SquadUp." });
+        router.push('/messages');
+      } catch (error) {
+        console.error("Error starting conversation: ", error);
+        toast({ title: 'Error', description: 'Could not start a conversation. Please try again.', variant: 'destructive' });
       }
-      
-      router.push('/messages');
-
-    } catch (error) {
-      console.error("Error starting conversation: ", error);
-      toast({ title: 'Error', description: 'Could not start a conversation. Please try again.', variant: 'destructive' });
-    } finally {
-      setIsMessaging(null);
-    }
+    });
   };
 
   const handleContactTeam = async (team: Team) => {
@@ -177,7 +157,7 @@ export function MarketTabs() {
                   <Button
                       variant="secondary"
                       onClick={() => handleMessagePlayer(player)}
-                      disabled={isMessaging === player.id}
+                      disabled={isMessaging}
                     >
                       <MessageSquare className="h-4 w-4" />
                   </Button>

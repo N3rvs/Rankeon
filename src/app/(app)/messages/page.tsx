@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useTransition } from 'react';
 import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase/client";
-import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, doc, updateDoc, Timestamp, DocumentReference } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,110 +12,122 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { MoreVertical, Search, Send, MessageSquare, Trash2 } from "lucide-react";
-import type { Conversation, Message, UserProfile } from '@/lib/types';
+import type { Chat, ChatMessage, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { deleteMessage } from '@/lib/actions/messages';
+import { deleteMessage, sendMessageToFriend as sendMessageAction } from '@/lib/actions/messages';
 
 export default function MessagesPage() {
     const { user, userProfile } = useAuth();
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [chats, setChats] = useState<Chat[]>([]);
+    const [participantProfiles, setParticipantProfiles] = useState<{ [id: string]: UserProfile }>({});
+    const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [newMessageText, setNewMessageText] = useState('');
-    const [loadingConversations, setLoadingConversations] = useState(true);
+    const [loadingChats, setLoadingChats] = useState(true);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!user) {
-            setLoadingConversations(false);
-            setConversations([]);
+            setLoadingChats(false);
+            setChats([]);
             return;
         }
 
-        setLoadingConversations(true);
-        const q = query(collection(db, 'conversations'), where('participantIds', 'array-contains', user.uid));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const convos = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Conversation));
-            convos.sort((a, b) => {
-                const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
-                const timeB = b.lastMessage?.timestamp?.toMillis() || 0;
+        setLoadingChats(true);
+        const q = query(collection(db, 'chats'), where('members', 'array-contains', user.uid));
+        
+        const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+            const chatData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
+            chatData.sort((a, b) => {
+                const timeA = a.lastMessage?.createdAt?.toMillis() || a.createdAt?.toMillis() || 0;
+                const timeB = b.lastMessage?.createdAt?.toMillis() || b.createdAt?.toMillis() || 0;
                 return timeB - timeA;
             });
-            setConversations(convos);
-            setLoadingConversations(false);
+            setChats(chatData);
+
+            // Fetch participant profiles
+            const profilesToFetch = new Set<string>();
+            chatData.forEach(chat => {
+                chat.members.forEach(memberId => {
+                    if (memberId !== user.uid && !participantProfiles[memberId]) {
+                        profilesToFetch.add(memberId);
+                    }
+                });
+            });
+
+            if (profilesToFetch.size > 0) {
+                const newProfiles: { [id: string]: UserProfile } = {};
+                for (const profileId of Array.from(profilesToFetch)) {
+                    const userDoc = await getDoc(doc(db, "users", profileId));
+                    if (userDoc.exists()) {
+                        newProfiles[profileId] = { id: userDoc.id, ...userDoc.data() } as UserProfile;
+                    }
+                }
+                setParticipantProfiles(prev => ({...prev, ...newProfiles}));
+            }
+            
+            setLoadingChats(false);
         }, (error) => {
-            console.error("Error fetching conversations:", error);
-            setLoadingConversations(false);
+            console.error("Error fetching chats:", error);
+            setLoadingChats(false);
         });
 
         return () => unsubscribe();
     }, [user]);
 
     useEffect(() => {
-        if (!selectedConversation || !user) {
+        if (!selectedChat || !user) {
             setMessages([]);
             return;
         }
 
         setLoadingMessages(true);
-        const messagesRef = collection(db, 'conversations', selectedConversation.id, 'messages');
-        const q = query(messagesRef, orderBy('timestamp', 'asc'));
+        const messagesRef = collection(db, 'chats', selectedChat.id, 'messages');
+        const q = query(messagesRef, orderBy('createdAt', 'asc'));
+        
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as Message));
+            const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as ChatMessage));
             setMessages(msgs);
             setLoadingMessages(false);
         }, (error) => {
-            console.error(`Error fetching messages for conversation ${selectedConversation.id}:`, error);
+            console.error(`Error fetching messages for chat ${selectedChat.id}:`, error);
             setLoadingMessages(false);
         });
         
         return () => unsubscribe();
-    }, [selectedConversation, user]);
+    }, [selectedChat, user]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    const getOtherParticipant = (chat: Chat) => {
+        if (!user) return null;
+        const otherId = chat.members.find(id => id !== user.uid);
+        return otherId ? participantProfiles[otherId] : null;
+    };
+
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessageText.trim() || !selectedConversation || !user) return;
+        const other = selectedChat ? getOtherParticipant(selectedChat) : null;
+        if (!newMessageText.trim() || !selectedChat || !user || !other) return;
 
         const currentMessageText = newMessageText;
         setNewMessageText('');
-
-        const messagesRef = collection(db, 'conversations', selectedConversation.id, 'messages');
-        const conversationRef = doc(db, 'conversations', selectedConversation.id);
-
+        
         try {
-            const messageDocRef = await addDoc(messagesRef, {
-                senderId: user.uid,
-                text: currentMessageText,
-                timestamp: serverTimestamp(),
-            });
-
-            await updateDoc(conversationRef, {
-                lastMessage: {
-                    id: messageDocRef.id,
-                    text: currentMessageText,
-                    senderId: user.uid,
-                    timestamp: serverTimestamp(),
-                }
-            });
+            await sendMessageAction({ to: other.id, content: currentMessageText });
         } catch (error) {
             console.error("Error sending message: ", error);
+            // Re-set text on failure
+            setNewMessageText(currentMessageText);
         }
     };
 
-    const getOtherParticipant = (convo: Conversation) => {
-        if (!user || !convo.participants) return null;
-        const otherId = convo.participantIds.find(id => id !== user.uid);
-        return otherId ? convo.participants[otherId] : null;
-    };
-
-    const otherParticipant = selectedConversation ? getOtherParticipant(selectedConversation) : null;
+    const otherParticipant = selectedChat ? getOtherParticipant(selectedChat) : null;
 
     return (
         <div className="h-[calc(100vh-theme(spacing.24))]">
@@ -129,25 +141,26 @@ export default function MessagesPage() {
                         </div>
                     </div>
                     <ScrollArea className="flex-1">
-                        {loadingConversations ? (
+                        {loadingChats ? (
                             <div className="p-4 space-y-4">
                                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
                             </div>
-                        ) : conversations.length === 0 ? (
+                        ) : chats.length === 0 ? (
                              <div className="flex flex-col items-center justify-center h-full text-center p-4">
                                 <MessageSquare className="h-12 w-12 text-muted-foreground" />
                                 <p className="mt-4 font-semibold">No conversations yet</p>
                                 <p className="text-sm text-muted-foreground">Start a conversation from the market page.</p>
                             </div>
                         ) : (
-                            conversations.map(convo => {
-                                const other = getOtherParticipant(convo);
+                            chats.map(chat => {
+                                const other = getOtherParticipant(chat);
+                                if (!other) return <Skeleton key={chat.id} className="h-16 w-full p-4" />;
                                 return (
-                                    <div key={convo.id}
-                                        onClick={() => setSelectedConversation(convo)}
+                                    <div key={chat.id}
+                                        onClick={() => setSelectedChat(chat)}
                                         className={cn(
                                             "flex items-center gap-4 p-4 hover:bg-accent cursor-pointer border-b",
-                                            selectedConversation?.id === convo.id && "bg-accent"
+                                            selectedChat?.id === chat.id && "bg-accent"
                                         )}>
                                         <Avatar>
                                             <AvatarImage src={other?.avatarUrl} data-ai-hint="person avatar" />
@@ -155,11 +168,11 @@ export default function MessagesPage() {
                                         </Avatar>
                                         <div className="flex-1 overflow-hidden">
                                             <p className="font-semibold truncate">{other?.name}</p>
-                                            <p className="text-sm text-muted-foreground truncate">{convo.lastMessage?.text}</p>
+                                            <p className="text-sm text-muted-foreground truncate">{chat.lastMessage?.content}</p>
                                         </div>
-                                        {convo.lastMessage?.timestamp && (
+                                        {chat.lastMessage?.createdAt && (
                                             <p className="text-xs text-muted-foreground shrink-0">
-                                                {formatDistanceToNow(convo.lastMessage.timestamp.toDate(), { addSuffix: true })}
+                                                {formatDistanceToNow(chat.lastMessage.createdAt.toDate(), { addSuffix: true })}
                                             </p>
                                         )}
                                     </div>
@@ -170,7 +183,7 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="w-full md:w-2/3 flex flex-col">
-                    {selectedConversation && otherParticipant ? (
+                    {selectedChat && otherParticipant ? (
                         <>
                             <div className="p-4 border-b flex items-center justify-between">
                                 <div className="flex items-center gap-4">
@@ -195,7 +208,7 @@ export default function MessagesPage() {
                                         </div>
                                     ) : (
                                         messages.map(msg => (
-                                            <ChatMessage key={msg.id} message={msg} currentUser={userProfile} otherUser={otherParticipant} conversationId={selectedConversation.id} />
+                                            <ChatMessageDisplay key={msg.id} message={msg} currentUser={userProfile} otherUser={otherParticipant} chatId={selectedChat.id} />
                                         ))
                                     )}
                                     <div ref={messagesEndRef} />
@@ -228,8 +241,8 @@ export default function MessagesPage() {
     )
 }
 
-function ChatMessage({ message, currentUser, otherUser, conversationId }: { message: Message, currentUser: UserProfile | null, otherUser: {name: string, avatarUrl: string} | null, conversationId: string }) {
-    const isMe = message.senderId === currentUser?.id;
+function ChatMessageDisplay({ message, currentUser, otherUser, chatId }: { message: ChatMessage, currentUser: UserProfile | null, otherUser: UserProfile | null, chatId: string }) {
+    const isMe = message.sender === currentUser?.id;
     const participant = isMe ? currentUser : otherUser;
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -237,7 +250,7 @@ function ChatMessage({ message, currentUser, otherUser, conversationId }: { mess
 
     const handleDelete = () => {
         startTransition(async () => {
-            const result = await deleteMessage({ conversationId, messageId: message.id });
+            const result = await deleteMessage({ chatId, messageId: message.id });
             if (!result.success) {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -287,7 +300,7 @@ function ChatMessage({ message, currentUser, otherUser, conversationId }: { mess
                     "max-w-xs md:max-w-md rounded-lg p-3",
                     isMe ? "bg-primary text-primary-foreground" : "bg-muted"
                 )}>
-                    <p className="text-sm">{message.text}</p>
+                    <p className="text-sm">{message.content}</p>
                 </div>
                 {isMe && (
                     <Avatar className="h-8 w-8">

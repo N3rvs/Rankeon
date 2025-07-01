@@ -31,31 +31,26 @@ export interface Team {
   description: string;
 }
 
-export interface Message {
+export interface ChatMessage {
   id: string;
-  senderId: string;
-  text: string;
-  timestamp: Timestamp;
+  sender: string;
+  content: string;
+  createdAt: Timestamp;
 }
 
-export interface Conversation {
+export interface Chat {
   id: string;
-  participantIds: string[];
-  participants: {
-    [uid: string]: {
-      name: string;
-      avatarUrl: string;
-    };
-  };
-  lastMessage: {
-    id: string;
-    text: string;
-    timestamp: Timestamp;
-    senderId: string;
-  } | null;
+  members: string[]; // [uid1, uid2] sorted
+  createdAt: Timestamp;
+  lastMessage?: {
+    content: string;
+    createdAt: Timestamp;
+    sender: string;
+  }
 }
 
 export type NotificationType =
+  | 'new_message'
   | 'friend_request_received'
   | 'friend_request_accepted'
   | 'friend_removed'
@@ -81,11 +76,8 @@ export interface Notification {
 
 export interface FriendRequest {
   id: string;
-  fromId: string;
-  fromName: string;
-  fromAvatarUrl: string;
-  toId: string;
-  participantIds: string[]; // [fromId, toId] sorted
+  from: string;
+  to: string;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: Timestamp;
 }
