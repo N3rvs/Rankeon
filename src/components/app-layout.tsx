@@ -21,6 +21,7 @@ import {
   LogOut,
   Search,
   Users2,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -96,12 +97,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={isActive('/tools')}
+                isActive={isActive('/tools/team-name-generator')}
                 tooltip="Tools"
               >
                 <Link href="/tools/team-name-generator">
                   <Wrench />
                   <span>Tools</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/tools/make-admin')}
+                tooltip="Make Admin"
+              >
+                <Link href="/tools/make-admin">
+                  <Shield />
+                  <span>Make Admin (Setup)</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
