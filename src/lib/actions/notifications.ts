@@ -22,7 +22,7 @@ export async function markAllAsRead(
   try {
     const batch = writeBatch(db);
     notificationIds.forEach((id) => {
-      const notifRef = doc(db, 'notifications', id);
+      const notifRef = doc(db, 'inbox', userId, 'notifications', id);
       batch.update(notifRef, { read: true });
     });
     await batch.commit();

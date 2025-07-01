@@ -37,9 +37,8 @@ export function InboxContent() {
 
     setLoading(true);
     const q = query(
-      collection(db, 'notifications'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
+      collection(db, 'inbox', user.uid, 'notifications'),
+      orderBy('timestamp', 'desc'),
       limit(20)
     );
 

@@ -61,23 +61,23 @@ export type NotificationType =
 
 export interface Notification {
   id: string;
-  userId: string; // The user who this notification is for
   type: NotificationType;
-  message: string;
-  fromUser?: {
-    id: string;
-    name: string;
-    avatarUrl: string;
-  };
-  relatedRequestId?: string; // e.g., friend_request id
+  from: string; // UID of the user who sent it
   read: boolean;
-  createdAt: Timestamp;
+  timestamp: Timestamp;
+
+  // Type-specific fields
+  relatedRequestId?: string; // For friend_request_received
+  content?: string; // For new_message
+  teamId?: string; // For team notifications
+  chatId?: string; // for new_message
 }
 
 export interface FriendRequest {
   id: string;
-  from: string;
-  to: string;
+  fromId: string;
+  toId: string;
+  participantIds: string[];
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: Timestamp;
 }

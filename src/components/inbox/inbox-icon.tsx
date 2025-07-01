@@ -26,8 +26,7 @@ export function InboxIcon() {
 
     if (user) {
       const q = query(
-        collection(db, 'notifications'),
-        where('userId', '==', user.uid),
+        collection(db, 'inbox', user.uid, 'notifications'),
         where('read', '==', false)
       );
 
