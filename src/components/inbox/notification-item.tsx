@@ -6,7 +6,16 @@ import { useTransition, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { respondToFriendRequest } from '@/lib/actions/friends';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import {
+  doc,
+  updateDoc,
+  getDoc,
+  query,
+  collection,
+  where,
+  getDocs,
+  limit,
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { cn } from '@/lib/utils';
 import {
@@ -23,7 +32,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
 
-export function NotificationItem({ notification }: { notification: Notification }) {
+export function NotificationItem({
+  notification,
+}: {
+  notification: Notification;
+}) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isResponding, startResponding] = useTransition();
@@ -40,14 +53,16 @@ export function NotificationItem({ notification }: { notification: Notification 
         .then((docSnap) => {
           if (isMounted) {
             if (docSnap.exists()) {
-              setFromUser({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+              setFromUser(
+                { id: docSnap.id, ...docSnap.data() } as UserProfile
+              );
             } else {
               setFromUser(null);
             }
           }
         })
         .catch((error) => {
-          console.error("Error fetching user for notification:", error)
+          console.error('Error fetching user for notification:', error);
           if (isMounted) setFromUser(null);
         })
         .finally(() => {
@@ -56,31 +71,53 @@ export function NotificationItem({ notification }: { notification: Notification 
     } else {
       setLoading(false);
     }
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [notification.id, notification.from]);
 
   const handleResponse = async (accept: boolean) => {
-    if (!notification.relatedRequestId) {
-        toast({
-            title: "Error",
-            description: "Could not find the related friend request.",
-            variant: "destructive"
-        });
-        return;
-    };
+    let requestId = notification.relatedRequestId;
+
+    // Fallback: If the request ID is missing from the notification, try to find it.
+    if (!requestId && notification.type === 'friend_request' && user && notification.from) {
+      try {
+        const q = query(
+          collection(db, 'friend_requests'),
+          where('fromId', '==', notification.from),
+          where('toId', '==', user.uid),
+          where('status', '==', 'pending'),
+          limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          requestId = querySnapshot.docs[0].id;
+        }
+      } catch (e) {
+        console.error("Error querying for friend request ID:", e);
+      }
+    }
+
+    if (!requestId) {
+      toast({
+        title: 'Error',
+        description: 'Could not find the related friend request.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     startResponding(async () => {
       const result = await respondToFriendRequest({
-        requestId: notification.relatedRequestId!,
+        requestId: requestId!,
         accept,
       });
       if (result.success) {
-        setIsActionTaken(true); // Set state on success
+        setIsActionTaken(true);
         toast({
           title: 'Success',
           description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
         });
-        // The backend should handle removing this notification.
-        // We'll mark it as read client-side as a fallback.
         markAsRead();
       } else {
         toast({
@@ -142,7 +179,7 @@ export function NotificationItem({ notification }: { notification: Notification 
           message: `You have been kicked from a team.`,
         };
       case 'team_invite_received':
-         return {
+        return {
           icon: Users,
           message: `${name} invited you to a team.`,
         };
@@ -156,7 +193,8 @@ export function NotificationItem({ notification }: { notification: Notification 
   }
 
   const { icon: Icon, message } = getNotificationDetails();
-  const fallbackInitials = fromUser?.name?.slice(0, 2) || fromUser?.email?.slice(0, 2) || '?';
+  const fallbackInitials =
+    fromUser?.name?.slice(0, 2) || fromUser?.email?.slice(0, 2) || '?';
 
   return (
     <div
@@ -176,10 +214,7 @@ export function NotificationItem({ notification }: { notification: Notification 
         )}
       >
         <Avatar className="h-10 w-10">
-          <AvatarImage
-            src={fromUser?.avatarUrl}
-            data-ai-hint="person avatar"
-          />
+          <AvatarImage src={fromUser?.avatarUrl} data-ai-hint="person avatar" />
           <AvatarFallback>
             {fallbackInitials || <Icon className="h-5 w-5" />}
           </AvatarFallback>
@@ -220,9 +255,11 @@ export function NotificationItem({ notification }: { notification: Notification 
               </Button>
             </div>
           )}
-           {notification.type === 'friend_request' && isActionTaken && (
+          {notification.type === 'friend_request' && isActionTaken && (
             <div className="pt-1">
-              <p className="text-xs text-muted-foreground italic">Response sent.</p>
+              <p className="text-xs text-muted-foreground italic">
+                Response sent.
+              </p>
             </div>
           )}
         </div>
