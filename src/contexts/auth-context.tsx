@@ -11,7 +11,7 @@ import {
   onIdTokenChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, onSnapshot, updateDoc, getDocFromServer } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, getDocFromServer, Unsubscribe } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
@@ -38,7 +38,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onIdTokenChanged(auth, async (authUser) => {
+    let unsubscribeProfile: Unsubscribe | undefined;
+
+    const unsubscribeAuth = onIdTokenChanged(auth, async (authUser) => {
+      // Clean up previous profile listener if it exists
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+      }
+
       if (authUser) {
         setUser(authUser);
         const tokenResult = await authUser.getIdTokenResult(true);
@@ -54,16 +61,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         }
 
-        const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
+        unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             setUserProfile(docSnap.data() as UserProfile);
           } else {
             setUserProfile(null);
           }
           setLoading(false);
+        }, (error) => {
+            console.error("Auth context profile listener error:", error);
+            setUserProfile(null);
+            setLoading(false);
         });
 
-        return () => unsubscribeProfile();
       } else {
         setUser(null);
         setUserProfile(null);
@@ -72,7 +82,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+        unsubscribeAuth();
+        if (unsubscribeProfile) {
+            unsubscribeProfile();
+        }
+    };
   }, []);
 
   return (

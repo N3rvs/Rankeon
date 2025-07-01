@@ -37,6 +37,9 @@ export default function MessagesPage() {
                 });
                 setConversations(convos);
                 setLoadingConversations(false);
+            }, (error) => {
+                console.error("Error fetching conversations:", error);
+                setLoadingConversations(false);
             });
             return () => unsubscribe();
         }
@@ -50,6 +53,9 @@ export default function MessagesPage() {
             const unsubscribe = onSnapshot(q, (querySnapshot) => {
                 const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as Message));
                 setMessages(msgs);
+                setLoadingMessages(false);
+            }, (error) => {
+                console.error(`Error fetching messages for conversation ${selectedConversation.id}:`, error);
                 setLoadingMessages(false);
             });
             return () => unsubscribe();
@@ -207,7 +213,7 @@ export default function MessagesPage() {
     )
 }
 
-function ChatMessage({ message, currentUser, otherUser }: { message: Message, currentUser: UserProfile | null, otherUser: {name: string, avatarUrl: string} | null }) {
+function ChatMessage({ message, message, currentUser, otherUser }: { message: Message, currentUser: UserProfile | null, otherUser: {name: string, avatarUrl: string} | null }) {
     const isMe = message.senderId === currentUser?.id;
     const participant = isMe ? currentUser : otherUser;
     
