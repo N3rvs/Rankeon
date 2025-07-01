@@ -1,7 +1,6 @@
 // src/lib/actions/messages.ts
-'use server';
+// Client-side actions that call Firebase Functions
 
-import { revalidatePath } from 'next/cache';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 
@@ -22,8 +21,6 @@ export async function deleteMessage({
   try {
     const deleteFunc = httpsCallable(functions, 'deleteMessage');
     await deleteFunc({ chatId, messageId });
-    
-    revalidatePath(`/messages`);
     return { success: true, message: 'Message deleted.' };
   } catch (error: any) {
     console.error('Error deleting message:', error);

@@ -1,7 +1,6 @@
 // src/lib/actions/friends.ts
-'use server';
+// Client-side actions that call Firebase Functions
 
-import { revalidatePath } from 'next/cache';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 
@@ -18,8 +17,6 @@ export async function sendFriendRequest(
   try {
     const sendRequest = httpsCallable(functions, 'sendFriendRequest');
     await sendRequest({ to: recipientId });
-
-    revalidatePath('/market');
     return { success: true, message: 'Friend request sent.' };
   } catch (error: any) {
     console.error('Error sending friend request:', error);
@@ -37,9 +34,6 @@ export async function respondToFriendRequest({
   try {
     const respond = httpsCallable(functions, 'respondToFriendRequest');
     await respond({ requestId, accept });
-    
-    revalidatePath('/inbox');
-    revalidatePath('/market');
     return { success: true, message: `Request ${accept ? 'accepted' : 'rejected'}.` };
   } catch (error: any) {
     console.error('Error responding to friend request:', error);
@@ -51,8 +45,6 @@ export async function removeFriend(friendId: string): Promise<ActionResponse> {
   try {
     const remove = httpsCallable(functions, 'removeFriend');
     await remove({ friendUid: friendId });
-
-    revalidatePath('/market');
     return { success: true, message: 'Friend removed.' };
   } catch (error: any) {
     console.error('Error removing friend:', error);

@@ -69,11 +69,9 @@ export function InboxContent() {
         .map((n) => n.id);
       if (unreadIds.length === 0) return;
 
-      const { success, message } = await markAllAsRead(unreadIds);
+      const { success, message } = await markAllAsRead(unreadIds, user.uid);
       if (!success) {
         toast({ title: 'Error', description: message, variant: 'destructive' });
-      } else {
-        toast({ title: 'Success', description: 'All notifications marked as read.' });
       }
     });
   };
