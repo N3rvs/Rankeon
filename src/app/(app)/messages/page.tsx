@@ -26,42 +26,51 @@ export default function MessagesPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (user) {
-            const q = query(collection(db, 'conversations'), where('participantIds', 'array-contains', user.uid));
-            const unsubscribe = onSnapshot(q, (querySnapshot) => {
-                const convos = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Conversation));
-                convos.sort((a, b) => {
-                    const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
-                    const timeB = b.lastMessage?.timestamp?.toMillis() || 0;
-                    return timeB - timeA;
-                });
-                setConversations(convos);
-                setLoadingConversations(false);
-            }, (error) => {
-                console.error("Error fetching conversations:", error);
-                setLoadingConversations(false);
-            });
-            return () => unsubscribe();
+        if (!user) {
+            setConversations([]);
+            setLoadingConversations(false);
+            return;
         }
+
+        setLoadingConversations(true);
+        const q = query(collection(db, 'conversations'), where('participantIds', 'array-contains', user.uid));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const convos = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Conversation));
+            convos.sort((a, b) => {
+                const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
+                const timeB = b.lastMessage?.timestamp?.toMillis() || 0;
+                return timeB - timeA;
+            });
+            setConversations(convos);
+            setLoadingConversations(false);
+        }, (error) => {
+            console.error("Error fetching conversations:", error);
+            setLoadingConversations(false);
+        });
+
+        return () => unsubscribe();
     }, [user]);
 
     useEffect(() => {
-        if (selectedConversation && user) {
-            setLoadingMessages(true);
-            const messagesRef = collection(db, 'conversations', selectedConversation.id, 'messages');
-            const q = query(messagesRef, orderBy('timestamp', 'asc'));
-            const unsubscribe = onSnapshot(q, (querySnapshot) => {
-                const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as Message));
-                setMessages(msgs);
-                setLoadingMessages(false);
-            }, (error) => {
-                console.error(`Error fetching messages for conversation ${selectedConversation.id}:`, error);
-                setLoadingMessages(false);
-            });
-            return () => unsubscribe();
-        } else {
+        if (!selectedConversation || !user) {
             setMessages([]);
+            setLoadingMessages(false);
+            return;
         }
+
+        setLoadingMessages(true);
+        const messagesRef = collection(db, 'conversations', selectedConversation.id, 'messages');
+        const q = query(messagesRef, orderBy('timestamp', 'asc'));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as Message));
+            setMessages(msgs);
+            setLoadingMessages(false);
+        }, (error) => {
+            console.error(`Error fetching messages for conversation ${selectedConversation.id}:`, error);
+            setLoadingMessages(false);
+        });
+        
+        return () => unsubscribe();
     }, [selectedConversation, user]);
 
     useEffect(() => {

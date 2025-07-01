@@ -32,23 +32,25 @@ export function MarketTabs() {
 
   useEffect(() => {
     if (!user) {
+        setPlayers([]);
+        setTeams([]);
         setLoadingPlayers(false);
         setLoadingTeams(false);
         return;
     };
 
+    setLoadingPlayers(true);
     const playersQuery = query(collection(db, 'users'), where('lookingForTeam', '==', true));
     const unsubscribePlayers = onSnapshot(playersQuery, (snapshot) => {
       const playersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
-      setPlayers(playersData.filter(p => p.id !== user?.uid)); // Exclude current user from market
+      setPlayers(playersData.filter(p => p.id !== user.uid)); 
       setLoadingPlayers(false);
     }, (error) => {
       console.error("Error fetching players:", error);
       setLoadingPlayers(false);
     });
 
-    // In a real app, you would fetch teams and then fetch member data if needed.
-    // For now, we will fetch the teams that are looking for players.
+    setLoadingTeams(true);
     const teamsQuery = query(collection(db, 'teams'), where('lookingForPlayers', '==', true));
     const unsubscribeTeams = onSnapshot(teamsQuery, (snapshot) => {
       const teamsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
