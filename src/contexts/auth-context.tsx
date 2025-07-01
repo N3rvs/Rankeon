@@ -1,56 +1,73 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react';
+import {
+  onIdTokenChanged,
+  User as FirebaseUser,
+} from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
-import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
 import { UserProfile } from '@/lib/types';
 
 interface AuthContextType {
   user: FirebaseUser | null;
   userProfile: UserProfile | null;
+  token: string | null;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   userProfile: null,
+  token: null,
   loading: true,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
+    const unsubscribe = onIdTokenChanged(auth, async (authUser) => {
       if (authUser) {
         setUser(authUser);
+        const freshToken = await authUser.getIdToken(true);
+        setToken(freshToken);
+
         const userDocRef = doc(db, 'users', authUser.uid);
         const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
-            if (docSnap.exists()) {
-                setUserProfile({ ...docSnap.data() } as UserProfile);
-            } else {
-                setUserProfile(null);
-            }
-             setLoading(false);
+          if (docSnap.exists()) {
+            setUserProfile(docSnap.data() as UserProfile);
+          } else {
+            setUserProfile(null);
+          }
+          setLoading(false);
         });
+
         return () => unsubscribeProfile();
       } else {
         setUser(null);
         setUserProfile(null);
+        setToken(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribeAuth();
+    return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading }}>
+    <AuthContext.Provider value={{ user, userProfile, token, loading }}>
       {children}
     </AuthContext.Provider>
   );
@@ -65,22 +82,22 @@ export const useAuth = () => {
 };
 
 export function AuthGuard({ children }: { children: ReactNode }) {
-    const { user, loading } = useAuth();
-    const router = useRouter();
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-    useEffect(() => {
-        if (!loading && !user) {
-            router.push('/login');
-        }
-    }, [user, loading, router]);
-
-    if (loading || !user) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-               <Skeleton className="h-12 w-12 rounded-full" />
-            </div>
-        )
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
     }
+  }, [user, loading, router]);
 
-    return <>{children}</>;
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Skeleton className="h-12 w-12 rounded-full" />
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }

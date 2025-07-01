@@ -1,7 +1,7 @@
 // src/lib/actions/admin.ts
 'use server';
 
-import { getAdminInstances } from '@/lib/firebase/admin';
+import { adminAuth, adminDb } from '@/lib/firebase/admin';
 
 export async function grantAdminRole({ uid }: { uid: string }) {
   if (!uid) {
@@ -9,8 +9,6 @@ export async function grantAdminRole({ uid }: { uid: string }) {
   }
 
   try {
-    const { adminAuth, adminDb } = getAdminInstances();
-
     await adminAuth.setCustomUserClaims(uid, { role: 'admin' });
 
     await adminDb.collection('users').doc(uid).set(

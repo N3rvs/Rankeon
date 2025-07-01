@@ -1,20 +1,25 @@
 'use client';
 
-import { grantAdminRole } from '@/lib/actions/admin';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Shield } from 'lucide-react';
 import { useTransition } from 'react';
 
 export default function MakeAdminPage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth(); // ✅ ahora también usamos el token
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
   const handleMakeAdmin = () => {
-    if (!user) {
+    if (!user || !token) {
       toast({
         title: 'Error',
         description: 'You must be logged in.',
@@ -24,18 +29,27 @@ export default function MakeAdminPage() {
     }
 
     startTransition(() => {
-      grantAdminRole({ uid: user.uid })
-        .then((result) => {
+      fetch('/api/admin/assign-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // ✅ token válido
+        },
+        body: JSON.stringify({ uid: user.uid, role: 'admin' }),
+      })
+        .then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
           toast({
             title: 'Success!',
-            description: `${result.message}. Please log out and log back in for the changes to take effect.`,
+            description: `${data.message}. Please log out and log back in for the changes to take effect.`,
           });
         })
-        .catch((error: any) => {
+        .catch((error) => {
           console.error(error);
           toast({
             title: 'Error',
-            description: 'Failed to grant admin role. Check the server logs.',
+            description: error.message ?? 'Failed to grant admin role.',
             variant: 'destructive',
           });
         });
@@ -49,8 +63,7 @@ export default function MakeAdminPage() {
           <Shield className="mx-auto h-12 w-12 text-primary" />
           <CardTitle className="font-headline">Grant Admin Privileges</CardTitle>
           <CardDescription>
-            Click the button below to assign the 'admin' role to your currently logged-in account.
-            This is a one-time setup action.
+            Click the button below to assign the <strong>admin</strong> role to your currently logged-in account.
           </CardDescription>
         </CardHeader>
         <CardContent>
