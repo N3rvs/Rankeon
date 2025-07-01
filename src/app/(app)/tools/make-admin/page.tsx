@@ -11,15 +11,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
-import { useTransition } from 'react';
-import { grantAdminRole } from '@/lib/actions/admin';
+import { useState } from 'react';
 
 export default function MakeAdminPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
-  const handleMakeAdmin = () => {
+  const handleMakeAdmin = async () => {
     if (!user) {
       toast({
         title: 'Error',
@@ -29,27 +28,45 @@ export default function MakeAdminPage() {
       return;
     }
 
-    startTransition(async () => {
-      try {
-        const result = await grantAdminRole({ uid: user.uid });
+    setIsPending(true);
 
-        if (result.success) {
-          toast({
-            title: 'Success!',
-            description: `${result.message}. Please log out and log back in.`,
-          });
-        } else {
-          throw new Error(result.message);
-        }
-      } catch (error: any) {
-        console.error('❌ Grant admin role failed:', error);
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        });
+    try {
+      const res = await fetch('/api/admin/assign-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ uid: user.uid }),
+      });
+      
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await res.text();
+        console.error("Raw response from server:", responseText);
+        throw new Error('Invalid JSON response from server. The server might have crashed.');
       }
-    });
+      
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || 'An unknown error occurred on the server.');
+      }
+      
+      toast({
+        title: 'Success!',
+        description: `${result.message}. Please log out and log back in.`,
+      });
+
+    } catch (error: any) {
+      console.error('❌ Grant admin role failed:', error);
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
