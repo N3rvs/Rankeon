@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAdminInstances } from '@/lib/firebase/admin-sdk';
+import { getAdminInstances } from '@/lib/firebase/admin';
 import { headers } from 'next/headers';
 
 export async function POST(request: Request) {

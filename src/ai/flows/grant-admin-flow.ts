@@ -7,7 +7,7 @@
  * - GrantAdminRoleOutput - The return type for the grantAdminRole function.
  */
 
-import { getAdminInstances } from '@/lib/firebase/admin-sdk';
+import { getAdminInstances } from '@/lib/firebase/admin';
 import { z } from 'zod';
 
 const GrantAdminRoleInputSchema = z.object({
