@@ -75,8 +75,8 @@ export interface Notification {
 
 export interface FriendRequest {
   id: string;
-  fromId: string;
-  toId: string;
+  from: string;
+  to: string;
   participantIds: string[];
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: Timestamp;

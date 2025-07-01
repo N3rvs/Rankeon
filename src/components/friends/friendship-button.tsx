@@ -71,7 +71,7 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
 
     // Listen for friend requests between the two users
     const q = query(
-      collection(db, 'friend_requests'),
+      collection(db, 'friendRequests'),
       where('participantIds', 'array-contains', user.uid),
       limit(20) // Limit query for performance
     );
@@ -81,14 +81,14 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
       for (const doc of snapshot.docs) {
         const request = doc.data() as FriendRequest;
         if (
-          (request.fromId === user.uid && request.toId === targetUser.id) ||
-          (request.fromId === targetUser.id && request.toId === user.uid)
+          (request.from === user.uid && request.to === targetUser.id) ||
+          (request.from === targetUser.id && request.to === user.uid)
         ) {
           if (request.status === 'pending') {
             foundRequest = true;
             setRequestId(doc.id);
             setStatus(
-              request.fromId === user.uid ? 'request_sent' : 'request_received'
+              request.from === user.uid ? 'request_sent' : 'request_received'
             );
           }
           break;

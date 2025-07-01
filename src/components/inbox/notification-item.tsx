@@ -48,31 +48,31 @@ export function NotificationItem({
 
   useEffect(() => {
     let isMounted = true;
-    if (notification.from) {
-      setLoading(true);
-      const userDocRef = doc(db, 'users', notification.from);
-      getDoc(userDocRef)
-        .then((docSnap) => {
-          if (isMounted) {
-            if (docSnap.exists()) {
-              setFromUser(
-                { id: docSnap.id, ...docSnap.data() } as UserProfile
-              );
-            } else {
-              setFromUser(null);
-            }
+    const fetchFromUser = async () => {
+      if (!notification.from) {
+        if (isMounted) setLoading(false);
+        return;
+      }
+      try {
+        const userDocRef = doc(db, 'users', notification.from);
+        const docSnap = await getDoc(userDocRef);
+        if (isMounted) {
+          if (docSnap.exists()) {
+            setFromUser({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+          } else {
+            setFromUser(null);
           }
-        })
-        .catch((error) => {
-          console.error('Error fetching user for notification:', error);
-          if (isMounted) setFromUser(null);
-        })
-        .finally(() => {
-          if (isMounted) setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
+        }
+      } catch (error) {
+        console.error('Error fetching user for notification:', error);
+        if (isMounted) setFromUser(null);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchFromUser();
+    
     return () => {
       isMounted = false;
     };
@@ -84,9 +84,9 @@ export function NotificationItem({
     if (!requestId && notification.type === 'friend_request' && user && notification.from) {
       try {
         const q = query(
-          collection(db, 'friend_requests'),
-          where('fromId', '==', notification.from),
-          where('toId', '==', user.uid),
+          collection(db, 'friendRequests'),
+          where('from', '==', notification.from),
+          where('to', '==', user.uid),
           where('status', '==', 'pending'),
           limit(1)
         );

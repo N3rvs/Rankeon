@@ -2,52 +2,43 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can read their own profile, admins can read any.
-    // Users can update their own profile, but not change their role.
+    // Users can read their own profile, and other users' public profiles.
+    // They can only update their own non-sensitive fields.
     match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow read;
+      allow update: if request.auth.uid == userId && !('role' in request.resource.data);
       allow create: if request.auth.uid == userId;
-      allow update: if request.auth.uid == userId && request.resource.data.role == resource.data.role;
     }
     
-    // Admins can write anything to a user doc (e.g. change role)
-    match /users/{userId} {
-       allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    // Admins can read/write anything in the users collection.
+    match /users/{userId} where get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' {
+    	allow read, write;
     }
-
-    // A user can see the full list of users if they are an admin.
-    match /users/{userId} {
-      allow list: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Teams collection
-    match /teams/{teamId} {
-      allow read: if request.auth != null;
-      allow list: if request.auth != null;
-      // Add rules for write later
-    }
-
-    // Chats collection
+    
+    // Chat messages can be read by members of the chat.
+    // Users can only create messages as themselves.
+    // Users can only delete their own messages.
     match /chats/{chatId} {
-      // Only members of the chat can read/write to it
-      allow read, write: if request.auth != null && request.auth.uid in resource.data.members;
+      allow read, write: if request.auth.uid in resource.data.members;
       
       match /messages/{messageId} {
-        allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-        // Only the sender can delete their own message
-        allow delete: if request.auth != null && resource.data.sender == request.auth.uid;
+        allow read: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+        allow create: if request.auth.uid == request.resource.data.sender;
+        allow delete: if request.auth.uid == resource.data.sender;
       }
     }
-
-    // Notifications: User can only access their own notifications in their inbox.
+    
+    // Notifications can only be accessed by the recipient.
     match /inbox/{userId}/notifications/{notificationId} {
-      allow read, list, write: if request.auth != null && request.auth.uid == userId;
+    	allow read, write, create, delete: if request.auth.uid == userId;
     }
-
-    // Friend Requests: Only participants can read/write
-    match /friend_requests/{requestId} {
-      allow read, write: if request.auth != null && request.auth.uid in resource.data.participantIds;
+    
+    // Friend requests can be read by participants, created by the sender, and updated by the receiver.
+    match /friendRequests/{requestId} {
+    	allow read: if request.auth.uid in resource.data.participantIds;
+      allow create: if request.auth.uid == request.resource.data.from;
+      allow update: if request.auth.uid == resource.data.to;
     }
+    
   }
 }
