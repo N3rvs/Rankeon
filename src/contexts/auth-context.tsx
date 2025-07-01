@@ -1,3 +1,4 @@
+// src/contexts/auth-context.tsx
 'use client';
 
 import {
@@ -7,11 +8,14 @@ import {
   useState,
   ReactNode,
 } from 'react';
+import { onIdTokenChanged, User as FirebaseUser } from 'firebase/auth';
 import {
-  onIdTokenChanged,
-  User as FirebaseUser,
-} from 'firebase/auth';
-import { doc, onSnapshot, updateDoc, getDocFromServer, Unsubscribe } from 'firebase/firestore';
+  doc,
+  onSnapshot,
+  getDocFromServer,
+  updateDoc,
+  Unsubscribe,
+} from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
@@ -22,6 +26,7 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   token: string | null;
   loading: boolean;
+  setToken: (token: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -29,6 +34,7 @@ const AuthContext = createContext<AuthContextType>({
   userProfile: null,
   token: null,
   loading: true,
+  setToken: () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -41,7 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let unsubscribeProfile: Unsubscribe | undefined;
 
     const unsubscribeAuth = onIdTokenChanged(auth, async (authUser) => {
-      // Clean up previous profile listener if it exists
       if (unsubscribeProfile) {
         unsubscribeProfile();
       }
@@ -50,30 +55,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(authUser);
         const tokenResult = await authUser.getIdTokenResult(true);
         setToken(tokenResult.token);
+
+        if (tokenResult.claims.role === 'admin') {
+          const userDocRef = doc(db, 'users', authUser.uid);
+          const docSnap = await getDocFromServer(userDocRef);
+          if (docSnap.exists() && docSnap.data().role !== 'admin') {
+            await updateDoc(userDocRef, { role: 'admin' });
+          }
+        }
         
         const userDocRef = doc(db, 'users', authUser.uid);
-
-        // Self-healing: Sync Firestore role with Auth token claim if mismatched
-        if (tokenResult.claims.role === 'admin') {
-            const docSnap = await getDocFromServer(userDocRef);
-            if (docSnap.exists() && docSnap.data().role !== 'admin') {
-                await updateDoc(userDocRef, { role: 'admin' });
+        unsubscribeProfile = onSnapshot(
+          userDocRef,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              setUserProfile({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+            } else {
+              setUserProfile(null);
             }
-        }
-
-        unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
-          if (docSnap.exists()) {
-            setUserProfile(docSnap.data() as UserProfile);
-          } else {
-            setUserProfile(null);
-          }
-          setLoading(false);
-        }, (error) => {
-            console.error("Auth context profile listener error:", error);
+            setLoading(false);
+          },
+          (error) => {
+            console.error('Auth context profile listener error:', error);
             setUserProfile(null);
             setLoading(false);
-        });
-
+          }
+        );
       } else {
         setUser(null);
         setUserProfile(null);
@@ -83,15 +90,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-        unsubscribeAuth();
-        if (unsubscribeProfile) {
-            unsubscribeProfile();
-        }
+      unsubscribeAuth();
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+      }
     };
   }, []);
+  
+  // This middleware intercepts fetch requests to add the auth token.
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (input, init) => {
+      // We only want to intercept our own server action calls.
+      if (typeof input === 'string' && input.includes('__action__')) {
+        const headers = new Headers(init?.headers);
+        if (token) {
+          headers.set('Authorization', `Bearer ${token}`);
+        }
+        const newInit = { ...init, headers };
+        return originalFetch(input, newInit);
+      }
+      return originalFetch(input, init);
+    };
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [token]);
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, token, loading }}>
+    <AuthContext.Provider value={{ user, userProfile, token, loading, setToken }}>
       {children}
     </AuthContext.Provider>
   );

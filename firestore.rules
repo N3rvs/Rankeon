@@ -1,48 +1,44 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check if a user is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Helper function to get the user's profile data
-    function getUserData(uid) {
-      return get(/databases/$(database)/documents/users/$(uid)).data;
-    }
-
-    // Helper function to check if a user is an admin
+    
     function isAdmin() {
-      return isAuthenticated() && getUserData(request.auth.uid).role == 'admin';
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     match /users/{userId} {
-      // Admins can list all users. Users can only get their own profile.
-      allow get: if request.auth.uid == userId || isAdmin();
-      allow list: if isAdmin();
-      
-      // Users can create their own profile.
+      allow read: if request.auth != null;
       allow create: if request.auth.uid == userId;
-
-      // Users can update their own profile, and admins can update any profile.
       allow update: if request.auth.uid == userId || isAdmin();
     }
 
     match /teams/{teamId} {
-      allow read, create: if isAuthenticated();
-      allow update: if isAuthenticated() && resource.data.ownerId == request.auth.uid || isAdmin();
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && (get(/databases/$(database)/documents/teams/$(teamId)).data.ownerId == request.auth.uid || isAdmin());
     }
 
-    // Conversations can only be read or written by participants.
     match /conversations/{conversationId} {
-      allow read, write: if isAuthenticated() && request.auth.uid in resource.data.participantIds;
+        allow read, write: if request.auth != null && request.auth.uid in resource.data.participantIds;
+        
+        match /messages/{messageId} {
+            allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+        }
+    }
 
-      // Messages can only be read or written by conversation participants.
-      match /messages/{messageId} {
-        allow read, write: if isAuthenticated() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds.hasAny([request.auth.uid]);
-      }
+    match /friend_requests/{requestId} {
+      allow create: if request.auth.uid == request.resource.data.fromId;
+      allow read: if request.auth.uid == resource.data.fromId || request.auth.uid == resource.data.toId;
+      allow update: if request.auth.uid == get(/databases/$(database)/documents/friend_requests/$(requestId)).data.toId;
+      allow delete: if request.auth.uid == get(/databases/$(database)/documents/friend_requests/$(requestId)).data.toId;
+    }
+
+    match /notifications/{notificationId} {
+      // Only server actions can create notifications. Client can't.
+      allow create: if false; 
+      // User can read, update (mark as read), and delete their own notifications.
+      allow read, update, delete: if request.auth.uid == resource.data.userId;
+      // Allow list query for the user's own notifications
+      allow list: if request.auth.uid == request.query.userId;
     }
   }
 }

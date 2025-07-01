@@ -1,3 +1,4 @@
+// src/components/app-layout.tsx
 'use client';
 
 import {
@@ -22,6 +23,7 @@ import {
   Search,
   Users2,
   Shield,
+  Bell,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -31,6 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { auth } from '@/lib/firebase/client';
 import { Skeleton } from './ui/skeleton';
+import { InboxIcon } from './inbox/inbox-icon';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -41,7 +44,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     await auth.signOut();
     router.push('/login');
   };
-
 
   const isActive = (path: string) => {
     return pathname.startsWith(path);
@@ -73,6 +75,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
+                isActive={isActive('/inbox')}
+                tooltip="Inbox"
+              >
+                <Link href="/inbox">
+                  <Bell />
+                  <span>Inbox</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
                 isActive={isActive('/teams')}
                 tooltip="My Teams"
               >
@@ -94,7 +108,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-             {userProfile?.role === 'admin' && (
+            {userProfile?.role === 'admin' && (
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
@@ -148,24 +162,36 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <header className="flex h-16 items-center justify-between border-b bg-background/50 backdrop-blur-sm px-4 md:px-6">
           <div className="flex items-center gap-2">
-             <SidebarTrigger className="md:hidden" />
-             <div className="relative hidden md:block w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search players, teams, or games..." className="pl-9" />
+            <SidebarTrigger className="md:hidden" />
+            <div className="relative hidden md:block w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search players, teams, or games..."
+                className="pl-9"
+              />
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <InboxIcon />
             <Button variant="outline">Create a Team</Button>
-            {loading ? <Skeleton className="h-10 w-10 rounded-full" /> : (
+            {loading ? (
+              <Skeleton className="h-10 w-10 rounded-full" />
+            ) : (
               <Avatar>
-                <AvatarImage src={userProfile?.avatarUrl} alt={userProfile?.name} data-ai-hint="male avatar" />
-                <AvatarFallback>{userProfile?.name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+                <AvatarImage
+                  src={userProfile?.avatarUrl}
+                  alt={userProfile?.name}
+                  data-ai-hint="male avatar"
+                />
+                <AvatarFallback>
+                  {userProfile?.name?.charAt(0) || user?.email?.charAt(0)}
+                </AvatarFallback>
               </Avatar>
             )}
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
-            {children}
+          {children}
         </main>
       </SidebarInset>
     </SidebarProvider>

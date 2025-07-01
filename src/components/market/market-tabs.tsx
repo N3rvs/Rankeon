@@ -1,3 +1,4 @@
+// src/components/market/market-tabs.tsx
 'use client';
 
 import {
@@ -19,6 +20,7 @@ import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { FriendshipButton } from '../friends/friendship-button';
 
 export function MarketTabs() {
   const { user, userProfile } = useAuth();
@@ -31,39 +33,41 @@ export function MarketTabs() {
   const [isMessaging, setIsMessaging] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    let unsubscribePlayers: (() => void) | undefined;
+    let unsubscribeTeams: (() => void) | undefined;
+
+    if (user) {
+        setLoadingPlayers(true);
+        const playersQuery = query(collection(db, 'users'), where('lookingForTeam', '==', true));
+        unsubscribePlayers = onSnapshot(playersQuery, (snapshot) => {
+          const playersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
+          setPlayers(playersData.filter(p => p.id !== user.uid)); 
+          setLoadingPlayers(false);
+        }, (error) => {
+          console.error("Error fetching players:", error);
+          setLoadingPlayers(false);
+        });
+
+        setLoadingTeams(true);
+        const teamsQuery = query(collection(db, 'teams'), where('lookingForPlayers', '==', true));
+        unsubscribeTeams = onSnapshot(teamsQuery, (snapshot) => {
+          const teamsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
+          setTeams(teamsData);
+          setLoadingTeams(false);
+        }, (error) => {
+          console.error("Error fetching teams:", error);
+          setLoadingTeams(false);
+        });
+    } else {
         setPlayers([]);
         setTeams([]);
         setLoadingPlayers(false);
         setLoadingTeams(false);
-        return;
-    };
-
-    setLoadingPlayers(true);
-    const playersQuery = query(collection(db, 'users'), where('lookingForTeam', '==', true));
-    const unsubscribePlayers = onSnapshot(playersQuery, (snapshot) => {
-      const playersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
-      setPlayers(playersData.filter(p => p.id !== user.uid)); 
-      setLoadingPlayers(false);
-    }, (error) => {
-      console.error("Error fetching players:", error);
-      setLoadingPlayers(false);
-    });
-
-    setLoadingTeams(true);
-    const teamsQuery = query(collection(db, 'teams'), where('lookingForPlayers', '==', true));
-    const unsubscribeTeams = onSnapshot(teamsQuery, (snapshot) => {
-      const teamsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
-      setTeams(teamsData);
-      setLoadingTeams(false);
-    }, (error) => {
-      console.error("Error fetching teams:", error);
-      setLoadingTeams(false);
-    });
-
+    }
+    
     return () => {
-      unsubscribePlayers();
-      unsubscribeTeams();
+      if (unsubscribePlayers) unsubscribePlayers();
+      if (unsubscribeTeams) unsubscribeTeams();
     };
   }, [user]);
 
@@ -107,9 +111,6 @@ export function MarketTabs() {
   };
 
   const handleContactTeam = async (team: Team) => {
-    // Messaging a team is a more complex feature. 
-    // It could involve messaging the owner, or a shared team inbox.
-    // This is out of scope for the current task.
     toast({
         title: 'Feature Not Implemented',
         description: `Contacting team "${team.name}" is not available yet.`,
@@ -171,13 +172,16 @@ export function MarketTabs() {
                 </div>
               </CardContent>
               <CardFooter>
-                 <Button
-                    className="w-full"
-                    onClick={() => handleMessagePlayer(player)}
-                    disabled={isMessaging === player.id}
-                  >
-                    {isMessaging === player.id ? 'Starting chat...' : <><MessageSquare className="mr-2 h-4 w-4" /> Message</>}
-                </Button>
+                <div className="w-full flex items-center gap-2">
+                  <FriendshipButton targetUser={player} />
+                  <Button
+                      variant="secondary"
+                      onClick={() => handleMessagePlayer(player)}
+                      disabled={isMessaging === player.id}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           )) : (
