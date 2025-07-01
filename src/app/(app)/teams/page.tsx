@@ -72,13 +72,8 @@ export default function TeamsPage() {
                     <h3 className="mt-4 text-xl font-semibold">No Teams Found</h3>
                     <p className="mt-2 text-muted-foreground">
                         You are not a member of any team yet.
-                        {canCreateTeam ? " Why not create one?" : ""}
+                        {canCreateTeam ? " Why not create one from the button above?" : ""}
                     </p>
-                    {canCreateTeam && (
-                       <div className="mt-6">
-                         <CreateTeamDialog />
-                       </div>
-                    )}
                 </div>
             )}
         </div>
