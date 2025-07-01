@@ -23,7 +23,12 @@ import {
 } from '@/lib/actions/notifications';
 import { NotificationItem } from './notification-item';
 import { ScrollArea } from '../ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../ui/tooltip';
 
 export function InboxContent() {
   const { user } = useAuth();
@@ -99,67 +104,71 @@ export function InboxContent() {
   const hasUnread = notifications.some((n) => !n.read);
 
   return (
-    <div className="flex flex-col h-[calc(80vh)] md:h-full">
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold font-headline">Notifications</h3>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleMarkAllRead}
-              disabled={isPending || !hasUnread}
-            >
-              <CheckCheck className="mr-2 h-4 w-4" />
-              Mark all as read
-            </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  onClick={handleClearHistory}
-                  disabled={isClearing || notifications.length === 0}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Clear history</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Clear all notifications</p>
-              </TooltipContent>
-            </Tooltip>
+    <TooltipProvider>
+      <div className="flex flex-col h-[calc(80vh)] md:h-full">
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold font-headline">
+              Notifications
+            </h3>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMarkAllRead}
+                disabled={isPending || !hasUnread}
+              >
+                <CheckCheck className="mr-2 h-4 w-4" />
+                Mark all as read
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    onClick={handleClearHistory}
+                    disabled={isClearing || notifications.length === 0}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Clear history</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clear all notifications</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         </div>
-      </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
-          {loading ? (
-            <div className="space-y-2 p-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="flex min-h-[200px] flex-col items-center justify-center text-center p-6 text-muted-foreground">
-              <Bell className="h-10 w-10" />
-              <p className="mt-4 text-sm font-semibold">No notifications</p>
-              <p className="text-xs">
-                Friend requests and other updates will appear here.
-              </p>
-            </div>
-          ) : (
-            notifications.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-              />
-            ))
-          )}
-        </div>
-      </ScrollArea>
-    </div>
+        <ScrollArea className="flex-1">
+          <div className="p-2 space-y-1">
+            {loading ? (
+              <div className="space-y-2 p-2">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="flex min-h-[200px] flex-col items-center justify-center text-center p-6 text-muted-foreground">
+                <Bell className="h-10 w-10" />
+                <p className="mt-4 text-sm font-semibold">No notifications</p>
+                <p className="text-xs">
+                  Friend requests and other updates will appear here.
+                </p>
+              </div>
+            ) : (
+              notifications.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                />
+              ))
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+    </TooltipProvider>
   );
 }
