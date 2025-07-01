@@ -343,7 +343,7 @@ export default function MessagesPage() {
     )
 }
 
-function ChatMessageDisplay({ message, currentUser, otherUser, chatId }: { message: ChatMessage, currentUser: UserProfile | null, otherUser: UserProfile | null, chatId: string }) {
+function ChatMessageDisplay({ message, currentUser, otherParticipant, chatId }: { message: ChatMessage, currentUser: UserProfile | null, otherParticipant: UserProfile | null, chatId: string }) {
     const isMe = message.sender === currentUser?.id;
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -390,10 +390,10 @@ function ChatMessageDisplay({ message, currentUser, otherUser, chatId }: { messa
                         <span className="sr-only">Delete message</span>
                     </Button>
                 )}
-                {!isMe && otherUser && (
+                {!isMe && otherParticipant && (
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={otherUser.avatarUrl} data-ai-hint="person avatar" />
-                        <AvatarFallback>{otherUser.name?.slice(0, 2)}</AvatarFallback>
+                        <AvatarImage src={otherParticipant.avatarUrl} data-ai-hint="person avatar" />
+                        <AvatarFallback>{otherParticipant.name?.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                 )}
                 <div className={cn(
