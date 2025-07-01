@@ -18,8 +18,22 @@ import Link from 'next/link';
 const scriptContent = `const admin = require('firebase-admin');
 
 // --- ¡IMPORTANTE! ---
-// Reemplaza la siguiente línea con tu Project ID real.
+// 1. Reemplaza 'AQUÍ_TU_PROJECT_ID' con tu Project ID real que aparece en la página.
+// 2. Reemplaza 'AQUÍ_TU_UID' con tu UID real que aparece en la página.
 const projectId = 'AQUÍ_TU_PROJECT_ID';
+const uid = 'AQUÍ_TU_UID';
+// --------------------
+
+// --- Verificaciones ---
+if (projectId.includes('AQUÍ_TU_PROJECT_ID')) {
+  console.error('❌ ERROR: ¡No has reemplazado el placeholder del Project ID! Copia tu Project ID de la página y pégalo en la variable \`projectId\`.');
+  process.exit(1);
+}
+
+if (uid.includes('AQUÍ_TU_UID')) {
+  console.error('❌ ERROR: ¡No has reemplazado el placeholder del UID! Copia tu UID de la página y pégalo en la variable \`uid\`.');
+  process.exit(1);
+}
 // --------------------
 
 // En Cloud Shell, la autenticación es automática. ¡No se necesita un archivo de clave!
@@ -27,21 +41,6 @@ admin.initializeApp({
   credential: admin.credential.applicationDefault(),
   projectId: projectId,
 });
-
-// --- ¡IMPORTANTE! ---
-// Reemplaza la siguiente línea con tu UID real, que puedes copiar de esta página.
-const uid = 'AQUÍ_TU_UID';
-// --------------------
-
-if (projectId === 'AQUÍ_TU_PROJECT_ID' || !projectId) {
-  console.error('❌ ERROR: Reemplaza el texto "AQUÍ_TU_PROJECT_ID" en el script con tu Project ID real antes de ejecutar.');
-  process.exit(1);
-}
-
-if (uid === 'AQUÍ_TU_UID' || !uid) {
-  console.error('❌ ERROR: Reemplaza el texto "AQUÍ_TU_UID" en el script con tu User ID real antes de ejecutar.');
-  process.exit(1);
-}
 
 admin
   .auth()
@@ -203,4 +202,3 @@ export default function MakeAdminPage() {
     </div>
   );
 }
-
