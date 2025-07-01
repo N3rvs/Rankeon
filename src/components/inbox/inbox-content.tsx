@@ -109,7 +109,7 @@ export function InboxContent() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-[calc(80vh)] md:h-[500px] w-[90vw] max-w-sm">
+      <div className="flex flex-col max-h-[80vh] md:max-h-[500px] w-[90vw] max-w-sm">
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold font-headline">
