@@ -16,6 +16,7 @@ import { Bell } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { InboxContent } from './inbox-content';
 import { cn } from '@/lib/utils';
+import type { Notification } from '@/lib/types';
 
 export function InboxIcon() {
   const { user } = useAuth();
@@ -26,17 +27,21 @@ export function InboxIcon() {
     let unsubscribe: Unsubscribe | undefined;
 
     if (user) {
-      // We count everything except new messages for the popover badge
+      // We query for all unread notifications
       const q = query(
         collection(db, 'inbox', user.uid, 'notifications'),
-        where('read', '==', false),
-        where('type', '!=', 'new_message')
+        where('read', '==', false)
       );
 
       unsubscribe = onSnapshot(
         q,
         (snapshot) => {
-          setUnreadCount(snapshot.size);
+          // Then, we filter out the 'new_message' type on the client side.
+          // This is more robust and avoids needing a composite index in Firestore.
+          const nonMessageNotifications = snapshot.docs.filter(
+            (doc) => (doc.data() as Notification).type !== 'new_message'
+          );
+          setUnreadCount(nonMessageNotifications.length);
         },
         (error) => {
           console.error('Error fetching unread notifications count:', error);
