@@ -26,12 +26,12 @@ const uid = 'AQUÍ_TU_UID';
 
 // --- Verificaciones ---
 if (projectId.includes('AQUÍ_TU_PROJECT_ID')) {
-  console.error('❌ ERROR: ¡No has reemplazado el placeholder del Project ID! Copia tu Project ID de la página y pégalo en la variable \`projectId\`.');
+  console.error('❌ ERROR: ¡No has reemplazado el placeholder del Project ID! Copia tu Project ID de la página y pégalo en la variable \\`projectId\\`.');
   process.exit(1);
 }
 
 if (uid.includes('AQUÍ_TU_UID')) {
-  console.error('❌ ERROR: ¡No has reemplazado el placeholder del UID! Copia tu UID de la página y pégalo en la variable \`uid\`.');
+  console.error('❌ ERROR: ¡No has reemplazado el placeholder del UID! Copia tu UID de la página y pégalo en la variable \\`uid\\`.');
   process.exit(1);
 }
 // --------------------
