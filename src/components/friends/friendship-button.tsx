@@ -132,11 +132,20 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           description: 'Friend request sent.',
         });
       } else {
-        toast({
-          title: 'Error',
-          description: result.message,
-          variant: 'destructive',
-        });
+        if (result.message.includes('already sent')) {
+             toast({
+                title: 'Request Already Exists',
+                description: 'An old friend request may exist. This can happen if a friend was removed but the original request was not cleaned up in the database.',
+                variant: 'destructive',
+                duration: 8000,
+            });
+        } else {
+            toast({
+                title: 'Error',
+                description: result.message,
+                variant: 'destructive',
+            });
+        }
       }
     });
   };
