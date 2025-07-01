@@ -15,7 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 
-const scriptContent = `const admin = require('firebase-admin');
+// The script is defined here but not rendered directly to avoid a compiler bug.
+const scriptForClipboard = `const admin = require('firebase-admin');
 
 // --- ¡IMPORTANTE! ---
 // 1. Reemplaza 'AQUÍ_TU_PROJECT_ID' con tu Project ID real que aparece en la página.
@@ -109,14 +110,12 @@ export default function MakeAdminPage() {
                 Crea y edita el archivo del script
             </h3>
             <p className="text-sm text-muted-foreground mb-3 ml-10">
-              Copia el siguiente código. En Cloud Shell, abre el editor (icono de lápiz), crea un archivo llamado <strong>set-admin.js</strong> y pega el código.
+              En Cloud Shell, abre el editor (icono de lápiz), crea un archivo llamado <strong>set-admin.js</strong> y pega el script que copies con el botón de abajo.
             </p>
              <div className="p-4 bg-muted rounded-lg ml-10">
-                <pre className="whitespace-pre-wrap text-sm font-mono">
-                 <code>{scriptContent}</code>
-                </pre>
+                <p className="text-sm text-muted-foreground">Usa el botón de abajo para copiar el script al portapapeles.</p>
              </div>
-             <Button variant="outline" size="sm" className="mt-2 ml-10" onClick={() => handleCopyToClipboard(scriptContent)}>
+             <Button variant="outline" size="sm" className="mt-2 ml-10" onClick={() => handleCopyToClipboard(scriptForClipboard)}>
                   Copiar script
              </Button>
           </div>
