@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A one-time server action to grant admin privileges to a user.
+ * @fileOverview Server actions for administrative tasks.
  *
  * - grantAdminRole - A function that assigns the 'admin' role to a specific user.
  * - GrantAdminRoleInput - The input type for the grantAdminRole function.
@@ -21,8 +21,6 @@ const GrantAdminRoleOutputSchema = z.object({
 export type GrantAdminRoleOutput = z.infer<typeof GrantAdminRoleOutputSchema>;
 
 export async function grantAdminRole(input: GrantAdminRoleInput): Promise<GrantAdminRoleOutput> {
-  // Directly implement the logic here as a standard Server Action
-  // This avoids potential context issues with Genkit flows and environment variables
   const { uid } = GrantAdminRoleInputSchema.parse(input);
 
   try {

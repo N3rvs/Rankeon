@@ -1,6 +1,6 @@
 'use client';
 
-import { grantAdminRole } from '@/ai/flows/grant-admin-flow';
+import { grantAdminRole } from '@/lib/actions/admin';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
