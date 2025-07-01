@@ -172,13 +172,18 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           title: 'Success',
           description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
         });
-        // State will update automatically via the useEffect hook re-running
+        // Optimistic update for instant UI feedback
+        setStatus(accept ? 'friends' : 'not_friends');
       } else {
         toast({
           title: 'Error',
           description: result.message,
           variant: 'destructive',
         });
+        // If the request was not found, it means it was resolved. Update UI.
+        if (result.message.includes('not-found')) {
+            setStatus('not_friends');
+        }
       }
     });
   };
@@ -191,7 +196,8 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           title: 'Friend Removed',
           description: `You are no longer friends with ${targetUser.name}.`,
         });
-        // State will update automatically via the useEffect hook re-running
+        // Optimistic update for instant UI feedback
+        setStatus('not_friends');
       } else {
         toast({
           title: 'Error',
