@@ -46,7 +46,7 @@ export default function MessagesPage() {
     }, [user]);
 
     useEffect(() => {
-        if (selectedConversation) {
+        if (selectedConversation && user) {
             setLoadingMessages(true);
             const messagesRef = collection(db, 'conversations', selectedConversation.id, 'messages');
             const q = query(messagesRef, orderBy('timestamp', 'asc'));
@@ -59,8 +59,10 @@ export default function MessagesPage() {
                 setLoadingMessages(false);
             });
             return () => unsubscribe();
+        } else {
+            setMessages([]);
         }
-    }, [selectedConversation]);
+    }, [selectedConversation, user]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
