@@ -55,7 +55,7 @@ export async function removeFriend(friendId: string): Promise<ActionResponse> {
 export async function blockUser(userId: string): Promise<ActionResponse> {
   try {
     const block = httpsCallable(functions, 'blockUser');
-    await block({ uid: userId });
+    await block({ blockedUid: userId });
     return { success: true, message: 'User blocked.' };
   } catch (error: any) {
     console.error('Error blocking user:', error);

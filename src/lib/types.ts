@@ -16,7 +16,7 @@ export interface UserProfile {
   country?: string;
   disabled?: boolean;
   createdAt?: Timestamp;
-  friends?: string[]; // Array of user IDs
+  blocked?: string[]; // Array of user IDs
 }
 
 export interface Team {

@@ -9,6 +9,7 @@ import {
   query,
   where,
   onSnapshot,
+  doc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Button } from '../ui/button';
@@ -46,14 +47,15 @@ type FriendshipStatus =
   | 'self';
 
 export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
-  const { user, userProfile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [status, setStatus] = useState<FriendshipStatus>('loading');
   const [requestId, setRequestId] = useState<string | null>(null);
+  const [isFriend, setIsFriend] = useState<boolean | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (!user || !userProfile) {
+    if (!user) {
       setStatus('loading');
       return;
     }
@@ -61,31 +63,42 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
       setStatus('self');
       return;
     }
+    
+    // Use a direct listener on the subcollection for real-time friend status
+    const friendDocRef = doc(db, 'friends', user.uid, 'list', targetUser.id);
+    const unsubscribeFriend = onSnapshot(friendDocRef, (doc) => {
+        setIsFriend(doc.exists());
+    });
+    
+    return () => unsubscribeFriend();
+  }, [user, targetUser.id]);
+  
+  
+  useEffect(() => {
+    if (isFriend === null || !user) {
+      setStatus('loading');
+      return;
+    }
 
-    // The userProfile from context is the primary source of truth for friendship status.
-    // If the context says they are friends, we set the status and stop.
-    // The component will re-render automatically when the context value changes.
-    if (userProfile.friends?.includes(targetUser.id)) {
+    if (isFriend) {
       setStatus('friends');
       return;
     }
 
-    // If they are not friends, we need to check for any pending friend requests.
+    // If they are not friends, check for any pending friend requests.
     const q = query(
       collection(db, 'friendRequests'),
       where('participantIds', 'array-contains', user.uid),
       where('status', '==', 'pending')
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      // It's possible they became friends while this listener was being set up.
-      // We get a fresh userProfile from the context on each run.
-      // If the latest profile shows they are friends, we trust that above all.
-      if (userProfile.friends?.includes(targetUser.id)) {
-        setStatus('friends');
-        return;
+    const unsubscribeRequests = onSnapshot(q, (snapshot) => {
+      // Re-check friendship status in case it changed while setting up listener
+      if (isFriend) {
+          setStatus('friends');
+          return;
       }
-      
+
       let foundRequest = false;
       for (const doc of snapshot.docs) {
         const request = doc.data() as FriendRequest;
@@ -101,14 +114,13 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
       }
 
       if (!foundRequest) {
-        // If they are not friends and there are no pending requests, they are not_friends.
         setStatus('not_friends');
         setRequestId(null);
       }
     });
 
-    return () => unsubscribe();
-  }, [user, userProfile, targetUser.id]);
+    return () => unsubscribeRequests();
+  }, [user, targetUser.id, isFriend]);
 
 
   const handleSendRequest = () => {
@@ -156,7 +168,6 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           title: 'Friend Removed',
           description: `You are no longer friends with ${targetUser.name}.`,
         });
-        // The status will update automatically via the useEffect hook listening to context changes.
       } else {
         toast({
           title: 'Error',
