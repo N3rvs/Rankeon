@@ -106,18 +106,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/tools/make-admin')}
-                tooltip="Guía Admin"
-              >
-                <Link href="/tools/make-admin">
-                  <Shield />
-                  <span>Guía Admin (Setup)</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
