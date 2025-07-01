@@ -1,8 +1,14 @@
 import * as admin from 'firebase-admin';
 import type { ServiceAccount } from 'firebase-admin';
+import { config } from 'dotenv';
+import path from 'path';
 
 // This function will be called from within Server Actions to ensure lazy initialization.
 export function getAdminInstances() {
+    // Explicitly load environment variables from the root .env file
+    // This is a robust way to ensure they are available in serverless environments.
+    config({ path: path.resolve(process.cwd(), '.env') });
+
     if (admin.apps.length > 0 && admin.apps[0]) {
         const adminApp = admin.apps[0];
         return { adminAuth: adminApp.auth(), adminDb: adminApp.firestore() };
@@ -15,8 +21,14 @@ export function getAdminInstances() {
     };
 
     if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
+        // More detailed error logging to help debug
+        console.error('Firebase Admin credentials missing from environment variables.');
+        console.error('FIREBASE_ADMIN_PROJECT_ID:', process.env.FIREBASE_ADMIN_PROJECT_ID ? 'Loaded' : 'Missing');
+        console.error('FIREBASE_ADMIN_CLIENT_EMAIL:', process.env.FIREBASE_ADMIN_CLIENT_EMAIL ? 'Loaded' : 'Missing');
+        console.error('FIREBASE_ADMIN_PRIVATE_KEY:', process.env.FIREBASE_ADMIN_PRIVATE_KEY ? 'Loaded' : 'Missing');
+        
         throw new Error(
-            'Firebase Admin credentials are not set correctly. Please ensure FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY are defined in your .env file.'
+            'Firebase Admin credentials are not set correctly. Please check server logs and your .env file.'
         );
     }
     
