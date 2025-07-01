@@ -23,12 +23,10 @@ const formSchema = z.object({
 });
 
 const valorantServers = [
-    { value: 'NA', label: 'Norteamérica (NA)' },
-    { value: 'EU', label: 'Europa (EU)' },
-    { value: 'LATAM', label: 'Latinoamérica (LATAM)' },
-    { value: 'BR', label: 'Brasil (BR)' },
-    { value: 'KR', label: 'Corea (KR)' },
-    { value: 'AP', label: 'Asia-Pacífico (AP)' },
+    { value: 'Frankfurt', label: 'Frankfurt' },
+    { value: 'London', label: 'Londres' },
+    { value: 'Paris', label: 'París' },
+    { value: 'Stockholm', label: 'Estocolmo' },
 ];
 
 const valorantRanks = [
