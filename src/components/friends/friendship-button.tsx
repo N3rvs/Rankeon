@@ -31,7 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../ui/tooltip';
 
 interface FriendshipButtonProps {
   targetUser: UserProfile;
@@ -129,7 +129,7 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
     return () => {
         isMounted = false;
     };
-  }, [user, userProfile, targetUser.id, status]);
+  }, [user, userProfile, targetUser.id]);
 
 
   const handleSendRequest = () => {
@@ -208,77 +208,85 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
     });
   };
 
-  switch (status) {
-    case 'loading':
-      return <Button size="icon" variant="outline" className="w-10 h-10" disabled><Clock className="h-4 w-4" /></Button>;
-    case 'self':
-      return null;
-    case 'not_friends':
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="icon" onClick={handleSendRequest} disabled={isPending}>
-              <UserPlus className="h-4 w-4" />
-              <span className="sr-only">Add Friend</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Add Friend</p>
-          </TooltipContent>
-        </Tooltip>
-      );
-    case 'request_sent':
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="icon" variant="outline" disabled>
-              <Clock className="h-4 w-4" />
-               <span className="sr-only">Request Sent</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Request Sent</p>
-          </TooltipContent>
-        </Tooltip>
-      );
-    case 'request_received':
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="icon" variant="outline" disabled>
-              <Inbox className="mr-2 h-4 w-4" />
-               <span className="sr-only">Request Received</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Request Received</p>
-          </TooltipContent>
-        </Tooltip>
-      );
-    case 'friends':
-      return (
-        <DropdownMenu>
+  const renderButton = () => {
+    switch (status) {
+      case 'loading':
+        return <Button size="icon" variant="outline" className="w-10 h-10" disabled><Clock className="h-4 w-4" /></Button>;
+      case 'self':
+        return null;
+      case 'not_friends':
+        return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="secondary">
-                  <Users className="h-4 w-4" />
-                   <span className="sr-only">Friends</span>
-                </Button>
-              </DropdownMenuTrigger>
+              <Button size="icon" onClick={handleSendRequest} disabled={isPending}>
+                <UserPlus className="h-4 w-4" />
+                <span className="sr-only">Add Friend</span>
+              </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Friends</p>
+              <p>Add Friend</p>
             </TooltipContent>
           </Tooltip>
-          <DropdownMenuContent>
-            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleRemoveFriend}>
-              <UserX className="mr-2 h-4 w-4" /> Remove Friend
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    default:
-      return null;
+        );
+      case 'request_sent':
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="outline" disabled>
+                <Clock className="h-4 w-4" />
+                 <span className="sr-only">Request Sent</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Request Sent</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      case 'request_received':
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="outline" disabled>
+                <Inbox className="h-4 w-4" />
+                 <span className="sr-only">Request Received</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Request Received</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      case 'friends':
+        return (
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="secondary">
+                    <Users className="h-4 w-4" />
+                     <span className="sr-only">Friends</span>
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Friends</p>
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent>
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleRemoveFriend}>
+                <UserX className="mr-2 h-4 w-4" /> Remove Friend
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      default:
+        return null;
+    }
   }
+
+  return (
+    <TooltipProvider>
+      {renderButton()}
+    </TooltipProvider>
+  )
 }
