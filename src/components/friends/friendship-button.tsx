@@ -9,7 +9,6 @@ import {
   query,
   where,
   onSnapshot,
-  doc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Button } from '../ui/button';
@@ -47,77 +46,60 @@ type FriendshipStatus =
   | 'self';
 
 export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
   const [status, setStatus] = useState<FriendshipStatus>('loading');
   const [requestId, setRequestId] = useState<string | null>(null);
-  const [isFriend, setIsFriend] = useState<boolean | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Effect 1: Real-time listener for friendship status from the 'friends' subcollection.
   useEffect(() => {
-    if (!user) {
+    if (!user || !userProfile) {
       setStatus('loading');
-      setIsFriend(null);
       return;
     }
+
     if (user.uid === targetUser.id) {
       setStatus('self');
       return;
     }
-    
-    // A direct listener on the friends subcollection is the most reliable way 
-    // to get real-time friend status for both users.
-    const friendDocRef = doc(db, 'friends', user.uid, 'list', targetUser.id);
-    const unsubscribeFriend = onSnapshot(friendDocRef, (doc) => {
-        setIsFriend(doc.exists());
-    });
-    
-    return () => unsubscribeFriend();
-  }, [user, targetUser.id]);
-  
-  // Effect 2: Determines button state based on friendship status or pending requests.
-  useEffect(() => {
-    // Wait until we know the friendship status
-    if (isFriend === null || !user) {
-      setStatus('loading');
-      return;
-    }
 
-    // If they are friends, the status is clear.
-    if (isFriend) {
+    // Step 1: Check friendship status from the user's profile friends array.
+    // This is now the primary source of truth, updated in real-time via AuthContext.
+    const areFriends = userProfile.friends?.includes(targetUser.id) ?? false;
+    if (areFriends) {
       setStatus('friends');
       return;
     }
 
-    // If they are not friends, check for any pending friend requests.
-    // This query is more robust as it doesn't require a custom composite index.
+    // Step 2: If not friends, check for a pending friend request.
+    // This relies on your backend function adding a `participantIds` array to the friend request document.
     const q = query(
       collection(db, 'friendRequests'),
+      where('status', '==', 'pending'),
       where('participantIds', 'array-contains', user.uid)
     );
 
     const unsubscribeRequests = onSnapshot(q, (snapshot) => {
-      // It's possible to become friends while this listener is active, so we re-check.
-      if (isFriend) {
-          setStatus('friends');
-          return;
+      // Re-check friendship in case the status changed while the listener was being set up.
+      if (userProfile.friends?.includes(targetUser.id)) {
+        setStatus('friends');
+        return;
       }
 
-      // Filter on the client-side to find the specific pending request.
+      // Filter on the client to find the specific request involving the target user.
       const relevantRequestDoc = snapshot.docs.find(doc => {
-          const request = doc.data();
-          return request.participantIds.includes(targetUser.id) && request.status === 'pending';
+        const request = doc.data();
+        return request.participantIds.includes(targetUser.id);
       });
 
       if (relevantRequestDoc) {
-          const request = relevantRequestDoc.data() as FriendRequest;
-          setRequestId(relevantRequestDoc.id);
-          setStatus(
-            request.from === user.uid ? 'request_sent' : 'request_received'
-          );
+        const request = relevantRequestDoc.data() as FriendRequest;
+        setRequestId(relevantRequestDoc.id);
+        setStatus(
+          request.from === user.uid ? 'request_sent' : 'request_received'
+        );
       } else {
-        // No pending request found between these two users
+        // No pending request found between these two users.
         setStatus('not_friends');
         setRequestId(null);
       }
@@ -127,7 +109,7 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
     });
 
     return () => unsubscribeRequests();
-  }, [user, targetUser.id, isFriend]);
+  }, [user, userProfile, targetUser.id]);
 
 
   const handleSendRequest = () => {
@@ -139,10 +121,11 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           description: 'Friend request sent.',
         });
       } else {
-        if (result.message.includes('already sent')) {
+        // Your backend now handles the "already sent" case, but this is a good fallback.
+        if (result.message.includes('already-exists') || result.message.includes('already sent')) {
              toast({
-                title: 'Request Already Exists',
-                description: 'An old friend request may exist. This can happen if a friend was removed but the original request was not cleaned up in the database.',
+                title: 'Request Already Pending',
+                description: 'A friend request between you and this user already exists.',
                 variant: 'destructive',
                 duration: 8000,
             });
@@ -178,6 +161,7 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
 
   const handleRemoveFriend = () => {
     startTransition(async () => {
+      // This calls your new, improved backend function.
       const result = await removeFriend(targetUser.id);
       if (result.success) {
         toast({
