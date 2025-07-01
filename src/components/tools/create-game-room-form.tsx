@@ -47,7 +47,12 @@ export function CreateGameRoomForm() {
                 });
                 form.reset();
             } else {
-                throw new Error(response.message);
+                setError(response.message);
+                toast({
+                    title: 'Error',
+                    description: response.message,
+                    variant: 'destructive'
+                });
             }
         } catch (error: any) {
             console.error(error);
