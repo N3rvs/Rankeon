@@ -8,6 +8,14 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -83,7 +91,6 @@ export function MarketTabs() {
       if (result.success) {
         router.push('/messages');
       } else {
-        // Check for the specific "not friends" error from your backend
         if (result.message.includes('friends')) {
              toast({
                 title: 'Not Friends Yet',
@@ -104,7 +111,7 @@ export function MarketTabs() {
     });
   };
 
-  const loadingSkeletons = [...Array(4)].map((_, i) => (
+  const teamLoadingSkeletons = [...Array(4)].map((_, i) => (
       <Card key={i}>
           <CardHeader className="flex flex-row items-center gap-4">
               <Skeleton className="h-12 w-12 rounded-full" />
@@ -126,61 +133,102 @@ export function MarketTabs() {
       </Card>
   ));
 
+    const playerLoadingSkeletons = [...Array(5)].map((_, i) => (
+        <TableRow key={i}>
+            <TableCell className="w-1/3">
+                <div className="flex items-center gap-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-16" />
+                    </div>
+                </div>
+            </TableCell>
+            <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-32" /></TableCell>
+            <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+        </TableRow>
+    ));
+
   return (
     <Tabs defaultValue="players">
       <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
         <TabsTrigger value="players">Players for Hire</TabsTrigger>
         <TabsTrigger value="teams">Teams Recruiting</TabsTrigger>
       </TabsList>
-      <TabsContent value="players">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-4">
-          {loadingPlayers ? loadingSkeletons : players.length > 0 ? players.map((player) => (
-            <Card key={player.id} className="flex flex-col">
-              <CardHeader className="flex flex-row items-center gap-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={player.avatarUrl} alt={player.name} data-ai-hint="player avatar"/>
-                  <AvatarFallback>{player.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="font-headline">{player.name}</CardTitle>
-                  <CardDescription>
-                    Looking for a team in {player.games?.join(', ')}
-                  </CardDescription>
+      <TabsContent value="players" className="mt-4">
+        <Card>
+            <CardContent className="pt-6">
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[30%]">Player</TableHead>
+                                <TableHead>Primary Game</TableHead>
+                                <TableHead>Skills</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {loadingPlayers ? playerLoadingSkeletons : players.length > 0 ? players.map((player) => (
+                                <TableRow key={player.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-4">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={player.avatarUrl} alt={player.name} data-ai-hint="player avatar"/>
+                                                <AvatarFallback>{player.name?.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold">{player.name}</p>
+                                                <p className="text-sm text-muted-foreground">{player.country || 'Location not set'}</p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {player.games && player.games.length > 0 ? (
+                                            <Badge variant="outline">{player.games[0]}</Badge>
+                                        ) : (
+                                            <span className="text-muted-foreground text-sm">N/A</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-1">
+                                            {player.skills && player.skills.length > 0 ? player.skills.slice(0, 3).map((skill) => (
+                                                <Badge key={skill} variant="secondary">{skill}</Badge>
+                                            )) : <span className="text-muted-foreground text-sm">No skills listed</span>}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <FriendshipButton targetUser={player} />
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleMessagePlayer(player)}
+                                                disabled={isMessaging}
+                                            >
+                                                <MessageSquare className="h-4 w-4" />
+                                                <span className="sr-only">Message Player</span>
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        No players are currently looking for a team.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {player.bio || "No bio provided."}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {player.skills && player.skills.length > 0 ? player.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary">{skill}</Badge>
-                  )) : <p className="text-sm text-muted-foreground">No skills listed.</p>}
-                </div>
-              </CardContent>
-              <CardFooter>
-                 <div className="w-full flex items-center justify-end gap-2">
-                  <FriendshipButton targetUser={player} />
-                  <Button
-                      variant="secondary"
-                      size="icon"
-                      onClick={() => handleMessagePlayer(player)}
-                      disabled={isMessaging}
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      <span className="sr-only">Message Player</span>
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          )) : (
-            <div className="text-muted-foreground col-span-full mt-4 text-center">No players are currently looking for a team.</div>
-          )}
-        </div>
+            </CardContent>
+        </Card>
       </TabsContent>
       <TabsContent value="teams">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-4">
-          {loadingTeams ? loadingSkeletons : teams.length > 0 ? teams.map((team) => (
+          {loadingTeams ? teamLoadingSkeletons : teams.length > 0 ? teams.map((team) => (
             <Card key={team.id} className="flex flex-col">
               <CardHeader className="flex flex-row items-center gap-4">
                 <Avatar className="h-12 w-12">
