@@ -9,75 +9,72 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ShieldCheck, Copy } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
+import { grantFirstAdminRole } from '@/lib/actions/admin';
+import { useTransition } from 'react';
 
 export default function MakeAdminPage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
 
-  const copyToClipboard = () => {
-    if (user?.uid) {
-      navigator.clipboard.writeText(user.uid);
+  const handleGrantAdmin = () => {
+    if (!user || !token) {
       toast({
-        title: '¡Copiado!',
-        description: 'Tu ID de usuario ha sido copiado al portapapeles.',
+        title: 'Error',
+        description: 'Debes iniciar sesión para realizar esta acción.',
+        variant: 'destructive',
       });
+      return;
     }
-  };
 
-  const firebaseConsoleUrl = `https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}/authentication/users`;
+    startTransition(async () => {
+      try {
+        const result = await grantFirstAdminRole(token);
+        if (result.success) {
+          toast({
+            title: '¡Éxito!',
+            description: result.message,
+          });
+        } else {
+          toast({
+            title: 'La operación falló',
+            description: result.message,
+            variant: 'destructive',
+          });
+        }
+      } catch (error: any) {
+        toast({
+          title: 'Error inesperado',
+          description:
+            'Ocurrió un error al intentar asignar el rol de administrador.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
 
   return (
     <div className="space-y-6">
       <Card className="max-w-2xl mx-auto">
         <CardHeader className="text-center">
           <ShieldCheck className="mx-auto h-12 w-12 text-primary" />
-          <CardTitle className="font-headline">Configura tu Cuenta de Administrador</CardTitle>
+          <CardTitle className="font-headline">
+            Conviértete en el Primer Administrador
+          </CardTitle>
           <CardDescription>
-            Sigue estos pasos en la Consola de Firebase para asignar de forma segura el rol de
-            <strong> administrador </strong>
-            a tu cuenta. Es una configuración única.
+            Usa este botón de un solo uso para asignarte el rol de administrador.
+            Esta acción solo funcionará si no hay otros administradores en el
+            sistema.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tu ID de Usuario (UID)</label>
-            <div className="flex items-center gap-2">
-              <code className="bg-muted px-2 py-1 rounded w-full overflow-x-auto">
-                {user?.uid ?? 'Cargando...'}
-              </code>
-              <Button variant="outline" size="icon" onClick={copyToClipboard} disabled={!user?.uid}>
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="prose prose-sm prose-invert max-w-none text-muted-foreground">
-            <ol className="list-decimal list-inside space-y-4">
-              <li>
-                Abre la página de Autenticación de la Consola de Firebase para tu proyecto.
-                <Button variant="link" asChild className="p-1 h-auto">
-                  <Link href={firebaseConsoleUrl} target="_blank" rel="noopener noreferrer">
-                    Abrir Consola de Firebase
-                  </Link>
-                </Button>
-              </li>
-              <li>Busca el usuario con el UID que se muestra arriba y haz clic en el menú de tres puntos a la derecha.</li>
-              <li>Selecciona <strong>"Editar usuario"</strong>.</li>
-              <li>En el cuadro de diálogo, haz clic en <strong>"Añadir atributo personalizado"</strong>.</li>
-              <li>
-                Introduce <code className="bg-muted px-1 py-0.5 rounded">role</code> para la Clave (Key) y
-                <code className="bg-muted px-1 py-0.5 rounded">admin</code> para el Valor (Value).
-              </li>
-              <li>Haz clic en <strong>"Añadir"</strong> y luego en <strong>"Guardar"</strong>.</li>
-              <li>
-                Para aplicar los cambios, <strong>cierra sesión</strong> en esta aplicación y
-                <strong> vuelve a iniciar sesión</strong>.
-              </li>
-            </ol>
-          </div>
+        <CardContent className="flex justify-center">
+          <Button onClick={handleGrantAdmin} disabled={isPending || !user}>
+            {isPending
+              ? 'Asignando rol...'
+              : 'Convertirme en el Primer Administrador'}
+          </Button>
         </CardContent>
       </Card>
     </div>
