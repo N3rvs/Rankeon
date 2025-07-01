@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { InboxContent } from './inbox-content';
+import { cn } from '@/lib/utils';
 
 export function InboxIcon() {
   const { user } = useAuth();
@@ -55,11 +56,13 @@ export function InboxIcon() {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
-          )}
+        <Button variant="ghost" size="icon">
+          <div className={cn('relative', unreadCount > 0 && 'animate-ring')}>
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute top-[-4px] right-[-4px] block h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
+            )}
+          </div>
           <span className="sr-only">Open Inbox</span>
         </Button>
       </PopoverTrigger>
