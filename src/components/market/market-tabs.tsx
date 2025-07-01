@@ -78,14 +78,21 @@ export function MarketTabs() {
         return;
     }
     startMessagingTransition(async () => {
-      try {
-        // This function will create the chat if it doesn't exist.
-        // We send a default message to initialize it.
-        await sendMessageToFriend({ to: player.id, content: "Hey! I saw your profile on SquadUp." });
+      const result = await sendMessageToFriend({ to: player.id, content: "Hey! I saw your profile on SquadUp." });
+      
+      if (result.success) {
         router.push('/messages');
-      } catch (error) {
-        console.error("Error starting conversation: ", error);
-        toast({ title: 'Error', description: 'Could not start a conversation. Please try again.', variant: 'destructive' });
+      } else {
+        // Check for the specific "not friends" error from your backend
+        if (result.message.includes('friends')) {
+             toast({
+                title: 'Not Friends Yet',
+                description: "You must add this player as a friend before you can message them.",
+                variant: 'destructive',
+            });
+        } else {
+            toast({ title: 'Error', description: result.message, variant: 'destructive' });
+        }
       }
     });
   };

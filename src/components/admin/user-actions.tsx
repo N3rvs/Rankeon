@@ -67,12 +67,12 @@ export function UserActions({ user }: UserActionsProps) {
     }
     
     startTransition(async () => {
-        try {
-            await sendMessageToFriend({ to: user.id, content: `Hi, this is a message from an admin.` });
+        const result = await sendMessageToFriend({ to: user.id, content: `Hi, this is a message from an admin.` });
+        if (result.success) {
             router.push('/messages');
-        } catch (error) {
-            console.error("Error starting conversation: ", error);
-            toast({ title: 'Error', description: 'Could not start a conversation. Please try again.', variant: 'destructive' });
+        } else {
+            console.error("Error starting conversation: ", result.message);
+            toast({ title: 'Error', description: result.message, variant: 'destructive' });
         }
     });
   };

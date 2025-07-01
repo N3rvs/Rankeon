@@ -126,10 +126,11 @@ export default function MessagesPage() {
         const currentMessageText = newMessageText;
         setNewMessageText('');
         
-        try {
-            await sendMessageAction({ to: other.id, content: currentMessageText });
-        } catch (error) {
-            console.error("Error sending message: ", error);
+        const result = await sendMessageAction({ to: other.id, content: currentMessageText });
+        
+        if (!result.success) {
+            console.error("Error sending message: ", result.message);
+            toast({ title: "Error", description: result.message, variant: "destructive" });
             // Re-set text on failure
             setNewMessageText(currentMessageText);
         }
