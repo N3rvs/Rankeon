@@ -11,13 +11,13 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { MoreVertical, Search, Send, MessageSquare, Trash2, UserX, ShieldAlert } from "lucide-react";
+import { MoreVertical, Search, Send, MessageSquare, Trash2, UserX, ShieldAlert, X } from "lucide-react";
 import type { Chat, ChatMessage, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { deleteMessage, sendMessageToFriend as sendMessageAction } from '@/lib/actions/messages';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { blockUser, removeFriend } from '@/lib/actions/friends';
 
 export default function MessagesPage() {
@@ -271,6 +271,11 @@ export default function MessagesPage() {
                                             <Button variant="ghost" size="icon"><MoreVertical /></Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
+                                             <DropdownMenuItem onSelect={() => setSelectedChat(null)}>
+                                                <X className="mr-2 h-4 w-4" />
+                                                <span>Close Chat</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
                                             <DropdownMenuItem onSelect={() => setIsRemoveFriendAlertOpen(true)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                                 <UserX className="mr-2 h-4 w-4" />
                                                 <span>Remove Friend</span>
