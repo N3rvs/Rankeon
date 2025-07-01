@@ -23,7 +23,6 @@ import {
   Search,
   Users2,
   Shield,
-  Bell,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -69,18 +68,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/dashboard">
                   <LayoutDashboard />
                   <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/inbox')}
-                tooltip="Inbox"
-              >
-                <Link href="/inbox">
-                  <Bell />
-                  <span>Inbox</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

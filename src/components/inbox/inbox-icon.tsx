@@ -12,12 +12,14 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { Bell } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { InboxContent } from './inbox-content';
 
 export function InboxIcon() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -50,16 +52,21 @@ export function InboxIcon() {
   }, [user]);
 
   return (
-    <Button asChild variant="ghost" size="icon" className="relative">
-      <Link href="/inbox">
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-        <span className="sr-only">Open Inbox</span>
-      </Link>
-    </Button>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+          <span className="sr-only">Open Inbox</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-96 p-0" align="end">
+        <InboxContent />
+      </PopoverContent>
+    </Popover>
   );
 }
