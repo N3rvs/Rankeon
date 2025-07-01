@@ -27,6 +27,12 @@ export function UserManagementTable() {
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
+    if (!currentUser) {
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
+
     const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
       const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as UserProfile));
@@ -38,7 +44,7 @@ export function UserManagementTable() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser]);
 
   const filteredUsers = useMemo(() => {
     if (!filter) return users;

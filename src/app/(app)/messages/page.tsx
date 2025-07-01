@@ -213,7 +213,7 @@ export default function MessagesPage() {
     )
 }
 
-function ChatMessage({ message, message, currentUser, otherUser }: { message: Message, currentUser: UserProfile | null, otherUser: {name: string, avatarUrl: string} | null }) {
+function ChatMessage({ message, currentUser, otherUser }: { message: Message, currentUser: UserProfile | null, otherUser: {name: string, avatarUrl: string} | null }) {
     const isMe = message.senderId === currentUser?.id;
     const participant = isMe ? currentUser : otherUser;
     
