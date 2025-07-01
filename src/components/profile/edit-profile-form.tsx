@@ -12,10 +12,12 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
+import { db, storage } from '@/lib/firebase/client';
 import { updateUserRole } from '@/lib/actions/users';
-import { useTransition } from 'react';
+import { useTransition, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
@@ -31,6 +33,8 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   const { toast } = useToast();
   const { userProfile: adminProfile } = useAuth();
   const [isPending, startTransition] = useTransition();
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(userProfile.avatarUrl);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -43,15 +47,31 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
     },
   });
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
   const onSubmit = async (data: ProfileFormValues) => {
     startTransition(async () => {
       try {
+        let newAvatarUrl = userProfile.avatarUrl;
+
+        if (avatarFile) {
+          const storageRef = ref(storage, `avatars/${userProfile.id}/${avatarFile.name}`);
+          const uploadResult = await uploadBytes(storageRef, avatarFile);
+          newAvatarUrl = await getDownloadURL(uploadResult.ref);
+        }
+        
         const { role, ...profileData } = data;
         const userDocRef = doc(db, 'users', userProfile.id);
-        await updateDoc(userDocRef, profileData);
+        await updateDoc(userDocRef, { ...profileData, avatarUrl: newAvatarUrl });
 
         if (adminProfile?.role === 'admin' && data.role !== userProfile.role) {
-            const result = await updateUserRole({ uid: userProfile.id, role: data.role});
+            const result = await updateUserRole({ uid: userProfile.id, role: data.role as UserRole});
             if (!result.success) {
                 throw new Error(result.message);
             }
@@ -79,6 +99,17 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="flex items-center gap-4">
+            <Avatar className="h-20 w-20">
+                <AvatarImage src={avatarPreview || undefined} alt="Avatar Preview" data-ai-hint="person avatar"/>
+                <AvatarFallback>{userProfile.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+                <FormLabel htmlFor="avatar-upload">Update Avatar</FormLabel>
+                <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} />
+            </div>
+        </div>
+        
         <div className="grid grid-cols-2 gap-4">
             <FormField
             control={form.control}
