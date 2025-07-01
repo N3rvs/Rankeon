@@ -6,14 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Shield } from 'lucide-react';
-import { useState } from 'react';
+import { useTransition } from 'react';
 
 export default function MakeAdminPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const handleMakeAdmin = async () => {
+  const handleMakeAdmin = () => {
     if (!user) {
       toast({
         title: 'Error',
@@ -23,23 +23,23 @@ export default function MakeAdminPage() {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const result = await grantAdminRole({ uid: user.uid });
-      toast({
-        title: 'Success!',
-        description: `${result.message}. Please log out and log back in for the changes to take effect.`,
-      });
-    } catch (error: any) {
-      console.error(error);
-      toast({
-        title: 'Error',
-        description: 'Failed to grant admin role. Check the server logs.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    startTransition(() => {
+      grantAdminRole({ uid: user.uid })
+        .then((result) => {
+          toast({
+            title: 'Success!',
+            description: `${result.message}. Please log out and log back in for the changes to take effect.`,
+          });
+        })
+        .catch((error: any) => {
+          console.error(error);
+          toast({
+            title: 'Error',
+            description: 'Failed to grant admin role. Check the server logs.',
+            variant: 'destructive',
+          });
+        });
+    });
   };
 
   return (
@@ -58,8 +58,8 @@ export default function MakeAdminPage() {
             <p className="text-sm text-muted-foreground">
               Your User ID: <code className="bg-muted px-1 py-0.5 rounded">{user?.uid ?? 'Loading...'}</code>
             </p>
-            <Button onClick={handleMakeAdmin} disabled={isLoading || !user}>
-              {isLoading ? 'Assigning Role...' : 'Make Me Admin'}
+            <Button onClick={handleMakeAdmin} disabled={isPending || !user}>
+              {isPending ? 'Assigning Role...' : 'Make Me Admin'}
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-2">
               After clicking, you must log out and log back in for the new role to be applied to your session.
