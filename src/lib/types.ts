@@ -79,3 +79,12 @@ export interface FriendRequest {
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: Timestamp;
 }
+
+export interface GameRoom {
+  id: string;
+  name: string;
+  game: string;
+  createdBy: string; // UID of creator
+  createdAt: Timestamp;
+  discordChannelId?: string | null;
+}

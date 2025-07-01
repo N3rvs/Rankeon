@@ -27,6 +27,7 @@ import {
   Lightbulb,
   Bot,
   ChevronRight,
+  Dices,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -112,6 +113,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/rooms')}
+                tooltip="Salas de Juego"
+              >
+                <Link href="/rooms">
+                  <Dices />
+                  <span>Salas de Juego</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -163,14 +176,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             <Link href="/tools/team-name-generator">
                               <Lightbulb />
                               <span>Name Generator</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                           <SidebarMenuButton asChild variant="ghost" size="sm" className="w-full justify-start" isActive={pathname === '/tools/create-game-room'}>
-                            <Link href="/tools/create-game-room">
-                              <Bot />
-                              <span>Discord Room</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
