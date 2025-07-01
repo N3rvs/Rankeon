@@ -1,6 +1,6 @@
 'use server';
 
-import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { getAdminInstances } from '@/lib/firebase/admin';
 
 export async function grantAdminRole({
   uid,
@@ -12,6 +12,7 @@ export async function grantAdminRole({
   }
 
   try {
+    const { adminAuth, adminDb } = getAdminInstances();
     // Ensure the user exists before trying to set claims
     await adminAuth.getUser(uid);
     

@@ -1,6 +1,6 @@
 'use server';
 
-import { adminAuth, adminDb } from '@/lib/firebase/admin';
+import { getAdminInstances } from '@/lib/firebase/admin';
 import { revalidatePath } from 'next/cache';
 import type { UserRole } from '../types';
 
@@ -18,6 +18,7 @@ export async function updateUserRole({
   }
   
   try {
+    const { adminAuth, adminDb } = getAdminInstances();
     const userToUpdate = await adminAuth.getUser(uid);
     const existingClaims = userToUpdate.customClaims || {};
 
