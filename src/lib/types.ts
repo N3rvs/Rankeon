@@ -88,4 +88,6 @@ export interface GameRoom {
   createdBy: string; // UID of creator
   createdAt: Timestamp;
   discordChannelId?: string | null;
+  rank?: string;
+  partySize?: string;
 }

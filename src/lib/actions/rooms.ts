@@ -9,6 +9,8 @@ const CreateRoomSchema = z.object({
   name: z.string().min(3, { message: 'El nombre debe tener al menos 3 caracteres.' }).max(50),
   game: z.string().min(1, { message: 'Por favor, introduce un juego.' }),
   server: z.string().min(1, { message: 'Por favor, selecciona un servidor.' }),
+  rank: z.string().min(1, { message: 'Por favor, selecciona un rango.' }),
+  partySize: z.string().min(1, { message: 'Por favor, selecciona un tamaño de grupo.' }),
 });
 
 type ActionResponse = {
@@ -37,7 +39,7 @@ export async function createRoom(
       return { success: false, message: 'Datos del formulario no válidos.' };
     }
     
-    const { name, game, server } = validatedFields.data;
+    const { name, game, server, rank, partySize } = validatedFields.data;
     
     const newRoomRef = adminDb.collection('gameRooms').doc();
     
@@ -46,6 +48,8 @@ export async function createRoom(
       name,
       game,
       server,
+      rank,
+      partySize,
       createdBy: uid,
       discordChannelId: null,
       createdAt: FieldValue.serverTimestamp(),

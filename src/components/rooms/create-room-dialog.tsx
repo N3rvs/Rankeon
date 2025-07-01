@@ -18,6 +18,8 @@ const formSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50, 'El nombre debe tener menos de 50 caracteres.'),
   game: z.string().min(1, 'Por favor, introduce un juego.').default('Valorant'),
   server: z.string().min(1, 'Por favor, selecciona un servidor.'),
+  rank: z.string().min(1, 'Por favor, selecciona un rango.'),
+  partySize: z.string().min(1, 'Por favor, selecciona un tamaño de grupo.'),
 });
 
 const valorantServers = [
@@ -27,6 +29,20 @@ const valorantServers = [
     { value: 'BR', label: 'Brasil (BR)' },
     { value: 'KR', label: 'Corea (KR)' },
     { value: 'AP', label: 'Asia-Pacífico (AP)' },
+];
+
+const valorantRanks = [
+    { value: 'Plata', label: 'Plata' },
+    { value: 'Oro', label: 'Oro' },
+    { value: 'Platino', label: 'Platino' },
+    { value: 'Ascendente', label: 'Ascendente' },
+    { value: 'Inmortal', label: 'Inmortal' },
+];
+
+const partySizes = [
+    { value: 'Dúo', label: 'Dúo (2 jugadores)' },
+    { value: 'Trío', label: 'Trío (3 jugadores)' },
+    { value: 'Full Stack', label: 'Full Stack (5 jugadores)' },
 ];
 
 export function CreateRoomDialog() {
@@ -41,6 +57,8 @@ export function CreateRoomDialog() {
       name: '',
       game: 'Valorant',
       server: '',
+      rank: '',
+      partySize: '',
     },
   });
 
@@ -94,19 +112,52 @@ export function CreateRoomDialog() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="game"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Juego</FormLabel>
-                  <FormControl>
-                    <Input {...field} readOnly />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             <div className="grid grid-cols-2 gap-4">
+                 <FormField
+                  control={form.control}
+                  name="rank"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rango Objetivo</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un rango" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {valorantRanks.map(rank => (
+                            <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="partySize"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tamaño de Grupo</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona el tamaño" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {partySizes.map(size => (
+                            <SelectItem key={size.value} value={size.value}>{size.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>
             <FormField
               control={form.control}
               name="server"

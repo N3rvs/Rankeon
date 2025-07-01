@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import type { GameRoom, UserProfile } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, CheckCircle2, Globe } from 'lucide-react';
+import { Eye, CheckCircle2, Globe, Shield, Users2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
@@ -47,13 +47,7 @@ export function GameRoomCard({ room }: GameRoomCardProps) {
                 <CardDescription>Para {room.game}</CardDescription>
             </div>
             <div className="flex flex-col items-end gap-2">
-                {room.server && (
-                    <Badge variant="outline">
-                        <Globe className="h-3 w-3 mr-1.5" />
-                        {room.server}
-                    </Badge>
-                )}
-                {room.discordChannelId && (
+                 {room.discordChannelId && (
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger>
@@ -72,6 +66,26 @@ export function GameRoomCard({ room }: GameRoomCardProps) {
         </div>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
+         <div className="flex flex-wrap gap-2">
+            {room.rank && (
+                <Badge variant="outline">
+                    <Shield className="h-3 w-3 mr-1.5" />
+                    {room.rank}
+                </Badge>
+            )}
+            {room.partySize && (
+                <Badge variant="outline">
+                    <Users2 className="h-3 w-3 mr-1.5" />
+                    {room.partySize}
+                </Badge>
+            )}
+             {room.server && (
+                <Badge variant="outline">
+                    <Globe className="h-3 w-3 mr-1.5" />
+                    {room.server}
+                </Badge>
+            )}
+        </div>
         {loading ? (
             <div className="flex items-center gap-3">
                 <Skeleton className="h-10 w-10 rounded-full" />
