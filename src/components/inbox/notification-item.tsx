@@ -88,7 +88,7 @@ export function NotificationItem({ notification }: { notification: Notification 
   };
 
   const getNotificationDetails = () => {
-    const name = fromUser?.name || 'Someone';
+    const name = fromUser?.name || fromUser?.email?.split('@')[0] || 'Someone';
     switch (notification.type) {
       case 'friend_request':
         return {
@@ -135,6 +135,7 @@ export function NotificationItem({ notification }: { notification: Notification 
   }
 
   const { icon: Icon, message } = getNotificationDetails();
+  const fallbackInitials = fromUser?.name?.slice(0, 2) || fromUser?.email?.slice(0, 2);
 
   return (
     <div
@@ -159,7 +160,7 @@ export function NotificationItem({ notification }: { notification: Notification 
             data-ai-hint="person avatar"
           />
           <AvatarFallback>
-            {fromUser?.name.slice(0, 2) || <Icon className="h-5 w-5" />}
+            {fallbackInitials || <Icon className="h-5 w-5" />}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 space-y-1">
