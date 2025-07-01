@@ -31,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
+import { useRouter } from 'next/navigation';
 
 export function NotificationItem({
   notification,
@@ -39,8 +40,9 @@ export function NotificationItem({
 }) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [isResponding, startResponding] = useTransition();
-  const [isActionTaken, setIsActionTaken] = useState(false); // State for immediate feedback
+  const [isActionTaken, setIsActionTaken] = useState(false);
   const [fromUser, setFromUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -79,7 +81,6 @@ export function NotificationItem({
   const handleResponse = async (accept: boolean) => {
     let requestId = notification.relatedRequestId;
 
-    // Fallback: If the request ID is missing from the notification, try to find it.
     if (!requestId && notification.type === 'friend_request' && user && notification.from) {
       try {
         const q = query(
@@ -144,6 +145,11 @@ export function NotificationItem({
       console.error('Failed to mark notification as read:', error);
     }
   };
+  
+  const handleNavigate = (path: string) => {
+    markAsRead();
+    router.push(path);
+  }
 
   const getNotificationDetails = () => {
     const name = fromUser?.name || fromUser?.email?.split('@')[0] || 'Someone';
@@ -260,6 +266,21 @@ export function NotificationItem({
               <p className="text-xs text-muted-foreground italic">
                 Response sent.
               </p>
+            </div>
+          )}
+          {(notification.type === 'friend_request_accepted' || notification.type === 'new_message') && (
+            <div className="flex gap-2 pt-1">
+                <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-7 px-2"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleNavigate('/messages');
+                    }}
+                >
+                    <MessageSquare className="h-4 w-4 mr-1" /> View Chat
+                </Button>
             </div>
           )}
         </div>
