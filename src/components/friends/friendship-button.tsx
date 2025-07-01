@@ -1,7 +1,7 @@
 // src/components/friends/friendship-button.tsx
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import type { UserProfile } from '@/lib/types';
 import {
@@ -51,6 +51,7 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
   const [status, setStatus] = useState<FriendshipStatus>('loading');
   const [requestId, setRequestId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const isSendingRequest = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -133,32 +134,39 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
 
 
   const handleSendRequest = () => {
+    if (isSendingRequest.current) return;
+    isSendingRequest.current = true;
+
     startTransition(async () => {
-      const result = await sendFriendRequest(targetUser.id);
-      if (result.success) {
-        toast({
-          title: 'Success',
-          description: 'Friend request sent.',
-        });
-        // Manually update status to give instant feedback
-        setStatus('request_sent');
-      } else {
-        if (result.message.includes('already-exists') || result.message.includes('already sent')) {
-             toast({
-                title: 'Request Already Pending',
-                description: 'A friend request between you and this user already exists.',
-                variant: 'destructive',
-                duration: 8000,
-            });
-            // Correct the state if the backend confirms a request exists
-            setStatus('request_sent');
+      try {
+        const result = await sendFriendRequest(targetUser.id);
+        if (result.success) {
+          toast({
+            title: 'Success',
+            description: 'Friend request sent.',
+          });
+          // Manually update status to give instant feedback
+          setStatus('request_sent');
         } else {
-            toast({
-                title: 'Error',
-                description: result.message,
-                variant: 'destructive',
-            });
+          if (result.message.includes('already-exists') || result.message.includes('already sent')) {
+              toast({
+                  title: 'Request Already Pending',
+                  description: 'A friend request between you and this user already exists.',
+                  variant: 'destructive',
+                  duration: 8000,
+              });
+              // Correct the state if the backend confirms a request exists
+              setStatus('request_sent');
+          } else {
+              toast({
+                  title: 'Error',
+                  description: result.message,
+                  variant: 'destructive',
+              });
+          }
         }
+      } finally {
+        isSendingRequest.current = false;
       }
     });
   };
