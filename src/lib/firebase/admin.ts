@@ -1,9 +1,4 @@
 import * as admin from 'firebase-admin';
-import { config } from 'dotenv';
-import path from 'path';
-
-// Explicitly point to the .env file in the project root
-config({ path: path.resolve(process.cwd(), '.env') });
 
 if (!admin.apps.length) {
   const serviceAccount = {
