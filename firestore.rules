@@ -2,42 +2,10 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // User profiles
-    match /users/{userId} {
-      // Any authenticated user can view profiles (for the market)
-      allow read: if request.auth != null;
-      
-      // Users can only update their own profile
-      allow update: if request.auth.uid == userId;
-      
-      // Allow users to create their own profile upon signup
-      allow create: if request.auth.uid == userId && request.resource.data.id == userId;
-    }
-
-    // Teams
-    match /teams/{teamId} {
-      // Any authenticated user can view teams
-      allow read: if request.auth != null;
-      
-      // Only the owner can create or update a team
-      allow create, update: if request.auth.uid == request.resource.data.ownerId;
-    }
-
-    // Conversations and Messages
-    match /conversations/{conversationId} {
-      // Allow read/write on the conversation document if the user is a participant
-      allow read, write: if request.auth.uid in resource.data.participantIds;
-
-      // Rules for the messages subcollection
-      match /messages/{messageId} {
-        // Allow read if the user is a participant in the parent conversation
-        allow read: if request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
-        
-        // Allow create if user is a participant and the senderId matches their own UID
-        allow create: if request.auth.uid == request.resource.data.senderId &&
-                       request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
-      }
+    // Allow read/write access to the entire database if the user is authenticated.
+    // This is a common starting point for apps where all access is protected by login.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
