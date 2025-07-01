@@ -27,7 +27,7 @@ export default function MakeAdminPage() {
     });
   };
 
-  const commandText = `gcloud identity-platform users update ${user?.uid || 'TU_UID_AQUÍ'} --update-custom-attributes='{"role":"admin"}' --project=TU_PROJECT_ID_AQUÍ`;
+  const commandText = `gcloud identity users update ${user?.uid || 'TU_UID_AQUÍ'} --update-custom-attributes='{"role":"admin"}' --project=TU_PROJECT_ID_AQUÍ`;
 
   return (
     <div className="space-y-6">
