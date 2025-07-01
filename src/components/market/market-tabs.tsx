@@ -159,14 +159,16 @@ export function MarketTabs() {
                 </div>
               </CardContent>
               <CardFooter>
-                <div className="w-full flex items-center gap-2">
+                 <div className="w-full flex items-center justify-end gap-2">
                   <FriendshipButton targetUser={player} />
                   <Button
                       variant="secondary"
+                      size="icon"
                       onClick={() => handleMessagePlayer(player)}
                       disabled={isMessaging}
                     >
                       <MessageSquare className="h-4 w-4" />
+                      <span className="sr-only">Message Player</span>
                   </Button>
                 </div>
               </CardFooter>
