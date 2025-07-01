@@ -1,6 +1,7 @@
 // src/components/app-layout.tsx
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
   SidebarProvider,
   Sidebar,
@@ -30,14 +31,35 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
-import { auth } from '@/lib/firebase/client';
+import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from './ui/skeleton';
 import { InboxIcon } from './inbox/inbox-icon';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, userProfile, loading } = useAuth();
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  useEffect(() => {
+    if (!user) {
+      setUnreadMessages(0);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'inbox', user.uid, 'notifications'),
+      where('read', '==', false),
+      where('type', '==', 'new_message')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setUnreadMessages(snapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -94,6 +116,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <span>Messages</span>
                 </Link>
               </SidebarMenuButton>
+              {unreadMessages > 0 && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary group-data-[collapsible=icon]:hidden" />
+              )}
             </SidebarMenuItem>
             {userProfile?.role === 'admin' && (
               <SidebarMenuItem>
