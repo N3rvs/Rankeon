@@ -219,84 +219,74 @@ export function NotificationItem({
     <div
       onClick={markAsRead}
       className={cn(
-        'flex items-start gap-4 p-3 transition-colors hover:bg-accent rounded-lg cursor-pointer',
+        'flex items-start gap-3 p-3 transition-colors hover:bg-accent rounded-lg cursor-pointer',
         !notification.read && 'bg-primary/5 hover:bg-primary/10'
       )}
     >
-      {!notification.read && (
-        <div className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
-      )}
-      <div
-        className={cn(
-          'flex items-center gap-3 flex-1',
-          notification.read && 'pl-4'
+      <Avatar className="h-10 w-10">
+        <AvatarImage src={fromUser?.avatarUrl} data-ai-hint="person avatar" />
+        <AvatarFallback>
+          {fallbackInitials || <Icon className="h-5 w-5" />}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1 space-y-1">
+        <p className="text-sm leading-tight">{message}</p>
+        <p className="text-xs text-muted-foreground">
+          {notification.timestamp
+            ? formatDistanceToNow(notification.timestamp.toDate(), {
+                addSuffix: true,
+              })
+            : ''}
+        </p>
+        {notification.type === 'friend_request' && !isActionTaken && (
+          <div className="flex gap-2 pt-1">
+            <Button
+              size="sm"
+              className="h-7 px-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleResponse(true);
+              }}
+              disabled={isResponding}
+            >
+              <Check className="h-4 w-4 mr-1" /> Accept
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleResponse(false);
+              }}
+              disabled={isResponding}
+            >
+              <X className="h-4 w-4 mr-1" /> Decline
+            </Button>
+          </div>
         )}
-      >
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={fromUser?.avatarUrl} data-ai-hint="person avatar" />
-          <AvatarFallback>
-            {fallbackInitials || <Icon className="h-5 w-5" />}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 space-y-1">
-          <p className="text-sm leading-tight">{message}</p>
-          <p className="text-xs text-muted-foreground">
-            {notification.timestamp
-              ? formatDistanceToNow(notification.timestamp.toDate(), {
-                  addSuffix: true,
-                })
-              : ''}
-          </p>
-          {notification.type === 'friend_request' && !isActionTaken && (
-            <div className="flex gap-2 pt-1">
+        {notification.type === 'friend_request' && isActionTaken && (
+          <div className="pt-1">
+            <p className="text-xs text-muted-foreground italic">
+              Response sent.
+            </p>
+          </div>
+        )}
+        {(notification.type === 'friend_accepted' || notification.type === 'new_message') && (
+          <div className="flex gap-2 pt-1">
               <Button
-                size="sm"
-                className="h-7 px-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleResponse(true);
-                }}
-                disabled={isResponding}
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 px-2"
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigate('/messages');
+                  }}
               >
-                <Check className="h-4 w-4 mr-1" /> Accept
+                  <MessageSquare className="h-4 w-4 mr-1" /> View Chat
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleResponse(false);
-                }}
-                disabled={isResponding}
-              >
-                <X className="h-4 w-4 mr-1" /> Decline
-              </Button>
-            </div>
-          )}
-          {notification.type === 'friend_request' && isActionTaken && (
-            <div className="pt-1">
-              <p className="text-xs text-muted-foreground italic">
-                Response sent.
-              </p>
-            </div>
-          )}
-          {(notification.type === 'friend_accepted' || notification.type === 'new_message') && (
-            <div className="flex gap-2 pt-1">
-                <Button
-                    size="sm"
-                    variant="secondary"
-                    className="h-7 px-2"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleNavigate('/messages');
-                    }}
-                >
-                    <MessageSquare className="h-4 w-4 mr-1" /> View Chat
-                </Button>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
