@@ -43,9 +43,9 @@ export async function markAllAsRead(
 
 export async function clearNotificationHistory(): Promise<ActionResponse> {
   try {
-    // This will call the 'clearNotificationHistory' Cloud Function.
-    // The function is expected to not take any arguments and use the caller's auth context.
-    const clearFunc = httpsCallable(functions, 'clearNotificationHistory');
+    // This will call the 'deleteInboxNotification' Cloud Function as requested by the user.
+    // The function is expected to not take any arguments and use the caller's auth context to delete all their notifications.
+    const clearFunc = httpsCallable(functions, 'deleteInboxNotification');
     await clearFunc();
     return { success: true, message: 'Notification history cleared.' };
   } catch (error: any) {
