@@ -15,24 +15,28 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { updateUserRole } from '@/lib/actions/users';
 import { useTransition } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
+  country: z.string().max(50).optional(),
   bio: z.string().max(300).optional(),
   lookingForTeam: z.boolean().default(false),
-  role: z.string(), // We'll use the UserRole type, but zod will see a string
+  role: z.string(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
   const { toast } = useToast();
+  const { userProfile: adminProfile } = useAuth();
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       name: userProfile.name || '',
+      country: userProfile.country || '',
       bio: userProfile.bio || '',
       lookingForTeam: userProfile.lookingForTeam || false,
       role: userProfile.role || 'player',
@@ -42,32 +46,21 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   const onSubmit = async (data: ProfileFormValues) => {
     startTransition(async () => {
       try {
-        // Update general profile data
         const { role, ...profileData } = data;
         const userDocRef = doc(db, 'users', userProfile.id);
         await updateDoc(userDocRef, profileData);
 
-        let roleUpdated = false;
-        // Update role if changed and user is admin
-        if (userProfile.role === 'admin' && data.role !== userProfile.role) {
+        if (adminProfile?.role === 'admin' && data.role !== userProfile.role) {
             const result = await updateUserRole({ uid: userProfile.id, role: data.role});
             if (!result.success) {
                 throw new Error(result.message);
             }
-            roleUpdated = true;
-        } 
-        
-        if (roleUpdated) {
-             toast({
-                title: 'Profile and Role Updated',
-                description: 'Your profile has been successfully updated. Role change may require a fresh login.',
-            });
-        } else {
-             toast({
-                title: 'Profile Updated',
-                description: 'Your profile has been successfully updated.',
-             });
         }
+        
+        toast({
+            title: 'Profile Updated',
+            description: "The user's profile has been successfully updated.",
+        });
         
         onFinished();
       } catch (error: any) {
@@ -86,19 +79,35 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Your display name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                    <Input placeholder="Display name" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Country</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g. USA" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
+        
         <FormField
           control={form.control}
           name="bio"
@@ -106,12 +115,13 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             <FormItem>
               <FormLabel>Bio</FormLabel>
               <FormControl>
-                <Textarea placeholder="Tell us a little about yourself" className="resize-none" {...field} />
+                <Textarea placeholder="Tell us a little about this user" className="resize-none" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        
         <FormField
             control={form.control}
             name="lookingForTeam"
@@ -130,13 +140,13 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             )}
         />
 
-        {userProfile.role === 'admin' && (
+        {adminProfile?.role === 'admin' && (
           <FormField
             control={form.control}
             name="role"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>User Role (Admin)</FormLabel>
+                <FormLabel>User Role</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>

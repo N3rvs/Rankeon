@@ -12,6 +12,9 @@ export interface UserProfile {
   skills: string[];
   bio: string;
   lookingForTeam: boolean;
+  country?: string;
+  disabled?: boolean;
+  createdAt?: Timestamp;
 }
 
 export interface Team {

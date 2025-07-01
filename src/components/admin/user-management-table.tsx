@@ -1,0 +1,128 @@
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
+import type { UserProfile } from '@/lib/types';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Badge } from '../ui/badge';
+import { formatDistanceToNow } from 'date-fns';
+import { UserActions } from './user-actions';
+import { useAuth } from '@/contexts/auth-context';
+
+export function UserManagementTable() {
+  const { user: currentUser } = useAuth();
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
+      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as UserProfile));
+      setUsers(usersData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching users:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    if (!filter) return users;
+    return users.filter(user =>
+      user.name?.toLowerCase().includes(filter.toLowerCase()) ||
+      user.email?.toLowerCase().includes(filter.toLowerCase()) ||
+      user.country?.toLowerCase().includes(filter.toLowerCase())
+    );
+  }, [users, filter]);
+
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-1/3" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Input
+        placeholder="Filter by name, email, or country..."
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        className="max-w-sm"
+      />
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Country</TableHead>
+              <TableHead>Joined</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person avatar" />
+                        <AvatarFallback>{user.name?.slice(0, 2) || user.email?.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="capitalize">{user.role}</Badge>
+                  </TableCell>
+                  <TableCell>{user.country || 'N/A'}</TableCell>
+                  <TableCell>
+                    {user.createdAt ? formatDistanceToNow(user.createdAt.toDate(), { addSuffix: true }) : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={user.disabled ? 'destructive' : 'default'}>
+                      {user.disabled ? 'Banned' : 'Active'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {currentUser?.uid !== user.id && <UserActions user={user} />}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  No users found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}

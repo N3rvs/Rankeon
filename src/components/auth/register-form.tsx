@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -48,7 +48,10 @@ export function RegisterForm() {
         bio: '',
         games: [],
         skills: [],
-        lookingForTeam: false
+        lookingForTeam: false,
+        country: '',
+        disabled: false,
+        createdAt: serverTimestamp(),
       });
 
       router.push('/dashboard');
