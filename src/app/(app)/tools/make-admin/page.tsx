@@ -43,24 +43,34 @@ export default function MakeAdminPage() {
       if (!contentType || !contentType.includes('application/json')) {
         const responseText = await res.text();
         console.error("Raw response from server:", responseText);
-        throw new Error('Invalid JSON response from server. The server might have crashed.');
+        toast({
+          title: 'Server Error',
+          description: 'Invalid JSON response from server. The server might have crashed.',
+          variant: 'destructive',
+        });
+        return;
       }
       
       const result = await res.json();
 
       if (!res.ok) {
-        throw new Error(result.message || 'An unknown error occurred on the server.');
+        // Use toast to display the error from the server, don't throw
+        toast({
+          title: 'Error',
+          description: result.message || 'An unknown error occurred on the server.',
+          variant: 'destructive',
+        });
+      } else {
+         toast({
+          title: 'Success!',
+          description: `${result.message}. Please log out and log back in.`,
+        });
       }
-      
-      toast({
-        title: 'Success!',
-        description: `${result.message}. Please log out and log back in.`,
-      });
 
     } catch (error: any) {
       console.error('❌ Grant admin role failed:', error);
       toast({
-        title: 'Error',
+        title: 'Request Failed',
         description: error.message,
         variant: 'destructive',
       });
