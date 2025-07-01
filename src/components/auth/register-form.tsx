@@ -39,6 +39,7 @@ export function RegisterForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       
+      // Create the full user document on registration
       await setDoc(doc(db, "users", user.uid), {
         id: user.uid,
         email: user.email,
@@ -48,6 +49,8 @@ export function RegisterForm() {
         bio: '',
         games: [],
         skills: [],
+        friends: [], // Initialize empty friends list
+        blocked: [], // Initialize empty blocked list
         lookingForTeam: false,
         country: '',
         disabled: false,
