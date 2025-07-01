@@ -24,6 +24,7 @@ import {
   Check,
   X,
   MessageSquare,
+  Bell,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
@@ -78,12 +79,9 @@ export function NotificationItem({
   }, [notification.id, notification.from]);
 
   const findRequestId = async (): Promise<string | null> => {
-    // 1. Check the notification data first
     if (notification.extraData?.requestId) {
         return notification.extraData.requestId;
     }
-
-    // 2. If not found, fall back to a direct query
     if (notification.type === 'friend_request' && user) {
         try {
             const q = query(
@@ -94,7 +92,6 @@ export function NotificationItem({
             );
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
-                // Return the ID of the first (and should be only) pending request
                 return querySnapshot.docs[0].id;
             }
         } catch (error) {
@@ -119,7 +116,7 @@ export function NotificationItem({
         if (!requestId) {
             toast({
                 title: 'Request Unavailable',
-                description: 'This friend request may have been resolved already. The notification will be cleared.',
+                description: 'This friend request may have been resolved already.',
             });
             await clearNotificationHistory([notification.id]);
             return;
@@ -152,8 +149,6 @@ export function NotificationItem({
   };
   
   const handleNavigate = (path: string) => {
-    // This action implicitly marks the notification as read on the backend
-    // or the backend should handle deleting it after navigation.
     router.push(path);
   }
 
@@ -196,7 +191,7 @@ export function NotificationItem({
           message: `${name} invited you to a team.`,
         };
       default:
-        return { icon: Users, message: 'You have a new notification.' };
+        return { icon: Bell, message: 'You have a new notification.' };
     }
   };
 
@@ -215,12 +210,14 @@ export function NotificationItem({
         !notification.read && 'bg-primary/5 hover:bg-primary/10'
       )}
     >
-      <Avatar className="h-10 w-10">
-        <AvatarImage src={fromUser?.avatarUrl} data-ai-hint="person avatar" />
-        <AvatarFallback>
-          {fallbackInitials || <Icon className="h-5 w-5" />}
-        </AvatarFallback>
-      </Avatar>
+      <div className="flex-shrink-0">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={fromUser?.avatarUrl} data-ai-hint="person avatar" />
+          <AvatarFallback>
+            {fromUser ? fallbackInitials : <Icon className="h-5 w-5" />}
+          </AvatarFallback>
+        </Avatar>
+      </div>
       <div className="flex-1 space-y-1">
         <p className="text-sm leading-tight">{message}</p>
         <p className="text-xs text-muted-foreground">
@@ -280,6 +277,9 @@ export function NotificationItem({
           </div>
         )}
       </div>
+       {!notification.read && (
+          <div className="h-2 w-2 rounded-full bg-primary self-center" />
+      )}
     </div>
   );
 }

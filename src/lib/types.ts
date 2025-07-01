@@ -75,8 +75,6 @@ export interface FriendRequest {
   id: string;
   from: string;
   to: string;
-  /** Best practice: include an array of both UIDs for easier querying */
-  participantIds: string[];
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: Timestamp;
 }

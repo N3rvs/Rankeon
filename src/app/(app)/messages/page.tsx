@@ -17,7 +17,7 @@ import type { Chat, ChatMessage, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { deleteMessage, sendMessageToFriend as sendMessageAction } from '@/lib/actions/messages';
+import { deleteMessage, sendMessageToFriend } from '@/lib/actions/messages';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { blockUser, removeFriend } from '@/lib/actions/friends';
 
@@ -51,11 +51,9 @@ export default function MessagesPage() {
         const unsubscribe = onSnapshot(q, async (querySnapshot) => {
             const chatData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
             
-            // Filter chats to only include current friends.
             const friends = userProfile.friends || [];
             const filteredChats = chatData.filter(chat => {
                 const otherId = chat.members.find(id => id !== user.uid);
-                // Keep the chat if the other person is in the friends list.
                 return otherId ? friends.includes(otherId) : false;
             });
 
@@ -66,7 +64,6 @@ export default function MessagesPage() {
             });
             setChats(filteredChats);
 
-            // Fetch participant profiles for the filtered chats in parallel
             const profilesToFetch = new Set<string>();
             filteredChats.forEach(chat => {
                 chat.members.forEach(memberId => {
@@ -137,12 +134,11 @@ export default function MessagesPage() {
         const currentMessageText = newMessageText;
         setNewMessageText('');
         
-        const result = await sendMessageAction({ to: other.id, content: currentMessageText });
+        const result = await sendMessageToFriend({ to: other.id, content: currentMessageText });
         
         if (!result.success) {
             console.error("Error sending message: ", result.message);
             toast({ title: "Error", description: result.message, variant: "destructive" });
-            // Re-set text on failure
             setNewMessageText(currentMessageText);
         }
     };
@@ -156,8 +152,7 @@ export default function MessagesPage() {
             const result = await removeFriend(otherParticipant.id);
             if (result.success) {
                 toast({ title: "Friend Removed", description: `You are no longer friends with ${otherParticipant.name}.` });
-                setSelectedChat(null); // Close the chat window
-                // Instantly remove the chat from the list for better UX
+                setSelectedChat(null); 
                 setChats(prev => prev.filter(c => c.id !== chatToRemoveId));
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
@@ -173,8 +168,7 @@ export default function MessagesPage() {
             const result = await blockUser(otherParticipant.id);
             if (result.success) {
                 toast({ title: "User Blocked", description: `You have blocked ${otherParticipant.name}.` });
-                setSelectedChat(null); // Close the chat window
-                // Instantly remove the chat from the list for better UX
+                setSelectedChat(null);
                 setChats(prev => prev.filter(c => c.id !== chatToRemoveId));
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
@@ -315,7 +309,7 @@ export default function MessagesPage() {
                                             </div>
                                         ) : (
                                             messages.map(msg => (
-                                                <ChatMessageDisplay key={msg.id} message={msg} currentUser={userProfile} otherUser={otherParticipant} chatId={selectedChat.id} />
+                                                <ChatMessageDisplay key={msg.id} message={msg} currentUser={userProfile} otherParticipant={otherParticipant} chatId={selectedChat.id} />
                                             ))
                                         )}
                                         <div ref={messagesEndRef} />
@@ -361,7 +355,6 @@ function ChatMessageDisplay({ message, currentUser, otherUser, chatId }: { messa
             if (!result.success) {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
-            // No success toast needed, the change is reflected instantly.
             setIsAlertOpen(false);
         });
     };
