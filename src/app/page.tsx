@@ -135,7 +135,7 @@ export default function Home() {
       </main>
 
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground text-sm border-t border-border/50">
-        © {currentYear} SquadUp. All rights reserved. Built for the future of esports.
+        © {currentYear || new Date().getFullYear()} SquadUp. All rights reserved. Built for the future of esports.
       </footer>
     </div>
   );
