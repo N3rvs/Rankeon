@@ -1,10 +1,5 @@
 'use server';
 
-import { config } from 'dotenv';
-import path from 'path';
-
-config({ path: path.resolve(process.cwd(), '.env') });
-
 import { getAdminInstances } from '@/lib/firebase/admin';
 
 export async function grantFirstAdminRole(
