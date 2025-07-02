@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import type { GameRoom } from '@/lib/types';
-import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dices, Globe, Shield, Users2 } from 'lucide-react';
@@ -44,28 +45,33 @@ export default function RoomsPage() {
     const [partySizeFilter, setPartySizeFilter] = useState('all');
 
     useEffect(() => {
-        if (!user) {
+        let unsubscribe: Unsubscribe | undefined;
+
+        if (user) {
+            setLoading(true);
+            const q = query(
+                collection(db, 'gameRooms'),
+                orderBy('createdAt', 'desc')
+            );
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                const roomsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as GameRoom));
+                setRooms(roomsData);
+                setLoading(false);
+            }, (error) => {
+                console.error("Error fetching game rooms: ", error);
+                setLoading(false);
+            });
+        } else {
             setLoading(false);
             setRooms([]);
-            return;
         }
 
-        setLoading(true);
-        const q = query(
-            collection(db, 'gameRooms'),
-            orderBy('createdAt', 'desc')
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const roomsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as GameRoom));
-            setRooms(roomsData);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching game rooms: ", error);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, [user]);
 
     const filteredRooms = useMemo(() => {

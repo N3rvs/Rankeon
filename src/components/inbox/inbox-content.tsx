@@ -1,3 +1,4 @@
+
 // src/components/inbox/inbox-content.tsx
 'use client';
 
@@ -11,6 +12,7 @@ import {
   orderBy,
   onSnapshot,
   limit,
+  Unsubscribe,
 } from 'firebase/firestore';
 import type { Notification } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,38 +41,43 @@ export function InboxContent() {
   const [isClearing, startClearingTransition] = useTransition();
 
   useEffect(() => {
-    if (!user) {
+    let unsubscribe: Unsubscribe | undefined;
+
+    if (user) {
+      setLoading(true);
+      // We filter out 'new_message' notifications from the popover
+      const q = query(
+        collection(db, 'inbox', user.uid, 'notifications'),
+        where('type', '!=', 'new_message'),
+        orderBy('type', 'asc'), // needed for the inequality filter
+        orderBy('timestamp', 'desc'),
+        limit(20)
+      );
+
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const notifs = snapshot.docs.map(
+            (doc) => ({ id: doc.id, ...doc.data() } as Notification)
+          );
+          setNotifications(notifs);
+          setLoading(false);
+        },
+        (error) => {
+          console.error('Error fetching notifications:', error);
+          setLoading(false);
+        }
+      );
+    } else {
       setNotifications([]);
       setLoading(false);
-      return;
     }
 
-    setLoading(true);
-    // We filter out 'new_message' notifications from the popover
-    const q = query(
-      collection(db, 'inbox', user.uid, 'notifications'),
-      where('type', '!=', 'new_message'),
-      orderBy('type', 'asc'), // needed for the inequality filter
-      orderBy('timestamp', 'desc'),
-      limit(20)
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const notifs = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() } as Notification)
-        );
-        setNotifications(notifs);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching notifications:', error);
-        setLoading(false);
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
       }
-    );
-
-    return () => unsubscribe();
+    };
   }, [user]);
 
   const handleMarkAllRead = () => {

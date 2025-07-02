@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { UserProfile } from '@/lib/types';
 import {
@@ -27,24 +28,29 @@ export function UserManagementTable() {
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
-    if (!currentUser) {
+    let unsubscribe: Unsubscribe | undefined;
+
+    if (currentUser) {
+      setLoading(true);
+      const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+      unsubscribe = onSnapshot(usersQuery, (snapshot) => {
+        const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as UserProfile));
+        setUsers(usersData);
+        setLoading(false);
+      }, (error) => {
+        console.error("Error fetching users:", error);
+        setLoading(false);
+      });
+    } else {
       setUsers([]);
       setLoading(false);
-      return;
     }
 
-    setLoading(true);
-    const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
-      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as UserProfile));
-      setUsers(usersData);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching users:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [currentUser]);
 
   const filteredUsers = useMemo(() => {

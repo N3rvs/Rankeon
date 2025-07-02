@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useTransition } from 'react';
 import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase/client";
-import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, doc, getDoc, Unsubscribe } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteMessage, sendMessageToFriend } from '@/lib/actions/messages';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { blockUser, removeFriend } from '@/lib/actions/friends';
+import { SendMessageDialog } from '@/components/messages/send-message-dialog';
 
 export default function MessagesPage() {
     const { user, userProfile } = useAuth();
@@ -39,81 +40,90 @@ export default function MessagesPage() {
 
 
     useEffect(() => {
-        if (!user || !userProfile) {
+        let unsubscribe: Unsubscribe | undefined;
+
+        if (user && userProfile) {
+            setLoadingChats(true);
+            const q = query(collection(db, 'chats'), where('members', 'array-contains', user.uid));
+            
+            unsubscribe = onSnapshot(q, async (querySnapshot) => {
+                const chatData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
+                
+                const friends = userProfile.friends || [];
+                const filteredChats = chatData.filter(chat => {
+                    const otherId = chat.members.find(id => id !== user.uid);
+                    return otherId ? friends.includes(otherId) : false;
+                });
+
+                filteredChats.sort((a, b) => {
+                    const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
+                    const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
+                    return timeB - timeA;
+                });
+                setChats(filteredChats);
+
+                const profilesToFetch = new Set<string>();
+                filteredChats.forEach(chat => {
+                    chat.members.forEach(memberId => {
+                        if (memberId !== user.uid && !participantProfiles[memberId]) {
+                            profilesToFetch.add(memberId);
+                        }
+                    });
+                });
+
+                if (profilesToFetch.size > 0) {
+                    const newProfiles: { [id: string]: UserProfile } = {};
+                    const profilePromises = Array.from(profilesToFetch).map(async (profileId) => {
+                        const userDoc = await getDoc(doc(db, "users", profileId));
+                        if (userDoc.exists()) {
+                            newProfiles[profileId] = { id: userDoc.id, ...userDoc.data() } as UserProfile;
+                        }
+                    });
+                    await Promise.all(profilePromises);
+                    setParticipantProfiles(prev => ({...prev, ...newProfiles}));
+                }
+                
+                setLoadingChats(false);
+            }, (error) => {
+                console.error("Error fetching chats:", error);
+                setLoadingChats(false);
+            });
+        } else {
             setLoadingChats(false);
             setChats([]);
-            return;
         }
 
-        setLoadingChats(true);
-        const q = query(collection(db, 'chats'), where('members', 'array-contains', user.uid));
-        
-        const unsubscribe = onSnapshot(q, async (querySnapshot) => {
-            const chatData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
-            
-            const friends = userProfile.friends || [];
-            const filteredChats = chatData.filter(chat => {
-                const otherId = chat.members.find(id => id !== user.uid);
-                return otherId ? friends.includes(otherId) : false;
-            });
-
-            filteredChats.sort((a, b) => {
-                const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
-                const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
-                return timeB - timeA;
-            });
-            setChats(filteredChats);
-
-            const profilesToFetch = new Set<string>();
-            filteredChats.forEach(chat => {
-                chat.members.forEach(memberId => {
-                    if (memberId !== user.uid && !participantProfiles[memberId]) {
-                        profilesToFetch.add(memberId);
-                    }
-                });
-            });
-
-            if (profilesToFetch.size > 0) {
-                const newProfiles: { [id: string]: UserProfile } = {};
-                const profilePromises = Array.from(profilesToFetch).map(async (profileId) => {
-                    const userDoc = await getDoc(doc(db, "users", profileId));
-                    if (userDoc.exists()) {
-                        newProfiles[profileId] = { id: userDoc.id, ...userDoc.data() } as UserProfile;
-                    }
-                });
-                await Promise.all(profilePromises);
-                setParticipantProfiles(prev => ({...prev, ...newProfiles}));
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
             }
-            
-            setLoadingChats(false);
-        }, (error) => {
-            console.error("Error fetching chats:", error);
-            setLoadingChats(false);
-        });
-
-        return () => unsubscribe();
+        };
     }, [user, userProfile]);
 
     useEffect(() => {
-        if (!selectedChat || !user) {
-            setMessages([]);
-            return;
+        let unsubscribe: Unsubscribe | undefined;
+        if (selectedChat && user) {
+            setLoadingMessages(true);
+            const messagesRef = collection(db, 'chats', selectedChat.id, 'messages');
+            const q = query(messagesRef, orderBy('createdAt', 'asc'));
+            
+            unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as ChatMessage));
+                setMessages(msgs);
+                setLoadingMessages(false);
+            }, (error) => {
+                console.error(`Error fetching messages for chat ${selectedChat.id}:`, error);
+                setLoadingMessages(false);
+            });
+        } else {
+          setMessages([]);
         }
-
-        setLoadingMessages(true);
-        const messagesRef = collection(db, 'chats', selectedChat.id, 'messages');
-        const q = query(messagesRef, orderBy('createdAt', 'asc'));
         
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as ChatMessage));
-            setMessages(msgs);
-            setLoadingMessages(false);
-        }, (error) => {
-            console.error(`Error fetching messages for chat ${selectedChat.id}:`, error);
-            setLoadingMessages(false);
-        });
-        
-        return () => unsubscribe();
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, [selectedChat, user]);
 
     useEffect(() => {

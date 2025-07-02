@@ -1,3 +1,4 @@
+
 // src/components/app-layout.tsx
 'use client';
 
@@ -38,7 +39,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from './ui/skeleton';
 import { InboxIcon } from './inbox/inbox-icon';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/firestore';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { cn } from '@/lib/utils';
 
@@ -51,22 +52,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
-    if (!user) {
+    let unsubscribe: Unsubscribe | undefined;
+
+    if (user) {
+      const q = query(
+        collection(db, 'inbox', user.uid, 'notifications'),
+        where('read', '==', false),
+        where('type', '==', 'new_message')
+      );
+
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        setUnreadMessages(snapshot.size);
+      });
+    } else {
       setUnreadMessages(0);
-      return;
     }
-
-    const q = query(
-      collection(db, 'inbox', user.uid, 'notifications'),
-      where('read', '==', false),
-      where('type', '==', 'new_message')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setUnreadMessages(snapshot.size);
-    });
-
-    return () => unsubscribe();
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [user]);
 
   const handleLogout = async () => {

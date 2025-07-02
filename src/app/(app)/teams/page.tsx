@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase/client';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, Unsubscribe } from 'firebase/firestore';
 import type { Team } from '@/lib/types';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { TeamCard } from '@/components/teams/team-card';
@@ -18,28 +19,34 @@ export default function TeamsPage() {
     const canCreateTeam = userProfile && ['admin', 'moderator', 'founder'].includes(userProfile.role);
 
     useEffect(() => {
-        if (!user) {
+        let unsubscribe: Unsubscribe | undefined;
+
+        if (user) {
+            setLoading(true);
+            const q = query(
+                collection(db, 'teams'),
+                where('memberIds', 'array-contains', user.uid),
+                orderBy('createdAt', 'desc')
+            );
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                const teamsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as Team));
+                setTeams(teamsData);
+                setLoading(false);
+            }, (error) => {
+                console.error("Error fetching teams: ", error);
+                setLoading(false);
+            });
+        } else {
             setLoading(false);
-            return;
+            setTeams([]);
         }
 
-        setLoading(true);
-        const q = query(
-            collection(db, 'teams'),
-            where('memberIds', 'array-contains', user.uid),
-            orderBy('createdAt', 'desc')
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const teamsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as Team));
-            setTeams(teamsData);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching teams: ", error);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, [user]);
 
     const loadingSkeletons = [...Array(3)].map((_, i) => (
