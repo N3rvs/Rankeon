@@ -11,14 +11,11 @@ import { GameRoomCard } from '@/components/rooms/game-room-card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const valorantServers = [
-    { value: 'all', label: 'Todos los Servidores EU' },
-    { value: 'Frankfurt', label: 'Frankfurt' },
-    { value: 'Istanbul', label: 'Estambul' },
+    { value: 'all', label: 'Todos los Servidores' },
+    { value: 'Frankfurt', label: 'Alemania' },
     { value: 'London', label: 'Londres' },
-    { value: 'Madrid', label: 'Madrid' },
-    { value: 'Paris', label: 'París' },
-    { value: 'Stockholm', label: 'Estocolmo' },
-    { value: 'Warsaw', label: 'Varsovia' },
+    { value: 'Madrid', label: 'España' },
+    { value: 'Paris', label: 'Francia' },
 ];
 
 const valorantRanks = [
