@@ -6,8 +6,8 @@ import { revalidatePath } from 'next/cache';
 import { FieldValue } from 'firebase-admin/firestore';
 
 const CreateTeamSchema = z.object({
-  name: z.string().min(3, { message: 'Team name must be at least 3 characters.' }).max(50),
-  game: z.string().min(1, { message: 'Please select a game.' }),
+  name: z.string().min(3, { message: 'El nombre del equipo debe tener al menos 3 caracteres.' }).max(50),
+  game: z.string().min(1, { message: 'Por favor, introduce un juego.' }),
   description: z.string().max(300).optional(),
 });
 
@@ -22,7 +22,7 @@ export async function createTeam(
   token: string | null
 ): Promise<ActionResponse> {
   if (!token) {
-    return { success: false, message: 'Authentication token is missing.' };
+    return { success: false, message: 'Falta el token de autenticación.' };
   }
 
   const { adminAuth, adminDb } = getAdminInstances();
@@ -34,7 +34,8 @@ export async function createTeam(
     const validatedFields = CreateTeamSchema.safeParse(values);
 
     if (!validatedFields.success) {
-      return { success: false, message: 'Invalid form data.' };
+      const errorMessages = validatedFields.error.errors.map(e => e.message).join(', ');
+      return { success: false, message: `Datos del formulario no válidos: ${errorMessages}` };
     }
     
     const { name, game, description } = validatedFields.data;
@@ -43,12 +44,12 @@ export async function createTeam(
     const userProfile = userDoc.data();
 
     if (!userProfile) {
-      return { success: false, message: 'User profile not found.' };
+      return { success: false, message: 'No se encontró el perfil del usuario.' };
     }
 
     const allowedRoles = ['admin', 'moderator', 'founder'];
     if (!allowedRoles.includes(userProfile.role)) {
-      return { success: false, message: 'You do not have permission to create a team.' };
+      return { success: false, message: 'No tienes permiso para crear un equipo.' };
     }
     
     const newTeamRef = adminDb.collection('teams').doc();
@@ -68,12 +69,12 @@ export async function createTeam(
 
     revalidatePath('/teams');
 
-    return { success: true, message: 'Team created successfully!', teamId: newTeamRef.id };
+    return { success: true, message: '¡Equipo creado con éxito!', teamId: newTeamRef.id };
   } catch (error: any) {
-    console.error('Error creating team:', error);
+    console.error('Error al crear el equipo:', error);
     if (error.code === 'auth/id-token-expired') {
-        return { success: false, message: 'Session expired. Please log in again.' };
+        return { success: false, message: 'La sesión ha expirado. Por favor, inicia sesión de nuevo.' };
     }
-    return { success: false, message: 'Failed to create team. Please try again.' };
+    return { success: false, message: 'No se pudo crear el equipo. Por favor, inténtalo de nuevo.' };
   }
 }

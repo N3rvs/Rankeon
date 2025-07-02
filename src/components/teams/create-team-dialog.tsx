@@ -15,9 +15,9 @@ import { createTeam } from '@/lib/actions/teams';
 import { useAuth } from '@/contexts/auth-context';
 
 const formSchema = z.object({
-  name: z.string().min(3, 'Name must be at least 3 characters.').max(50, 'Name must be less than 50 characters.'),
-  game: z.string().min(1, 'Please enter a game.'),
-  description: z.string().max(300, 'Description must be less than 300 characters.').optional(),
+  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50, 'El nombre debe tener menos de 50 caracteres.'),
+  game: z.string().min(1, 'Por favor, introduce un juego.'),
+  description: z.string().max(300, 'La descripción debe tener menos de 300 caracteres.').optional(),
 });
 
 export function CreateTeamDialog() {
@@ -40,8 +40,8 @@ export function CreateTeamDialog() {
       const result = await createTeam(values, token);
       if (result.success) {
         toast({
-          title: 'Team Created!',
-          description: `Your new team "${values.name}" is ready.`,
+          title: '¡Equipo Creado!',
+          description: `Tu nuevo equipo "${values.name}" está listo.`,
         });
         setIsOpen(false);
         form.reset();
@@ -60,14 +60,14 @@ export function CreateTeamDialog() {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Create Team
+          Crear Equipo
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create a New Team</DialogTitle>
+          <DialogTitle>Crear un Nuevo Equipo</DialogTitle>
           <DialogDescription>
-            Assemble your squad. Fill out the details below to get started.
+            Reúne a tu escuadrón. Rellena los siguientes datos para empezar.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -77,9 +77,9 @@ export function CreateTeamDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Team Name</FormLabel>
+                  <FormLabel>Nombre del Equipo</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Phantom Thieves" {...field} />
+                    <Input placeholder="Ej: Phantom Thieves" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -90,9 +90,9 @@ export function CreateTeamDialog() {
               name="game"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Primary Game</FormLabel>
+                  <FormLabel>Juego Principal</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Valorant" {...field} />
+                    <Input placeholder="Ej: Valorant" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,16 +103,16 @@ export function CreateTeamDialog() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Team Description</FormLabel>
+                  <FormLabel>Descripción del Equipo</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Tell everyone what your team is about." {...field} />
+                    <Textarea placeholder="Cuéntales a todos de qué va tu equipo." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Creating...' : 'Create Team'}
+              {isPending ? 'Creando...' : 'Crear Equipo'}
             </Button>
           </form>
         </Form>
