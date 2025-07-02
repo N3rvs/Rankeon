@@ -58,28 +58,36 @@ export const createGameRoomWithDiscord = onCall<CreateGameRoomData>(
       );
     }
 
-    const client = new Client({
-      intents: [GatewayIntentBits.Guilds],
-    });
-
     let channelId: string | null = null;
-
+    
     try {
-      await client.login(token);
-      const guild = await client.guilds.fetch(guildId);
+      const discordApiUrl = `https://discord.com/api/v10/guilds/${guildId}/channels`;
+      const channelName = `Sala: ${name.substring(0, 90)}`; // Discord channel names have a 100-char limit
 
-      const channel = await guild.channels.create({
-        name: `Sala: ${name.substring(0, 90)}`, // Discord channel names have a 100-char limit
-        type: ChannelType.GuildVoice,
+      const response = await fetch(discordApiUrl, {
+          method: 'POST',
+          headers: {
+              'Authorization': `Bot ${token}`,
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              name: channelName,
+              type: 2, // 2 is for GUILD_VOICE channel type
+          }),
       });
 
-      channelId = channel.id;
+      if (response.ok) {
+          const channelData = await response.json();
+          channelId = channelData.id;
+      } else {
+          const errorBody = await response.json();
+          console.error('Error creating Discord channel. Status:', response.status, 'Body:', JSON.stringify(errorBody, null, 2));
+          // Do not throw an error, just proceed without a channel.
+      }
     } catch (err) {
-      console.error('Error creating Discord channel:', err);
+      console.error('Exception when trying to create Discord channel:', err);
       // We will still create the room in Firestore, but without a channel ID.
       // The error is logged for the admin to investigate.
-    } finally {
-      client.destroy();
     }
 
     // Create Firestore Document
