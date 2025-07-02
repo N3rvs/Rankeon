@@ -2,13 +2,13 @@
 import * as admin from 'firebase-admin';
 import type { ServiceAccount } from 'firebase-admin';
 
-// This function will be called from within Server Actions or API routes to ensure lazy initialization.
-export function getAdminInstances() {
-    if (admin.apps.length > 0 && admin.apps[0]) {
-        const adminApp = admin.apps[0];
-        return { adminAuth: adminApp.auth(), adminDb: adminApp.firestore() };
-    }
+let adminAuth: admin.auth.Auth;
+let adminDb: admin.firestore.Firestore;
 
+// Initialize the app only if it hasn't been initialized yet.
+// This module-level check prevents re-initialization errors in development
+// due to Next.js hot-reloading.
+if (!admin.apps.length) {
     const serviceAccount: Partial<ServiceAccount> = {
         projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
         clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
@@ -31,6 +31,17 @@ export function getAdminInstances() {
     const adminApp = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount as ServiceAccount),
     });
+    
+    adminAuth = adminApp.auth();
+    adminDb = adminApp.firestore();
+} else {
+    // If the app is already initialized, just get the instances.
+    const adminApp = admin.apps[0]!;
+    adminAuth = adminApp.auth();
+    adminDb = adminApp.firestore();
+}
 
-    return { adminAuth: adminApp.auth(), adminDb: adminApp.firestore() };
+// This function can now simply return the cached instances.
+export function getAdminInstances() {
+    return { adminAuth, adminDb };
 }
