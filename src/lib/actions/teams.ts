@@ -1,5 +1,10 @@
 'use server';
 
+import { config } from 'dotenv';
+import path from 'path';
+
+config({ path: path.resolve(process.cwd(), '.env') });
+
 import { z } from 'zod';
 import { getAdminInstances } from '@/lib/firebase/admin';
 import { revalidatePath } from 'next/cache';
