@@ -5,7 +5,7 @@ import { Gamepad2, Rocket, Users, Swords, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   useEffect(() => {
     if (!loading && user) {
@@ -130,7 +135,7 @@ export default function Home() {
       </main>
 
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground text-sm border-t border-border/50">
-        © {new Date().getFullYear()} SquadUp. All rights reserved. Built for the future of esports.
+        © {currentYear} SquadUp. All rights reserved. Built for the future of esports.
       </footer>
     </div>
   );
