@@ -9,6 +9,7 @@ import { Dices, Globe, Shield, Users2 } from 'lucide-react';
 import { CreateRoomDialog } from '@/components/rooms/create-room-dialog';
 import { GameRoomCard } from '@/components/rooms/game-room-card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/auth-context';
 
 const valorantServers = [
     { value: 'all', label: 'Todos los Servidores' },
@@ -35,6 +36,7 @@ const partySizes = [
 ];
 
 export default function RoomsPage() {
+    const { user } = useAuth();
     const [rooms, setRooms] = useState<GameRoom[]>([]);
     const [loading, setLoading] = useState(true);
     const [serverFilter, setServerFilter] = useState('all');
@@ -42,6 +44,12 @@ export default function RoomsPage() {
     const [partySizeFilter, setPartySizeFilter] = useState('all');
 
     useEffect(() => {
+        if (!user) {
+            setLoading(false);
+            setRooms([]);
+            return;
+        }
+
         setLoading(true);
         const q = query(
             collection(db, 'gameRooms'),
@@ -58,7 +66,7 @@ export default function RoomsPage() {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [user]);
 
     const filteredRooms = useMemo(() => {
         return rooms.filter(room => {
