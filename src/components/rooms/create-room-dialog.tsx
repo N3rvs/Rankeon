@@ -24,9 +24,12 @@ const formSchema = z.object({
 
 const valorantServers = [
     { value: 'Frankfurt', label: 'Frankfurt' },
+    { value: 'Istanbul', label: 'Estambul' },
     { value: 'London', label: 'Londres' },
+    { value: 'Madrid', label: 'Madrid' },
     { value: 'Paris', label: 'París' },
     { value: 'Stockholm', label: 'Estocolmo' },
+    { value: 'Warsaw', label: 'Varsovia' },
 ];
 
 const valorantRanks = [

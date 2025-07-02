@@ -13,9 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const valorantServers = [
     { value: 'all', label: 'Todos los Servidores EU' },
     { value: 'Frankfurt', label: 'Frankfurt' },
+    { value: 'Istanbul', label: 'Estambul' },
     { value: 'London', label: 'Londres' },
+    { value: 'Madrid', label: 'Madrid' },
     { value: 'Paris', label: 'París' },
     { value: 'Stockholm', label: 'Estocolmo' },
+    { value: 'Warsaw', label: 'Varsovia' },
 ];
 
 const valorantRanks = [
