@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { getAdminInstances } from '@/lib/firebase/admin';
 import { revalidatePath } from 'next/cache';
 import { FieldValue } from 'firebase-admin/firestore';
-import { Client, GatewayIntentBits, ChannelType } from 'discord.js';
 
 const CreateRoomSchema = z.object({
   name: z.string().min(3, { message: 'El nombre debe tener al menos 3 caracteres.' }).max(50),
@@ -21,6 +20,7 @@ type ActionResponse = {
   discordChannelId?: string;
 };
 
+// Uses the Discord REST API directly to avoid pulling heavy dependencies into the build.
 async function createDiscordChannel(roomName: string): Promise<string> {
     const token = process.env.DISCORD_BOT_TOKEN;
     const guildId = process.env.DISCORD_GUILD_ID;
@@ -29,30 +29,28 @@ async function createDiscordChannel(roomName: string): Promise<string> {
         throw new Error('Las credenciales del bot de Discord (token y ID del servidor) no están configuradas en el entorno.');
     }
 
-    const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+    const url = `https://discord.com/api/v10/guilds/${guildId}/channels`;
 
-    try {
-        await client.login(token);
-
-        const guild = await client.guilds.fetch(guildId);
-        if (!guild) {
-            throw new Error(`No se pudo encontrar el servidor con ID: ${guildId}`);
-        }
-
-        const channel = await guild.channels.create({
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bot ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
             name: `Sala: ${roomName}`,
-            type: ChannelType.GuildVoice,
-            // Puedes añadirlo a una categoría si quieres descomentando la siguiente línea
-            // parent: 'YOUR_CATEGORY_ID',
-        });
-        
-        return channel.id;
-    } finally {
-        // Asegúrate de que el cliente de Discord se desconecte siempre
-        if (client.readyAt) {
-            await client.destroy();
-        }
+            type: 2, // GuildVoice channel type
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error creating Discord channel:', errorData);
+        throw new Error(`Error al crear canal de Discord: ${errorData.message || response.statusText}`);
     }
+
+    const channel = await response.json();
+    return channel.id;
 }
 
 
