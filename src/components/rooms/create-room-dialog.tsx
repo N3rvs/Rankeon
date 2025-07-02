@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle } from 'lucide-react';
 import { createRoom } from '@/lib/actions/rooms';
-import { useAuth } from '@/contexts/auth-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
@@ -45,7 +44,6 @@ const partySizes = [
 
 export function CreateRoomDialog() {
   const { toast } = useToast();
-  const { token } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -62,7 +60,7 @@ export function CreateRoomDialog() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
-      const result = await createRoom(values, token);
+      const result = await createRoom(values);
       if (result.success) {
         toast({
           title: '¡Sala Creada!',
