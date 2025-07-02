@@ -194,3 +194,213 @@ export const cleanupVoiceRooms = onSchedule(
     }
   }
 );
+
+
+// --- FRIEND MANAGEMENT FUNCTIONS ---
+
+export const sendFriendRequest = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { to } = request.data;
+    if (!to || uid === to) throw new HttpsError('invalid-argument', 'Invalid recipient ID.');
+
+    const batch = db.batch();
+    const fromUserRef = db.collection('users').doc(uid);
+    const toUserRef = db.collection('users').doc(to);
+
+    const [fromUserSnap, toUserSnap] = await Promise.all([fromUserRef.get(), toUserRef.get()]);
+    if (!fromUserSnap.exists() || !toUserSnap.exists()) {
+        throw new HttpsError('not-found', 'One or both users not found.');
+    }
+
+    const existingRequestQuery = db.collection('friendRequests')
+        .where('from', 'in', [uid, to])
+        .where('to', 'in', [uid, to])
+        .where('status', '==', 'pending');
+    
+    const existingRequestSnap = await existingRequestQuery.get();
+    if (!existingRequestSnap.empty) {
+        throw new HttpsError('already-exists', 'A pending friend request already exists.');
+    }
+
+    const requestRef = db.collection('friendRequests').doc();
+    batch.set(requestRef, { from: uid, to, status: 'pending', createdAt: admin.firestore.FieldValue.serverTimestamp() });
+
+    const notificationRef = db.collection('inbox').doc(to).collection('notifications').doc();
+    batch.set(notificationRef, {
+        type: 'friend_request',
+        from: uid,
+        read: false,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        extraData: { requestId: requestRef.id }
+    });
+
+    await batch.commit();
+    return { success: true, message: 'Friend request sent.' };
+});
+
+export const respondToFriendRequest = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { requestId, accept } = request.data;
+    if (!requestId || typeof accept !== 'boolean') throw new HttpsError('invalid-argument', 'Missing parameters.');
+
+    const requestRef = db.collection('friendRequests').doc(requestId);
+    const requestSnap = await requestRef.get();
+    if (!requestSnap.exists() || requestSnap.data()?.to !== uid) {
+        throw new HttpsError('not-found', 'Friend request not found or you are not the recipient.');
+    }
+    if (requestSnap.data()?.status !== 'pending') {
+        throw new HttpsError('failed-precondition', 'Request has already been resolved.');
+    }
+
+    const fromId = requestSnap.data()?.from;
+    const batch = db.batch();
+    batch.update(requestRef, { status: accept ? 'accepted' : 'rejected' });
+
+    if (accept) {
+        const fromUserRef = db.collection('users').doc(fromId);
+        const toUserRef = db.collection('users').doc(uid);
+        batch.update(fromUserRef, { friends: admin.firestore.FieldValue.arrayUnion(uid) });
+        batch.update(toUserRef, { friends: admin.firestore.FieldValue.arrayUnion(fromId) });
+
+        const notificationRef = db.collection('inbox').doc(fromId).collection('notifications').doc();
+        batch.set(notificationRef, {
+            type: 'friend_accepted',
+            from: uid,
+            read: false,
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+
+    await batch.commit();
+    return { success: true, message: `Request ${accept ? 'accepted' : 'rejected'}.` };
+});
+
+
+export const removeFriend = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { friendUid } = request.data;
+    if (!friendUid) throw new HttpsError('invalid-argument', 'Friend ID is required.');
+
+    const batch = db.batch();
+    const currentUserRef = db.collection('users').doc(uid);
+    const friendUserRef = db.collection('users').doc(friendUid);
+
+    batch.update(currentUserRef, { friends: admin.firestore.FieldValue.arrayRemove(friendUid) });
+    batch.update(friendUserRef, { friends: admin.firestore.FieldValue.arrayRemove(uid) });
+    
+    const notificationRef = db.collection('inbox').doc(friendUid).collection('notifications').doc();
+    batch.set(notificationRef, {
+        type: 'friend_removed',
+        from: uid,
+        read: false,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    await batch.commit();
+    return { success: true, message: 'Friend removed.' };
+});
+
+export const blockUser = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { blockedUid } = request.data;
+    if (!blockedUid || uid === blockedUid) throw new HttpsError('invalid-argument', 'Invalid user to block.');
+
+    const currentUserRef = db.collection('users').doc(uid);
+
+    await db.runTransaction(async (transaction) => {
+        transaction.update(currentUserRef, { 
+            blocked: admin.firestore.FieldValue.arrayUnion(blockedUid),
+            friends: admin.firestore.FieldValue.arrayRemove(blockedUid)
+        });
+        const otherUserRef = db.collection('users').doc(blockedUid);
+        transaction.update(otherUserRef, {
+            friends: admin.firestore.FieldValue.arrayRemove(uid)
+        });
+    });
+
+    return { success: true, message: 'User has been blocked.' };
+});
+
+
+// --- MESSAGING FUNCTIONS ---
+
+export const sendMessageToFriend = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { to, content } = request.data;
+    if (!to || !content) throw new HttpsError('invalid-argument', 'Missing recipient or content.');
+
+    const fromUserRef = db.collection('users').doc(uid);
+    const fromUserSnap = await fromUserRef.get();
+    const fromUserData = fromUserSnap.data();
+
+    if (!fromUserData?.friends?.includes(to)) {
+        throw new HttpsError('failed-precondition', 'You must be friends to send a message.');
+    }
+
+    const members = [uid, to].sort();
+    const chatId = members.join('_');
+    const chatRef = db.collection('chats').doc(chatId);
+    const messageRef = chatRef.collection('messages').doc();
+
+    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+
+    const lastMessage = { content, sender: uid, createdAt: timestamp };
+
+    const batch = db.batch();
+    batch.set(chatRef, { members, createdAt: timestamp, lastMessageAt: timestamp, lastMessage }, { merge: true });
+    batch.set(messageRef, { sender: uid, content, createdAt: timestamp });
+    
+    // Notification for recipient
+    const notificationRef = db.collection('inbox').doc(to).collection('notifications').doc();
+    batch.set(notificationRef, {
+        type: 'new_message',
+        from: uid,
+        read: false,
+        timestamp: timestamp,
+        content: content.length > 50 ? content.substring(0, 47) + '...' : content,
+        extraData: { chatId }
+    });
+    
+    await batch.commit();
+
+    return { success: true, message: 'Message sent.' };
+});
+
+export const deleteMessage = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { chatId, messageId } = request.data;
+    if (!chatId || !messageId) throw new HttpsError('invalid-argument', 'Missing chat or message ID.');
+
+    const messageRef = db.collection('chats').doc(chatId).collection('messages').doc(messageId);
+    const messageSnap = await messageRef.get();
+
+    if (!messageSnap.exists() || messageSnap.data()?.sender !== uid) {
+        throw new HttpsError('permission-denied', 'You do not have permission to delete this message.');
+    }
+
+    await messageRef.delete();
+    return { success: true, message: 'Message deleted.' };
+});
+
+// --- NOTIFICATION FUNCTIONS ---
+
+export const deleteInboxNotification = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { notificationId } = request.data;
+
+    if (!notificationId) {
+        throw new HttpsError('invalid-argument', 'Notification ID is required.');
+    }
+
+    const notificationRef = db.collection('inbox').doc(uid).collection('notifications').doc(notificationId);
+    await notificationRef.delete();
+
+    return { success: true, message: 'Notification deleted.' };
+});
