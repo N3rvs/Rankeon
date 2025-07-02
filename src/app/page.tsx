@@ -25,11 +25,21 @@ export default function Home() {
     }
   }, [user, loading, router]);
 
-  if (loading || user) {
+  if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Skeleton className="h-24 w-24 rounded-full bg-muted" />
       </div>
+    );
+  }
+
+  // If the user is logged in, we are about to redirect.
+  // Return null or a skeleton to prevent the page from flashing.
+  if (user) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+            <Skeleton className="h-24 w-24 rounded-full bg-muted" />
+        </div>
     );
   }
   
