@@ -34,7 +34,7 @@ export async function proposeTournament(values: ProposeTournamentData): Promise<
       proposedDate: validatedFields.data.proposedDate.toISOString(),
     };
     
-    const proposeFunc = httpsCallable(functions, 'proposeTournament');
+    const proposeFunc = httpsCallable(functions, 'proposeTournamentV2');
     const result = await proposeFunc(dataToSend);
     
     return (result.data as ActionResponse) || { success: true, message: 'Proposal submitted.'};
