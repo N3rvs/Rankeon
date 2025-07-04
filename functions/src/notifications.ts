@@ -10,18 +10,6 @@ interface AddInboxNotificationData {
   extraData?: any;
 }
 
-interface DeleteInboxNotificationData {
-  notificationId: string;
-}
-
-interface BlockUserData {
-  blockedUid: string;
-}
-
-interface UnblockUserData {
-  blockedUid: string;
-}
-
 export const addInboxNotification = onCall(async ({ auth, data }: { auth?: any, data: AddInboxNotificationData }) => {
   const uid = auth?.uid;
   const { to, type, extraData } = data;
@@ -42,21 +30,66 @@ export const addInboxNotification = onCall(async ({ auth, data }: { auth?: any, 
   return { success: true };
 });
 
-export const deleteInboxNotification = onCall(async ({ auth, data }: { auth?: any, data: DeleteInboxNotificationData }) => {
-  const uid = auth?.uid;
-  const { notificationId } = data;
+export const markNotificationsAsRead = onCall(async ({ auth, data }: { auth?: any; data: { notificationIds: string[] } }) => {
+    const uid = auth?.uid;
+    const { notificationIds } = data;
 
-  if (!uid || !notificationId) {
-    throw new HttpsError("invalid-argument", "Missing notification ID.");
-  }
+    if (!uid) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
+        throw new HttpsError("invalid-argument", "An array of notification IDs is required.");
+    }
 
-  const notifRef = db.doc(`inbox/${uid}/notifications/${notificationId}`);
-  
-  // We can just delete. If it doesn't exist, it's a no-op.
-  await notifRef.delete();
-
-  return { success: true };
+    try {
+        const batch = db.batch();
+        const notificationsRef = db.collection(`inbox/${uid}/notifications`);
+        notificationIds.forEach(id => {
+            const docRef = notificationsRef.doc(id);
+            batch.update(docRef, { read: true });
+        });
+        await batch.commit();
+        return { success: true, message: "Notifications marked as read." };
+    } catch (error: any) {
+        console.error("Error in markNotificationsAsRead:", error);
+        throw new HttpsError("internal", "Failed to mark notifications as read.");
+    }
 });
+
+
+export const clearNotifications = onCall(async ({ auth, data }: { auth?: any; data: { notificationIds: string[] } }) => {
+    const uid = auth?.uid;
+    const { notificationIds } = data;
+
+    if (!uid) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
+        throw new HttpsError("invalid-argument", "An array of notification IDs is required.");
+    }
+
+    try {
+        const batch = db.batch();
+        const notificationsRef = db.collection(`inbox/${uid}/notifications`);
+        notificationIds.forEach(id => {
+            const docRef = notificationsRef.doc(id);
+            batch.delete(docRef);
+        });
+        await batch.commit();
+        return { success: true, message: "Notifications cleared." };
+    } catch (error: any) {
+        console.error("Error in clearNotifications:", error);
+        throw new HttpsError("internal", "Failed to clear notifications.");
+    }
+});
+
+interface BlockUserData {
+  blockedUid: string;
+}
+
+interface UnblockUserData {
+  blockedUid: string;
+}
 
 export const blockUser = onCall(async ({ auth, data }: { auth?: any, data: BlockUserData }) => {
   const uid = auth?.uid;

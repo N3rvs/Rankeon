@@ -7,7 +7,7 @@ admin.initializeApp();
 // Now import the functions that use the initialized admin SDK.
 import { deleteChatHistory, sendMessageToFriend } from './chat';
 import { sendFriendRequest, respondToFriendRequest, removeFriend } from './friends';
-import { addInboxNotification, deleteInboxNotification, blockUser, unblockUser } from './notifications';
+import { addInboxNotification, markNotificationsAsRead, clearNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
 import { createTeam, updateTeam, deleteTeam } from './teams';
@@ -22,7 +22,8 @@ export {
   respondToFriendRequest,
   removeFriend,
   addInboxNotification,
-  deleteInboxNotification,
+  markNotificationsAsRead,
+  clearNotifications,
   blockUser,
   unblockUser,
   cleanUpOldData,
