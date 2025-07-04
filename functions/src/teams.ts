@@ -102,7 +102,7 @@ export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: { te
                 throw new HttpsError("not-found", "Team not found.");
             }
             const teamData = teamDoc.data();
-            if (teamData?.founder !== uid) {
+            if (!teamData || teamData.founder !== uid) {
                 throw new HttpsError("permission-denied", "Only the team founder can delete the team.");
             }
 
