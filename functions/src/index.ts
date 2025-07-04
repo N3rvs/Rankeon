@@ -215,7 +215,7 @@ export const sendFriendRequest = onCall(async (request) => {
     const toUserRef = db.collection('users').doc(to);
 
     const [fromUserSnap, toUserSnap] = await Promise.all([fromUserRef.get(), toUserRef.get()]);
-    if (!fromUserSnap.exists() || !toUserSnap.exists()) {
+    if (!fromUserSnap.exists || !toUserSnap.exists) {
         throw new HttpsError('not-found', 'One or both users not found.');
     }
 
@@ -253,7 +253,7 @@ export const respondToFriendRequest = onCall(async (request) => {
 
     const requestRef = db.collection('friendRequests').doc(requestId);
     const requestSnap = await requestRef.get();
-    if (!requestSnap.exists() || requestSnap.data()?.to !== uid) {
+    if (!requestSnap.exists || requestSnap.data()?.to !== uid) {
         throw new HttpsError('not-found', 'Friend request not found or you are not the recipient.');
     }
     if (requestSnap.data()?.status !== 'pending') {
@@ -386,7 +386,7 @@ export const deleteMessage = onCall(async (request) => {
     const messageRef = db.collection('chats').doc(chatId).collection('messages').doc(messageId);
     const messageSnap = await messageRef.get();
 
-    if (!messageSnap.exists() || messageSnap.data()?.sender !== uid) {
+    if (!messageSnap.exists || messageSnap.data()?.sender !== uid) {
         throw new HttpsError('permission-denied', 'You do not have permission to delete this message.');
     }
 
@@ -403,7 +403,7 @@ export const deleteChatHistory = onCall(async (request) => {
     const chatRef = db.collection('chats').doc(chatId);
     const chatSnap = await chatRef.get();
 
-    if (!chatSnap.exists()) {
+    if (!chatSnap.exists) {
         throw new HttpsError('not-found', 'Chat not found.');
     }
 
@@ -413,32 +413,38 @@ export const deleteChatHistory = onCall(async (request) => {
     }
 
     const messagesRef = chatRef.collection('messages');
-    const messagesSnap = await messagesRef.get();
+    
+    try {
+        // This is a more robust way to delete subcollections, handling >500 messages.
+        const batchSize = 400; // Well under the 500 limit
+        let query = messagesRef.limit(batchSize);
+        let snapshot = await query.get();
 
-    if (messagesSnap.empty) {
-        // If already empty, just ensure the parent doc is clean.
-         await chatRef.update({ 
+        while (snapshot.size > 0) {
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+            
+            // Get the next batch
+            snapshot = await query.get();
+        }
+
+        // After deleting all messages, clean up the parent chat document.
+        await chatRef.update({ 
             lastMessage: admin.firestore.FieldValue.delete(),
             lastMessageAt: admin.firestore.FieldValue.delete()
         });
-        return { success: true, message: 'Chat history is already empty.' };
+
+        return { success: true, message: 'Chat history deleted.' };
+
+    } catch(error) {
+        console.error("Error during batched deletion of chat history:", error);
+        throw new HttpsError('internal', 'A problem occurred while deleting the chat history.');
     }
-
-    const batch = db.batch();
-    messagesSnap.docs.forEach(doc => {
-        batch.delete(doc.ref);
-    });
-
-    // Use FieldValue.delete() to completely remove the fields
-    batch.update(chatRef, { 
-        lastMessage: admin.firestore.FieldValue.delete(),
-        lastMessageAt: admin.firestore.FieldValue.delete()
-    });
-
-    await batch.commit();
-
-    return { success: true, message: 'Chat history deleted.' };
 });
+
 
 // --- NOTIFICATION FUNCTIONS ---
 
