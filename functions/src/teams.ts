@@ -21,16 +21,26 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     throw new HttpsError("invalid-argument", "El nombre del equipo y el juego son obligatorios.");
   }
 
-  // La comprobación más robusta: mira los claims personalizados en el token de autenticación del usuario.
+  // Comprobación rápida en el token. Esto puede rechazar rápidamente si el token está actualizado.
   if (auth?.token.role === 'founder') {
-    throw new HttpsError('already-exists', 'Solo puedes ser fundador de un equipo. Por favor, elimina tu equipo existente si deseas crear uno nuevo.');
+    throw new HttpsError('already-exists', 'Solo puedes ser fundador de un equipo.');
   }
 
   const teamRef = db.collection("teams").doc();
   const userRef = db.collection("users").doc(uid);
 
   try {
+    // Transacción para garantizar una operación atómica y segura.
     await db.runTransaction(async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      
+      // Comprobación definitiva y segura dentro de la transacción.
+      // Esto evita condiciones de carrera (race conditions).
+      if (userDoc.exists() && userDoc.data()?.role === 'founder') {
+          throw new HttpsError('already-exists', 'Solo puedes ser fundador de un equipo. Por favor, elimina tu equipo existente si deseas crear uno nuevo.');
+      }
+
+      // Si la comprobación pasa, creamos el equipo.
       transaction.set(teamRef, {
         id: teamRef.id,
         name,
@@ -51,9 +61,11 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
+      // Actualizamos el rol del usuario en Firestore.
       transaction.update(userRef, { role: 'founder' });
     });
 
+    // Tras el éxito de la transacción, actualizamos los custom claims.
     const userToUpdate = await admin.auth().getUser(uid);
     const existingClaims = userToUpdate.customClaims || {};
     await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
