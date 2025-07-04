@@ -13,8 +13,9 @@ import {
   kickUserFromTeam,
   changeUserRole
 } from './teams';
-import { addInboxNotification, deleteInboxNotification, blockUser } from './notifications';
+import { addInboxNotification, deleteInboxNotification, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
+import { createGameRoomWithDiscord } from './rooms';
 
 export {
   deleteChatHistory,
@@ -29,5 +30,7 @@ export {
   addInboxNotification,
   deleteInboxNotification,
   blockUser,
+  unblockUser,
   cleanUpOldData,
+  createGameRoomWithDiscord
 };
