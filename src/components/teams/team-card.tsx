@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Skeleton } from '../ui/skeleton';
+import Link from 'next/link';
 
 interface TeamCardProps {
   team: Team;
@@ -85,8 +86,10 @@ export function TeamCard({ team }: TeamCardProps) {
         <p className="text-sm text-muted-foreground">{team.description || 'No description provided.'}</p>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full">
-          <Settings className="mr-2 h-4 w-4" /> Manage Team
+        <Button variant="outline" className="w-full" asChild>
+          <Link href={`/teams/${team.id}`}>
+            <Settings className="mr-2 h-4 w-4" /> Manage Team
+          </Link>
         </Button>
       </CardFooter>
     </Card>

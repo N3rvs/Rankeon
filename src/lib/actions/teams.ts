@@ -39,3 +39,40 @@ export async function createTeam(
     return { success: false, message: error.message || 'Could not create team. Please try again.' };
   }
 }
+
+export async function kickUserFromTeam(
+  teamId: string,
+  targetUid: string
+): Promise<ActionResponse> {
+  const functions = getFunctions(app);
+  try {
+    const kickUserFunc = httpsCallable<
+      { teamId: string; targetUid: string },
+      ActionResponse
+    >(functions, 'kickUserFromTeam');
+    const result = await kickUserFunc({ teamId, targetUid });
+    return result.data as ActionResponse;
+  } catch (error: any) {
+    console.error('Error calling kickUserFromTeam function:', error);
+    return { success: false, message: error.message || 'Could not kick user.' };
+  }
+}
+
+export async function changeUserRole(
+  teamId: string,
+  targetUid: string,
+  newRole: 'member' | 'coach'
+): Promise<ActionResponse> {
+  const functions = getFunctions(app);
+  try {
+    const changeRoleFunc = httpsCallable(functions, 'changeUserRole');
+    const result = await changeRoleFunc({ teamId, targetUid, newRole });
+    return result.data as ActionResponse;
+  } catch (error: any) {
+    console.error('Error calling changeUserRole function:', error);
+    return {
+      success: false,
+      message: error.message || 'Could not change role.',
+    };
+  }
+}
