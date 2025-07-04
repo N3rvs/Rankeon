@@ -40,6 +40,18 @@ export async function createTeam(
   }
 }
 
+export async function deleteTeam(teamId: string): Promise<ActionResponse> {
+    const functions = getFunctions(app);
+    try {
+        const deleteTeamFunc = httpsCallable(functions, 'deleteTeam');
+        const result = await deleteTeamFunc({ teamId });
+        return result.data as ActionResponse;
+    } catch (error: any) {
+        console.error('Error calling deleteTeam function:', error);
+        return { success: false, message: error.message || 'Could not delete team.' };
+    }
+}
+
 export async function kickUserFromTeam(
   teamId: string,
   targetUid: string

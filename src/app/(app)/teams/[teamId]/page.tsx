@@ -136,7 +136,7 @@ export default function TeamManagementPage() {
         </TabsContent>
         {canManage && (
             <TabsContent value="settings" className="mt-4">
-                <TeamSettings />
+                <TeamSettings team={team} currentMemberRole={currentMemberRole} />
             </TabsContent>
         )}
       </Tabs>

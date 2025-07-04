@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle } from 'lucide-react';
 import { createTeam } from '@/lib/actions/teams';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const formSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50, 'El nombre debe tener menos de 50 caracteres.'),
@@ -19,7 +20,12 @@ const formSchema = z.object({
   description: z.string().max(300, 'La descripción debe tener menos de 300 caracteres.').optional(),
 });
 
-export function CreateTeamDialog() {
+interface CreateTeamDialogProps {
+  disabled?: boolean;
+  disabledTooltip?: string;
+}
+
+export function CreateTeamDialog({ disabled = false, disabledTooltip }: CreateTeamDialogProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -52,14 +58,33 @@ export function CreateTeamDialog() {
       }
     });
   }
+  
+  const triggerButton = (
+    <Button disabled={disabled}>
+      <PlusCircle className="mr-2 h-4 w-4" />
+      Crear Equipo
+    </Button>
+  );
+
+  if (disabled) {
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span>{triggerButton}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>{disabledTooltip}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Crear Equipo
-        </Button>
+        {triggerButton}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

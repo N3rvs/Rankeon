@@ -16,7 +16,7 @@ export default function TeamsPage() {
     const [teams, setTeams] = useState<Team[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const canCreateTeam = userProfile && ['admin', 'moderator', 'founder'].includes(userProfile.role);
+    const canCreateTeam = userProfile?.role !== 'founder';
 
     useEffect(() => {
         let unsubscribe: Unsubscribe | undefined;
@@ -60,7 +60,10 @@ export default function TeamsPage() {
                     <h1 className="text-3xl font-bold font-headline tracking-tight">My Teams</h1>
                     <p className="text-muted-foreground">Manage your teams or create a new one.</p>
                 </div>
-                {canCreateTeam && <CreateTeamDialog />}
+                <CreateTeamDialog
+                    disabled={!canCreateTeam}
+                    disabledTooltip="You can only be the founder of one team at a time."
+                />
             </div>
 
             {loading ? (

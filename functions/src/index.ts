@@ -11,7 +11,8 @@ import {
   acceptTeamInvitation,
   createTeam,
   kickUserFromTeam,
-  changeUserRole
+  changeUserRole,
+  deleteTeam
 } from './teams';
 import { addInboxNotification, deleteInboxNotification, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
@@ -31,6 +32,7 @@ export {
   createTeam,
   kickUserFromTeam,
   changeUserRole,
+  deleteTeam,
   addInboxNotification,
   deleteInboxNotification,
   blockUser,
