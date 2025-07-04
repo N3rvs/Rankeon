@@ -416,6 +416,11 @@ export const deleteChatHistory = onCall(async (request) => {
     const messagesSnap = await messagesRef.get();
 
     if (messagesSnap.empty) {
+        // If already empty, just ensure the parent doc is clean.
+         await chatRef.update({ 
+            lastMessage: admin.firestore.FieldValue.delete(),
+            lastMessageAt: admin.firestore.FieldValue.delete()
+        });
         return { success: true, message: 'Chat history is already empty.' };
     }
 
@@ -424,7 +429,11 @@ export const deleteChatHistory = onCall(async (request) => {
         batch.delete(doc.ref);
     });
 
-    batch.update(chatRef, { lastMessage: null, lastMessageAt: null });
+    // Use FieldValue.delete() to completely remove the fields
+    batch.update(chatRef, { 
+        lastMessage: admin.firestore.FieldValue.delete(),
+        lastMessageAt: admin.firestore.FieldValue.delete()
+    });
 
     await batch.commit();
 
