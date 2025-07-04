@@ -111,7 +111,7 @@ export default function TeamsPage() {
     useEffect(() => {
         let unsubscribe: Unsubscribe | undefined;
     
-        if (userProfile?.role === 'founder' && userProfile.id) {
+        if (userProfile?.id) {
           setLoadingTeam(true);
           const q = query(collection(db, 'teams'), where('founder', '==', userProfile.id));
           

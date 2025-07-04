@@ -56,12 +56,20 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
       
-      transaction.update(userRef, { role: 'founder' });
+      // ONLY change role to 'founder' if the user is a 'player'.
+      // Admins and moderators keep their roles.
+      if (userDoc.data()?.role === 'player') {
+        transaction.update(userRef, { role: 'founder' });
+      }
     });
 
     const userToUpdate = await admin.auth().getUser(uid);
     const existingClaims = userToUpdate.customClaims || {};
-    await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
+    
+    // Only update claims if the user is a 'player'
+    if (existingClaims.role === 'player' || !existingClaims.role) {
+      await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
+    }
 
     return { success: true, teamId: teamRef.id, message: '¡Equipo creado con éxito!' };
   } catch (error: any) {
