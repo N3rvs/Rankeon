@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useTransition } from 'react';
 import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase/client";
-import { collection, query, onSnapshot, orderBy, doc, getDocs, Unsubscribe, getDoc } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, doc, getDocs, Unsubscribe, getDoc, where, writeBatch } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -94,10 +93,40 @@ export default function MessagesPage() {
         return timeB - timeA;
     });
 
-    // Effect to load messages for the selected chat
+    // Effect to load messages for the selected chat AND mark them as read
     useEffect(() => {
         let unsubscribe: Unsubscribe | undefined;
-        if (selectedFriend && user) {
+
+        const setupChatStream = async () => {
+            if (!selectedFriend || !user) {
+                setMessages([]);
+                return;
+            }
+
+            // Mark incoming messages from this friend as read
+            const notificationsRef = collection(db, 'inbox', user.uid, 'notifications');
+            const unreadQuery = query(
+                notificationsRef,
+                where('type', '==', 'new_message'),
+                where('from', '==', selectedFriend.id),
+                where('read', '==', false)
+            );
+            
+            try {
+                const unreadSnapshot = await getDocs(unreadQuery);
+                if (!unreadSnapshot.empty) {
+                    const batch = writeBatch(db);
+                    unreadSnapshot.forEach(doc => {
+                        batch.update(doc.ref, { read: true });
+                    });
+                    await batch.commit();
+                }
+            } catch (error) {
+                console.error("Error marking messages as read:", error);
+            }
+
+
+            // Load message history
             setLoadingMessages(true);
             const chatId = [user.uid, selectedFriend.id].sort().join('_');
             const messagesRef = collection(db, 'chats', chatId, 'messages');
@@ -111,9 +140,9 @@ export default function MessagesPage() {
                 console.error(`Error fetching messages for chat with ${selectedFriend.name}:`, error);
                 setLoadingMessages(false);
             });
-        } else {
-          setMessages([]);
-        }
+        };
+
+        setupChatStream();
         
         return () => unsubscribe?.();
     }, [selectedFriend, user]);
