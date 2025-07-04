@@ -19,13 +19,12 @@ import {
   UserCircle,
   LogOut,
   Search,
-  Users2,
-  Shield,
   Dices,
   Users,
   Store,
   Swords,
   Trophy,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -103,20 +102,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/teams')}
-                tooltip="My Teams"
-                size="lg"
-              >
-                <Link href="/teams">
-                  <Users2 />
-                  <span>My Teams</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -142,20 +127,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/rooms">
                   <Dices />
                   <span>Game Rooms</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/scrims')}
-                tooltip="Scrims"
-                size="lg"
-              >
-                <Link href="/scrims">
-                  <Swords />
-                  <span>Scrims</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

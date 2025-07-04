@@ -1,7 +1,7 @@
 // src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 
-export type UserRole = 'admin' | 'moderator' | 'founder' | 'coach' | 'player';
+export type UserRole = 'admin' | 'moderator' | 'player';
 
 export interface UserProfile {
   id: string;
@@ -19,41 +19,6 @@ export interface UserProfile {
   blocked?: string[]; // Array of user IDs
   friends?: string[]; // Array of friend UIDs
   isCertifiedStreamer?: boolean;
-}
-
-export interface Team {
-  id:string;
-  name: string;
-  avatarUrl: string;
-  bannerUrl: string;
-  game: string;
-  founder: string;
-  memberIds: string[];
-  lookingForPlayers: boolean;
-  recruitingRoles: string[];
-  description: string;
-  createdAt?: Timestamp;
-}
-
-export interface TeamMember {
-  role: 'founder' | 'coach' | 'member';
-  joinedAt: Timestamp;
-}
-
-export interface Scrim {
-  id: string;
-  teamAId: string;
-  teamBId?: string;
-  teamAName: string; // Denormalized for easy display
-  teamAAvatarUrl: string; // Denormalized for easy display
-  date: Timestamp;
-  format: 'bo1' | 'bo3' | 'bo5';
-  type: 'scrim' | 'tryout';
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  notes?: string;
-  createdAt: Timestamp;
-  winnerTeamId?: string;
-  chatId?: string;
 }
 
 export interface ChatMessage {
@@ -77,11 +42,7 @@ export type NotificationType =
   | 'new_message'
   | 'friend_request'
   | 'friend_accepted'
-  | 'friend_removed'
-  | 'team_invite_received'
-  | 'team_joined'
-  | 'team_left'
-  | 'team_kicked';
+  | 'friend_removed';
 
 export interface Notification {
   id: string;

@@ -60,7 +60,7 @@ function HomePageContent() {
                     <Button size="lg" asChild>
                         <Link href="/register">
                             <Rocket className="mr-2 h-5 w-5" />
-                            Find Your Team
+                            Find Your Squad
                         </Link>
                     </Button>
                      <Button size="lg" variant="secondary" asChild>
@@ -79,7 +79,7 @@ function HomePageContent() {
                 <h2 className="text-3xl md:text-4xl font-bold font-headline">Built for Champions</h2>
                 <p className="text-lg text-muted-foreground mt-2">Everything you need to conquer the competition.</p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 gap-8">
                <Card className="bg-card border-border/50 text-center pt-6">
                     <CardHeader>
                         <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit">
@@ -88,18 +88,7 @@ function HomePageContent() {
                         <CardTitle className="font-headline mt-4">Find Players</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">Browse detailed player profiles, filter by role and rank, and find the perfect fit for your team.</p>
-                    </CardContent>
-                </Card>
-                 <Card className="bg-card border-border/50 text-center pt-6">
-                    <CardHeader>
-                        <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit">
-                            <Swords className="h-8 w-8" />
-                        </div>
-                        <CardTitle className="font-headline mt-4">Create Teams</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground">Build your roster, manage your members, and create a team profile that attracts top talent.</p>
+                        <p className="text-muted-foreground">Browse detailed player profiles, filter by role and rank, and find the perfect fit for your roster.</p>
                     </CardContent>
                 </Card>
                  <Card className="bg-card border-border/50 text-center pt-6">
@@ -110,7 +99,7 @@ function HomePageContent() {
                         <CardTitle className="font-headline mt-4">AI-Powered Tools</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">Use our AI to generate catchy team names or craft the perfect player bio to get you noticed.</p>
+                        <p className="text-muted-foreground">Use our AI to craft the perfect player bio to get you noticed by other players.</p>
                     </CardContent>
                 </Card>
             </div>

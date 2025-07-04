@@ -94,7 +94,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
     });
   };
 
-  const validRoles: UserRole[] = ["admin", "moderator", "founder", "coach", "player"];
+  const validRoles: UserRole[] = ["admin", "moderator", "player"];
 
   return (
     <Form {...form}>

@@ -1,12 +1,12 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
-type UserRole = 'admin' | 'moderator' | 'founder' | 'coach' | 'player';
+type UserRole = 'admin' | 'moderator' | 'player';
 
 const db = admin.firestore();
 const auth = admin.auth();
 
-const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'founder', 'coach', 'player'];
+const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player'];
 
 interface UpdateRoleData {
     uid: string;
