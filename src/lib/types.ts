@@ -47,7 +47,6 @@ export interface Chat {
   lastMessageAt?: Timestamp | null;
   lastMessage?: {
     content: string;
-    createdAt: Timestamp;
     sender: string;
   }
 }

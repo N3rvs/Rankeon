@@ -355,7 +355,7 @@ export const sendMessageToFriend = onCall(async (request) => {
 
     const timestamp = admin.firestore.FieldValue.serverTimestamp();
 
-    const lastMessage = { content, sender: uid, createdAt: timestamp };
+    const lastMessage = { content, sender: uid };
 
     const batch = db.batch();
     batch.set(chatRef, { members, createdAt: timestamp, lastMessageAt: timestamp, lastMessage }, { merge: true });
