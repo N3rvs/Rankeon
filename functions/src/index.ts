@@ -206,7 +206,7 @@ export const cleanupVoiceRooms = onSchedule(
 
 // --- FRIEND MANAGEMENT FUNCTIONS ---
 
-export const sendFriendRequest = onCall(async (request) => {
+export const sendFriendRequest = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
     const { uid } = request.auth;
     const { to } = request.data;
@@ -247,7 +247,7 @@ export const sendFriendRequest = onCall(async (request) => {
     return { success: true, message: 'Friend request sent.' };
 });
 
-export const respondToFriendRequest = onCall(async (request) => {
+export const respondToFriendRequest = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
     const { uid } = request.auth;
     const { requestId, accept } = request.data;
@@ -286,7 +286,7 @@ export const respondToFriendRequest = onCall(async (request) => {
 });
 
 
-export const removeFriend = onCall(async (request) => {
+export const removeFriend = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
     const { uid } = request.auth;
     const { friendUid } = request.data;
@@ -311,7 +311,7 @@ export const removeFriend = onCall(async (request) => {
     return { success: true, message: 'Friend removed.' };
 });
 
-export const blockUser = onCall(async (request) => {
+export const blockUser = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
     const { uid } = request.auth;
     const { blockedUid } = request.data;
@@ -336,7 +336,7 @@ export const blockUser = onCall(async (request) => {
 
 // --- MESSAGING FUNCTIONS ---
 
-export const sendMessageToFriend = onCall(async (request) => {
+export const sendMessageToFriend = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
     const { uid } = request.auth;
     const { to, content } = request.data;
@@ -379,7 +379,7 @@ export const sendMessageToFriend = onCall(async (request) => {
     return { success: true, message: 'Message sent.' };
 });
 
-export const deleteMessage = onCall(async (request) => {
+export const deleteMessage = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
     const { uid } = request.auth;
     const { chatId, messageId } = request.data;
@@ -396,7 +396,7 @@ export const deleteMessage = onCall(async (request) => {
     return { success: true, message: 'Message deleted.' };
 });
 
-export const deleteChatHistory = onCall(async (request) => {
+export const deleteChatHistory = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
     const { uid } = request.auth;
     const { chatId } = request.data;
@@ -435,7 +435,7 @@ export const deleteChatHistory = onCall(async (request) => {
 
 // --- NOTIFICATION FUNCTIONS ---
 
-export const deleteInboxNotification = onCall(async (request) => {
+export const deleteInboxNotification = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
     const { uid } = request.auth;
     const { notificationId } = request.data;
