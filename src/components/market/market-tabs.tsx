@@ -21,19 +21,30 @@ import { useAuth } from '@/contexts/auth-context';
 import { FriendshipButton } from '../friends/friendship-button';
 
 export function MarketTabs() {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [players, setPlayers] = useState<UserProfile[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
 
   useEffect(() => {
     let unsubscribePlayers: Unsubscribe | undefined;
 
-    if (user) {
+    if (user && userProfile) {
         setLoadingPlayers(true);
         const playersQuery = query(collection(db, 'users'), where('lookingForTeam', '==', true));
         unsubscribePlayers = onSnapshot(playersQuery, (snapshot) => {
           const playersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
-          setPlayers(playersData.filter(p => p.id !== user.uid)); 
+          
+          const filteredPlayers = playersData.filter(p => {
+              // 1. Don't show myself
+              if (p.id === user.uid) return false;
+              // 2. Don't show people I have blocked
+              if (userProfile.blocked?.includes(p.id)) return false;
+              // 3. Don't show people who have blocked me
+              if (p.blocked?.includes(user.uid)) return false;
+              return true;
+          });
+
+          setPlayers(filteredPlayers); 
           setLoadingPlayers(false);
         }, (error) => {
           console.error("Error fetching players:", error);
@@ -48,7 +59,7 @@ export function MarketTabs() {
     return () => {
       if (unsubscribePlayers) unsubscribePlayers();
     };
-  }, [user]);
+  }, [user, userProfile]);
 
   const playerLoadingSkeletons = [...Array(5)].map((_, i) => (
       <TableRow key={i}>
