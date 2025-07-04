@@ -1,3 +1,4 @@
+
 import * as admin from 'firebase-admin';
 import {onCall, HttpsError} from 'firebase-functions/v2/https';
 import {onSchedule} from 'firebase-functions/v2/scheduler';
@@ -413,32 +414,38 @@ export const deleteChatHistory = onCall(async (request) => {
     }
 
     const messagesRef = chatRef.collection('messages');
-    const messagesSnap = await messagesRef.get();
+    
+    try {
+        // This is a more robust way to delete subcollections, handling >500 messages.
+        const batchSize = 400; // Well under the 500 limit
+        let query = messagesRef.limit(batchSize);
+        let snapshot = await query.get();
 
-    if (messagesSnap.empty) {
-        // If already empty, just ensure the parent doc is clean.
-         await chatRef.update({ 
+        while (snapshot.size > 0) {
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+            
+            // Get the next batch
+            snapshot = await query.get();
+        }
+
+        // After deleting all messages, clean up the parent chat document.
+        await chatRef.update({ 
             lastMessage: admin.firestore.FieldValue.delete(),
             lastMessageAt: admin.firestore.FieldValue.delete()
         });
-        return { success: true, message: 'Chat history is already empty.' };
+
+        return { success: true, message: 'Chat history deleted.' };
+
+    } catch(error) {
+        console.error("Error during batched deletion of chat history:", error);
+        throw new HttpsError('internal', 'A problem occurred while deleting the chat history.');
     }
-
-    const batch = db.batch();
-    messagesSnap.docs.forEach(doc => {
-        batch.delete(doc.ref);
-    });
-
-    // Use FieldValue.delete() to completely remove the fields
-    batch.update(chatRef, { 
-        lastMessage: admin.firestore.FieldValue.delete(),
-        lastMessageAt: admin.firestore.FieldValue.delete()
-    });
-
-    await batch.commit();
-
-    return { success: true, message: 'Chat history deleted.' };
 });
+
 
 // --- NOTIFICATION FUNCTIONS ---
 
@@ -456,3 +463,5 @@ export const deleteInboxNotification = onCall(async (request) => {
 
     return { success: true, message: 'Notification deleted.' };
 });
+
+    
