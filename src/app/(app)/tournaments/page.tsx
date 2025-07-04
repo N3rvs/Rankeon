@@ -2,21 +2,12 @@
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy, PlusCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Trophy } from 'lucide-react';
+import { ProposeTournamentDialog } from '@/components/tournaments/propose-tournament-dialog';
 
 export default function TournamentsPage() {
     const { userProfile } = useAuth();
-    const { toast } = useToast();
-
-    const handleProposeTournament = () => {
-        toast({
-            title: "Feature Coming Soon!",
-            description: "The ability to propose tournaments is not yet implemented.",
-        });
-    };
 
     return (
         <div className="space-y-6">
@@ -26,10 +17,7 @@ export default function TournamentsPage() {
                     <p className="text-muted-foreground">Compete, win, and make a name for yourself.</p>
                 </div>
                 {userProfile?.isCertifiedStreamer && (
-                     <Button onClick={handleProposeTournament}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Propose Tournament
-                    </Button>
+                     <ProposeTournamentDialog />
                 )}
             </div>
 
