@@ -26,8 +26,8 @@ import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { updateUserStatus } from '@/lib/actions/users';
 import { useAuth } from '@/contexts/auth-context';
-import { sendMessageToFriend } from '@/lib/actions/messages';
 import { EditProfileDialog } from '../profile/edit-profile-dialog';
+import { SendMessageDialog } from '../messages/send-message-dialog';
 
 interface UserActionsProps {
   user: UserProfile;
@@ -40,6 +40,7 @@ export function UserActions({ user }: UserActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
 
   const handleBanToggle = () => {
     startTransition(async () => {
@@ -60,27 +61,24 @@ export function UserActions({ user }: UserActionsProps) {
     });
   };
 
-  const handleMessageUser = async () => {
+  const handleMessageUser = () => {
     if (!currentUser) {
         toast({ title: 'Authentication Error', description: 'You must be logged in to message a player.', variant: 'destructive' });
         return;
     }
-    
-    startTransition(async () => {
-        const result = await sendMessageToFriend({ to: user.id, content: `Hi, this is a message from an admin.` });
-        if (result.success) {
-            router.push('/messages');
-        } else {
-            console.error("Error starting conversation: ", result.message);
-            toast({ title: 'Error', description: result.message, variant: 'destructive' });
-        }
-    });
+    setIsMessageDialogOpen(true);
   };
 
   return (
     <>
       <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
       
+      <SendMessageDialog 
+        recipient={user} 
+        open={isMessageDialogOpen} 
+        onOpenChange={setIsMessageDialogOpen} 
+      />
+
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -111,7 +109,7 @@ export function UserActions({ user }: UserActionsProps) {
              <Edit className="mr-2 h-4 w-4" />
             <span>Edit Profile</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleMessageUser} disabled={isPending}>
+          <DropdownMenuItem onSelect={handleMessageUser}>
             <MessageSquare className="mr-2 h-4 w-4" />
             <span>Message</span>
           </DropdownMenuItem>

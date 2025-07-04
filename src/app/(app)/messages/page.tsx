@@ -20,7 +20,6 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteMessage, sendMessageToFriend } from '@/lib/actions/messages';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { blockUser, removeFriend } from '@/lib/actions/friends';
-import { SendMessageDialog } from '@/components/messages/send-message-dialog';
 
 export default function MessagesPage() {
     const { user, userProfile } = useAuth();
