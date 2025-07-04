@@ -12,6 +12,7 @@ import { Skeleton } from '../ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import Link from 'next/link';
 
 interface GameRoomCardProps {
   room: GameRoom;
@@ -112,8 +113,10 @@ export function GameRoomCard({ room }: GameRoomCardProps) {
         )}
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full" disabled>
-          <Eye className="mr-2 h-4 w-4" /> Ver Sala
+        <Button variant="outline" className="w-full" asChild>
+          <Link href={`/rooms/${room.id}`}>
+            <Eye className="mr-2 h-4 w-4" /> Ver Sala
+          </Link>
         </Button>
       </CardFooter>
     </Card>

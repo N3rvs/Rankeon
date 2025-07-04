@@ -88,4 +88,5 @@ export interface GameRoom {
   discordChannelId?: string | null;
   rank?: string;
   partySize?: string;
+  participants: string[]; // Array of UIDs of participants
 }

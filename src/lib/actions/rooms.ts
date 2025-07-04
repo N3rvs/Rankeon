@@ -62,3 +62,25 @@ export async function createRoom(
     };
   }
 }
+
+export async function joinRoom(roomId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const joinRoomFunc = httpsCallable(functions, 'joinRoom');
+    await joinRoomFunc({ roomId });
+    return { success: true, message: 'Joined room successfully' };
+  } catch (error: any) {
+    console.error('Error joining room:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function leaveRoom(roomId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const leaveRoomFunc = httpsCallable(functions, 'leaveRoom');
+    await leaveRoomFunc({ roomId });
+    return { success: true, message: 'Left room successfully' };
+  } catch (error: any) {
+    console.error('Error leaving room:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}
