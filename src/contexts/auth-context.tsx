@@ -27,6 +27,7 @@ interface AuthContextType {
   user: FirebaseUser | null;
   userProfile: UserProfile | null;
   token: string | null;
+  claims: { [key: string]: any } | null;
   loading: boolean;
   setToken: (token: string | null) => void;
 }
@@ -35,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   userProfile: null,
   token: null,
+  claims: null,
   loading: true,
   setToken: () => {},
 });
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [claims, setClaims] = useState<{ [key: string]: any } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(authUser);
         const tokenResult = await authUser.getIdTokenResult(true);
         setToken(tokenResult.token);
+        setClaims(tokenResult.claims);
 
         const userDocRef = doc(db, 'users', authUser.uid);
         
@@ -116,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setUserProfile(null);
         setToken(null);
+        setClaims(null);
         setLoading(false);
       }
     });
@@ -149,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, token, loading, setToken }}>
+    <AuthContext.Provider value={{ user, userProfile, token, claims, loading, setToken }}>
       {children}
     </AuthContext.Provider>
   );

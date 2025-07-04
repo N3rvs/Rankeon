@@ -9,19 +9,21 @@ import { UserManagementTable } from "@/components/admin/user-management-table";
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminPage() {
-    const { userProfile, loading } = useAuth();
+    const { claims, loading } = useAuth();
     const router = useRouter();
+
+    const isAdmin = claims?.role === 'admin';
 
     useEffect(() => {
         // If loading is finished and the user is not an admin, redirect them.
-        if (!loading && userProfile?.role !== 'admin') {
+        if (!loading && !isAdmin) {
             router.replace('/dashboard');
         }
-    }, [userProfile, loading, router]);
+    }, [isAdmin, loading, router]);
 
     // While loading, or if the user is not an admin (before redirect), show a loading state.
     // This prevents the `UserManagementTable` from rendering and making a permission-denied query.
-    if (loading || !userProfile || userProfile.role !== 'admin') {
+    if (loading || !isAdmin) {
         return (
             <div className="space-y-6">
                 <Card>
