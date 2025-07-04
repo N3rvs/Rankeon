@@ -14,6 +14,9 @@ import {
   SidebarInset,
   SidebarFooter,
   SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import {
   Gamepad2,
@@ -26,7 +29,6 @@ import {
   Users2,
   Shield,
   Lightbulb,
-  Bot,
   ChevronRight,
   Dices,
 } from 'lucide-react';
@@ -175,18 +177,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </CollapsibleTrigger>
 
                 <CollapsibleContent asChild>
-                    <div className="w-full pl-6 group-data-[collapsible=icon]:hidden">
-                      <SidebarMenu className="gap-0 py-1">
-                        <SidebarMenuItem>
-                          <SidebarMenuButton asChild variant="ghost" size="sm" className="w-full justify-start" isActive={pathname === '/tools/team-name-generator'}>
-                            <Link href="/tools/team-name-generator">
-                              <Lightbulb />
-                              <span>Name Generator</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      </SidebarMenu>
-                    </div>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild size="sm" isActive={pathname === '/tools/team-name-generator'}>
+                        <Link href="/tools/team-name-generator">
+                          <Lightbulb />
+                          <span>Name Generator</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>
             </Collapsible>
