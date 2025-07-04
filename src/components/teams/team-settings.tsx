@@ -27,8 +27,8 @@ export function TeamSettings({ team, currentMemberRole }: TeamSettingsProps) {
             const result = await deleteTeam(team.id);
             if (result.success) {
                 toast({
-                    title: 'Team Deleted',
-                    description: `The team "${team.name}" has been permanently deleted.`,
+                    title: 'Equipo Eliminado',
+                    description: `El equipo "${team.name}" ha sido eliminado permanentemente.`,
                 });
                 router.push('/teams');
             } else {
@@ -47,21 +47,21 @@ export function TeamSettings({ team, currentMemberRole }: TeamSettingsProps) {
             <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the
+                            Esta acción no se puede deshacer. Esto eliminará permanentemente el equipo
                             <span className="font-bold"> {team.name} </span>
-                            team, including all its members and data.
+                            , incluyendo todos sus miembros y datos.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteTeam}
                             disabled={isPending}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            {isPending ? 'Deleting...' : 'Yes, delete team'}
+                            {isPending ? 'Eliminando...' : 'Sí, eliminar equipo'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -69,13 +69,13 @@ export function TeamSettings({ team, currentMemberRole }: TeamSettingsProps) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Team Settings</CardTitle>
+                    <CardTitle>Ajustes del Equipo</CardTitle>
                     <CardDescription>
-                        Edit your team's details, banner, and recruitment status.
+                        Edita los detalles de tu equipo, el banner y el estado de reclutamiento.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-sm text-muted-foreground">General settings will be available in a future update.</p>
+                    <p className="text-sm text-muted-foreground">Los ajustes generales estarán disponibles en una futura actualización.</p>
                 </CardContent>
             </Card>
 
@@ -84,21 +84,21 @@ export function TeamSettings({ team, currentMemberRole }: TeamSettingsProps) {
                     <CardHeader>
                         <div className="flex items-center gap-3 text-destructive">
                             <AlertTriangle />
-                            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                            <CardTitle className="text-destructive">Zona de Peligro</CardTitle>
                         </div>
                          <CardDescription className="text-destructive/80">
-                            Be careful, these actions are permanent.
+                            Ten cuidado, estas acciones son permanentes.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
                             <div>
-                                <h4 className="font-semibold">Delete this team</h4>
-                                <p className="text-sm text-muted-foreground">Once you delete a team, there is no going back.</p>
+                                <h4 className="font-semibold">Eliminar este equipo</h4>
+                                <p className="text-sm text-muted-foreground">Una vez que eliminas un equipo, no hay vuelta atrás.</p>
                             </div>
                             <Button variant="destructive" onClick={() => setIsAlertOpen(true)}>
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Team
+                                Eliminar Equipo
                             </Button>
                         </div>
                     </CardContent>

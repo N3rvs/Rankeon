@@ -1,23 +1,8 @@
-// 📁 functions/teams.ts
+// 📁 functions/src/teams.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 const db = admin.firestore();
-
-interface AcceptTeamInvitationData {
-  teamId: string;
-}
-
-interface ManageRoleData {
-  teamId: string;
-  targetUid: string;
-  newRole: 'member' | 'coach' | 'founder';
-}
-
-interface KickUserData {
-  teamId: string;
-  targetUid: string;
-}
 
 interface CreateTeamData {
   name: string;
@@ -30,15 +15,15 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
   const { name, game, description } = data;
 
   if (!uid) {
-    throw new HttpsError("unauthenticated", "You must be logged in to create a team.");
+    throw new HttpsError("unauthenticated", "Debes iniciar sesión para crear un equipo.");
   }
   if (!name || !game) {
-    throw new HttpsError("invalid-argument", "Team name and game are required.");
+    throw new HttpsError("invalid-argument", "El nombre del equipo y el juego son obligatorios.");
   }
 
-  // This is the most robust check. It looks at the custom claims on the user's auth token.
+  // La comprobación más robusta: mira los claims personalizados en el token de autenticación del usuario.
   if (auth?.token.role === 'founder') {
-    throw new HttpsError('already-exists', 'You can only be the founder of one team. Please delete your existing team if you wish to create a new one.');
+    throw new HttpsError('already-exists', 'Solo puedes ser fundador de un equipo. Por favor, elimina tu equipo existente si deseas crear uno nuevo.');
   }
 
   const teamRef = db.collection("teams").doc();
@@ -73,13 +58,13 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     const existingClaims = userToUpdate.customClaims || {};
     await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
 
-    return { success: true, teamId: teamRef.id, message: 'Team created successfully!' };
+    return { success: true, teamId: teamRef.id, message: '¡Equipo creado con éxito!' };
   } catch (error: any) {
-    console.error("Error creating team:", error);
+    console.error("Error creando equipo:", error);
     if (error instanceof HttpsError) {
       throw error;
     }
-    throw new HttpsError('internal', 'An error occurred while creating the team.');
+    throw new HttpsError('internal', 'Ocurrió un error inesperado al crear el equipo.');
   }
 });
 
@@ -88,7 +73,7 @@ export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: { te
     const { teamId } = data;
 
     if (!uid || !teamId) {
-        throw new HttpsError("invalid-argument", "Missing authentication or team ID.");
+        throw new HttpsError("invalid-argument", "Falta autenticación o ID del equipo.");
     }
 
     const teamRef = db.collection("teams").doc(teamId);
@@ -97,11 +82,11 @@ export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: { te
         await db.runTransaction(async (transaction) => {
             const teamDoc = await transaction.get(teamRef);
             if (!teamDoc.exists) {
-                throw new HttpsError("not-found", "Team not found.");
+                throw new HttpsError("not-found", "Equipo no encontrado.");
             }
             const teamData = teamDoc.data();
             if (!teamData || teamData.founder !== uid) {
-                throw new HttpsError("permission-denied", "Only the team founder can delete the team.");
+                throw new HttpsError("permission-denied", "Solo el fundador del equipo puede eliminarlo.");
             }
 
             const memberIds: string[] = teamData.memberIds || [];
@@ -121,15 +106,19 @@ export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: { te
         const existingClaims = userToUpdate.customClaims || {};
         await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'player' });
 
-        return { success: true, message: "Team deleted successfully." };
+        return { success: true, message: "Equipo eliminado con éxito." };
     } catch(error: any) {
-        console.error("Error deleting team:", error);
+        console.error("Error eliminando equipo:", error);
         if (error instanceof HttpsError) {
           throw error;
         }
-        throw new HttpsError('internal', 'An unexpected error occurred during team deletion.');
+        throw new HttpsError('internal', 'Ocurrió un error inesperado durante la eliminación del equipo.');
     }
 });
+
+interface AcceptTeamInvitationData {
+  teamId: string;
+}
 
 export const acceptTeamInvitation = onCall(async ({ auth, data }: { auth?: any, data: AcceptTeamInvitationData }) => {
   const uid = auth?.uid;
@@ -162,6 +151,11 @@ export const acceptTeamInvitation = onCall(async ({ auth, data }: { auth?: any, 
   });
 });
 
+interface KickUserData {
+  teamId: string;
+  targetUid: string;
+}
+
 export const kickUserFromTeam = onCall(async ({ auth, data }: { auth?: any, data: KickUserData }) => {
   const uid = auth?.uid;
   const { teamId, targetUid } = data;
@@ -191,6 +185,12 @@ export const kickUserFromTeam = onCall(async ({ auth, data }: { auth?: any, data
     });
   });
 });
+
+interface ManageRoleData {
+  teamId: string;
+  targetUid: string;
+  newRole: 'member' | 'coach' | 'founder';
+}
 
 export const changeUserRole = onCall(async ({ auth, data }: { auth?: any, data: ManageRoleData }) => {
   const uid = auth?.uid;

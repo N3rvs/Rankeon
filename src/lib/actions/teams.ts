@@ -18,15 +18,16 @@ type ActionResponse = {
   teamId?: string;
 };
 
+const functions = getFunctions(app);
+
 export async function createTeam(
   values: CreateTeamValues,
 ): Promise<ActionResponse> {
-  const functions = getFunctions(app);
   try {
     const validatedFields = CreateTeamSchema.safeParse(values);
     if (!validatedFields.success) {
       const errorMessages = validatedFields.error.errors.map(e => e.message).join(', ');
-      return { success: false, message: `Invalid form data: ${errorMessages}` };
+      return { success: false, message: `Datos de formulario inválidos: ${errorMessages}` };
     }
 
     const createTeamFunc = httpsCallable<CreateTeamValues, ActionResponse>(functions, 'createTeam');
@@ -35,20 +36,19 @@ export async function createTeam(
     return result.data;
 
   } catch (error: any) {
-    console.error('Error calling createTeam function:', error);
-    return { success: false, message: error.message || 'Could not create team. Please try again.' };
+    console.error('Error al llamar la función createTeam:', error);
+    return { success: false, message: error.message || 'No se pudo crear el equipo. Por favor, inténtalo de nuevo.' };
   }
 }
 
 export async function deleteTeam(teamId: string): Promise<ActionResponse> {
-    const functions = getFunctions(app);
     try {
         const deleteTeamFunc = httpsCallable(functions, 'deleteTeam');
         const result = await deleteTeamFunc({ teamId });
         return result.data as ActionResponse;
     } catch (error: any) {
-        console.error('Error calling deleteTeam function:', error);
-        return { success: false, message: error.message || 'Could not delete team.' };
+        console.error('Error al llamar la función deleteTeam:', error);
+        return { success: false, message: error.message || 'No se pudo eliminar el equipo.' };
     }
 }
 
@@ -56,7 +56,6 @@ export async function kickUserFromTeam(
   teamId: string,
   targetUid: string
 ): Promise<ActionResponse> {
-  const functions = getFunctions(app);
   try {
     const kickUserFunc = httpsCallable<
       { teamId: string; targetUid: string },
@@ -65,8 +64,8 @@ export async function kickUserFromTeam(
     const result = await kickUserFunc({ teamId, targetUid });
     return result.data as ActionResponse;
   } catch (error: any) {
-    console.error('Error calling kickUserFromTeam function:', error);
-    return { success: false, message: error.message || 'Could not kick user.' };
+    console.error('Error al llamar la función kickUserFromTeam:', error);
+    return { success: false, message: error.message || 'No se pudo expulsar al usuario.' };
   }
 }
 
@@ -75,16 +74,15 @@ export async function changeUserRole(
   targetUid: string,
   newRole: 'member' | 'coach'
 ): Promise<ActionResponse> {
-  const functions = getFunctions(app);
   try {
     const changeRoleFunc = httpsCallable(functions, 'changeUserRole');
     const result = await changeRoleFunc({ teamId, targetUid, newRole });
     return result.data as ActionResponse;
   } catch (error: any) {
-    console.error('Error calling changeUserRole function:', error);
+    console.error('Error al llamar la función changeUserRole:', error);
     return {
       success: false,
-      message: error.message || 'Could not change role.',
+      message: error.message || 'No se pudo cambiar el rol.',
     };
   }
 }
