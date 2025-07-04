@@ -15,12 +15,17 @@ interface ProposeTournamentData {
 export const proposeTournament = onCall(async ({ auth, data }: { auth?: any, data: ProposeTournamentData }) => {
   const uid = auth?.uid;
   
-  // 1. Check for authentication and certification
+  // 1. Check for authentication and permissions
   if (!uid) {
     throw new HttpsError("unauthenticated", "You must be logged in to propose a tournament.");
   }
-  if (!auth.token.isCertifiedStreamer) {
-    throw new HttpsError("permission-denied", "Only certified streamers can propose tournaments.");
+
+  const isCertified = auth.token.isCertifiedStreamer === true;
+  const isAdmin = auth.token.role === 'admin';
+  const isModerator = auth.token.role === 'moderator';
+
+  if (!isCertified && !isAdmin && !isModerator) {
+    throw new HttpsError("permission-denied", "Only certified streamers, moderators, or admins can propose tournaments.");
   }
   
   const { name, game, description, proposedDate, format } = data;
@@ -35,7 +40,7 @@ export const proposeTournament = onCall(async ({ auth, data }: { auth?: any, dat
   if (!userDoc.exists) {
       throw new HttpsError("not-found", "Proposer's user profile not found.");
   }
-  const proposerName = userDoc.data()?.name || 'Unknown Streamer';
+  const proposerName = userDoc.data()?.name || 'Unknown User';
   
   // 4. Create the proposal document
   const proposalRef = db.collection("tournamentProposals").doc();

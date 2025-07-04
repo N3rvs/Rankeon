@@ -9,6 +9,8 @@ import { ProposeTournamentDialog } from '@/components/tournaments/propose-tourna
 export default function TournamentsPage() {
     const { userProfile } = useAuth();
 
+    const canPropose = userProfile?.isCertifiedStreamer || userProfile?.role === 'admin' || userProfile?.role === 'moderator';
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -16,7 +18,7 @@ export default function TournamentsPage() {
                     <h1 className="text-3xl font-bold font-headline tracking-tight">Tournaments</h1>
                     <p className="text-muted-foreground">Compete, win, and make a name for yourself.</p>
                 </div>
-                {userProfile?.isCertifiedStreamer && (
+                {canPropose && (
                      <ProposeTournamentDialog />
                 )}
             </div>
