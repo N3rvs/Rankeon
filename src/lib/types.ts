@@ -43,7 +43,6 @@ export interface ChatMessage {
 export interface Chat {
   id: string;
   members: string[]; // [uid1, uid2] sorted
-  createdAt: Timestamp;
   lastMessageAt?: Timestamp | null;
   lastMessage?: {
     content: string;

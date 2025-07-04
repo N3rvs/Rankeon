@@ -56,8 +56,8 @@ export default function MessagesPage() {
                 });
 
                 filteredChats.sort((a, b) => {
-                    const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
-                    const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
+                    const timeA = a.lastMessageAt?.toMillis() || 0;
+                    const timeB = b.lastMessageAt?.toMillis() || 0;
                     return timeB - timeA;
                 });
                 setChats(filteredChats);
