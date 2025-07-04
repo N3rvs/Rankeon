@@ -12,7 +12,7 @@ import { db } from '@/lib/firebase/client';
 import type { Team } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { deleteTeamV2 } from '@/lib/actions/teams';
+import { deleteTeam } from '@/lib/actions/teams';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +24,7 @@ function TeamDisplay({ team }: { team: Team }) {
 
     const handleDelete = () => {
         startTransition(async () => {
-            const result = await deleteTeamV2({ teamId: team.id });
+            const result = await deleteTeam({ teamId: team.id });
             if (result.success) {
                 toast({ title: "Equipo Eliminado", description: "Tu equipo ha sido eliminado con éxito." });
                 // The page will automatically update due to the real-time listener

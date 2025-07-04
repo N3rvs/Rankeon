@@ -1,4 +1,3 @@
-
 // functions/src/teams.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -132,7 +131,7 @@ interface DeleteTeamData {
     teamId: string;
 }
 
-export const deleteTeamV2 = onCall(async ({ auth, data }: { auth?: any, data: DeleteTeamData }) => {
+export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: DeleteTeamData }) => {
     const uid = auth?.uid;
     const { teamId } = data;
 
@@ -173,16 +172,18 @@ export const deleteTeamV2 = onCall(async ({ auth, data }: { auth?: any, data: De
         batch.delete(teamRef);
 
         // 3. Update the user's role in their Firestore document.
-        batch.update(userRef, { role: "player" });
+        const userToUpdate = await admin.auth().getUser(uid);
+        const existingClaims = userToUpdate.customClaims || {};
+        // CORRECTED LOGIC: Only change role if they are a 'founder'. Admins keep their role.
+        if (existingClaims.role === 'founder') {
+             batch.update(userRef, { role: "player" });
+        }
 
         // Atomically commit all the operations.
         await batch.commit();
         
         // After the batch succeeds, update the custom auth claims.
         // This is separate but less critical; the source of truth in Firestore is now correct.
-        const userToUpdate = await admin.auth().getUser(uid);
-        const existingClaims = userToUpdate.customClaims || {};
-        // CORRECTED LOGIC: Only change role if they are a 'founder'. Admins keep their role.
         if (existingClaims.role === 'founder') {
              await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: "player" });
         }
