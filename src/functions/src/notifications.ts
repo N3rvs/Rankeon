@@ -36,6 +36,7 @@ export const addInboxNotification = onCall(async ({ auth, data }: { auth?: any, 
     type,
     extraData: extraData || null,
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    read: false, // Ensure new notifications are unread
   });
 
   return { success: true };

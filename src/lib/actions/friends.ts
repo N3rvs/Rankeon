@@ -1,3 +1,4 @@
+
 // src/lib/actions/friends.ts
 // Client-side actions that call Firebase Functions
 
@@ -16,8 +17,8 @@ export async function sendFriendRequest(
 ): Promise<ActionResponse> {
   try {
     const sendRequest = httpsCallable(functions, 'sendFriendRequest');
-    await sendRequest({ to: recipientId });
-    return { success: true, message: 'Friend request sent.' };
+    const result = await sendRequest({ to: recipientId });
+    return (result.data as ActionResponse) || { success: true, message: 'Friend request sent.' };
   } catch (error: any) {
     console.error('Error sending friend request:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
@@ -33,8 +34,8 @@ export async function respondToFriendRequest({
 }): Promise<ActionResponse> {
   try {
     const respond = httpsCallable(functions, 'respondToFriendRequest');
-    await respond({ requestId, accept });
-    return { success: true, message: `Request ${accept ? 'accepted' : 'rejected'}.` };
+    const result = await respond({ requestId, accept });
+    return (result.data as ActionResponse) || { success: true, message: `Request ${accept ? 'accepted' : 'rejected'}.` };
   } catch (error: any) {
     console.error('Error responding to friend request:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
@@ -44,8 +45,8 @@ export async function respondToFriendRequest({
 export async function removeFriend(friendId: string): Promise<ActionResponse> {
   try {
     const remove = httpsCallable(functions, 'removeFriend');
-    await remove({ friendUid: friendId });
-    return { success: true, message: 'Friend removed.' };
+    const result = await remove({ friendUid: friendId });
+    return (result.data as ActionResponse) || { success: true, message: 'Friend removed.' };
   } catch (error: any) {
     console.error('Error removing friend:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
@@ -55,8 +56,8 @@ export async function removeFriend(friendId: string): Promise<ActionResponse> {
 export async function blockUser(userId: string): Promise<ActionResponse> {
   try {
     const block = httpsCallable(functions, 'blockUser');
-    await block({ blockedUid: userId });
-    return { success: true, message: 'User blocked.' };
+    const result = await block({ blockedUid: userId });
+    return (result.data as ActionResponse) || { success: true, message: 'User blocked.' };
   } catch (error: any) {
     console.error('Error blocking user:', error);
     return {
@@ -69,8 +70,8 @@ export async function blockUser(userId: string): Promise<ActionResponse> {
 export async function unblockUser(userId: string): Promise<ActionResponse> {
   try {
     const unblock = httpsCallable(functions, 'unblockUser');
-    await unblock({ blockedUid: userId });
-    return { success: true, message: 'User unblocked.' };
+    const result = await unblock({ blockedUid: userId });
+    return (result.data as ActionResponse) || { success: true, message: 'User unblocked.' };
   } catch (error: any) {
     console.error('Error unblocking user:', error);
     return {
