@@ -26,7 +26,7 @@ import {
   Store,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -38,7 +38,6 @@ import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/fire
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { user, userProfile, loading } = useAuth();
   const [unreadMessages, setUnreadMessages] = useState(0);
 
@@ -68,7 +67,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     await auth.signOut();
-    router.push('/login');
+    // Using window.location.assign forces a full page reload, which is a robust
+    // way to ensure all real-time listeners are disconnected, preventing
+    // the "insufficient permissions" error after logout.
+    window.location.assign('/login');
   };
 
   const isActive = (path: string) => {
@@ -78,14 +80,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader className="px-4 pt-6 pb-4 mb-4">
+        <SidebarHeader className="p-4 pt-6 mb-4">
           <div className="flex items-center gap-2">
             <Gamepad2 className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold font-headline">SquadUp</h1>
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu className="gap-2">
+          <SidebarMenu className="gap-4">
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
