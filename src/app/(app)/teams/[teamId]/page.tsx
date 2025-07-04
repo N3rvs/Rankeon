@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase/client';
-import { doc, onSnapshot, collection, query, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, getDocs, getDoc } from 'firebase/firestore';
 import type { Team, TeamMember, UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
