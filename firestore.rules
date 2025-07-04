@@ -2,52 +2,65 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read any profile, but only write/update their own.
+    
+    // Users can only read/update their own profile.
+    // Admins can read/write any profile and list all users.
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth.uid == userId;
-      allow update: if request.auth.uid == userId;
+      allow read: if request.auth.uid == userId || request.auth.token.role == 'admin';
+      allow write: if request.auth.uid == userId || request.auth.token.role == 'admin';
+      allow list: if request.auth.token.role == 'admin';
     }
 
     // Teams can be read by any authenticated user.
+    // Writing to a team requires being a founder/coach (handled by secure functions).
     match /teams/{teamId} {
       allow read: if request.auth != null;
-      // Writes are handled by secure server actions, deny on client.
-      allow write: if false;
-    }
+      allow write: if false; // All writes must go through functions.
 
-    // Chats and messages are read-only on client. Writes are via functions.
-    match /chats/{chatId} {
-      // allow update for lastMessage field when sending a message
-      allow read, update: if request.auth.uid in resource.data.members;
-      // Chat creation is handled by the sendMessageToFriend function
-      allow create: if false;
-
-      match /messages/{messageId} {
-        allow read: if get(/databases/$(database)/documents/chats/$(chatId)).data.members.hasAny([request.auth.uid]);
-        // Writing/deleting messages is handled by secure backend functions.
-        allow write: if false;
+      // Member details can be read by any authenticated user.
+      match /members/{userId} {
+        allow read: if request.auth != null;
+        allow write: if false; // All writes must go through functions.
       }
     }
 
-    // Friend requests are read-only on the client, for the two people involved.
-    // This allows the friendship button to check for pending requests.
+    // Friend requests can only be accessed by the sender or receiver.
     match /friendRequests/{requestId} {
-      allow read: if request.auth.uid == resource.data.from || request.auth.uid == resource.data.to;
-      // Writing to friend requests is handled by secure backend functions.
-      allow write: if false;
+      allow read, write: if request.auth.uid == resource.data.from || request.auth.uid == resource.data.to;
     }
 
-    // Inbox notifications are private. A user can only access their own.
-    match /inbox/{userId}/{document=**} {
-      // Allow writing to update the 'read' status of a notification.
-      allow read, write: if request.auth.uid == userId;
+    // Chats and messages are only accessible by members of the chat.
+    match /chats/{chatId} {
+      allow read, write: if request.auth.uid in resource.data.members;
+
+      match /messages/{messageId} {
+        // Ensure user is a member of the parent chat before allowing access.
+        allow read, write: if get(/databases/$(database)/documents/chats/$(chatId)).data.members.hasAny([request.auth.uid]);
+      }
+    }
+    
+    // Notifications are private to the user.
+    match /inbox/{userId}/notifications/{notificationId} {
+        allow read, write, list: if request.auth.uid == userId;
     }
 
-    // Game rooms are created by a backend function and are read-only on the client.
+    // Game rooms are public for any authenticated user to read.
     match /gameRooms/{roomId} {
-      allow read: if request.auth != null;
-      allow write: if false;
+        allow read: if request.auth != null;
+        allow write: if false; // All writes must go through functions.
     }
+
+    // Scrims are public for any authenticated user to read.
+    match /scrims/{scrimId} {
+        allow read: if request.auth != null;
+        allow write: if false; // All writes must go through functions.
+    }
+
+    // Tournament proposals are read-only for admins.
+    match /tournamentProposals/{proposalId} {
+        allow read, list: if request.auth.token.role == 'admin';
+        allow write: if false; // Writes are done via functions.
+    }
+
   }
 }
