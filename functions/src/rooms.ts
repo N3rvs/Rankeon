@@ -81,3 +81,45 @@ export const leaveRoom = onCall(async ({ auth, data }: { auth?: any, data: RoomA
 
     return { success: true };
 });
+
+interface SendMessageData {
+  roomId: string;
+  content: string;
+}
+
+export const sendMessageToRoom = onCall(async ({ auth, data }: { auth?: any; data: SendMessageData }) => {
+  const uid = auth?.uid;
+  const { roomId, content } = data;
+
+  if (!uid) {
+    throw new HttpsError('unauthenticated', 'You must be logged in to send a message.');
+  }
+  if (!roomId || !content) {
+    throw new HttpsError('invalid-argument', 'Missing room ID or message content.');
+  }
+
+  const roomRef = db.collection('gameRooms').doc(roomId);
+  const roomSnap = await roomRef.get();
+
+  if (!roomSnap.exists) {
+    throw new HttpsError('not-found', 'The room does not exist.');
+  }
+
+  const roomData = roomSnap.data();
+  if (!roomData?.participants.includes(uid)) {
+    throw new HttpsError('permission-denied', 'You are not a participant of this room.');
+  }
+
+  const messageRef = roomRef.collection('messages').doc();
+  await messageRef.set({
+    sender: uid,
+    content: content,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  await roomRef.update({
+    lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  return { success: true };
+});

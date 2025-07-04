@@ -92,4 +92,5 @@ export interface GameRoom {
   rank?: string;
   partySize?: string;
   participants: string[]; // Array of UIDs of participants
+  lastMessageAt?: Timestamp;
 }

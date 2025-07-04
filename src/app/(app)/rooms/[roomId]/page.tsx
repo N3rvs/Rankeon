@@ -31,6 +31,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { joinRoom, leaveRoom } from '@/lib/actions/rooms';
 import { formatDistanceToNow } from 'date-fns';
+import { RoomChat } from '@/components/rooms/room-chat';
 
 function ParticipantCard({
   profile,
@@ -40,7 +41,7 @@ function ParticipantCard({
   isCreator: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
+    <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
       <div className="flex items-center gap-3">
         <Avatar>
           <AvatarImage src={profile.avatarUrl} data-ai-hint="person avatar" />
@@ -128,24 +129,31 @@ export default function RoomDetailPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-48" />
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <div className="flex gap-2 pt-2">
-              <Skeleton className="h-6 w-24 rounded-full" />
-              <Skeleton className="h-6 w-20 rounded-full" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-6 w-32 mb-4" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <div className="flex gap-2 pt-2">
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-6 w-32 mb-4" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[...Array(2)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-1">
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -161,75 +169,84 @@ export default function RoomDetailPage() {
         Volver a las salas
       </Button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-headline text-3xl">{room.name}</CardTitle>
-            <CardDescription>
-              Creado {formatDistanceToNow(room.createdAt.toDate(), { addSuffix: true })}
-            </CardDescription>
-            <div className="flex flex-wrap gap-2 pt-2">
-              {room.rank && (
-                <Badge variant="outline">
-                  <Shield className="mr-2 h-4 w-4" /> {room.rank}
-                </Badge>
-              )}
-              {room.partySize && (
-                <Badge variant="outline">
-                  <Users2 className="mr-2 h-4 w-4" /> {room.partySize}
-                </Badge>
-              )}
-              {room.server && (
-                <Badge variant="outline">
-                  <Globe className="mr-2 h-4 w-4" /> {room.server}
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <h3 className="text-xl font-semibold font-headline mb-4 flex items-center gap-2">
-              <Users />
-              Participantes ({participants.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {participants.map((p) => (
-                <ParticipantCard
-                  key={p.id}
-                  profile={p}
-                  isCreator={p.id === room.createdBy}
-                />
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full"
-              onClick={handleJoinLeave}
-              disabled={isPending || user?.uid === room.createdBy}
-              variant={isUserInRoom ? 'destructive' : 'default'}
-            >
-              {user?.uid === room.createdBy ? (
-                 <>
-                  <Crown className="mr-2 h-4 w-4" />
-                  Eres el Creador
-                 </>
-              ) : isUserInRoom ? (
-                <>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {isPending ? 'Saliendo...' : 'Salir de la Sala'}
-                </>
-              ) : (
-                <>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  {isPending ? 'Uniéndose...' : 'Unirse a la Sala'}
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-        
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-3xl">
+                {room.name}
+              </CardTitle>
+              <CardDescription>
+                Creado{' '}
+                {room.createdAt
+                  ? formatDistanceToNow(room.createdAt.toDate(), {
+                      addSuffix: true,
+                    })
+                  : 'hace un momento'}
+              </CardDescription>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {room.rank && (
+                  <Badge variant="outline">
+                    <Shield className="mr-2 h-4 w-4" /> {room.rank}
+                  </Badge>
+                )}
+                {room.partySize && (
+                  <Badge variant="outline">
+                    <Users2 className="mr-2 h-4 w-4" /> {room.partySize}
+                  </Badge>
+                )}
+                {room.server && (
+                  <Badge variant="outline">
+                    <Globe className="mr-2 h-4 w-4" /> {room.server}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <h3 className="text-xl font-semibold font-headline mb-4 flex items-center gap-2">
+                <Users />
+                Participantes ({participants.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {participants.map((p) => (
+                  <ParticipantCard
+                    key={p.id}
+                    profile={p}
+                    isCreator={p.id === room.createdBy}
+                  />
+                ))}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                onClick={handleJoinLeave}
+                disabled={isPending || user?.uid === room.createdBy}
+                variant={isUserInRoom ? 'destructive' : 'default'}
+              >
+                {user?.uid === room.createdBy ? (
+                  <>
+                    <Crown className="mr-2 h-4 w-4" />
+                    Eres el Creador
+                  </>
+                ) : isUserInRoom ? (
+                  <>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {isPending ? 'Saliendo...' : 'Salir de la Sala'}
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    {isPending ? 'Uniéndose...' : 'Unirse a la Sala'}
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+
         <div className="lg:col-span-1">
-            {/* Future chat or room details could go here */}
+          <RoomChat roomId={roomId} participants={participants} />
         </div>
       </div>
     </div>

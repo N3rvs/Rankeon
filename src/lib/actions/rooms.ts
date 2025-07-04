@@ -84,3 +84,20 @@ export async function leaveRoom(roomId: string): Promise<{ success: boolean; mes
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function sendMessageToRoom({
+  roomId,
+  content,
+}: {
+  roomId: string;
+  content: string;
+}): Promise<{ success: boolean; message: string }> {
+  try {
+    const sendMessageFunc = httpsCallable(functions, 'sendMessageToRoom');
+    await sendMessageFunc({ roomId, content });
+    return { success: true, message: 'Message sent.' };
+  } catch (error: any) {
+    console.error('Error sending message to room:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}

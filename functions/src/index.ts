@@ -9,7 +9,7 @@ import { deleteChatHistory, sendMessageToFriend } from './chat';
 import { sendFriendRequest, respondToFriendRequest, removeFriend } from './friends';
 import { addInboxNotification, deleteInboxNotification, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
-import { createGameRoomWithDiscord, joinRoom, leaveRoom } from './rooms';
+import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
 import { createTeam, updateTeam, deleteTeam } from './teams';
 import { proposeTournament } from './tournaments';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
@@ -29,6 +29,7 @@ export {
   createGameRoomWithDiscord,
   joinRoom,
   leaveRoom,
+  sendMessageToRoom,
   createTeam,
   updateTeam,
   deleteTeam,
