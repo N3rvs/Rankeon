@@ -14,24 +14,17 @@ import {
   SidebarInset,
   SidebarFooter,
   SidebarTrigger,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import {
   Gamepad2,
-  LayoutDashboard,
-  MessageSquare,
   UserCircle,
-  Wrench,
   LogOut,
   Search,
   Users2,
   Shield,
-  Lightbulb,
-  ChevronRight,
   Dices,
   Users,
+  Store,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -43,16 +36,12 @@ import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from './ui/skeleton';
 import { InboxIcon } from './inbox/inbox-icon';
 import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/firestore';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
-import { cn } from '@/lib/utils';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, userProfile, loading } = useAuth();
   const [unreadMessages, setUnreadMessages] = useState(0);
-  const [isToolsOpen, setIsToolsOpen] = useState(pathname.startsWith('/tools'));
-
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -90,110 +79,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader>
+        <SidebarHeader className="pb-4">
           <div className="flex items-center gap-2">
             <Gamepad2 className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold font-headline">SquadUp</h1>
           </div>
         </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/dashboard')}
-                tooltip="Dashboard"
-              >
-                <Link href="/dashboard">
-                  <LayoutDashboard />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/teams')}
-                tooltip="My Teams"
-              >
-                <Link href="/teams">
-                  <Users2 />
-                  <span>My Teams</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/rooms')}
-                tooltip="Salas de Juego"
-              >
-                <Link href="/rooms">
-                  <Dices />
-                  <span>Salas de Juego</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/messages')}
-                tooltip="Amigos"
-              >
-                <Link href="/messages">
-                  <Users />
-                  <span>Amigos</span>
-                </Link>
-              </SidebarMenuButton>
-              {unreadMessages > 0 && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary group-data-[collapsible=icon]:hidden" />
-              )}
-            </SidebarMenuItem>
-            {userProfile?.role === 'admin' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive('/admin')}
-                  tooltip="Admin"
-                >
-                  <Link href="/admin">
-                    <Shield />
-                    <span>Admin</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            <Collapsible asChild onOpenChange={setIsToolsOpen} open={isToolsOpen}>
-              <SidebarMenuItem className="flex flex-col items-start !gap-0">
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton className="w-full" isActive={pathname.startsWith('/tools')} tooltip="Tools">
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Wrench />
-                            <span>Tools</span>
-                        </div>
-                        <ChevronRight className={cn("h-4 w-4 shrink-0 transition-transform duration-200", isToolsOpen && "rotate-90")} />
-                      </div>
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-
-                <CollapsibleContent asChild>
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild size="sm" isActive={pathname === '/tools/team-name-generator'}>
-                        <Link href="/tools/team-name-generator">
-                          <Lightbulb />
-                          <span>Name Generator</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                </CollapsibleContent>
-              </SidebarMenuItem>
-            </Collapsible>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
+        <SidebarContent className="mt-4">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -202,15 +94,89 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 tooltip="Profile"
               >
                 <Link href="/profile">
-                  <UserCircle />
-                  <span>Profile</span>
+                  <UserCircle className="h-5 w-5" />
+                  <span className="text-base">Profile</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/teams')}
+                tooltip="My Teams"
+              >
+                <Link href="/teams">
+                  <Users2 className="h-5 w-5" />
+                  <span className="text-base">My Teams</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/dashboard')}
+                tooltip="Market"
+              >
+                <Link href="/dashboard">
+                  <Store className="h-5 w-5" />
+                  <span className="text-base">Market</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/rooms')}
+                tooltip="Game Rooms"
+              >
+                <Link href="/rooms">
+                  <Dices className="h-5 w-5" />
+                  <span className="text-base">Game Rooms</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/messages')}
+                tooltip="Friends"
+              >
+                <Link href="/messages">
+                  <Users className="h-5 w-5" />
+                  <span className="text-base">Friends</span>
+                </Link>
+              </SidebarMenuButton>
+              {unreadMessages > 0 && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary group-data-[collapsible=icon]:hidden" />
+              )}
+            </SidebarMenuItem>
+            
+            {userProfile?.role === 'admin' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/admin')}
+                  tooltip="Admin"
+                >
+                  <Link href="/admin">
+                    <Shield className="h-5 w-5" />
+                    <span className="text-base">Admin</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
-                <LogOut />
-                <span>Logout</span>
+                <LogOut className="h-5 w-5" />
+                <span className="text-base">Logout</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
