@@ -33,6 +33,27 @@ export interface Team {
   createdAt?: Timestamp;
 }
 
+export interface TeamMember {
+  role: 'founder' | 'coach' | 'member';
+  joinedAt: Timestamp;
+}
+
+export interface Scrim {
+  id: string;
+  teamAId: string;
+  teamBId?: string;
+  teamAName: string; // Denormalized for easy display
+  teamAAvatarUrl: string; // Denormalized for easy display
+  date: Timestamp;
+  format: 'bo1' | 'bo3' | 'bo5';
+  type: 'scrim' | 'tryout';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  notes?: string;
+  createdAt: Timestamp;
+  winnerTeamId?: string;
+  chatId?: string;
+}
+
 export interface ChatMessage {
   id: string;
   sender: string;

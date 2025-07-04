@@ -16,6 +16,7 @@ import {
 import { addInboxNotification, deleteInboxNotification, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom } from './rooms';
+import { createScrim, acceptScrim, cancelScrim } from './scrims';
 
 export {
   deleteChatHistory,
@@ -34,5 +35,8 @@ export {
   cleanUpOldData,
   createGameRoomWithDiscord,
   joinRoom,
-  leaveRoom
+  leaveRoom,
+  createScrim,
+  acceptScrim,
+  cancelScrim
 };
