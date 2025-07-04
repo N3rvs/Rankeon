@@ -43,6 +43,7 @@ export function NotificationItem({
   const router = useRouter();
   const [isResponding, startResponding] = useTransition();
   const [isClearing, startClearing] = useTransition();
+  const [isDismissing, startDismissing] = useTransition();
   const [isActionTaken, setIsActionTaken] = useState(false);
   const [fromUser, setFromUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,10 +154,17 @@ export function NotificationItem({
   
   const handleNavigateAndClear = (path: string) => {
     startClearing(async () => {
-        if (!notification.read) {
-            await clearNotificationHistory([notification.id]);
-        }
+        await clearNotificationHistory([notification.id]);
         router.push(path);
+    });
+  };
+
+  const handleDismiss = () => {
+    startDismissing(async () => {
+        const { success, message } = await clearNotificationHistory([notification.id]);
+        if (!success) {
+            toast({ title: "Error", description: message, variant: "destructive"});
+        }
     });
   };
 
@@ -283,6 +291,18 @@ export function NotificationItem({
               >
                   <MessageSquare className="h-4 w-4 mr-1" />
                   {isClearing ? "Loading..." : "View Chat"}
+              </Button>
+               <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-muted-foreground"
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      handleDismiss();
+                  }}
+                  disabled={isDismissing}
+              >
+                 {isDismissing ? "..." : "Dismiss"}
               </Button>
           </div>
         )}

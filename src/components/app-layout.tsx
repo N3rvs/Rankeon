@@ -40,7 +40,7 @@ import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/fire
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, userProfile, loading } = useAuth();
-  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadFriendActivity, setUnreadFriendActivity] = useState(0);
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -55,10 +55,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       );
 
       unsubscribe = onSnapshot(q, (snapshot) => {
-        setUnreadMessages(snapshot.size);
+        setUnreadFriendActivity(snapshot.size);
       });
     } else {
-      setUnreadMessages(0);
+      setUnreadFriendActivity(0);
     }
     
     return () => {
@@ -159,7 +159,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <span>Friends</span>
                 </Link>
               </SidebarMenuButton>
-              {unreadMessages > 0 && (
+              {unreadFriendActivity > 0 && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary group-data-[collapsible=icon]:hidden" />
               )}
             </SidebarMenuItem>
