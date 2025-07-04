@@ -31,6 +31,7 @@ import {
   Lightbulb,
   ChevronRight,
   Dices,
+  Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -137,11 +138,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/messages')}
-                tooltip="Messages"
+                tooltip="Amigos"
               >
                 <Link href="/messages">
-                  <MessageSquare />
-                  <span>Messages</span>
+                  <Users />
+                  <span>Amigos</span>
                 </Link>
               </SidebarMenuButton>
               {unreadMessages > 0 && (
