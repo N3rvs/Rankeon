@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, MessageSquare, Edit, UserCheck, UserX } from 'lucide-react';
+import { MoreHorizontal, Edit, UserCheck, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,7 +27,6 @@ import type { UserProfile } from '@/lib/types';
 import { updateUserStatus } from '@/lib/actions/users';
 import { useAuth } from '@/contexts/auth-context';
 import { EditProfileDialog } from '../profile/edit-profile-dialog';
-import { SendMessageDialog } from '../messages/send-message-dialog';
 
 interface UserActionsProps {
   user: UserProfile;
@@ -40,7 +39,6 @@ export function UserActions({ user }: UserActionsProps) {
   const [isPending, startTransition] = useTransition();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
 
   const handleBanToggle = () => {
     startTransition(async () => {
@@ -61,24 +59,10 @@ export function UserActions({ user }: UserActionsProps) {
     });
   };
 
-  const handleMessageUser = () => {
-    if (!currentUser) {
-        toast({ title: 'Authentication Error', description: 'You must be logged in to message a player.', variant: 'destructive' });
-        return;
-    }
-    setIsMessageDialogOpen(true);
-  };
-
   return (
     <>
       <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
       
-      <SendMessageDialog 
-        recipient={user} 
-        open={isMessageDialogOpen} 
-        onOpenChange={setIsMessageDialogOpen} 
-      />
-
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -108,10 +92,6 @@ export function UserActions({ user }: UserActionsProps) {
           <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
              <Edit className="mr-2 h-4 w-4" />
             <span>Edit Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleMessageUser}>
-            <MessageSquare className="mr-2 h-4 w-4" />
-            <span>Message</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setIsAlertOpen(true)} className={user.disabled ? "text-green-600 focus:text-green-700" : "text-destructive focus:text-destructive"}>

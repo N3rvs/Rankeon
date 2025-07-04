@@ -28,7 +28,6 @@ import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { FriendshipButton } from '../friends/friendship-button';
-import { SendMessageDialog } from '../messages/send-message-dialog';
 
 export function MarketTabs() {
   const { user, userProfile } = useAuth();
@@ -37,9 +36,6 @@ export function MarketTabs() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [loadingTeams, setLoadingTeams] = useState(true);
-
-  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     let unsubscribePlayers: Unsubscribe | undefined;
@@ -79,15 +75,6 @@ export function MarketTabs() {
       if (unsubscribeTeams) unsubscribeTeams();
     };
   }, [user]);
-
-  const handleMessagePlayer = (player: UserProfile) => {
-    if (!user || !userProfile) {
-        toast({ title: 'Authentication Error', description: 'You must be logged in to message a player.', variant: 'destructive' });
-        return;
-    }
-    setSelectedPlayer(player);
-    setIsMessageDialogOpen(true);
-  };
 
   const handleContactTeam = async (team: Team) => {
     toast({
@@ -137,13 +124,6 @@ export function MarketTabs() {
 
   return (
     <>
-      {selectedPlayer && (
-        <SendMessageDialog
-          recipient={selectedPlayer}
-          open={isMessageDialogOpen}
-          onOpenChange={setIsMessageDialogOpen}
-        />
-      )}
       <Tabs defaultValue="players">
         <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
           <TabsTrigger value="players">Players for Hire</TabsTrigger>
@@ -194,14 +174,6 @@ export function MarketTabs() {
                                       <TableCell className="text-right">
                                           <div className="flex items-center justify-end gap-2">
                                               <FriendshipButton targetUser={player} />
-                                              <Button
-                                                  variant="ghost"
-                                                  size="icon"
-                                                  onClick={() => handleMessagePlayer(player)}
-                                              >
-                                                  <MessageSquare className="h-4 w-4" />
-                                                  <span className="sr-only">Message Player</span>
-                                              </Button>
                                           </div>
                                       </TableCell>
                                   </TableRow>
