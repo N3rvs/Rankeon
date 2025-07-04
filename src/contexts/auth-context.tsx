@@ -84,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               lookingForTeam: false,
               country: '',
               disabled: false,
+              isCertifiedStreamer: false,
               createdAt: serverTimestamp(),
             });
           } catch (error) {
@@ -132,26 +133,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
   }, []);
-  
-  // This middleware intercepts fetch requests to add the auth token.
-  useEffect(() => {
-    const originalFetch = window.fetch;
-    window.fetch = async (input, init) => {
-      // We only want to intercept our own server action calls.
-      if (typeof input === 'string' && input.includes('__action__')) {
-        const headers = new Headers(init?.headers);
-        if (token) {
-          headers.set('Authorization', `Bearer ${token}`);
-        }
-        const newInit = { ...init, headers };
-        return originalFetch(input, newInit);
-      }
-      return originalFetch(input, init);
-    };
-    return () => {
-      window.fetch = originalFetch;
-    };
-  }, [token]);
 
   return (
     <AuthContext.Provider value={{ user, userProfile, token, claims, loading, setToken }}>
