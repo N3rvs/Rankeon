@@ -47,7 +47,7 @@ export interface Chat {
   lastMessage?: {
     content: string;
     sender: string;
-  }
+  };
 }
 
 export type NotificationType =

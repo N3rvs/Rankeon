@@ -358,22 +358,8 @@ export const sendMessageToFriend = onCall(async (request) => {
     const lastMessage = { content, sender: uid };
 
     const batch = db.batch();
-
-    // Use set with merge: true to create or update the chat document.
-    // By removing 'createdAt', we avoid the double-timestamp issue.
-    // 'members' is included to ensure it's set on creation.
-    batch.set(chatRef, { 
-        members: members,
-        lastMessageAt: timestamp, 
-        lastMessage: lastMessage 
-    }, { merge: true });
-
-    // Set the new message in the subcollection.
-    batch.set(messageRef, { 
-        sender: uid, 
-        content: content, 
-        createdAt: timestamp 
-    });
+    batch.set(chatRef, { members, lastMessageAt: timestamp, lastMessage }, { merge: true });
+    batch.set(messageRef, { sender: uid, content, createdAt: timestamp });
     
     // Notification for recipient
     const notificationRef = db.collection('inbox').doc(to).collection('notifications').doc();
