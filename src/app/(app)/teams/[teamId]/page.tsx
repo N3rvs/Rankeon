@@ -102,7 +102,7 @@ export default function TeamManagementPage() {
 
       <Card className="overflow-hidden">
         <div className="relative h-48 w-full bg-muted">
-          <Image src="https://placehold.co/1200x400.png" alt={`${team.name} banner`} fill style={{ objectFit: 'cover' }} data-ai-hint="gaming banner" />
+          <Image src={team.bannerUrl || "https://placehold.co/1200x400.png"} alt={`${team.name} banner`} fill style={{ objectFit: 'cover' }} data-ai-hint="gaming banner" />
         </div>
         <CardHeader className="p-6 relative">
           <div className="absolute top-[-3rem] left-6">

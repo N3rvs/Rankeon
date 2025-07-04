@@ -55,6 +55,7 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
       game,
       description: description || '',
       avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0,2)}`,
+      bannerUrl: 'https://placehold.co/1200x400.png',
       founder: uid,
       memberIds: [uid],
       lookingForPlayers: false,

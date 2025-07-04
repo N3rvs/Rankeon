@@ -69,7 +69,7 @@ export function TeamCard({ team }: TeamCardProps) {
   return (
     <Card className="overflow-hidden flex flex-col">
       <div className="relative h-32 w-full">
-        <Image src="https://placehold.co/600x200.png" alt={`${team.name} banner`} fill style={{ objectFit: 'cover' }} data-ai-hint="gaming banner" />
+        <Image src={team.bannerUrl || "https://placehold.co/600x200.png"} alt={`${team.name} banner`} fill style={{ objectFit: 'cover' }} data-ai-hint="gaming banner" />
         <div className="absolute bottom-[-2rem] left-4">
           <Avatar className="h-16 w-16 border-4 border-card">
             <AvatarImage src={team.avatarUrl} alt={team.name} data-ai-hint="team logo" />

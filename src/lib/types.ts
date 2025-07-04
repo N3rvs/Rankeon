@@ -25,8 +25,9 @@ export interface Team {
   id:string;
   name: string;
   avatarUrl: string;
+  bannerUrl: string;
   game: string;
-  ownerId: string;
+  founder: string;
   memberIds: string[];
   lookingForPlayers: boolean;
   recruitingRoles: string[];
