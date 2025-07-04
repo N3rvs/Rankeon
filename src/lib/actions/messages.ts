@@ -31,6 +31,24 @@ export async function deleteMessage({
   }
 }
 
+export async function deleteChatHistory({
+  chatId,
+}: {
+  chatId: string;
+}): Promise<ActionResponse> {
+  try {
+    const deleteFunc = httpsCallable(functions, 'deleteChatHistory');
+    await deleteFunc({ chatId });
+    return { success: true, message: 'Chat history deleted.' };
+  } catch (error: any) {
+    console.error('Error deleting chat history:', error);
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
+  }
+}
+
 export async function sendMessageToFriend({
   to,
   content,

@@ -396,6 +396,43 @@ export const deleteMessage = onCall(async (request) => {
     return { success: true, message: 'Message deleted.' };
 });
 
+export const deleteChatHistory = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { chatId } = request.data;
+    if (!chatId) throw new HttpsError('invalid-argument', 'Missing chat ID.');
+
+    const chatRef = db.collection('chats').doc(chatId);
+    const chatSnap = await chatRef.get();
+
+    if (!chatSnap.exists()) {
+        throw new HttpsError('not-found', 'Chat not found.');
+    }
+
+    const chatData = chatSnap.data();
+    if (!chatData?.members.includes(uid)) {
+        throw new HttpsError('permission-denied', 'You are not a member of this chat.');
+    }
+
+    const messagesRef = chatRef.collection('messages');
+    const messagesSnap = await messagesRef.get();
+
+    if (messagesSnap.empty) {
+        return { success: true, message: 'Chat history is already empty.' };
+    }
+
+    const batch = db.batch();
+    messagesSnap.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    batch.update(chatRef, { lastMessage: null, lastMessageAt: null });
+
+    await batch.commit();
+
+    return { success: true, message: 'Chat history deleted.' };
+});
+
 // --- NOTIFICATION FUNCTIONS ---
 
 export const deleteInboxNotification = onCall(async (request) => {

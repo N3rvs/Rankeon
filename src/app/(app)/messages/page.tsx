@@ -12,12 +12,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { MoreVertical, Search, Send, MessageSquare, Trash2, UserX, ShieldAlert, X } from "lucide-react";
+import { MoreVertical, Search, Send, MessageSquare, Trash2, UserX, ShieldAlert, X, BookX } from "lucide-react";
 import type { Chat, ChatMessage, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { deleteMessage, sendMessageToFriend } from '@/lib/actions/messages';
+import { deleteChatHistory, deleteMessage, sendMessageToFriend } from '@/lib/actions/messages';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { blockUser, removeFriend } from '@/lib/actions/friends';
 
@@ -35,6 +35,7 @@ export default function MessagesPage() {
 
     const [isRemoveFriendAlertOpen, setIsRemoveFriendAlertOpen] = useState(false);
     const [isBlockUserAlertOpen, setIsBlockUserAlertOpen] = useState(false);
+    const [isDeleteHistoryAlertOpen, setIsDeleteHistoryAlertOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
 
@@ -186,6 +187,19 @@ export default function MessagesPage() {
         });
     };
 
+    const handleDeleteChatHistory = () => {
+        if (!selectedChat || !otherParticipant) return;
+        startTransition(async () => {
+            const result = await deleteChatHistory({ chatId: selectedChat.id });
+            if (result.success) {
+                toast({ title: "History Cleared", description: `All messages with ${otherParticipant.name} have been deleted.` });
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+            setIsDeleteHistoryAlertOpen(false);
+        });
+    };
+
     return (
         <>
             <AlertDialog open={isRemoveFriendAlertOpen} onOpenChange={setIsRemoveFriendAlertOpen}>
@@ -216,6 +230,22 @@ export default function MessagesPage() {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleBlockUser} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                             {isPending ? "Blocking..." : "Block User"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+             <AlertDialog open={isDeleteHistoryAlertOpen} onOpenChange={setIsDeleteHistoryAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete all messages with {otherParticipant?.name}?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                           This will permanently delete the entire conversation history for everyone. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteChatHistory} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            {isPending ? "Deleting..." : "Delete History"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -297,6 +327,10 @@ export default function MessagesPage() {
                                                 <span>Close Chat</span>
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
+                                            <DropdownMenuItem onSelect={() => setIsDeleteHistoryAlertOpen(true)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                                <BookX className="mr-2 h-4 w-4" />
+                                                <span>Delete History</span>
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem onSelect={() => setIsRemoveFriendAlertOpen(true)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                                 <UserX className="mr-2 h-4 w-4" />
                                                 <span>Remove Friend</span>
