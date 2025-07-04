@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useTransition } from 'react';
 import { useAuth } from "@/contexts/auth-context";
 import { db } from "@/lib/firebase/client";
-import { collection, query, onSnapshot, orderBy, doc, getDocs, Unsubscribe } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, doc, getDocs, Unsubscribe, getDoc } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
