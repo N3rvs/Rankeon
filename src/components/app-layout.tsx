@@ -1,4 +1,3 @@
-
 // src/components/app-layout.tsx
 'use client';
 
@@ -79,23 +78,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader className="pb-4">
+        <SidebarHeader className="px-4 pt-6 pb-4 mb-4">
           <div className="flex items-center gap-2">
             <Gamepad2 className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold font-headline">SquadUp</h1>
           </div>
         </SidebarHeader>
-        <SidebarContent className="mt-4">
-          <SidebarMenu>
+        <SidebarContent>
+          <SidebarMenu className="gap-2">
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/profile')}
                 tooltip="Profile"
+                size="lg"
               >
                 <Link href="/profile">
-                  <UserCircle className="h-5 w-5" />
-                  <span className="text-base">Profile</span>
+                  <UserCircle />
+                  <span>Profile</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -105,10 +105,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 asChild
                 isActive={isActive('/teams')}
                 tooltip="My Teams"
+                size="lg"
               >
                 <Link href="/teams">
-                  <Users2 className="h-5 w-5" />
-                  <span className="text-base">My Teams</span>
+                  <Users2 />
+                  <span>My Teams</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -118,10 +119,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 asChild
                 isActive={isActive('/dashboard')}
                 tooltip="Market"
+                size="lg"
               >
                 <Link href="/dashboard">
-                  <Store className="h-5 w-5" />
-                  <span className="text-base">Market</span>
+                  <Store />
+                  <span>Market</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -131,10 +133,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 asChild
                 isActive={isActive('/rooms')}
                 tooltip="Game Rooms"
+                size="lg"
               >
                 <Link href="/rooms">
-                  <Dices className="h-5 w-5" />
-                  <span className="text-base">Game Rooms</span>
+                  <Dices />
+                  <span>Game Rooms</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -144,10 +147,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 asChild
                 isActive={isActive('/messages')}
                 tooltip="Friends"
+                 size="lg"
               >
                 <Link href="/messages">
-                  <Users className="h-5 w-5" />
-                  <span className="text-base">Friends</span>
+                  <Users />
+                  <span>Friends</span>
                 </Link>
               </SidebarMenuButton>
               {unreadMessages > 0 && (
@@ -161,10 +165,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   asChild
                   isActive={isActive('/admin')}
                   tooltip="Admin"
+                   size="lg"
                 >
                   <Link href="/admin">
-                    <Shield className="h-5 w-5" />
-                    <span className="text-base">Admin</span>
+                    <Shield />
+                    <span>Admin</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -172,11 +177,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
-          <SidebarMenu>
+          <SidebarMenu className="gap-2">
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
-                <LogOut className="h-5 w-5" />
-                <span className="text-base">Logout</span>
+              <SidebarMenuButton onClick={handleLogout} tooltip="Logout" size="lg">
+                <LogOut />
+                <span>Logout</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
