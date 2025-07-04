@@ -10,39 +10,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function Home() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+function HomePageContent() {
   const [currentYear, setCurrentYear] = useState<number | null>(null);
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
 
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace('/dashboard');
-    }
-  }, [user, loading, router]);
-
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Skeleton className="h-24 w-24 rounded-full bg-muted" />
-      </div>
-    );
-  }
-
-  // If the user is logged in, we are about to redirect.
-  // Return null or a skeleton to prevent the page from flashing.
-  if (user) {
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Skeleton className="h-24 w-24 rounded-full bg-muted" />
-        </div>
-    );
-  }
-  
   return (
     <div className="flex flex-col min-h-dvh bg-background text-foreground">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between z-10">
@@ -149,4 +123,33 @@ export default function Home() {
       </footer>
     </div>
   );
+}
+
+function LoadingScreen() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-background">
+      <Skeleton className="h-24 w-24 rounded-full bg-muted" />
+    </div>
+  );
+}
+
+export default function Home() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // We only want to redirect if authentication is done and we have a user.
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
+
+  // If we are loading, or if we have a user (and are about to redirect), show the loading screen.
+  // This prevents the main page from flashing before the redirect happens.
+  if (loading || user) {
+    return <LoadingScreen />;
+  }
+
+  // If not loading and no user, show the public home page.
+  return <HomePageContent />;
 }
