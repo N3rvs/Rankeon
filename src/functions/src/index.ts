@@ -82,12 +82,9 @@ export const createGameRoomWithDiscord = onCall<CreateGameRoomData>(
       } else {
           const errorBody = await response.json();
           console.error('Error creating Discord channel. Status:', response.status, 'Body:', JSON.stringify(errorBody, null, 2));
-          // Do not throw an error, just proceed without a channel.
       }
     } catch (err) {
       console.error('Exception when trying to create Discord channel:', err);
-      // We will still create the room in Firestore, but without a channel ID.
-      // The error is logged for the admin to investigate.
     }
 
     // Create Firestore Document
@@ -115,7 +112,6 @@ export const createGameRoomWithDiscord = onCall<CreateGameRoomData>(
 
 /**
  * Scheduled function to clean up empty Discord voice channels and their corresponding Firestore documents.
- * It runs every 5 minutes.
  */
 export const cleanupVoiceRooms = onSchedule(
   {
@@ -138,11 +134,7 @@ export const cleanupVoiceRooms = onSchedule(
     try {
       await client.login(token);
       const guild = await client.guilds.fetch(guildId);
-
-      // Find all game rooms that have a discordChannelId
-      const roomsQuery = db
-        .collection('gameRooms')
-        .where('discordChannelId', '!=', null);
+      const roomsQuery = db.collection('gameRooms').where('discordChannelId', '!=', null);
       const roomsSnapshot = await roomsQuery.get();
 
       if (roomsSnapshot.empty) {
@@ -153,44 +145,25 @@ export const cleanupVoiceRooms = onSchedule(
       for (const doc of roomsSnapshot.docs) {
         const room = doc.data();
         const channelId = room.discordChannelId;
-
         try {
           const channel = await guild.channels.fetch(channelId);
 
-          // If channel doesn't exist on Discord, just delete the Firestore doc
-          if (!channel) {
-            console.log(
-              `Cleanup: Channel ${channelId} not found on Discord. Deleting room ${doc.id}.`
-            );
-            await doc.ref.delete();
+          if (!channel || channel.type !== ChannelType.GuildVoice) {
+            if(!channel) await doc.ref.delete();
             continue;
           }
-
-          // Ensure it's a voice channel
-          if (channel.type !== ChannelType.GuildVoice) continue;
-
-          // If the voice channel is empty, delete it and the Firestore document
+          
           const voiceChannel = channel as GuildVoiceChannel;
           if (voiceChannel.members.size === 0) {
             await voiceChannel.delete('Automatic cleanup: Empty room.');
             await doc.ref.delete();
-            console.log(
-              `Cleanup: Deleted empty room and channel ${doc.id} (${channelId})`
-            );
+            console.log(`Cleanup: Deleted empty room and channel ${doc.id} (${channelId})`);
           }
         } catch (err: any) {
-          // If error is "Unknown Channel", it was likely deleted manually.
-          if (err.code === 10003) {
-            // Discord API error code for Unknown Channel
-            console.log(
-              `Cleanup: Channel ${channelId} for room ${doc.id} already deleted. Deleting Firestore doc.`
-            );
+          if (err.code === 10003) { // Unknown Channel
             await doc.ref.delete();
           } else {
-            console.warn(
-              `Cleanup: Could not verify/delete channel ${channelId} for room ${doc.id}.`,
-              err
-            );
+            console.warn(`Cleanup: Could not process channel ${channelId} for room ${doc.id}.`, err);
           }
         }
       }
@@ -202,7 +175,6 @@ export const cleanupVoiceRooms = onSchedule(
   }
 );
 
-
 // --- FRIEND MANAGEMENT FUNCTIONS ---
 
 export const sendFriendRequest = onCall(async (request) => {
@@ -211,13 +183,15 @@ export const sendFriendRequest = onCall(async (request) => {
     const { to } = request.data;
     if (!to || uid === to) throw new HttpsError('invalid-argument', 'Invalid recipient ID.');
 
-    const batch = db.batch();
     const fromUserRef = db.collection('users').doc(uid);
     const toUserRef = db.collection('users').doc(to);
-
+    
     const [fromUserSnap, toUserSnap] = await Promise.all([fromUserRef.get(), toUserRef.get()]);
     if (!fromUserSnap.exists || !toUserSnap.exists) {
         throw new HttpsError('not-found', 'One or both users not found.');
+    }
+    if (fromUserSnap.data()?.friends?.includes(to)) {
+        throw new HttpsError("already-exists", "You are already friends with this user.");
     }
 
     const existingRequestQuery = db.collection('friendRequests')
@@ -230,6 +204,7 @@ export const sendFriendRequest = onCall(async (request) => {
         throw new HttpsError('already-exists', 'A pending friend request already exists.');
     }
 
+    const batch = db.batch();
     const requestRef = db.collection('friendRequests').doc();
     batch.set(requestRef, { from: uid, to, status: 'pending', createdAt: admin.firestore.FieldValue.serverTimestamp() });
 
@@ -254,6 +229,7 @@ export const respondToFriendRequest = onCall(async (request) => {
 
     const requestRef = db.collection('friendRequests').doc(requestId);
     const requestSnap = await requestRef.get();
+    
     if (!requestSnap.exists || requestSnap.data()?.to !== uid) {
         throw new HttpsError('not-found', 'Friend request not found or you are not the recipient.');
     }
@@ -283,7 +259,6 @@ export const respondToFriendRequest = onCall(async (request) => {
     await batch.commit();
     return { success: true, message: `Request ${accept ? 'accepted' : 'rejected'}.` };
 });
-
 
 export const removeFriend = onCall(async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -317,13 +292,13 @@ export const blockUser = onCall(async (request) => {
     if (!blockedUid || uid === blockedUid) throw new HttpsError('invalid-argument', 'Invalid user to block.');
 
     const currentUserRef = db.collection('users').doc(uid);
+    const otherUserRef = db.collection('users').doc(blockedUid);
 
     await db.runTransaction(async (transaction) => {
         transaction.update(currentUserRef, { 
             blocked: admin.firestore.FieldValue.arrayUnion(blockedUid),
             friends: admin.firestore.FieldValue.arrayRemove(blockedUid)
         });
-        const otherUserRef = db.collection('users').doc(blockedUid);
         transaction.update(otherUserRef, {
             friends: admin.firestore.FieldValue.arrayRemove(uid)
         });
@@ -331,7 +306,6 @@ export const blockUser = onCall(async (request) => {
 
     return { success: true, message: 'User has been blocked.' };
 });
-
 
 // --- MESSAGING FUNCTIONS ---
 
@@ -355,14 +329,12 @@ export const sendMessageToFriend = onCall(async (request) => {
     const messageRef = chatRef.collection('messages').doc();
 
     const timestamp = admin.firestore.FieldValue.serverTimestamp();
-
     const lastMessage = { content, sender: uid };
 
     const batch = db.batch();
     batch.set(chatRef, { members, lastMessageAt: timestamp, lastMessage }, { merge: true });
     batch.set(messageRef, { sender: uid, content, createdAt: timestamp });
     
-    // Notification for recipient
     const notificationRef = db.collection('inbox').doc(to).collection('notifications').doc();
     batch.set(notificationRef, {
         type: 'new_message',
@@ -396,71 +368,54 @@ export const deleteMessage = onCall(async (request) => {
 });
 
 export const deleteChatHistory = onCall(async (request) => {
-  if (!request.auth) {
-    throw new HttpsError('unauthenticated', 'User must be logged in.');
-  }
-  const { uid } = request.auth;
-  const { chatId } = request.data;
-  if (!chatId) {
-    throw new HttpsError('invalid-argument', 'Missing chat ID.');
-  }
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    const { uid } = request.auth;
+    const { chatId } = request.data;
+    if (!chatId) throw new HttpsError('invalid-argument', 'Missing chat ID.');
 
-  const chatRef = db.collection('chats').doc(chatId);
-  const chatSnap = await chatRef.get();
+    const chatRef = db.collection('chats').doc(chatId);
+    const chatSnap = await chatRef.get();
 
-  if (!chatSnap.exists()) {
-    throw new HttpsError('not-found', 'Chat not found.');
-  }
-
-  const chatData = chatSnap.data();
-  if (!chatData?.members.includes(uid)) {
-    throw new HttpsError(
-      'permission-denied',
-      'You are not a member of this chat.'
-    );
-  }
-
-  const messagesRef = chatRef.collection('messages');
-
-  try {
-    const batchSize = 400; // Well under the 500 limit for commits
-    
-    // This is the robust, paginated way to delete a subcollection
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const snapshot = await messagesRef.limit(batchSize).get();
-
-      // When there are no documents left, we are done
-      if (snapshot.size === 0) {
-        break;
-      }
-
-      // Delete documents in a batch
-      const batch = db.batch();
-      snapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-
-      // Wait for the batch to complete before the next iteration
-      await batch.commit();
+    if (!chatSnap.exists) {
+        throw new HttpsError('not-found', 'Chat not found.');
     }
 
-    // After deleting all messages, clean up the parent chat document.
-    await chatRef.update({
-      lastMessage: admin.firestore.FieldValue.delete(),
-      lastMessageAt: admin.firestore.FieldValue.delete(),
-    });
+    const chatData = chatSnap.data();
+    if (!chatData?.members.includes(uid)) {
+        throw new HttpsError('permission-denied', 'You are not a member of this chat.');
+    }
 
-    return { success: true, message: 'Chat history deleted.' };
-  } catch (error) {
-    console.error('Error during batched deletion of chat history:', error);
-    throw new HttpsError(
-      'internal',
-      'A problem occurred while deleting the chat history.'
-    );
-  }
+    const messagesRef = chatRef.collection('messages');
+    
+    try {
+        const batchSize = 400; // Well under the 500 limit for commits
+        
+        // This is the robust, paginated way to delete a subcollection
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const snapshot = await messagesRef.limit(batchSize).get();
+          if (snapshot.size === 0) {
+            break;
+          }
+          const batch = db.batch();
+          snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+          await batch.commit();
+        }
+
+        await chatRef.update({ 
+            lastMessage: admin.firestore.FieldValue.delete(),
+            lastMessageAt: admin.firestore.FieldValue.delete()
+        });
+
+        return { success: true, message: 'Chat history deleted.' };
+
+    } catch(error) {
+        console.error("Error during batched deletion of chat history:", error);
+        throw new HttpsError('internal', 'A problem occurred while deleting the chat history.');
+    }
 });
-
 
 // --- NOTIFICATION FUNCTIONS ---
 
