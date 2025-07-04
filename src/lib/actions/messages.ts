@@ -9,7 +9,7 @@ type ActionResponse = {
   message: string;
 };
 
-const functions = getFunctions(app, 'europe-west1');
+const functions = getFunctions(app);
 
 export async function deleteMessage({
   chatId,

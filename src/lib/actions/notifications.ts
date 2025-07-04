@@ -2,16 +2,15 @@
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { db, app } from '@/lib/firebase/client';
+import { db, app, auth } from '@/lib/firebase/client';
 import { doc, writeBatch, collection, getDocs } from 'firebase/firestore';
-import { useAuth } from '@/contexts/auth-context';
 
 type ActionResponse = {
   success: boolean;
   message: string;
 };
 
-const functions = getFunctions(app, 'europe-west1');
+const functions = getFunctions(app);
 
 // This action is special because it needs the current user's ID, but is called from a client component.
 // We get the UID via a hook inside the calling component and pass it here.
