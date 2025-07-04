@@ -30,22 +30,23 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
   const { name, game, description } = data;
 
   if (!uid) {
-    throw new HttpsError("unauthenticated", "You must be logged in.");
+    throw new HttpsError("unauthenticated", "You must be logged in to create a team.");
   }
   if (!name || !game) {
     throw new HttpsError("invalid-argument", "Team name and game are required.");
   }
 
-  const existingTeamQuery = db.collection('teams').where('founder', '==', uid).limit(1);
-  const existingTeamSnap = await existingTeamQuery.get();
-  if (!existingTeamSnap.empty) {
-    throw new HttpsError('already-exists', 'You can only be the founder of one team. Please delete your existing team if you wish to create a new one.');
-  }
-
-  const teamRef = db.collection("teams").doc();
   const userRef = db.collection('users').doc(uid);
 
   try {
+    // This is a more robust check. We directly check the user's role document.
+    const userDoc = await userRef.get();
+    if (userDoc.exists() && userDoc.data()?.role === 'founder') {
+      throw new HttpsError('already-exists', 'You can only be the founder of one team. Please delete your existing team if you wish to create a new one.');
+    }
+
+    const teamRef = db.collection("teams").doc();
+
     await db.runTransaction(async (transaction) => {
       transaction.set(teamRef, {
         id: teamRef.id,
@@ -75,8 +76,11 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
 
     return { success: true, teamId: teamRef.id, message: 'Team created successfully!' };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating team:", error);
+    if (error instanceof HttpsError) {
+      throw error;
+    }
     throw new HttpsError('internal', 'An error occurred while creating the team.');
   }
 });
