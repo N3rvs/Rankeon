@@ -36,7 +36,6 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     throw new HttpsError("invalid-argument", "Team name and game are required.");
   }
 
-  // Check if user already founded a team
   const existingTeamQuery = db.collection('teams').where('founder', '==', uid).limit(1);
   const existingTeamSnap = await existingTeamQuery.get();
   if (!existingTeamSnap.empty) {
@@ -46,32 +45,40 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
   const teamRef = db.collection("teams").doc();
   const userRef = db.collection('users').doc(uid);
 
-  await db.runTransaction(async (transaction) => {
-    transaction.set(teamRef, {
-      id: teamRef.id,
-      name,
-      game,
-      description: description || '',
-      avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0,2)}`,
-      bannerUrl: 'https://placehold.co/1200x400.png',
-      founder: uid,
-      memberIds: [uid],
-      lookingForPlayers: false,
-      recruitingRoles: [],
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  try {
+    await db.runTransaction(async (transaction) => {
+      transaction.set(teamRef, {
+        id: teamRef.id,
+        name,
+        game,
+        description: description || '',
+        avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0,2)}`,
+        bannerUrl: 'https://placehold.co/1200x400.png',
+        founder: uid,
+        memberIds: [uid],
+        lookingForPlayers: false,
+        recruitingRoles: [],
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      const memberRef = teamRef.collection("members").doc(uid);
+      transaction.set(memberRef, {
+        role: "founder",
+        joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      transaction.update(userRef, { role: 'founder' });
     });
 
-    const memberRef = teamRef.collection("members").doc(uid);
-    transaction.set(memberRef, {
-      role: "founder",
-      joinedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    const userToUpdate = await admin.auth().getUser(uid);
+    const existingClaims = userToUpdate.customClaims || {};
+    await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
 
-    // Update the user's global role to 'founder'
-    transaction.update(userRef, { role: 'founder' });
-  });
-
-  return { success: true, teamId: teamRef.id, message: 'Team created successfully!' };
+    return { success: true, teamId: teamRef.id, message: 'Team created successfully!' };
+  } catch (error) {
+    console.error("Error creating team:", error);
+    throw new HttpsError('internal', 'An error occurred while creating the team.');
+  }
 });
 
 export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: { teamId: string } }) => {
@@ -84,32 +91,42 @@ export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: { te
 
     const teamRef = db.collection("teams").doc(teamId);
     
-    return db.runTransaction(async (transaction) => {
-        const teamDoc = await transaction.get(teamRef);
-        if (!teamDoc.exists) {
-            throw new HttpsError("not-found", "Team not found.");
-        }
-        const teamData = teamDoc.data();
-        if (teamData?.founder !== uid) {
-            throw new HttpsError("permission-denied", "Only the team founder can delete the team.");
-        }
+    try {
+        await db.runTransaction(async (transaction) => {
+            const teamDoc = await transaction.get(teamRef);
+            if (!teamDoc.exists) {
+                throw new HttpsError("not-found", "Team not found.");
+            }
+            const teamData = teamDoc.data();
+            if (teamData?.founder !== uid) {
+                throw new HttpsError("permission-denied", "Only the team founder can delete the team.");
+            }
 
-        // Delete all members in the subcollection. This is not transactional for the read, but the deletes are.
-        const membersRef = teamRef.collection("members");
-        const membersSnapshot = await membersRef.get();
-        membersSnapshot.forEach(doc => transaction.delete(doc.ref));
+            const memberIds: string[] = teamData.memberIds || [];
+            
+            for (const memberId of memberIds) {
+                const memberRef = db.doc(`teams/${teamId}/members/${memberId}`);
+                transaction.delete(memberRef);
+            }
 
-        // TODO: In a real app, delete other subcollections like 'invitations', 'scrims' chats, etc.
+            transaction.delete(teamRef);
 
-        // Delete the main team document
-        transaction.delete(teamRef);
+            const userRef = db.collection('users').doc(uid);
+            transaction.update(userRef, { role: 'player' });
+        });
 
-        // Revert the user's role to 'player'
-        const userRef = db.collection('users').doc(uid);
-        transaction.update(userRef, { role: 'player' });
+        const userToUpdate = await admin.auth().getUser(uid);
+        const existingClaims = userToUpdate.customClaims || {};
+        await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'player' });
 
         return { success: true, message: "Team deleted successfully." };
-    });
+    } catch(error: any) {
+        console.error("Error deleting team:", error);
+        if (error instanceof HttpsError) {
+          throw error;
+        }
+        throw new HttpsError('internal', 'An unexpected error occurred during team deletion.');
+    }
 });
 
 export const acceptTeamInvitation = onCall(async ({ auth, data }: { auth?: any, data: AcceptTeamInvitationData }) => {
