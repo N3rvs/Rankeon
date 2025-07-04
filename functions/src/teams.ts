@@ -41,7 +41,7 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
   try {
     // This is a more robust check. We directly check the user's role document.
     const userDoc = await userRef.get();
-    if (userDoc.exists() && userDoc.data()?.role === 'founder') {
+    if (userDoc.exists && userDoc.data()?.role === 'founder') {
       throw new HttpsError('already-exists', 'You can only be the founder of one team. Please delete your existing team if you wish to create a new one.');
     }
 
