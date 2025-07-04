@@ -42,6 +42,7 @@ export function NotificationItem({
   const { toast } = useToast();
   const router = useRouter();
   const [isResponding, startResponding] = useTransition();
+  const [isClearing, startClearing] = useTransition();
   const [isActionTaken, setIsActionTaken] = useState(false);
   const [fromUser, setFromUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -150,9 +151,14 @@ export function NotificationItem({
     });
   };
   
-  const handleNavigate = (path: string) => {
-    router.push(path);
-  }
+  const handleNavigateAndClear = (path: string) => {
+    startClearing(async () => {
+        if (!notification.read) {
+            await clearNotificationHistory([notification.id]);
+        }
+        router.push(path);
+    });
+  };
 
   const getNotificationDetails = () => {
     const name = fromUser?.name || fromUser?.email?.split('@')[0] || 'Someone';
@@ -271,10 +277,12 @@ export function NotificationItem({
                   className="h-7 px-2"
                   onClick={(e) => {
                       e.stopPropagation();
-                      handleNavigate('/messages');
+                      handleNavigateAndClear('/messages');
                   }}
+                  disabled={isClearing}
               >
-                  <MessageSquare className="h-4 w-4 mr-1" /> View Chat
+                  <MessageSquare className="h-4 w-4 mr-1" />
+                  {isClearing ? "Loading..." : "View Chat"}
               </Button>
           </div>
         )}
