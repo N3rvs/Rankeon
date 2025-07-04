@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditProfileDialog } from "@/components/profile/edit-profile-dialog";
+import { ListX } from "lucide-react";
+import { BlockedUsersList } from "@/components/profile/blocked-users-list";
 
 export default function ProfilePage() {
     const { userProfile, loading } = useAuth();
@@ -80,6 +82,21 @@ export default function ProfilePage() {
                             </div>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-3">
+                        <ListX className="h-6 w-6 text-muted-foreground" />
+                        <div>
+                            <CardTitle className="font-headline text-2xl">Blocked Users</CardTitle>
+                            <CardDescription>Manage users you have blocked.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <BlockedUsersList blockedIds={user.blocked || []} />
                 </CardContent>
             </Card>
         </div>

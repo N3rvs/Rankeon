@@ -18,6 +18,10 @@ interface BlockUserData {
   blockedUid: string;
 }
 
+interface UnblockUserData {
+  blockedUid: string;
+}
+
 export const addInboxNotification = onCall(async ({ auth, data }: { auth?: any, data: AddInboxNotificationData }) => {
   const uid = auth?.uid;
   const { to, type, extraData } = data;
@@ -84,4 +88,21 @@ export const blockUser = onCall(async ({ auth, data }: { auth?: any, data: Block
   });
 
   return { success: true, message: "User blocked successfully." };
+});
+
+export const unblockUser = onCall(async ({ auth, data }: { auth?: any, data: UnblockUserData }) => {
+  const uid = auth?.uid;
+  const { blockedUid } = data;
+
+  if (!uid || !blockedUid) {
+    throw new HttpsError("invalid-argument", "User ID required.");
+  }
+
+  const currentUserRef = db.doc(`users/${uid}`);
+  
+  await currentUserRef.update({
+      blocked: admin.firestore.FieldValue.arrayRemove(blockedUid)
+  });
+
+  return { success: true, message: "User unblocked successfully." };
 });

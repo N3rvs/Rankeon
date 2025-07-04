@@ -65,3 +65,17 @@ export async function blockUser(userId: string): Promise<ActionResponse> {
     };
   }
 }
+
+export async function unblockUser(userId: string): Promise<ActionResponse> {
+  try {
+    const unblock = httpsCallable(functions, 'unblockUser');
+    await unblock({ blockedUid: userId });
+    return { success: true, message: 'User unblocked.' };
+  } catch (error: any) {
+    console.error('Error unblocking user:', error);
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
+  }
+}

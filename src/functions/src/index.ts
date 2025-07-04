@@ -13,7 +13,7 @@ import {
   kickUserFromTeam,
   changeUserRole
 } from './teams';
-import { addInboxNotification, deleteInboxNotification, blockUser } from './notifications';
+import { addInboxNotification, deleteInboxNotification, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
 
 export {
@@ -29,5 +29,6 @@ export {
   addInboxNotification,
   deleteInboxNotification,
   blockUser,
+  unblockUser,
   cleanUpOldData,
 };
