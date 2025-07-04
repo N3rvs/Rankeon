@@ -85,7 +85,7 @@ export default function MessagesPage() {
         return () => {
             chatUnsubscribes.forEach(unsub => unsub());
         };
-    }, [user, userProfile?.friends?.join(',')]); // Depend on joined string of friends to refetch if friends change
+    }, [user, userProfile]); 
 
     // Sort friends by last message time
     const sortedFriends = [...friends].sort((a, b) => {
