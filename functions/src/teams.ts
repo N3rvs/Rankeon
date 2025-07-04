@@ -132,7 +132,7 @@ interface DeleteTeamData {
     teamId: string;
 }
 
-export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: DeleteTeamData }) => {
+export const deleteTeamV2 = onCall(async ({ auth, data }: { auth?: any, data: DeleteTeamData }) => {
     const uid = auth?.uid;
     const { teamId } = data;
 

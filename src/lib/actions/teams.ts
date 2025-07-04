@@ -69,14 +69,14 @@ export async function updateTeam(values: UpdateTeamData): Promise<ActionResponse
   }
 }
 
-export async function deleteTeam(values: { teamId: string }): Promise<ActionResponse> {
+export async function deleteTeamV2(values: { teamId: string }): Promise<ActionResponse> {
     try {
         const validatedFields = DeleteTeamSchema.safeParse(values);
         if (!validatedFields.success) {
             return { success: false, message: 'ID de equipo no válido.' };
         }
 
-        const deleteTeamFunc = httpsCallable(functions, 'deleteTeam');
+        const deleteTeamFunc = httpsCallable(functions, 'deleteTeamV2');
         const result = await deleteTeamFunc(validatedFields.data);
 
         return result.data as ActionResponse;
