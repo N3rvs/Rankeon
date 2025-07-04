@@ -18,6 +18,7 @@ export interface UserProfile {
   createdAt?: Timestamp;
   blocked?: string[]; // Array of user IDs
   friends?: string[]; // Array of friend UIDs
+  isCertifiedStreamer?: boolean;
 }
 
 export interface Team {

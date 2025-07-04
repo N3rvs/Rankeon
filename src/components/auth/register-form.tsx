@@ -54,6 +54,7 @@ export function RegisterForm() {
         lookingForTeam: false,
         country: '',
         disabled: false,
+        isCertifiedStreamer: false,
         createdAt: serverTimestamp(),
       });
 

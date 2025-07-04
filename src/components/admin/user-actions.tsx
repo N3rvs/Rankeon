@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, Edit, UserCheck, UserX } from 'lucide-react';
+import { MoreHorizontal, Edit, UserCheck, UserX, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
-import { updateUserStatus } from '@/lib/actions/users';
+import { updateUserStatus, updateUserCertification } from '@/lib/actions/users';
 import { useAuth } from '@/contexts/auth-context';
 import { EditProfileDialog } from '../profile/edit-profile-dialog';
 
@@ -37,7 +37,8 @@ export function UserActions({ user }: UserActionsProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isBanAlertOpen, setIsBanAlertOpen] = useState(false);
+  const [isCertifyAlertOpen, setIsCertifyAlertOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleBanToggle = () => {
@@ -55,7 +56,26 @@ export function UserActions({ user }: UserActionsProps) {
           variant: 'destructive',
         });
       }
-      setIsAlertOpen(false);
+      setIsBanAlertOpen(false);
+    });
+  };
+
+  const handleCertificationToggle = () => {
+    startTransition(async () => {
+      const result = await updateUserCertification({ uid: user.id, isCertified: !user.isCertifiedStreamer });
+      if (result.success) {
+        toast({
+          title: 'Success',
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message,
+          variant: 'destructive',
+        });
+      }
+      setIsCertifyAlertOpen(false);
     });
   };
 
@@ -63,7 +83,7 @@ export function UserActions({ user }: UserActionsProps) {
     <>
       <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
       
-      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+      <AlertDialog open={isBanAlertOpen} onOpenChange={setIsBanAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -75,6 +95,23 @@ export function UserActions({ user }: UserActionsProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleBanToggle} disabled={isPending} className={user.disabled ? '' : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'}>
               {isPending ? 'Processing...' : `Yes, ${user.disabled ? 'Unban' : 'Ban'} User`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isCertifyAlertOpen} onOpenChange={setIsCertifyAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Action</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will {user.isCertifiedStreamer ? 'remove the certification from' : 'certify'} this user as a streamer, allowing them to propose tournaments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCertificationToggle} disabled={isPending}>
+              {isPending ? 'Processing...' : `Yes, ${user.isCertifiedStreamer ? 'Remove Certification' : 'Certify User'}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -93,8 +130,12 @@ export function UserActions({ user }: UserActionsProps) {
              <Edit className="mr-2 h-4 w-4" />
             <span>Edit Profile</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setIsCertifyAlertOpen(true)}>
+            <Award className="mr-2 h-4 w-4" />
+            <span>{user.isCertifiedStreamer ? 'Remove Certification' : 'Certify Streamer'}</span>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setIsAlertOpen(true)} className={user.disabled ? "text-green-600 focus:text-green-700" : "text-destructive focus:text-destructive"}>
+          <DropdownMenuItem onSelect={() => setIsBanAlertOpen(true)} className={user.disabled ? "text-green-600 focus:text-green-700" : "text-destructive focus:text-destructive"}>
             {user.disabled ? <UserCheck className="mr-2 h-4 w-4" /> : <UserX className="mr-2 h-4 w-4" />}
             <span>{user.disabled ? 'Unban' : 'Ban'} User</span>
           </DropdownMenuItem>

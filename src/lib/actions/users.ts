@@ -63,3 +63,34 @@ export async function updateUserStatus({
     return { success: false, message: `Failed to update user status: ${error.message}` };
   }
 }
+
+export async function updateUserCertification({
+  uid,
+  isCertified,
+}: {
+  uid: string;
+  isCertified: boolean;
+}): Promise<{ success: boolean; message: string }> {
+  if (!uid) {
+    return { success: false, message: 'User ID is required.' };
+  }
+
+  try {
+    const { adminAuth, adminDb } = getAdminInstances();
+    const userToUpdate = await adminAuth.getUser(uid);
+    const existingClaims = userToUpdate.customClaims || {};
+
+    await adminAuth.setCustomUserClaims(uid, { ...existingClaims, isCertifiedStreamer: isCertified });
+    await adminDb.collection('users').doc(uid).update({ isCertifiedStreamer: isCertified });
+
+    revalidatePath('/admin');
+    
+    return {
+      success: true,
+      message: `User certification status updated successfully.`,
+    };
+  } catch (error: any) {
+    console.error('❌ Error updating user certification:', error);
+    return { success: false, message: `Failed to update certification: ${error.message}` };
+  }
+}

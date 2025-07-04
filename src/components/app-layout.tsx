@@ -25,6 +25,7 @@ import {
   Users,
   Store,
   Swords,
+  Trophy,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -155,6 +156,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/scrims">
                   <Swords />
                   <span>Scrims</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/tournaments')}
+                tooltip="Tournaments"
+                size="lg"
+              >
+                <Link href="/tournaments">
+                  <Trophy />
+                  <span>Tournaments</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

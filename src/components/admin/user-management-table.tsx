@@ -20,6 +20,7 @@ import { Badge } from '../ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { UserActions } from './user-actions';
 import { useAuth } from '@/contexts/auth-context';
+import { Award } from 'lucide-react';
 
 export function UserManagementTable() {
   const { user: currentUser } = useAuth();
@@ -87,6 +88,7 @@ export function UserManagementTable() {
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Certified</TableHead>
               <TableHead>Country</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead>Status</TableHead>
@@ -112,6 +114,13 @@ export function UserManagementTable() {
                   <TableCell>
                     <Badge variant="secondary" className="capitalize">{user.role}</Badge>
                   </TableCell>
+                   <TableCell>
+                    {user.isCertifiedStreamer && (
+                      <div className="flex justify-center">
+                        <Award className="h-5 w-5 text-amber-400" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell>{user.country || 'N/A'}</TableCell>
                   <TableCell>
                     {user.createdAt ? formatDistanceToNow(user.createdAt.toDate(), { addSuffix: true }) : 'N/A'}
@@ -128,7 +137,7 @@ export function UserManagementTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No users found.
                 </TableCell>
               </TableRow>
