@@ -18,6 +18,8 @@ import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom } from './rooms';
 import { createScrim, acceptScrim, cancelScrim } from './scrims';
 import { proposeTournament } from './tournaments';
+import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
+import { grantFirstAdminRole } from './admin';
 
 export {
   deleteChatHistory,
@@ -40,5 +42,9 @@ export {
   createScrim,
   acceptScrim,
   cancelScrim,
-  proposeTournament
+  proposeTournament,
+  updateUserRole,
+  updateUserStatus,
+  updateUserCertification,
+  grantFirstAdminRole
 };

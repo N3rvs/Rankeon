@@ -1,37 +1,30 @@
-'use server';
+'use client';
 
-import { getAdminInstances } from '@/lib/firebase/admin';
-import { revalidatePath } from 'next/cache';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from '../firebase/client';
 import type { UserRole } from '../types';
+
+const functions = getFunctions(app);
+
+type ActionResponse = {
+  success: boolean;
+  message: string;
+};
 
 export async function updateUserRole({
   uid,
   role,
 }: {
   uid: string;
-  role: string;
-}): Promise<{ success: boolean; message: string }> {
-  const validRoles: UserRole[] = ['admin', 'moderator', 'founder', 'coach', 'player'];
-
-  if (!uid || !role || !validRoles.includes(role as UserRole)) {
-    return { success: false, message: 'Invalid arguments.' };
-  }
-  
+  role: UserRole;
+}): Promise<ActionResponse> {
   try {
-    const { adminAuth, adminDb } = getAdminInstances();
-    const userToUpdate = await adminAuth.getUser(uid);
-    const existingClaims = userToUpdate.customClaims || {};
-
-    await adminAuth.setCustomUserClaims(uid, { ...existingClaims, role });
-    await adminDb.collection('users').doc(uid).set({ role }, { merge: true });
-
-    revalidatePath('/profile'); // Invalidate cache for the profile page
-    revalidatePath('/admin');
-    
-    return { success: true, message: `Role "${role}" assigned to user ${uid}` };
+    const updateUserRoleFunc = httpsCallable(functions, 'updateUserRole');
+    const result = await updateUserRoleFunc({ uid, role });
+    return (result.data as ActionResponse);
   } catch (error: any) {
-    console.error('❌ Error updating role:', error);
-    return { success: false, message: `Failed to update role: ${error.message}` };
+    console.error('Error updating user role:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
 
@@ -41,26 +34,14 @@ export async function updateUserStatus({
 }: {
   uid: string;
   disabled: boolean;
-}): Promise<{ success: boolean; message: string }> {
-  if (!uid) {
-    return { success: false, message: 'User ID is required.' };
-  }
-
+}): Promise<ActionResponse> {
   try {
-    const { adminAuth, adminDb } = getAdminInstances();
-    
-    await adminAuth.updateUser(uid, { disabled });
-    await adminDb.collection('users').doc(uid).update({ disabled });
-
-    revalidatePath('/admin');
-
-    return {
-      success: true,
-      message: `User ${disabled ? 'banned' : 'unbanned'} successfully.`,
-    };
+    const updateUserStatusFunc = httpsCallable(functions, 'updateUserStatus');
+    const result = await updateUserStatusFunc({ uid, disabled });
+    return (result.data as ActionResponse);
   } catch (error: any) {
-    console.error('❌ Error updating user status:', error);
-    return { success: false, message: `Failed to update user status: ${error.message}` };
+    console.error('Error updating user status:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
 
@@ -70,27 +51,13 @@ export async function updateUserCertification({
 }: {
   uid: string;
   isCertified: boolean;
-}): Promise<{ success: boolean; message: string }> {
-  if (!uid) {
-    return { success: false, message: 'User ID is required.' };
-  }
-
+}): Promise<ActionResponse> {
   try {
-    const { adminAuth, adminDb } = getAdminInstances();
-    const userToUpdate = await adminAuth.getUser(uid);
-    const existingClaims = userToUpdate.customClaims || {};
-
-    await adminAuth.setCustomUserClaims(uid, { ...existingClaims, isCertifiedStreamer: isCertified });
-    await adminDb.collection('users').doc(uid).update({ isCertifiedStreamer: isCertified });
-
-    revalidatePath('/admin');
-    
-    return {
-      success: true,
-      message: `User certification status updated successfully.`,
-    };
+    const updateUserCertificationFunc = httpsCallable(functions, 'updateUserCertification');
+    const result = await updateUserCertificationFunc({ uid, isCertified });
+    return (result.data as ActionResponse);
   } catch (error: any) {
-    console.error('❌ Error updating user certification:', error);
-    return { success: false, message: `Failed to update certification: ${error.message}` };
+    console.error('Error updating user certification:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }

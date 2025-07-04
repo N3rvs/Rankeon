@@ -1,45 +1,23 @@
-'use server';
+'use client';
 
-import { getAdminInstances } from '@/lib/firebase/admin';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from '../firebase/client';
 
-export async function grantFirstAdminRole(
-  token: string
-): Promise<{ success: boolean; message: string }> {
-  if (!token) {
-    return { success: false, message: 'Authentication token is missing.' };
-  }
+const functions = getFunctions(app);
 
+export async function grantFirstAdminRole(): Promise<{
+  success: boolean;
+  message: string;
+}> {
   try {
-    const { adminAuth, adminDb } = getAdminInstances();
-
-    const decodedToken = await adminAuth.verifyIdToken(token);
-    const uid = decodedToken.uid;
-
-    const listUsersResult = await adminAuth.listUsers(1000);
-    const existingAdmin = listUsersResult.users.find(
-      (user) => user.customClaims?.role === 'admin'
-    );
-
-    if (existingAdmin) {
-      return {
-        success: false,
-        message: 'Ya existe un usuario administrador. Esta acción solo se puede realizar una vez.',
-      };
-    }
-
-    await adminAuth.setCustomUserClaims(uid, { role: 'admin' });
-
-    await adminDb.collection('users').doc(uid).set({ role: 'admin' }, { merge: true });
-
-    return {
-      success: true,
-      message: 'Rol de administrador asignado. Por favor, cierra sesión y vuelve a iniciar sesión para aplicar los cambios.',
-    };
+    const func = httpsCallable(functions, 'grantFirstAdminRole');
+    const result = await func();
+    return (result.data as { success: boolean; message: string });
   } catch (error: any) {
-    console.error('Error in grantFirstAdminRole:', error);
+    console.error('Error granting first admin role:', error);
     return {
       success: false,
-      message: `Ocurrió un error inesperado: ${error.message}`,
+      message: error.message || 'An unexpected error occurred.',
     };
   }
 }
