@@ -36,17 +36,15 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     throw new HttpsError("invalid-argument", "Team name and game are required.");
   }
 
-  const userRef = db.collection('users').doc(uid);
+  // This is the most robust check. It looks at the custom claims on the user's auth token.
+  if (auth?.token.role === 'founder') {
+    throw new HttpsError('already-exists', 'You can only be the founder of one team. Please delete your existing team if you wish to create a new one.');
+  }
+
+  const teamRef = db.collection("teams").doc();
+  const userRef = db.collection("users").doc(uid);
 
   try {
-    // This is a more robust check. We directly check the user's role document.
-    const userDoc = await userRef.get();
-    if (userDoc.exists && userDoc.data()?.role === 'founder') {
-      throw new HttpsError('already-exists', 'You can only be the founder of one team. Please delete your existing team if you wish to create a new one.');
-    }
-
-    const teamRef = db.collection("teams").doc();
-
     await db.runTransaction(async (transaction) => {
       transaction.set(teamRef, {
         id: teamRef.id,
