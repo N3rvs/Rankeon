@@ -46,10 +46,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     let unsubscribe: Unsubscribe | undefined;
 
     if (user) {
+      // The "Friends" tab notification should reflect all friend-related activity.
+      const relevantNotificationTypes = ['new_message', 'friend_request', 'friend_accepted'];
       const q = query(
         collection(db, 'inbox', user.uid, 'notifications'),
         where('read', '==', false),
-        where('type', '==', 'new_message')
+        where('type', 'in', relevantNotificationTypes)
       );
 
       unsubscribe = onSnapshot(q, (snapshot) => {

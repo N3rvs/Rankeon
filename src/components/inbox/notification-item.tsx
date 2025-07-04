@@ -130,6 +130,8 @@ export function NotificationItem({
                 title: 'Success',
                 description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
             });
+            // Clean up the notification now that it's been handled
+            await clearNotificationHistory([notification.id]);
         } else {
              if (result.message.includes('not-found') || result.message.includes('resolved')) {
                toast({
