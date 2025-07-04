@@ -10,6 +10,7 @@ import { sendFriendRequest, respondToFriendRequest, removeFriend } from './frien
 import { addInboxNotification, deleteInboxNotification, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom } from './rooms';
+import { createTeam } from './teams';
 import { proposeTournament } from './tournaments';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
 import { grantFirstAdminRole } from './admin';
@@ -28,6 +29,7 @@ export {
   createGameRoomWithDiscord,
   joinRoom,
   leaveRoom,
+  createTeam,
   proposeTournament,
   updateUserRole,
   updateUserStatus,

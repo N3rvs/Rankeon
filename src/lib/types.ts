@@ -1,7 +1,7 @@
 // src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 
-export type UserRole = 'admin' | 'moderator' | 'player';
+export type UserRole = 'admin' | 'moderator' | 'player' | 'founder';
 
 export interface UserProfile {
   id: string;
@@ -19,6 +19,25 @@ export interface UserProfile {
   blocked?: string[]; // Array of user IDs
   friends?: string[]; // Array of friend UIDs
   isCertifiedStreamer?: boolean;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  game: string;
+  avatarUrl: string;
+  bannerUrl: string;
+  founder: string; // UID of the founder
+  memberIds: string[]; // UIDs of all members
+  lookingForPlayers: boolean;
+  recruitingRoles: string[];
+  description: string;
+  createdAt: Timestamp;
+}
+
+export interface TeamMember {
+  role: 'founder' | 'coach' | 'member';
+  joinedAt: Timestamp;
 }
 
 export interface ChatMessage {

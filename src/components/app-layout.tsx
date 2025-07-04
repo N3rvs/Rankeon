@@ -150,6 +150,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
+                isActive={isActive('/teams')}
+                tooltip="Mi Equipo"
+                size="lg"
+              >
+                <Link href="/teams">
+                  <Swords />
+                  <span>Mi Equipo</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
                 isActive={isActive('/messages')}
                 tooltip="Friends"
                  size="lg"
