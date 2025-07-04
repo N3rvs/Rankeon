@@ -1,4 +1,3 @@
-
 // 📁 functions/teams.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -22,29 +21,47 @@ interface KickUserData {
 
 interface CreateTeamData {
   name: string;
+  game: string;
+  description?: string;
 }
 
 export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: CreateTeamData }) => {
   const uid = auth?.uid;
-  const { name } = data;
+  const { name, game, description } = data;
 
-  if (!uid) throw new HttpsError("unauthenticated", "You must be logged in.");
-  if (!name) throw new HttpsError("invalid-argument", "Team name is required.");
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+  if (!name || !game) {
+    throw new HttpsError("invalid-argument", "Team name and game are required.");
+  }
+
+  const userDoc = await db.collection('users').doc(uid).get();
+  if (!userDoc.exists) {
+      throw new HttpsError("not-found", "User profile not found.");
+  }
+  const userProfile = userDoc.data()!;
+  const allowedRoles = ['admin', 'moderator', 'founder'];
+  if (!allowedRoles.includes(userProfile.role)) {
+      throw new HttpsError("permission-denied", "You do not have permission to create a team.");
+  }
 
   const teamRef = db.collection("teams").doc();
 
   await db.runTransaction(async (transaction) => {
-    // 1. Create the team document
     transaction.set(teamRef, {
       id: teamRef.id,
       name,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      game,
+      description: description || '',
+      avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0,2)}`,
       founder: uid,
-      memberIds: [uid], // Add the founder to the memberIds array
-      avatarUrl: `https://placehold.co/100x100.png?text=${name.charAt(0)}`,
+      memberIds: [uid],
+      lookingForPlayers: false,
+      recruitingRoles: [],
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // 2. Create the member subdocument for the founder
     const memberRef = teamRef.collection("members").doc(uid);
     transaction.set(memberRef, {
       role: "founder",
@@ -52,7 +69,7 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     });
   });
 
-  return { success: true, teamId: teamRef.id };
+  return { success: true, teamId: teamRef.id, message: 'Team created successfully!' };
 });
 
 export const acceptTeamInvitation = onCall(async ({ auth, data }: { auth?: any, data: AcceptTeamInvitationData }) => {
@@ -75,7 +92,6 @@ export const acceptTeamInvitation = onCall(async ({ auth, data }: { auth?: any, 
       throw new HttpsError("failed-precondition", "No invitation found.");
     }
     
-    // Perform all writes in the transaction
     transaction.delete(invitationRef);
     transaction.set(memberRef, {
       role: "member",
@@ -110,7 +126,6 @@ export const kickUserFromTeam = onCall(async ({ auth, data }: { auth?: any, data
       throw new HttpsError("permission-denied", "Only the founder can kick members.");
     }
     
-    // Perform all writes in the transaction
     transaction.delete(targetMemberRef);
     transaction.update(teamRef, {
       memberIds: admin.firestore.FieldValue.arrayRemove(targetUid)

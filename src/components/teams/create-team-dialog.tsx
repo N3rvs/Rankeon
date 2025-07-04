@@ -12,7 +12,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle } from 'lucide-react';
 import { createTeam } from '@/lib/actions/teams';
-import { useAuth } from '@/contexts/auth-context';
 
 const formSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50, 'El nombre debe tener menos de 50 caracteres.'),
@@ -22,7 +21,6 @@ const formSchema = z.object({
 
 export function CreateTeamDialog() {
   const { toast } = useToast();
-  const { token } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -37,7 +35,7 @@ export function CreateTeamDialog() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
-      const result = await createTeam(values, token);
+      const result = await createTeam(values);
       if (result.success) {
         toast({
           title: '¡Equipo Creado!',
