@@ -5,6 +5,9 @@ import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
+// =============================================
+// CREATE TEAM
+// =============================================
 interface CreateTeamData {
   name: string;
   game: string;
@@ -22,7 +25,7 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     throw new HttpsError("invalid-argument", "El nombre del equipo y el juego son obligatorios.");
   }
 
-  // This is the most robust check. It looks at the custom claims on the user's auth token.
+  // Double-check with token claims first for a quick exit.
   if (auth?.token.role === 'founder') {
     throw new HttpsError('already-exists', 'Solo puedes ser fundador de un equipo. Borra tu equipo actual si deseas crear uno nuevo.');
   }
@@ -31,15 +34,15 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
   const userRef = db.collection("users").doc(uid);
 
   try {
+    // Use a transaction to ensure atomicity.
     await db.runTransaction(async (transaction) => {
-      // First, read the user's current role from Firestore inside the transaction
-      // This is the ultimate guard against race conditions.
+      // The most definitive check: read the user's role from Firestore inside the transaction.
       const userDoc = await transaction.get(userRef);
       if (userDoc.data()?.role === 'founder') {
-        throw new HttpsError('already-exists', 'Ya eres fundador de otro equipo.');
+        throw new HttpsError('already-exists', 'Ya eres fundador de otro equipo. Esta transacción ha sido cancelada para evitar duplicados.');
       }
       
-      // Set the team document
+      // 1. Create the team document
       transaction.set(teamRef, {
         id: teamRef.id,
         name,
@@ -48,24 +51,24 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
         avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0,2)}`,
         bannerUrl: 'https://placehold.co/1200x400.png',
         founder: uid,
-        memberIds: [uid],
+        memberIds: [uid], // Start with the founder as a member
         lookingForPlayers: false,
-        recruitingRoles: [],
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Set the member subcollection document
+      // 2. Create the member document in the subcollection
       const memberRef = teamRef.collection("members").doc(uid);
       transaction.set(memberRef, {
         role: "founder",
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
       
-      // Update the user's role in their Firestore document
+      // 3. Update the user's role in their Firestore document
       transaction.update(userRef, { role: 'founder' });
     });
 
-    // After the transaction succeeds, update the custom claims
+    // AFTER the transaction succeeds, update the custom claims.
+    // This cannot be part of the transaction.
     const userToUpdate = await admin.auth().getUser(uid);
     const existingClaims = userToUpdate.customClaims || {};
     await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
@@ -76,10 +79,14 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     if (error instanceof HttpsError) {
       throw error;
     }
-    throw new HttpsError('internal', 'Ocurrió un error inesperado al crear el equipo.');
+    throw new HttpsError('internal', 'Ocurrió un error inesperado al crear el equipo. Revisa los logs de la función.');
   }
 });
 
+
+// =============================================
+// UPDATE TEAM
+// =============================================
 interface UpdateTeamData {
   teamId: string;
   name: string;
@@ -109,6 +116,7 @@ export const updateTeam = onCall(async ({ auth, data }: { auth?: any, data: Upda
             throw new HttpsError("permission-denied", "Solo el fundador puede editar el equipo.");
         }
 
+        // Simple update, no transaction needed unless more complex logic is added.
         await teamRef.update({
             name,
             description: description || '',
@@ -121,10 +129,14 @@ export const updateTeam = onCall(async ({ auth, data }: { auth?: any, data: Upda
         if (error instanceof HttpsError) {
             throw error;
         }
-        throw new HttpsError("internal", "No se pudo actualizar el equipo.");
+        throw new HttpsError("internal", "No se pudo actualizar el equipo. Revisa los logs de la función.");
     }
 });
 
+
+// =============================================
+// DELETE TEAM
+// =============================================
 interface DeleteTeamData {
     teamId: string;
 }
@@ -143,24 +155,33 @@ export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: Dele
     return db.runTransaction(async (transaction) => {
         const teamDoc = await transaction.get(teamRef);
         if (!teamDoc.exists) {
-            throw new HttpsError("not-found", "El equipo no se encontró. Es posible que ya haya sido eliminado.");
+            console.log(`Team ${teamId} not found, likely already deleted. Proceeding with user role cleanup.`);
+        } else {
+            if (teamDoc.data()?.founder !== uid) {
+                throw new HttpsError("permission-denied", "Solo el fundador del equipo puede eliminarlo.");
+            }
+
+            // 1. Delete the founder's member document. For a full cleanup, one would need a separate function
+            // to iterate and delete all members, but this handles the required case.
+            const memberRef = teamRef.collection("members").doc(uid);
+            transaction.delete(memberRef);
+            
+            // 2. Atomically delete the team document itself
+            transaction.delete(teamRef);
         }
 
-        if (teamDoc.data()?.founder !== uid) {
-            throw new HttpsError("permission-denied", "Solo el fundador del equipo puede eliminarlo.");
-        }
-
-        // Atomically delete the team and update the user's role in Firestore
-        transaction.delete(teamRef);
+        // 3. Update the user's role in their Firestore document
         transaction.update(userRef, { role: "player" });
         
         return { success: true };
     }).then(async () => {
-        // This part runs AFTER the transaction successfully commits.
-        // Now, update the custom auth claims.
+        // AFTER the transaction successfully commits, update the custom auth claims.
         const userToUpdate = await admin.auth().getUser(uid);
         const existingClaims = userToUpdate.customClaims || {};
-        await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: "player" });
+        
+        if (existingClaims.role !== 'player') {
+            await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: "player" });
+        }
         return { success: true, message: "Equipo eliminado con éxito." };
     }).catch((error) => {
         console.error("Error al eliminar el equipo:", error);
