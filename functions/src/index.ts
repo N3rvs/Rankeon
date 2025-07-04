@@ -15,7 +15,11 @@ import {
 } from './teams';
 import { addInboxNotification, deleteInboxNotification, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
-import { createGameRoomWithDiscord } from './rooms';
+import { createGameRoomWithDiscord, joinRoom, leaveRoom } from './rooms';
+import { createScrim, acceptScrim, cancelScrim } from './scrims';
+import { proposeTournament } from './tournaments';
+import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
+import { grantFirstAdminRole } from './admin';
 
 export {
   deleteChatHistory,
@@ -32,5 +36,15 @@ export {
   blockUser,
   unblockUser,
   cleanUpOldData,
-  createGameRoomWithDiscord
+  createGameRoomWithDiscord,
+  joinRoom,
+  leaveRoom,
+  createScrim,
+  acceptScrim,
+  cancelScrim,
+  proposeTournament,
+  updateUserRole,
+  updateUserStatus,
+  updateUserCertification,
+  grantFirstAdminRole
 };

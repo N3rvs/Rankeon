@@ -36,6 +36,7 @@ export const createGameRoomWithDiscord = onCall(async ({ auth, data }: { auth?: 
       createdBy: uid,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       discordChannelId: null, // Discord integration is not implemented
+      participants: [uid], // Creator automatically joins
     });
 
     return { success: true, message: "Room created successfully.", roomId: roomRef.id, discordChannelId: null };
@@ -43,4 +44,40 @@ export const createGameRoomWithDiscord = onCall(async ({ auth, data }: { auth?: 
     console.error("Error creating game room in Firestore:", error);
     throw new HttpsError("internal", "Failed to create the game room.");
   }
+});
+
+interface RoomActionData {
+    roomId: string;
+}
+
+export const joinRoom = onCall(async ({ auth, data }: { auth?: any, data: RoomActionData }) => {
+    const uid = auth?.uid;
+    const { roomId } = data;
+
+    if (!uid) throw new HttpsError("unauthenticated", "You must be logged in.");
+    if (!roomId) throw new HttpsError("invalid-argument", "Missing room ID.");
+
+    const roomRef = db.collection("gameRooms").doc(roomId);
+
+    await roomRef.update({
+        participants: admin.firestore.FieldValue.arrayUnion(uid)
+    });
+
+    return { success: true };
+});
+
+export const leaveRoom = onCall(async ({ auth, data }: { auth?: any, data: RoomActionData }) => {
+    const uid = auth?.uid;
+    const { roomId } = data;
+
+    if (!uid) throw new HttpsError("unauthenticated", "You must be logged in.");
+    if (!roomId) throw new HttpsError("invalid-argument", "Missing room ID.");
+
+    const roomRef = db.collection("gameRooms").doc(roomId);
+
+    await roomRef.update({
+        participants: admin.firestore.FieldValue.arrayRemove(uid)
+    });
+
+    return { success: true };
 });
