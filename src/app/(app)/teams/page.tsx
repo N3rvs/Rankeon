@@ -2,35 +2,89 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, ShieldCheck } from 'lucide-react';
+import { Users, ShieldCheck, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import { useEffect, useState, useTransition } from 'react';
+import { collection, query, where, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team } from '@/lib/types';
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
+import { deleteTeam } from '@/lib/actions/teams';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
+import { Badge } from '@/components/ui/badge';
 
 function TeamDisplay({ team }: { team: Team }) {
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+    const handleDelete = () => {
+        startTransition(async () => {
+            const result = await deleteTeam({ teamId: team.id });
+            if (result.success) {
+                toast({ title: "Equipo Eliminado", description: "Tu equipo ha sido eliminado con éxito." });
+                // The page will automatically update due to the real-time listener
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+        });
+    };
+
     return (
-        <Card>
-            <CardHeader>
-                <div className="flex items-center gap-4">
-                    <Image src={team.avatarUrl} alt={team.name} width={64} height={64} className="rounded-md border" data-ai-hint="team logo" />
-                    <div>
-                        <CardTitle className="font-headline text-3xl">{team.name}</CardTitle>
-                        <CardDescription>¡Felicidades! Eres el fundador de este equipo.</CardDescription>
+        <>
+            <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
+            <Card>
+                <CardHeader>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+                        <div className="flex items-center gap-4">
+                            <Image src={team.avatarUrl} alt={team.name} width={64} height={64} className="rounded-md border" data-ai-hint="team logo" />
+                            <div>
+                                <CardTitle className="font-headline text-3xl">{team.name}</CardTitle>
+                                <CardDescription>¡Felicidades! Eres el fundador de este equipo.</CardDescription>
+                            </div>
+                        </div>
+                        <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>
+                            {team.lookingForPlayers ? 'Reclutando' : 'Equipo Lleno'}
+                        </Badge>
                     </div>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <p className="text-muted-foreground">{team.description}</p>
-                <Button className="mt-4" disabled>
-                    Gestionar Equipo (Próximamente)
-                </Button>
-            </CardContent>
-        </Card>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">{team.description || "No hay descripción para este equipo."}</p>
+                </CardContent>
+                 <CardFooter className="border-t pt-6 flex justify-end gap-2">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive-outline">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar Equipo
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Esto eliminará permanentemente tu equipo y todos sus datos. Tu rol volverá a ser "jugador".
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    {isPending ? "Eliminando..." : "Sí, eliminar equipo"}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    <Button onClick={() => setIsEditDialogOpen(true)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar Equipo
+                    </Button>
+                </CardFooter>
+            </Card>
+        </>
     );
 }
 

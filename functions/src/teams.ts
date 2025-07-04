@@ -79,3 +79,94 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     throw new HttpsError('internal', 'Ocurrió un error inesperado al crear el equipo.');
   }
 });
+
+interface UpdateTeamData {
+  teamId: string;
+  name: string;
+  description?: string;
+  lookingForPlayers: boolean;
+}
+
+export const updateTeam = onCall(async ({ auth, data }: { auth?: any, data: UpdateTeamData }) => {
+    const uid = auth?.uid;
+    const { teamId, name, description, lookingForPlayers } = data;
+
+    if (!uid) {
+        throw new HttpsError("unauthenticated", "Debes iniciar sesión para editar el equipo.");
+    }
+    if (!teamId || !name) {
+        throw new HttpsError("invalid-argument", "Faltan datos del equipo (ID o nombre).");
+    }
+
+    const teamRef = db.collection("teams").doc(teamId);
+    
+    try {
+        const teamDoc = await teamRef.get();
+        if (!teamDoc.exists) {
+            throw new HttpsError("not-found", "El equipo no existe.");
+        }
+        if (teamDoc.data()?.founder !== uid) {
+            throw new HttpsError("permission-denied", "Solo el fundador puede editar el equipo.");
+        }
+
+        await teamRef.update({
+            name,
+            description: description || '',
+            lookingForPlayers: typeof lookingForPlayers === 'boolean' ? lookingForPlayers : false,
+        });
+
+        return { success: true, message: "Equipo actualizado con éxito." };
+    } catch (error: any) {
+        console.error("Error updating team:", error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError("internal", "No se pudo actualizar el equipo.");
+    }
+});
+
+interface DeleteTeamData {
+    teamId: string;
+}
+
+export const deleteTeam = onCall(async ({ auth, data }: { auth?: any, data: DeleteTeamData }) => {
+    const uid = auth?.uid;
+    const { teamId } = data;
+
+    if (!uid || !teamId) {
+        throw new HttpsError("invalid-argument", "Falta autenticación o ID del equipo.");
+    }
+
+    const teamRef = db.collection("teams").doc(teamId);
+    const userRef = db.collection("users").doc(uid);
+
+    return db.runTransaction(async (transaction) => {
+        const teamDoc = await transaction.get(teamRef);
+        if (!teamDoc.exists) {
+            throw new HttpsError("not-found", "El equipo no se encontró. Es posible que ya haya sido eliminado.");
+        }
+
+        if (teamDoc.data()?.founder !== uid) {
+            throw new HttpsError("permission-denied", "Solo el fundador del equipo puede eliminarlo.");
+        }
+
+        // Atomically delete the team and update the user's role in Firestore
+        transaction.delete(teamRef);
+        transaction.update(userRef, { role: "player" });
+        
+        return { success: true };
+    }).then(async () => {
+        // This part runs AFTER the transaction successfully commits.
+        // Now, update the custom auth claims.
+        const userToUpdate = await admin.auth().getUser(uid);
+        const existingClaims = userToUpdate.customClaims || {};
+        await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: "player" });
+        return { success: true, message: "Equipo eliminado con éxito." };
+    }).catch((error) => {
+        console.error("Error al eliminar el equipo:", error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError("internal", "Ocurrió un error inesperado durante la eliminación del equipo.");
+    });
+});
