@@ -182,7 +182,8 @@ export const deleteTeamV2 = onCall(async ({ auth, data }: { auth?: any, data: De
         // This is separate but less critical; the source of truth in Firestore is now correct.
         const userToUpdate = await admin.auth().getUser(uid);
         const existingClaims = userToUpdate.customClaims || {};
-        if (existingClaims.role !== 'player') {
+        // CORRECTED LOGIC: Only change role if they are a 'founder'. Admins keep their role.
+        if (existingClaims.role === 'founder') {
              await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: "player" });
         }
 
