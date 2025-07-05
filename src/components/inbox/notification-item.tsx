@@ -19,7 +19,6 @@ import { cn } from '@/lib/utils';
 import {
   UserPlus,
   UserCheck,
-  UserX,
   Users,
   Check,
   X,
@@ -42,7 +41,6 @@ export function NotificationItem({
   const { toast } = useToast();
   const router = useRouter();
   const [isResponding, startResponding] = useTransition();
-  const [isClearing, startClearing] = useTransition();
   const [isDismissing, startDismissing] = useTransition();
   const [isActionTaken, setIsActionTaken] = useState(false);
   const [fromUser, setFromUser] = useState<UserProfile | null>(null);
@@ -51,6 +49,7 @@ export function NotificationItem({
   useEffect(() => {
     let isMounted = true;
     const fetchFromUser = async () => {
+      setLoading(true); // Reset loading state for each notification
       if (!notification.from) {
         if (isMounted) setLoading(false);
         return;
@@ -61,13 +60,10 @@ export function NotificationItem({
         if (isMounted) {
           if (docSnap.exists()) {
             setFromUser({ id: docSnap.id, ...docSnap.data() } as UserProfile);
-          } else {
-            setFromUser(null);
           }
         }
       } catch (error) {
         console.error('Error fetching user for notification:', error);
-        if (isMounted) setFromUser(null);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -75,15 +71,14 @@ export function NotificationItem({
 
     fetchFromUser();
     
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [notification.id, notification.from]);
 
   const findRequestId = async (): Promise<string | null> => {
     if (notification.extraData?.requestId) {
         return notification.extraData.requestId;
     }
+    // Fallback query if requestId is missing from notification payload
     if (notification.type === 'friend_request' && user) {
         try {
             const q = query(
@@ -93,67 +88,38 @@ export function NotificationItem({
                 where("status", "==", "pending")
             );
             const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                return querySnapshot.docs[0].id;
-            }
+            if (!querySnapshot.empty) return querySnapshot.docs[0].id;
         } catch (error) {
             console.error('Error querying for friend request ID:', error);
-            toast({
-                title: "Database Error",
-                description: "Could not search for the friend request.",
-                variant: "destructive"
-            });
-            return null;
         }
     }
     return null;
   }
 
   const handleResponse = (accept: boolean) => {
-    if (!user || !notification.from) return;
-
     startResponding(async () => {
         const requestId = await findRequestId();
-
         if (!requestId) {
-            toast({
-                title: 'Request Unavailable',
-                description: 'This friend request may have been resolved already.',
-            });
-            await deleteNotifications([notification.id]);
+            toast({ title: 'Request Unavailable', description: 'This friend request may have been resolved already.' });
+            await deleteNotifications([notification.id]); // Clean up stale notification
             return;
         }
-
         const result = await respondToFriendRequest({ requestId, accept });
-
         if (result.success) {
             setIsActionTaken(true);
-            toast({
-                title: 'Success',
-                description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
-            });
-            // Clean up the notification now that it's been handled
+            toast({ title: 'Success', description: `Friend request ${accept ? 'accepted' : 'rejected'}.` });
+            // The notification is now handled, so we delete it.
+            // The backend sends a new "friend_accepted" notification if accepted.
             await deleteNotifications([notification.id]);
         } else {
-             if (result.message.includes('not-found') || result.message.includes('resolved')) {
-               toast({
-                  title: "Request Unavailable",
-                  description: "This friend request has already been resolved.",
-                });
-                await deleteNotifications([notification.id]);
-            } else {
-              toast({
-                title: 'Error',
-                description: result.message,
-                variant: 'destructive',
-              });
-            }
+            toast({ title: 'Error', description: result.message, variant: 'destructive' });
         }
     });
   };
   
-  const handleNavigateAndClear = (path: string) => {
-    startClearing(async () => {
+  const handleDismissAndNavigate = (path: string) => {
+    startDismissing(async () => {
+        // Dismiss the notification first, then navigate.
         await deleteNotifications([notification.id]);
         router.push(path);
     });
@@ -161,147 +127,59 @@ export function NotificationItem({
 
   const handleDismiss = () => {
     startDismissing(async () => {
-        const { success, message } = await deleteNotifications([notification.id]);
-        if (!success) {
-            toast({ title: "Error", description: message, variant: "destructive"});
-        }
+        await deleteNotifications([notification.id]);
     });
   };
 
   const getNotificationDetails = () => {
-    const name = fromUser?.name || fromUser?.email?.split('@')[0] || 'Someone';
+    const name = fromUser?.name || 'Someone';
     switch (notification.type) {
-      case 'friend_request':
-        return {
-          icon: UserPlus,
-          message: `${name} sent you a friend request.`,
-        };
-      case 'friend_accepted':
-        return {
-          icon: UserCheck,
-          message: `You are now friends with ${name}.`,
-        };
-      case 'friend_removed':
-        return {
-          icon: UserX,
-          message: `${name} removed you from their friends.`,
-        };
-      case 'new_message':
-        return {
-          icon: MessageSquare,
-          message: `New message from ${name}: "${notification.content}"`,
-        };
-      case 'team_joined':
-        return {
-          icon: Users,
-          message: `You have joined a team.`,
-        };
-      case 'team_kicked':
-        return {
-          icon: UserX,
-          message: `You have been kicked from a team.`,
-        };
-      case 'team_invite_received':
-        return {
-          icon: Users,
-          message: `${name} invited you to a team.`,
-        };
-      default:
-        return { icon: Bell, message: 'You have a new notification.' };
+      case 'friend_request': return { icon: UserPlus, message: `${name} sent you a friend request.` };
+      case 'friend_accepted': return { icon: UserCheck, message: `You are now friends with ${name}.` };
+      case 'team_invite_received': return { icon: Users, message: `${name} invited you to a team.` };
+      default: return { icon: Bell, message: 'You have a new notification.' };
     }
   };
 
   if (loading) {
-    return <Skeleton className="h-16 w-full p-3 rounded-lg" />;
+    return <Skeleton className="h-[76px] w-full p-3 rounded-lg" />;
   }
 
   const { icon: Icon, message } = getNotificationDetails();
-  const fallbackInitials =
-    fromUser?.name?.slice(0, 2) || fromUser?.email?.slice(0, 2) || '?';
+  const fallbackInitials = fromUser?.name?.slice(0, 2) || '?';
 
   return (
-    <div
-      className={cn(
-        'flex items-start gap-3 p-3 transition-colors hover:bg-accent rounded-lg',
-        !notification.read && 'bg-primary/5 hover:bg-primary/10'
-      )}
-    >
+    <div className={cn( 'flex items-start gap-3 p-3 transition-colors hover:bg-accent rounded-lg', !notification.read && 'bg-primary/5 hover:bg-primary/10' )}>
       <div className="flex-shrink-0">
         <Avatar className="h-10 w-10">
           <AvatarImage src={fromUser?.avatarUrl} data-ai-hint="person avatar" />
-          <AvatarFallback>
-            {fromUser ? fallbackInitials : <Icon className="h-5 w-5" />}
-          </AvatarFallback>
+          <AvatarFallback>{fromUser ? fallbackInitials : <Icon className="h-5 w-5" />}</AvatarFallback>
         </Avatar>
       </div>
       <div className="flex-1 space-y-1">
         <p className="text-sm leading-tight">{message}</p>
         <p className="text-xs text-muted-foreground">
-          {notification.timestamp
-            ? formatDistanceToNow(notification.timestamp.toDate(), {
-                addSuffix: true,
-              })
-            : ''}
+          {notification.timestamp ? formatDistanceToNow(notification.timestamp.toDate(), { addSuffix: true }) : ''}
         </p>
+
+        {/* Action buttons */}
         {notification.type === 'friend_request' && !isActionTaken && (
           <div className="flex gap-2 pt-1">
-            <Button
-              size="sm"
-              className="h-7 px-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleResponse(true);
-              }}
-              disabled={isResponding}
-            >
+            <Button size="sm" className="h-7 px-2" onClick={() => handleResponse(true)} disabled={isResponding}>
               <Check className="h-4 w-4 mr-1" /> Accept
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 px-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleResponse(false);
-              }}
-              disabled={isResponding}
-            >
+            <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => handleResponse(false)} disabled={isResponding}>
               <X className="h-4 w-4 mr-1" /> Decline
             </Button>
           </div>
         )}
-        {notification.type === 'friend_request' && isActionTaken && (
-          <div className="pt-1">
-            <p className="text-xs text-muted-foreground italic">
-              Response sent.
-            </p>
-          </div>
-        )}
-        {(notification.type === 'friend_accepted') && (
+        {notification.type === 'friend_accepted' && (
           <div className="flex gap-2 pt-1">
-              <Button
-                  size="sm"
-                  variant="secondary"
-                  className="h-7 px-2"
-                  onClick={(e) => {
-                      e.stopPropagation();
-                      handleNavigateAndClear('/messages');
-                  }}
-                  disabled={isClearing}
-              >
+              <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate('/messages')} disabled={isDismissing}>
                   <MessageSquare className="h-4 w-4 mr-1" />
-                  {isClearing ? "Loading..." : "View Chat"}
+                  {isDismissing ? "Loading..." : "View Chat"}
               </Button>
-               <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 px-2 text-muted-foreground"
-                  onClick={(e) => {
-                      e.stopPropagation();
-                      handleDismiss();
-                  }}
-                  disabled={isDismissing}
-              >
+               <Button size="sm" variant="ghost" className="h-7 px-2 text-muted-foreground" onClick={handleDismiss} disabled={isDismissing}>
                  {isDismissing ? "..." : "Dismiss"}
               </Button>
           </div>

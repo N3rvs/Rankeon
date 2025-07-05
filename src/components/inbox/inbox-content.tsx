@@ -11,6 +11,7 @@ import {
   onSnapshot,
   limit,
   Unsubscribe,
+  where,
 } from 'firebase/firestore';
 import type { Notification } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,7 +19,7 @@ import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
-  markAllAsRead,
+  markNotificationsAsRead,
   clearAllNotifications,
 } from '@/lib/actions/notifications';
 import { NotificationItem } from './notification-item';
@@ -35,7 +36,7 @@ export function InboxContent() {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isPending, startTransition] = useTransition();
+  const [isMarking, startMarkingTransition] = useTransition();
   const [isClearing, startClearingTransition] = useTransition();
 
   useEffect(() => {
@@ -43,8 +44,8 @@ export function InboxContent() {
 
     if (user) {
       setLoading(true);
-      // This is a more robust query. It fetches the latest notifications and we filter client-side.
-      // This avoids complex/brittle queries that require specific composite indexes.
+      // Query all notifications, sorted by time.
+      // Filtering for the popover (excluding messages) happens client-side for robustness.
       const q = query(
         collection(db, 'inbox', user.uid, 'notifications'),
         orderBy('timestamp', 'desc'),
@@ -57,7 +58,7 @@ export function InboxContent() {
           const allNotifs = snapshot.docs.map(
             (doc) => ({ id: doc.id, ...doc.data() } as Notification)
           );
-          // Filter out message notifications on the client side for the popover UI.
+          // We only show non-message notifications in this specific popover UI.
           const filteredNotifs = allNotifs.filter(n => n.type !== 'new_message');
           setNotifications(filteredNotifs);
           setLoading(false);
@@ -72,22 +73,18 @@ export function InboxContent() {
       setLoading(false);
     }
 
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
+    return () => unsubscribe?.();
   }, [user]);
 
   const handleMarkAllRead = () => {
-    startTransition(async () => {
+    startMarkingTransition(async () => {
       if (!user) return;
       const unreadIds = notifications
         .filter((n) => !n.read)
         .map((n) => n.id);
       if (unreadIds.length === 0) return;
 
-      const { success, message } = await markAllAsRead(unreadIds);
+      const { success, message } = await markNotificationsAsRead(unreadIds);
       if (!success) {
         toast({ title: 'Error', description: message, variant: 'destructive' });
       }
@@ -101,7 +98,7 @@ export function InboxContent() {
       const { success, message } = await clearAllNotifications();
 
       if (success) {
-        toast({ title: 'Success', description: message });
+        toast({ title: 'Success', description: "All notifications have been cleared." });
       } else {
         toast({ title: 'Error', description: message, variant: 'destructive' });
       }
@@ -123,7 +120,7 @@ export function InboxContent() {
                 variant="ghost"
                 size="sm"
                 onClick={handleMarkAllRead}
-                disabled={isPending || !hasUnread}
+                disabled={isMarking || !hasUnread}
               >
                 <CheckCheck className="mr-2 h-4 w-4" />
                 Mark all as read

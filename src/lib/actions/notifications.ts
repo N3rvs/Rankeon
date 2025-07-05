@@ -11,7 +11,7 @@ type ActionResponse = {
 
 const functions = getFunctions(app);
 
-export async function markAllAsRead(
+export async function markNotificationsAsRead(
   notificationIds: string[]
 ): Promise<ActionResponse> {
   if (!notificationIds || notificationIds.length === 0) {
@@ -23,7 +23,7 @@ export async function markAllAsRead(
     const result = await markFunc({ notificationIds });
     return (result.data as ActionResponse);
   } catch (error: any) {
-    console.error('Error marking all notifications as read:', error);
+    console.error('Error marking notifications as read:', error);
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',
@@ -31,22 +31,6 @@ export async function markAllAsRead(
   }
 }
 
-// Renamed and changed to call the new backend function.
-export async function clearAllNotifications(): Promise<ActionResponse> {
-  try {
-    const clearFunc = httpsCallable(functions, 'clearAllNotifications');
-    const result = await clearFunc();
-    return (result.data as ActionResponse);
-  } catch (error: any) {
-    console.error('Error clearing all notifications:', error);
-    return {
-      success: false,
-      message: error.message || 'An unexpected error occurred.',
-    };
-  }
-}
-
-// New function for deleting specific notifications (used for dismiss).
 export async function deleteNotifications(
   notificationIds: string[]
 ): Promise<ActionResponse> {
@@ -59,6 +43,20 @@ export async function deleteNotifications(
     return (result.data as ActionResponse);
   } catch (error: any) {
     console.error('Error deleting notifications:', error);
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
+  }
+}
+
+export async function clearAllNotifications(): Promise<ActionResponse> {
+  try {
+    const clearFunc = httpsCallable(functions, 'clearAllNotifications');
+    const result = await clearFunc();
+    return (result.data as ActionResponse);
+  } catch (error: any) {
+    console.error('Error clearing all notifications:', error);
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',
