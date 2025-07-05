@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditProfileDialog } from "@/components/profile/edit-profile-dialog";
-import { ListX } from "lucide-react";
+import { ListX, ShieldCheck } from "lucide-react";
 import { BlockedUsersList } from "@/components/profile/blocked-users-list";
 
 export default function ProfilePage() {
-    const { userProfile, loading } = useAuth();
+    const { userProfile, loading, claims } = useAuth();
 
     if (loading || !userProfile) {
         return (
@@ -33,6 +33,7 @@ export default function ProfilePage() {
     }
 
     const user = userProfile;
+    const isAdmin = claims?.role === 'admin';
 
     return (
         <div className="space-y-6">
@@ -45,7 +46,14 @@ export default function ProfilePage() {
                     <div>
                         <CardTitle className="text-3xl font-headline">{user.name}</CardTitle>
                         <CardDescription className="flex items-center justify-center gap-2 mt-1">
-                            <Badge variant="default" className="capitalize">{user.role}</Badge>
+                            {isAdmin ? (
+                                <Badge variant="destructive" className="capitalize">
+                                    <ShieldCheck className="mr-1 h-3 w-3" />
+                                    Admin
+                                </Badge>
+                            ) : (
+                                <Badge variant="default" className="capitalize">{user.role}</Badge>
+                            )}
                             <span className="text-muted-foreground">{user.email}</span>
                         </CardDescription>
                     </div>
