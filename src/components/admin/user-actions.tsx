@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -31,9 +32,10 @@ import { RoleManagementDialog } from './role-management-dialog';
 
 interface UserActionsProps {
   user: UserProfile;
+  currentUserRole: 'admin' | 'moderator';
 }
 
-export function UserActions({ user }: UserActionsProps) {
+export function UserActions({ user, currentUserRole }: UserActionsProps) {
   const { user: currentUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -83,8 +85,12 @@ export function UserActions({ user }: UserActionsProps) {
 
   return (
     <>
-      <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
-      <RoleManagementDialog user={user} open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen} />
+      {currentUserRole === 'admin' && (
+        <>
+            <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
+            <RoleManagementDialog user={user} open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen} />
+        </>
+      )}
       
       <AlertDialog open={isBanAlertOpen} onOpenChange={setIsBanAlertOpen}>
         <AlertDialogContent>
@@ -129,19 +135,23 @@ export function UserActions({ user }: UserActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
-             <Edit className="mr-2 h-4 w-4" />
-            <span>Edit Profile</span>
-          </DropdownMenuItem>
-           <DropdownMenuItem onSelect={() => setIsRoleDialogOpen(true)}>
-            <UserCog className="mr-2 h-4 w-4" />
-            <span>Change Role</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setIsCertifyAlertOpen(true)}>
-            <Twitch className="mr-2 h-4 w-4" />
-            <span>{user.isCertifiedStreamer ? 'Remove Certification' : 'Certify Streamer'}</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+            {currentUserRole === 'admin' && (
+                <>
+                    <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        <span>Edit Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setIsRoleDialogOpen(true)}>
+                        <UserCog className="mr-2 h-4 w-4" />
+                        <span>Change Role</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setIsCertifyAlertOpen(true)}>
+                        <Twitch className="mr-2 h-4 w-4" />
+                        <span>{user.isCertifiedStreamer ? 'Remove Certification' : 'Certify Streamer'}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                </>
+            )}
           <DropdownMenuItem onSelect={() => setIsBanAlertOpen(true)} className={user.disabled ? "text-green-600 focus:text-green-700" : "text-destructive focus:text-destructive"}>
             {user.disabled ? <UserCheck className="mr-2 h-4 w-4" /> : <UserX className="mr-2 h-4 w-4" />}
             <span>{user.disabled ? 'Unban' : 'Ban'} User</span>

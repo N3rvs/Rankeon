@@ -11,7 +11,7 @@ import { addInboxNotification, markNotificationsAsRead, deleteNotifications, cle
 import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
 import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember } from './teams';
-import { proposeTournament } from './tournaments';
+import { proposeTournament, reviewTournamentProposal } from './tournaments';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
 
 export {
@@ -38,6 +38,7 @@ export {
   updateTeamMemberRole,
   kickTeamMember,
   proposeTournament,
+  reviewTournamentProposal,
   updateUserRole,
   updateUserStatus,
   updateUserCertification

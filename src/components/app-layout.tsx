@@ -25,6 +25,7 @@ import {
   Swords,
   Trophy,
   Shield,
+  Gavel,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -79,6 +80,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isActive = (path: string) => {
     return pathname.startsWith(path);
   };
+  
+  const isModOrAdmin = claims?.role === 'moderator' || claims?.role === 'admin';
 
   return (
     <SidebarProvider>
@@ -183,16 +186,33 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton
                   asChild
                   isActive={isActive('/admin')}
-                  tooltip="Admin"
+                  tooltip="Admin Panel"
                    size="lg"
                 >
                   <Link href="/admin">
                     <Shield />
-                    <span>Admin</span>
+                    <span>Admin Panel</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
+
+            {isModOrAdmin && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/moderator')}
+                  tooltip="Moderator Panel"
+                   size="lg"
+                >
+                  <Link href="/moderator">
+                    <Gavel />
+                    <span>Mod Panel</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>

@@ -18,6 +18,13 @@ export const ProposeTournamentSchema = z.object({
 
 export type ProposeTournamentData = z.infer<typeof ProposeTournamentSchema>;
 
+export const ReviewTournamentSchema = z.object({
+    proposalId: z.string().min(1),
+    status: z.enum(['approved', 'rejected']),
+});
+export type ReviewTournamentData = z.infer<typeof ReviewTournamentSchema>;
+
+
 type ActionResponse = {
   success: boolean;
   message: string;
@@ -43,4 +50,21 @@ export async function proposeTournament(values: ProposeTournamentData): Promise<
     console.error('Error proposing tournament:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
+}
+
+export async function reviewTournamentProposal(values: ReviewTournamentData): Promise<ActionResponse> {
+    try {
+        const validatedFields = ReviewTournamentSchema.safeParse(values);
+        if (!validatedFields.success) {
+            return { success: false, message: 'Invalid review data.' };
+        }
+        
+        const reviewFunc = httpsCallable(functions, 'reviewTournamentProposal');
+        const result = await reviewFunc(validatedFields.data);
+        
+        return (result.data as ActionResponse);
+    } catch (error: any) {
+        console.error('Error reviewing tournament proposal:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
 }

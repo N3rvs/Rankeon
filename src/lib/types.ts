@@ -99,3 +99,34 @@ export interface GameRoom {
   participants: string[]; // Array of UIDs of participants
   lastMessageAt?: Timestamp;
 }
+
+export interface TournamentProposal {
+  id: string;
+  proposerUid: string;
+  proposerName: string;
+  tournamentName: string;
+  game: string;
+  description: string;
+  proposedDate: Timestamp;
+  format: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Timestamp;
+  reviewedBy?: string; // UID of admin/mod who reviewed
+  reviewedAt?: Timestamp;
+}
+
+export interface Tournament {
+  id: string;
+  name: string;
+  game: string;
+  description: string;
+  startDate: Timestamp;
+  format: string;
+  status: 'upcoming' | 'ongoing' | 'completed';
+  organizer: {
+    uid: string;
+    name: string;
+  };
+  createdAt: Timestamp;
+  proposalId: string;
+}

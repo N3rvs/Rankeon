@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { collection, onSnapshot, query, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile, UserRole } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -22,7 +22,11 @@ import { UserActions } from './user-actions';
 import { useAuth } from '@/contexts/auth-context';
 import { Twitch } from 'lucide-react';
 
-export function UserManagementTable() {
+interface UserManagementTableProps {
+  currentUserRole: 'admin' | 'moderator';
+}
+
+export function UserManagementTable({ currentUserRole }: UserManagementTableProps) {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -140,7 +144,7 @@ export function UserManagementTable() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    {currentUser?.uid !== user.id && <UserActions user={user} />}
+                    {currentUser?.uid !== user.id && <UserActions user={user} currentUserRole={currentUserRole} />}
                   </TableCell>
                 </TableRow>
               ))
