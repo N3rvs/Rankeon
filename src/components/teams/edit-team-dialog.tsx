@@ -30,6 +30,7 @@ export function EditTeamDialog({ team, open, onOpenChange }: EditTeamDialogProps
       name: team.name || '',
       description: team.description || '',
       lookingForPlayers: team.lookingForPlayers || false,
+      recruitingRoles: team.recruitingRoles || [],
     },
   });
 

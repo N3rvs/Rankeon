@@ -11,7 +11,7 @@ const functions = getFunctions(app);
 // Schema for creating a team
 export const CreateTeamSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50),
-  game: z.string().min(1, 'El juego es obligatorio.'),
+  game: z.string().min(1, 'El juego es obligatorio.').default('Valorant'),
   description: z.string().max(500, 'La descripción es muy larga.').optional(),
 });
 export type CreateTeamData = z.infer<typeof CreateTeamSchema>;
@@ -22,6 +22,7 @@ export const UpdateTeamSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50),
   description: z.string().max(500, 'La descripción es muy larga.').optional(),
   lookingForPlayers: z.boolean(),
+  recruitingRoles: z.array(z.string()).optional(),
 });
 export type UpdateTeamData = z.infer<typeof UpdateTeamSchema>;
 
@@ -40,7 +41,8 @@ export async function createTeam(values: CreateTeamData): Promise<ActionResponse
   try {
     const validatedFields = CreateTeamSchema.safeParse(values);
     if (!validatedFields.success) {
-      return { success: false, message: 'Datos del formulario no válidos.' };
+      const firstError = validatedFields.error.errors[0]?.message || 'Datos del formulario no válidos.';
+      return { success: false, message: firstError };
     }
 
     const createTeamFunc = httpsCallable<CreateTeamData, ActionResponse>(functions, 'createTeam');
@@ -48,7 +50,7 @@ export async function createTeam(values: CreateTeamData): Promise<ActionResponse
     
     return result.data;
   } catch (error: any) {
-    console.error('Error al llamar a la función createTeam:', error);
+    console.error('Error calling createTeam function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
@@ -57,7 +59,8 @@ export async function updateTeam(values: UpdateTeamData): Promise<ActionResponse
   try {
     const validatedFields = UpdateTeamSchema.safeParse(values);
     if (!validatedFields.success) {
-      return { success: false, message: 'Datos de actualización no válidos.' };
+      const firstError = validatedFields.error.errors[0]?.message || 'Datos de actualización no válidos.';
+      return { success: false, message: firstError };
     }
 
     const updateTeamFunc = httpsCallable<UpdateTeamData, ActionResponse>(functions, 'updateTeam');
@@ -65,7 +68,7 @@ export async function updateTeam(values: UpdateTeamData): Promise<ActionResponse
     
     return result.data;
   } catch (error: any) {
-    console.error('Error al llamar a la función updateTeam:', error);
+    console.error('Error calling updateTeam function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
@@ -82,7 +85,7 @@ export async function deleteTeam(values: { teamId: string }): Promise<ActionResp
 
         return result.data as ActionResponse;
     } catch (error: any) {
-        console.error('Error al llamar a la función deleteTeam:', error);
+        console.error('Error calling deleteTeam function:', error);
         return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
     }
 }

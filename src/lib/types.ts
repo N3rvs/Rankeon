@@ -30,7 +30,7 @@ export interface Team {
   founder: string; // UID of the founder
   memberIds: string[]; // UIDs of all members
   lookingForPlayers: boolean;
-  recruitingRoles: string[];
+  recruitingRoles?: string[];
   description: string;
   createdAt: Timestamp;
 }
