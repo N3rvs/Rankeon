@@ -1,10 +1,11 @@
-
 // src/functions/tournaments.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
+// We need a specific type file for Cloud Functions to avoid circular dependencies
+// if we were to import from the main `types.ts` file.
 interface ProposeTournamentData {
   name: string;
   game: string;
@@ -13,13 +14,18 @@ interface ProposeTournamentData {
   format: string;
 }
 
-export const proposeTournament = onCall(async ({ auth, data }: { auth?: any, data: ProposeTournamentData }) => {
+interface ReviewTournamentData {
+  proposalId: string;
+  status: 'approved' | 'rejected';
+}
+
+export const proposeTournament = onCall(async (request) => {
   // 1. Check for authentication first. This is the most important guard.
-  if (!auth) {
+  if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to propose a tournament.");
   }
   
-  const { uid, token } = auth;
+  const { uid, token } = request.auth;
   
   // 2. Check for permissions using the token as the single source of truth.
   const isCertified = token.isCertifiedStreamer === true;
@@ -30,7 +36,7 @@ export const proposeTournament = onCall(async ({ auth, data }: { auth?: any, dat
     throw new HttpsError("permission-denied", "Only certified streamers, moderators, or admins can propose tournaments.");
   }
   
-  const { name, game, description, proposedDate, format } = data;
+  const { name, game, description, proposedDate, format } = request.data as ProposeTournamentData;
   
   // 3. Validate data
   if (!name || !game || !description || !proposedDate || !format) {
@@ -62,24 +68,20 @@ export const proposeTournament = onCall(async ({ auth, data }: { auth?: any, dat
   return { success: true, message: "Tournament proposal submitted successfully for review." };
 });
 
-interface ReviewTournamentData {
-  proposalId: string;
-  status: 'approved' | 'rejected';
-}
 
-export const reviewTournamentProposal = onCall(async ({ auth, data }: { auth?: any, data: ReviewTournamentData }) => {
+export const reviewTournamentProposal = onCall(async (request) => {
   // 1. Check permissions
-  if (!auth) {
+  if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
   }
-  const { uid, token } = auth;
+  const { uid, token } = request.auth;
   const isModerator = token.role === 'moderator' || token.role === 'admin';
   if (!isModerator) {
     throw new HttpsError("permission-denied", "You do not have permission to review proposals.");
   }
 
   // 2. Validate data
-  const { proposalId, status } = data;
+  const { proposalId, status } = request.data as ReviewTournamentData;
   if (!proposalId || !['approved', 'rejected'].includes(status)) {
     throw new HttpsError("invalid-argument", "Missing or invalid proposal data.");
   }
@@ -93,7 +95,6 @@ export const reviewTournamentProposal = onCall(async ({ auth, data }: { auth?: a
   
   const proposalData = proposalSnap.data();
 
-  // More robust check
   if (!proposalData || proposalData.status !== 'pending') {
       throw new HttpsError("failed-precondition", "This proposal has already been reviewed or is invalid.");
   }
@@ -109,12 +110,22 @@ export const reviewTournamentProposal = onCall(async ({ auth, data }: { auth?: a
   });
 
   if (status === 'approved') {
-     // Add validation for all required fields from proposalData
     const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName } = proposalData;
-    if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName) {
-        console.error("Proposal document is missing required fields:", proposalData);
-        throw new HttpsError("internal", "Proposal document is missing required fields. Please check logs.");
+    
+    // RIGOROUS VALIDATION
+    if (
+        typeof tournamentName !== 'string' || !tournamentName ||
+        typeof game !== 'string' || !game ||
+        typeof description !== 'string' ||
+        !(proposedDate && typeof proposedDate.toDate === 'function') || // Check if it is a Timestamp
+        typeof format !== 'string' || !format ||
+        typeof proposerUid !== 'string' || !proposerUid ||
+        typeof proposerName !== 'string' || !proposerName
+    ) {
+        console.error("Proposal document is missing or has malformed required fields:", proposalData);
+        throw new HttpsError("failed-precondition", "The proposal document has invalid data and cannot be approved.");
     }
+      
     // Create a new document in the main 'tournaments' collection
     const tournamentRef = db.collection('tournaments').doc();
     batch.set(tournamentRef, {
@@ -122,7 +133,7 @@ export const reviewTournamentProposal = onCall(async ({ auth, data }: { auth?: a
       name: tournamentName,
       game: game,
       description: description,
-      startDate: proposedDate,
+      startDate: proposedDate, // This is a valid Firestore Timestamp
       format: format,
       status: 'upcoming',
       organizer: {
@@ -134,7 +145,12 @@ export const reviewTournamentProposal = onCall(async ({ auth, data }: { auth?: a
     });
   }
 
-  await batch.commit();
+  try {
+      await batch.commit();
+  } catch (error) {
+      console.error("Error committing tournament review batch:", error);
+      throw new HttpsError('internal', 'Failed to save changes to the database.');
+  }
 
   return { success: true, message: `Proposal has been ${status}.` };
 });
