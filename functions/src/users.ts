@@ -1,5 +1,6 @@
 
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -10,14 +11,15 @@ const auth = admin.auth();
 
 const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player', 'founder', 'coach'];
 
-interface UpdateRoleData {
-    uid: string;
-    role: UserRole;
-}
-
 const checkAdmin = (auth: any) => {
     if (!auth || auth.token.role !== 'admin') {
         throw new HttpsError('permission-denied', 'This action requires administrator privileges.');
+    }
+};
+
+const checkModOrAdmin = (auth: any) => {
+    if (!auth || (auth.token.role !== 'admin' && auth.token.role !== 'moderator')) {
+        throw new HttpsError('permission-denied', 'This action requires moderator or administrator privileges.');
     }
 };
 
@@ -49,15 +51,34 @@ interface UpdateStatusData {
     disabled: boolean;
     duration?: number; // in hours
 }
+interface UpdateRoleData {
+    uid: string;
+    role: UserRole;
+}
 
 export const updateUserStatus = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: UpdateStatusData }) => {
-    checkAdmin(callerAuth);
+    checkModOrAdmin(callerAuth);
 
     const { uid, disabled, duration } = data;
      if (!uid) {
         throw new HttpsError('invalid-argument', 'User ID is required.');
     }
+
+    if (callerAuth.uid === uid) {
+        throw new HttpsError('failed-precondition', 'You cannot change your own status.');
+    }
+
     try {
+        const userToUpdate = await auth.getUser(uid);
+        const targetClaims = userToUpdate.customClaims || {};
+        const targetRole = targetClaims.role;
+        const callerRole = callerAuth.token.role;
+
+        // Rule: Moderators can't ban other moderators or admins.
+        if (callerRole === 'moderator' && (targetRole === 'admin' || targetRole === 'moderator')) {
+            throw new HttpsError('permission-denied', 'Moderators cannot ban other moderators or admins.');
+        }
+
         const userDocRef = db.collection('users').doc(uid);
         let banUntil: admin.firestore.Timestamp | null = null;
 
@@ -117,3 +138,4 @@ export const updateUserCertification = onCall(async ({ auth: callerAuth, data }:
         throw new HttpsError('internal', `Failed to update certification: ${error.message}`);
     }
 });
+
