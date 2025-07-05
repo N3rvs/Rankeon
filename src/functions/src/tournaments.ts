@@ -2,9 +2,23 @@
 // src/functions/tournaments.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import type { ProposeTournamentData, ReviewTournamentData } from "./types-functions";
 
 const db = admin.firestore();
+
+// We need a specific type file for Cloud Functions to avoid circular dependencies
+// if we were to import from the main `types.ts` file.
+interface ProposeTournamentData {
+  name: string;
+  game: string;
+  description: string;
+  proposedDate: string; // ISO String from client
+  format: string;
+}
+
+interface ReviewTournamentData {
+  proposalId: string;
+  status: 'approved' | 'rejected';
+}
 
 export const proposeTournament = onCall(async (request) => {
   // 1. Check for authentication first. This is the most important guard.
@@ -141,19 +155,3 @@ export const reviewTournamentProposal = onCall(async (request) => {
 
   return { success: true, message: `Proposal has been ${status}.` };
 });
-
-
-// We need a specific type file for Cloud Functions to avoid circular dependencies
-// if we were to import from the main `types.ts` file.
-interface ProposeTournamentData {
-  name: string;
-  game: string;
-  description: string;
-  proposedDate: string; // ISO String from client
-  format: string;
-}
-
-interface ReviewTournamentData {
-  proposalId: string;
-  status: 'approved' | 'rejected';
-}
