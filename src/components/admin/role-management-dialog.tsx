@@ -28,7 +28,7 @@ interface RoleManagementDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player'];
+const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player', 'founder', 'coach'];
 
 export function RoleManagementDialog({ user, open, onOpenChange }: RoleManagementDialogProps) {
   const { toast } = useToast();
@@ -85,7 +85,6 @@ export function RoleManagementDialog({ user, open, onOpenChange }: RoleManagemen
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={user.role === 'founder'}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -100,16 +99,11 @@ export function RoleManagementDialog({ user, open, onOpenChange }: RoleManagemen
                       ))}
                     </SelectContent>
                   </Select>
-                  {user.role === 'founder' && (
-                    <p className="text-sm text-muted-foreground pt-2">
-                      The 'founder' role cannot be changed manually. It is tied to team ownership.
-                    </p>
-                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isPending || user.role === 'founder'}>
+            <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? 'Saving...' : 'Save Role'}
             </Button>
           </form>

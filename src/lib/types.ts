@@ -1,7 +1,7 @@
 // src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 
-export type UserRole = 'admin' | 'moderator' | 'player' | 'founder';
+export type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
 
 export interface UserProfile {
   id: string;
