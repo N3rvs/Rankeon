@@ -1,4 +1,3 @@
-
 // src/lib/actions/tournaments.ts
 'use client';
 
