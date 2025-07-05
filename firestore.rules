@@ -3,7 +3,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Allow read/write access to the entire database if the user is authenticated.
-    // This is a common starting point for apps where all access is protected by login.
+    // This provides a simple security model for development and for apps
+    // where all access is protected by login. For more granular security,
+    // you can define specific rules for each collection.
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
