@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditProfileDialog } from "@/components/profile/edit-profile-dialog";
-import { ListX, ShieldCheck } from "lucide-react";
+import { ListX, ShieldCheck, Twitch } from "lucide-react";
 import { BlockedUsersList } from "@/components/profile/blocked-users-list";
 
 export default function ProfilePage() {
@@ -53,6 +53,12 @@ export default function ProfilePage() {
                                 </Badge>
                             ) : (
                                 <Badge variant="default" className="capitalize">{user.role}</Badge>
+                            )}
+                            {user.isCertifiedStreamer && (
+                                <Badge variant="outline" className="border-purple-500/50 bg-purple-500/10 text-purple-400">
+                                    <Twitch className="mr-1 h-3 w-3" />
+                                    Certified
+                                </Badge>
                             )}
                             <span className="text-muted-foreground">{user.email}</span>
                         </CardDescription>

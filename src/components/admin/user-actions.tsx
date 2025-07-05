@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, Edit, UserCheck, UserX, Award, UserCog } from 'lucide-react';
+import { MoreHorizontal, Edit, UserCheck, UserX, Twitch, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -138,7 +138,7 @@ export function UserActions({ user }: UserActionsProps) {
             <span>Change Role</span>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setIsCertifyAlertOpen(true)}>
-            <Award className="mr-2 h-4 w-4" />
+            <Twitch className="mr-2 h-4 w-4" />
             <span>{user.isCertifiedStreamer ? 'Remove Certification' : 'Certify Streamer'}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

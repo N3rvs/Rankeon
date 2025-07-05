@@ -20,7 +20,7 @@ import { Badge } from '../ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { UserActions } from './user-actions';
 import { useAuth } from '@/contexts/auth-context';
-import { Award } from 'lucide-react';
+import { Twitch } from 'lucide-react';
 
 export function UserManagementTable() {
   const { user: currentUser } = useAuth();
@@ -126,7 +126,7 @@ export function UserManagementTable() {
                    <TableCell>
                     {user.isCertifiedStreamer && (
                       <div className="flex justify-center">
-                        <Award className="h-5 w-5 text-amber-400" />
+                        <Twitch className="h-5 w-5 text-purple-500" />
                       </div>
                     )}
                   </TableCell>
