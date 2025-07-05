@@ -221,15 +221,10 @@ export default function RoomDetailPage() {
               <Button
                 className="w-full"
                 onClick={handleJoinLeave}
-                disabled={isPending || user?.uid === room.createdBy}
+                disabled={isPending}
                 variant={isUserInRoom ? 'destructive' : 'default'}
               >
-                {user?.uid === room.createdBy ? (
-                  <>
-                    <Crown className="mr-2 h-4 w-4" />
-                    Eres el Creador
-                  </>
-                ) : isUserInRoom ? (
+                {isUserInRoom ? (
                   <>
                     <LogOut className="mr-2 h-4 w-4" />
                     {isPending ? 'Saliendo...' : 'Salir de la Sala'}
