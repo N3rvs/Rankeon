@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 function TournamentCard({ tournament }: { tournament: Tournament }) {
   const getStatusBadge = (status: 'upcoming' | 'ongoing' | 'completed') => {
@@ -52,9 +53,11 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full" disabled>
-          <Eye className="mr-2 h-4 w-4" />
-          View Details (Soon)
+        <Button variant="outline" className="w-full" asChild>
+          <Link href={`/tournaments/${tournament.id}`}>
+            <Eye className="mr-2 h-4 w-4" />
+            View Details
+          </Link>
         </Button>
       </CardFooter>
     </Card>
