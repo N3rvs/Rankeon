@@ -31,7 +31,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { clearNotificationHistory } from '@/lib/actions/notifications';
+import { deleteNotifications } from '@/lib/actions/notifications';
 
 export function NotificationItem({
   notification,
@@ -120,7 +120,7 @@ export function NotificationItem({
                 title: 'Request Unavailable',
                 description: 'This friend request may have been resolved already.',
             });
-            await clearNotificationHistory([notification.id]);
+            await deleteNotifications([notification.id]);
             return;
         }
 
@@ -133,14 +133,14 @@ export function NotificationItem({
                 description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
             });
             // Clean up the notification now that it's been handled
-            await clearNotificationHistory([notification.id]);
+            await deleteNotifications([notification.id]);
         } else {
              if (result.message.includes('not-found') || result.message.includes('resolved')) {
                toast({
                   title: "Request Unavailable",
                   description: "This friend request has already been resolved.",
                 });
-                await clearNotificationHistory([notification.id]);
+                await deleteNotifications([notification.id]);
             } else {
               toast({
                 title: 'Error',
@@ -154,14 +154,14 @@ export function NotificationItem({
   
   const handleNavigateAndClear = (path: string) => {
     startClearing(async () => {
-        await clearNotificationHistory([notification.id]);
+        await deleteNotifications([notification.id]);
         router.push(path);
     });
   };
 
   const handleDismiss = () => {
     startDismissing(async () => {
-        const { success, message } = await clearNotificationHistory([notification.id]);
+        const { success, message } = await deleteNotifications([notification.id]);
         if (!success) {
             toast({ title: "Error", description: message, variant: "destructive"});
         }

@@ -31,18 +31,34 @@ export async function markAllAsRead(
   }
 }
 
-export async function clearNotificationHistory(
+// Renamed and changed to call the new backend function.
+export async function clearAllNotifications(): Promise<ActionResponse> {
+  try {
+    const clearFunc = httpsCallable(functions, 'clearAllNotifications');
+    const result = await clearFunc();
+    return (result.data as ActionResponse);
+  } catch (error: any) {
+    console.error('Error clearing all notifications:', error);
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
+  }
+}
+
+// New function for deleting specific notifications (used for dismiss).
+export async function deleteNotifications(
   notificationIds: string[]
 ): Promise<ActionResponse> {
   if (!notificationIds || notificationIds.length === 0) {
-    return { success: true, message: 'No notifications to clear.' };
+    return { success: true, message: 'No notifications to delete.' };
   }
   try {
-    const clearFunc = httpsCallable(functions, 'clearNotifications');
-    const result = await clearFunc({ notificationIds });
+    const deleteFunc = httpsCallable(functions, 'deleteNotifications');
+    const result = await deleteFunc({ notificationIds });
     return (result.data as ActionResponse);
   } catch (error: any) {
-    console.error('Error clearing notification history:', error);
+    console.error('Error deleting notifications:', error);
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',

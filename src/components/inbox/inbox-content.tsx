@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
   markAllAsRead,
-  clearNotificationHistory,
+  clearAllNotifications,
 } from '@/lib/actions/notifications';
 import { NotificationItem } from './notification-item';
 import { ScrollArea } from '../ui/scroll-area';
@@ -97,11 +97,8 @@ export function InboxContent() {
   const handleClearHistory = () => {
     startClearingTransition(async () => {
       if (!user || notifications.length === 0) return;
-
-      const notificationIdsToClear = notifications.map((n) => n.id);
-      const { success, message } = await clearNotificationHistory(
-        notificationIdsToClear
-      );
+      
+      const { success, message } = await clearAllNotifications();
 
       if (success) {
         toast({ title: 'Success', description: message });

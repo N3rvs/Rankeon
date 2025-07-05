@@ -1,4 +1,4 @@
-
+// functions/src/notifications.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -10,11 +10,11 @@ interface AddInboxNotificationData {
   extraData?: any;
 }
 
-export const addInboxNotification = onCall(async (request) => {
-  if (!request.auth) throw new HttpsError("unauthenticated", "You must be logged in.");
+export const addInboxNotification = onCall(async ({ auth, data }) => {
+  if (!auth) throw new HttpsError("unauthenticated", "You must be logged in.");
   
-  const uid = request.auth.uid;
-  const { to, type, extraData } = request.data as AddInboxNotificationData;
+  const uid = auth.uid;
+  const { to, type, extraData } = data as AddInboxNotificationData;
 
   if (!to || !type) {
     throw new HttpsError("invalid-argument", "Missing recipient or notification type.");
@@ -31,11 +31,11 @@ export const addInboxNotification = onCall(async (request) => {
   return { success: true };
 });
 
-export const markNotificationsAsRead = onCall(async (request) => {
-    if (!request.auth) throw new HttpsError("unauthenticated", "You must be logged in.");
+export const markNotificationsAsRead = onCall(async ({ auth, data }) => {
+    if (!auth) throw new HttpsError("unauthenticated", "You must be logged in.");
 
-    const uid = request.auth.uid;
-    const { notificationIds } = request.data as { notificationIds: string[] };
+    const uid = auth.uid;
+    const { notificationIds } = data as { notificationIds: string[] };
 
     if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
         throw new HttpsError("invalid-argument", "An array of notification IDs is required.");
@@ -56,12 +56,12 @@ export const markNotificationsAsRead = onCall(async (request) => {
     }
 });
 
+// Deletes only SPECIFIC notifications by their IDs.
+export const deleteNotifications = onCall(async ({ auth, data }) => {
+    if (!auth) throw new HttpsError("unauthenticated", "You must be logged in.");
 
-export const clearNotifications = onCall(async (request) => {
-    if (!request.auth) throw new HttpsError("unauthenticated", "You must be logged in.");
-
-    const uid = request.auth.uid;
-    const { notificationIds } = request.data as { notificationIds: string[] };
+    const uid = auth.uid;
+    const { notificationIds } = data as { notificationIds: string[] };
 
     if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
         throw new HttpsError("invalid-argument", "An array of notification IDs is required.");
@@ -77,10 +77,43 @@ export const clearNotifications = onCall(async (request) => {
         await batch.commit();
         return { success: true, message: "Notifications cleared." };
     } catch (error: any) {
-        console.error("Error in clearNotifications:", error);
+        console.error("Error in deleteNotifications:", error);
         throw new HttpsError("internal", "Failed to clear notifications.");
     }
 });
+
+// Clears the ENTIRE notification history for a user.
+export const clearAllNotifications = onCall(async ({ auth }) => {
+    if (!auth) throw new HttpsError("unauthenticated", "You must be logged in.");
+
+    const uid = auth.uid;
+    const notificationsRef = db.collection(`inbox/${uid}/notifications`);
+
+    try {
+        const batchSize = 400;
+        let hasMore = true;
+
+        while (hasMore) {
+            const snapshot = await notificationsRef.limit(batchSize).get();
+            if (snapshot.empty) {
+                hasMore = false;
+                continue;
+            }
+
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        }
+
+        return { success: true, message: "All notifications cleared." };
+    } catch (error: any) {
+        console.error("Error in clearAllNotifications:", error);
+        throw new HttpsError("internal", "Failed to clear notifications.");
+    }
+});
+
 
 interface BlockUserData {
   blockedUid: string;
@@ -90,11 +123,11 @@ interface UnblockUserData {
   blockedUid: string;
 }
 
-export const blockUser = onCall(async (request) => {
-  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication is required.");
+export const blockUser = onCall(async ({ auth, data }) => {
+  if (!auth) throw new HttpsError("unauthenticated", "Authentication is required.");
 
-  const uid = request.auth.uid;
-  const { blockedUid } = request.data as BlockUserData;
+  const uid = auth.uid;
+  const { blockedUid } = data as BlockUserData;
 
   if (!blockedUid) {
     throw new HttpsError("invalid-argument", "User ID required.");
@@ -121,11 +154,11 @@ export const blockUser = onCall(async (request) => {
   return { success: true, message: "User blocked successfully." };
 });
 
-export const unblockUser = onCall(async (request) => {
-  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication is required.");
+export const unblockUser = onCall(async ({ auth, data }) => {
+  if (!auth) throw new HttpsError("unauthenticated", "Authentication is required.");
   
-  const uid = request.auth.uid;
-  const { blockedUid } = request.data as UnblockUserData;
+  const uid = auth.uid;
+  const { blockedUid } = data as UnblockUserData;
 
   if (!blockedUid) {
     throw new HttpsError("invalid-argument", "User ID required.");
