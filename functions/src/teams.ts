@@ -1,4 +1,3 @@
-
 // functions/src/teams.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -34,22 +33,13 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
   const userRef = db.collection("users").doc(uid);
   
   try {
-    // If user is not an admin/mod, update their claim first. This is the security-critical step.
-    if (!isPrivilegedUser) {
-        await auth.setCustomUserClaims(uid, { ...claims, role: 'founder' });
-    }
+    const teamRef = db.collection("teams").doc();
+    
+    // Create the team and update user docs/claims in a single transaction-like batch
+    const batch = db.batch();
 
-    // Now, create the team and update the Firestore document in a transaction.
-    const teamRef = await db.runTransaction(async (transaction) => {
-      const userDoc = await transaction.get(userRef);
-      if (!userDoc.exists) {
-        throw new HttpsError('not-found', 'User profile not found.');
-      }
-      
-      const newTeamRef = db.collection("teams").doc();
-      
-      transaction.set(newTeamRef, {
-        id: newTeamRef.id,
+    batch.set(teamRef, {
+        id: teamRef.id,
         name,
         game,
         description: description || '',
@@ -60,20 +50,27 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
         recruitingRoles: [],
         lookingForPlayers: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+    });
 
-      const memberRef = newTeamRef.collection("members").doc(uid);
-      transaction.set(memberRef, {
+    const memberRef = teamRef.collection("members").doc(uid);
+    batch.set(memberRef, {
         role: "founder",
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      
-      // Update the denormalized role in Firestore.
-      if (!isPrivilegedUser) {
-        transaction.update(userRef, { role: 'founder' });
-      }
-      return newTeamRef;
     });
+
+    // Update the denormalized role and teamId in the user's Firestore document.
+    const userUpdateData: { role?: string; teamId: string } = { teamId: teamRef.id };
+    if (!isPrivilegedUser) {
+        userUpdateData.role = 'founder';
+    }
+    batch.update(userRef, userUpdateData);
+
+    // If user is not an admin/mod, update their claim. This is the security-critical step.
+    if (!isPrivilegedUser) {
+        await auth.setCustomUserClaims(uid, { ...claims, role: 'founder' });
+    }
+    
+    await batch.commit();
 
     return { success: true, teamId: teamRef.id, message: '¡Equipo creado con éxito!' };
 
@@ -94,6 +91,7 @@ interface UpdateTeamData {
   description?: string;
   lookingForPlayers: boolean;
   recruitingRoles: string[];
+  videoUrl?: string;
 }
 
 export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
@@ -101,9 +99,9 @@ export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
         throw new HttpsError("unauthenticated", "Debes iniciar sesión para editar el equipo.");
     }
     const uid = requestAuth.uid;
-    const { teamId, name, description, lookingForPlayers, recruitingRoles } = data as UpdateTeamData;
+    const { teamId, ...updateData } = data as UpdateTeamData;
 
-    if (!teamId || !name) {
+    if (!teamId || !updateData.name) {
         throw new HttpsError("invalid-argument", "Faltan datos del equipo (ID o nombre).");
     }
 
@@ -117,12 +115,13 @@ export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
         if (teamDoc.data()?.founder !== uid && requestAuth.token.role !== 'admin') {
             throw new HttpsError("permission-denied", "Solo el fundador o un administrador puede editar el equipo.");
         }
-
+        
         await teamRef.update({
-            name,
-            description: description || '',
-            lookingForPlayers: typeof lookingForPlayers === 'boolean' ? lookingForPlayers : false,
-            recruitingRoles: Array.isArray(recruitingRoles) ? recruitingRoles : [],
+            name: updateData.name,
+            description: updateData.description || '',
+            lookingForPlayers: typeof updateData.lookingForPlayers === 'boolean' ? updateData.lookingForPlayers : false,
+            recruitingRoles: Array.isArray(updateData.recruitingRoles) ? updateData.recruitingRoles : [],
+            videoUrl: updateData.videoUrl || '',
         });
 
         return { success: true, message: "Equipo actualizado con éxito." };
@@ -147,19 +146,21 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
     if (!teamId) throw new HttpsError("invalid-argument", "Falta ID del equipo.");
 
     const teamRef = db.collection("teams").doc(teamId);
-    const userRef = db.collection("users").doc(uid);
-
+    
     const teamDoc = await teamRef.get();
     if (!teamDoc.exists) return { success: true, message: "El equipo ya no existía." };
     
-    const isFounder = teamDoc.data()?.founder === uid;
+    const teamData = teamDoc.data();
+    if (!teamData) throw new HttpsError("not-found", "El equipo no existe.");
+    
+    const isFounder = teamData.founder === uid;
     const isAdmin = claims.role === 'admin';
 
     if (!isFounder && !isAdmin) {
       throw new HttpsError("permission-denied", "Solo el fundador o un administrador puede eliminarlo.");
     }
 
-    // Step 1: Revert user's claim first if they are the founder.
+    // Step 1: Revert founder's claim if they are the one deleting.
     if (isFounder && claims.role === 'founder') {
         try {
             await auth.setCustomUserClaims(uid, { ...claims, role: "player" });
@@ -169,16 +170,25 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
         }
     }
 
-    // Step 2: Delete all team documents from Firestore.
+    // Step 2: Delete team documents and update all members' user docs.
     try {
         const batch = db.batch();
         const membersSnap = await teamRef.collection("members").get();
+        
+        // Update all members to remove their teamId
+        teamData.memberIds.forEach((memberId: string) => {
+            const userRef = db.collection("users").doc(memberId);
+            const updateData: { role?: string; teamId: null } = { teamId: null };
+            // If this member is the founder, also revert their Firestore role
+            if (memberId === uid && isFounder) {
+                updateData.role = "player";
+            }
+            batch.update(userRef, updateData);
+        });
+
         membersSnap.forEach(doc => batch.delete(doc.ref));
         batch.delete(teamRef);
-        // Also update the firestore doc for the founder
-        if (isFounder) {
-          batch.update(userRef, { role: "player" });
-        }
+
         await batch.commit();
 
         return { success: true, message: "Equipo eliminado con éxito." };
@@ -187,4 +197,68 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
         console.error("Error al eliminar los documentos del equipo:", error);
         throw new HttpsError("internal", "Ocurrió un error inesperado durante la eliminación del equipo.");
     }
+});
+
+
+interface MemberRoleData {
+    teamId: string;
+    memberId: string;
+    role: 'coach' | 'member';
+}
+
+export const updateTeamMemberRole = onCall(async ({ auth: requestAuth, data }) => {
+    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+    const { teamId, memberId, role } = data as MemberRoleData;
+    if (!teamId || !memberId || !role) throw new HttpsError("invalid-argument", "Faltan datos.");
+
+    const teamRef = db.collection("teams").doc(teamId);
+    const teamDoc = await teamRef.get();
+    if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
+    
+    const teamData = teamDoc.data();
+    const callerRoleDoc = await teamRef.collection('members').doc(requestAuth.uid).get();
+    const callerRole = callerRoleDoc.data()?.role;
+
+    if (teamData?.founder !== requestAuth.uid && callerRole !== 'coach') {
+        throw new HttpsError("permission-denied", "No tienes permiso para cambiar roles.");
+    }
+
+    if (teamData?.founder === memberId) {
+         throw new HttpsError("permission-denied", "No puedes cambiar el rol del fundador.");
+    }
+
+    await teamRef.collection('members').doc(memberId).update({ role });
+    return { success: true, message: "Rol del miembro actualizado." };
+});
+
+
+interface KickMemberData {
+    teamId: string;
+    memberId: string;
+}
+
+export const kickTeamMember = onCall(async ({ auth: requestAuth, data }) => {
+    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+    const { teamId, memberId } = data as KickMemberData;
+    if (!teamId || !memberId) throw new HttpsError("invalid-argument", "Faltan datos.");
+
+    const teamRef = db.collection("teams").doc(teamId);
+    const teamDoc = await teamRef.get();
+    if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
+
+    if (teamDoc.data()?.founder !== requestAuth.uid) {
+        throw new HttpsError("permission-denied", "Solo el fundador puede expulsar miembros.");
+    }
+     if (teamDoc.data()?.founder === memberId) {
+         throw new HttpsError("permission-denied", "El fundador no puede ser expulsado.");
+    }
+
+    const batch = db.batch();
+    batch.delete(teamRef.collection('members').doc(memberId));
+    batch.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayRemove(memberId) });
+    batch.update(db.collection('users').doc(memberId), { teamId: null });
+
+    await batch.commit();
+
+    return { success: true, message: "Miembro expulsado del equipo." };
 });

@@ -1,3 +1,4 @@
+// src/components/profile/edit-profile-form.tsx
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -6,7 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
@@ -18,12 +19,15 @@ import { useTransition, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Info } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
   country: z.string().max(50).optional(),
   bio: z.string().max(300).optional(),
   lookingForTeam: z.boolean().default(false),
+  skills: z.array(z.string()).optional(),
   role: z.string(),
 });
 
@@ -44,8 +48,11 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       bio: userProfile.bio || '',
       lookingForTeam: userProfile.lookingForTeam || false,
       role: userProfile.role || 'player',
+      skills: userProfile.skills || [],
     },
   });
+
+  const isMemberOfTeam = !!userProfile.teamId;
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -153,6 +160,16 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
           )}
         />
         
+        {isMemberOfTeam && (
+            <Alert>
+                <Info className="h-4 w-4" />
+                <AlertTitle>Eres miembro de un equipo</AlertTitle>
+                <AlertDescription>
+                   Tu estado de "buscando equipo" y tus habilidades son gestionados por el líder de tu equipo. Para cambiarlos, sal de tu equipo actual.
+                </AlertDescription>
+            </Alert>
+        )}
+
         <FormField
             control={form.control}
             name="lookingForTeam"
@@ -165,11 +182,30 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                         <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled={isMemberOfTeam}
                         />
                     </FormControl>
                 </FormItem>
             )}
         />
+
+        <FormField
+            control={form.control}
+            name="skills"
+            render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Skills</FormLabel>
+                    <FormControl>
+                         <Input placeholder="Duelist, IGL, Support..." {...field} disabled={isMemberOfTeam} value={Array.isArray(field.value) ? field.value.join(', ') : ''} onChange={e => field.onChange(e.target.value.split(',').map(s => s.trim()))} />
+                    </FormControl>
+                     <FormDescription>
+                        Separa las habilidades con comas.
+                    </FormDescription>
+                    <FormMessage />
+                </FormItem>
+            )}
+        />
+
 
         {adminProfile?.role === 'admin' && (
           <FormField
@@ -178,7 +214,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             render={({ field }) => (
               <FormItem>
                 <FormLabel>User Role</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={userProfile.role === 'founder'}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a role" />
@@ -192,6 +228,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                     ))}
                   </SelectContent>
                 </Select>
+                 {userProfile.role === 'founder' && <FormDescription>El rol de Fundador no se puede cambiar manualmente.</FormDescription>}
                 <FormMessage />
               </FormItem>
             )}

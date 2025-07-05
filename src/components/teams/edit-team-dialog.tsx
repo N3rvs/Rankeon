@@ -1,3 +1,4 @@
+// src/components/teams/edit-team-dialog.tsx
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -31,6 +32,7 @@ export function EditTeamDialog({ team, open, onOpenChange }: EditTeamDialogProps
       description: team.description || '',
       lookingForPlayers: team.lookingForPlayers || false,
       recruitingRoles: team.recruitingRoles || [],
+      videoUrl: team.videoUrl || '',
     },
   });
 
@@ -85,6 +87,19 @@ export function EditTeamDialog({ team, open, onOpenChange }: EditTeamDialogProps
                   <FormLabel>Descripción</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Describe los objetivos y la cultura de tu equipo..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="videoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL del Vídeo de Presentación</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://youtube.com/watch?v=..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

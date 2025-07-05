@@ -19,6 +19,7 @@ export interface UserProfile {
   blocked?: string[]; // Array of user IDs
   friends?: string[]; // Array of friend UIDs
   isCertifiedStreamer?: boolean;
+  teamId?: string | null;
 }
 
 export interface Team {
@@ -27,6 +28,7 @@ export interface Team {
   game: string;
   avatarUrl: string;
   bannerUrl: string;
+  videoUrl?: string;
   founder: string; // UID of the founder
   memberIds: string[]; // UIDs of all members
   lookingForPlayers: boolean;
@@ -38,6 +40,9 @@ export interface Team {
 export interface TeamMember {
   role: 'founder' | 'coach' | 'member';
   joinedAt: Timestamp;
+  name: string;
+  avatarUrl: string;
+  id: string;
 }
 
 export interface ChatMessage {
@@ -82,7 +87,7 @@ export interface FriendRequest {
 }
 
 export interface GameRoom {
-  id: string;
+  id:string;
   name: string;
   game: string;
   server?: string;
