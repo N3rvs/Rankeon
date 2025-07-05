@@ -1,4 +1,3 @@
-
 // src/components/inbox/inbox-content.tsx
 'use client';
 
@@ -8,7 +7,6 @@ import { db } from '@/lib/firebase/client';
 import {
   collection,
   query,
-  where,
   orderBy,
   onSnapshot,
   limit,
@@ -45,22 +43,23 @@ export function InboxContent() {
 
     if (user) {
       setLoading(true);
-      // We filter out 'new_message' notifications from the popover
+      // This is a more robust query. It fetches the latest notifications and we filter client-side.
+      // This avoids complex/brittle queries that require specific composite indexes.
       const q = query(
         collection(db, 'inbox', user.uid, 'notifications'),
-        where('type', '!=', 'new_message'),
-        orderBy('type', 'asc'), // needed for the inequality filter
         orderBy('timestamp', 'desc'),
-        limit(20)
+        limit(50)
       );
 
       unsubscribe = onSnapshot(
         q,
         (snapshot) => {
-          const notifs = snapshot.docs.map(
+          const allNotifs = snapshot.docs.map(
             (doc) => ({ id: doc.id, ...doc.data() } as Notification)
           );
-          setNotifications(notifs);
+          // Filter out message notifications on the client side for the popover UI.
+          const filteredNotifs = allNotifs.filter(n => n.type !== 'new_message');
+          setNotifications(filteredNotifs);
           setLoading(false);
         },
         (error) => {
