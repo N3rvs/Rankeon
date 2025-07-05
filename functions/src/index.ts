@@ -13,7 +13,6 @@ import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } fro
 import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember } from './teams';
 import { proposeTournament } from './tournaments';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
-import { grantFirstAdminRole } from './admin';
 
 export {
   deleteChatHistory,
@@ -41,6 +40,5 @@ export {
   proposeTournament,
   updateUserRole,
   updateUserStatus,
-  updateUserCertification,
-  grantFirstAdminRole
+  updateUserCertification
 };
