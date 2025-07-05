@@ -17,15 +17,41 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { UserActions } from './user-actions';
 import { useAuth } from '@/contexts/auth-context';
 import { Twitch } from 'lucide-react';
 import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface UserManagementTableProps {
   currentUserRole: 'admin' | 'moderator';
 }
+
+const getStatusBadge = (user: UserProfile) => {
+    if (!user.disabled) {
+        return <Badge variant="default">Active</Badge>;
+    }
+    if (user.banUntil) {
+        const banEndDate = user.banUntil.toDate();
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger>
+                        <Badge variant="destructive">
+                            Temp Banned
+                        </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Banned until {format(banEndDate, "PPP p")}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        );
+    }
+    return <Badge variant="destructive">Banned</Badge>;
+};
+
 
 export function UserManagementTable({ currentUserRole }: UserManagementTableProps) {
   const { user: currentUser } = useAuth();
@@ -142,9 +168,7 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
                     {user.createdAt ? formatDistanceToNow(user.createdAt.toDate(), { addSuffix: true }) : 'N/A'}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={user.disabled ? 'destructive' : 'default'}>
-                      {user.disabled ? 'Banned' : 'Active'}
-                    </Badge>
+                    {getStatusBadge(user)}
                   </TableCell>
                   <TableCell className="text-right">
                     {currentUser?.uid !== user.id && <UserActions user={user} currentUserRole={currentUserRole} />}

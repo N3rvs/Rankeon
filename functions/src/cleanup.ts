@@ -1,4 +1,5 @@
 
+
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import * as admin from "firebase-admin";
 
@@ -32,6 +33,32 @@ export const cleanUpOldData = onSchedule({
     if (messagesSnap.empty) {
       batch.delete(chat.ref);
     }
+  }
+
+  // 🧹 3. Levantar baneos temporales expirados
+  const expiredBansQuery = db.collection("users")
+    .where("disabled", "==", true)
+    .where("banUntil", "<=", now);
+    
+  const expiredBansSnap = await expiredBansQuery.get();
+
+  if (!expiredBansSnap.empty) {
+      console.log(`Found ${expiredBansSnap.size} expired bans to lift.`);
+      for (const userDoc of expiredBansSnap.docs) {
+          const uid = userDoc.id;
+          try {
+              // Unban in Auth
+              await admin.auth().updateUser(uid, { disabled: false });
+              // Unban in Firestore
+              batch.update(userDoc.ref, {
+                  disabled: false,
+                  banUntil: admin.firestore.FieldValue.delete()
+              });
+               console.log(`Lifting ban for user ${uid}.`);
+          } catch (error) {
+              console.error(`Failed to lift ban for user ${uid}:`, error);
+          }
+      }
   }
 
   await batch.commit();

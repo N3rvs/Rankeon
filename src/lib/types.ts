@@ -1,3 +1,4 @@
+
 // src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 
@@ -20,6 +21,7 @@ export interface UserProfile {
   friends?: string[]; // Array of friend UIDs
   isCertifiedStreamer?: boolean;
   teamId?: string | null;
+  banUntil?: Timestamp;
 }
 
 export interface Team {

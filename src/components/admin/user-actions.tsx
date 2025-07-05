@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Edit, UserCheck, UserX, Twitch, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +28,7 @@ import { updateUserStatus, updateUserCertification } from '@/lib/actions/users';
 import { useAuth } from '@/contexts/auth-context';
 import { EditProfileDialog } from '../profile/edit-profile-dialog';
 import { RoleManagementDialog } from './role-management-dialog';
+import { BanUserDialog } from './ban-user-dialog';
 
 interface UserActionsProps {
   user: UserProfile;
@@ -37,30 +37,24 @@ interface UserActionsProps {
 
 export function UserActions({ user, currentUserRole }: UserActionsProps) {
   const { user: currentUser } = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [isBanAlertOpen, setIsBanAlertOpen] = useState(false);
+
+  const [isUnbanAlertOpen, setIsUnbanAlertOpen] = useState(false);
   const [isCertifyAlertOpen, setIsCertifyAlertOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isBanDialogOpen, setIsBanDialogOpen] = useState(false);
 
-  const handleBanToggle = () => {
+  const handleUnban = () => {
     startTransition(async () => {
-      const result = await updateUserStatus({ uid: user.id, disabled: !user.disabled });
+      const result = await updateUserStatus({ uid: user.id, disabled: false });
       if (result.success) {
-        toast({
-          title: 'Success',
-          description: result.message,
-        });
+        toast({ title: 'Success', description: result.message });
       } else {
-        toast({
-          title: 'Error',
-          description: result.message,
-          variant: 'destructive',
-        });
+        toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
-      setIsBanAlertOpen(false);
+      setIsUnbanAlertOpen(false);
     });
   };
 
@@ -68,16 +62,9 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
     startTransition(async () => {
       const result = await updateUserCertification({ uid: user.id, isCertified: !user.isCertifiedStreamer });
       if (result.success) {
-        toast({
-          title: 'Success',
-          description: result.message,
-        });
+        toast({ title: 'Success', description: result.message });
       } else {
-        toast({
-          title: 'Error',
-          description: result.message,
-          variant: 'destructive',
-        });
+        toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
       setIsCertifyAlertOpen(false);
     });
@@ -85,6 +72,8 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
 
   return (
     <>
+      <BanUserDialog user={user} open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen} />
+
       {currentUserRole === 'admin' && (
         <>
             <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
@@ -92,18 +81,18 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
         </>
       )}
       
-      <AlertDialog open={isBanAlertOpen} onOpenChange={setIsBanAlertOpen}>
+      <AlertDialog open={isUnbanAlertOpen} onOpenChange={setIsUnbanAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Unban {user.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will {user.disabled ? 'unban' : 'ban'} the user, {user.disabled ? 'allowing' : 'preventing'} them from logging in.
+              This action will unban the user, allowing them to log back into the platform immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleBanToggle} disabled={isPending} className={user.disabled ? '' : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'}>
-              {isPending ? 'Processing...' : `Yes, ${user.disabled ? 'Unban' : 'Ban'} User`}
+            <AlertDialogAction onClick={handleUnban} disabled={isPending}>
+              {isPending ? 'Processing...' : 'Yes, Unban User'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -152,10 +141,17 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
                     <DropdownMenuSeparator />
                 </>
             )}
-          <DropdownMenuItem onSelect={() => setIsBanAlertOpen(true)} className={user.disabled ? "text-green-600 focus:text-green-700" : "text-destructive focus:text-destructive"}>
-            {user.disabled ? <UserCheck className="mr-2 h-4 w-4" /> : <UserX className="mr-2 h-4 w-4" />}
-            <span>{user.disabled ? 'Unban' : 'Ban'} User</span>
-          </DropdownMenuItem>
+          {user.disabled ? (
+            <DropdownMenuItem onSelect={() => setIsUnbanAlertOpen(true)} className="text-green-600 focus:text-green-700">
+                <UserCheck className="mr-2 h-4 w-4" />
+                <span>Unban User</span>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onSelect={() => setIsBanDialogOpen(true)} className="text-destructive focus:text-destructive">
+                <UserX className="mr-2 h-4 w-4" />
+                <span>Ban User</span>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

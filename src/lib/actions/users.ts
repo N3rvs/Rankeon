@@ -1,3 +1,4 @@
+
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -31,13 +32,15 @@ export async function updateUserRole({
 export async function updateUserStatus({
   uid,
   disabled,
+  duration, // in hours
 }: {
   uid: string;
   disabled: boolean;
+  duration?: number;
 }): Promise<ActionResponse> {
   try {
     const updateUserStatusFunc = httpsCallable(functions, 'updateUserStatus');
-    const result = await updateUserStatusFunc({ uid, disabled });
+    const result = await updateUserStatusFunc({ uid, disabled, duration });
     return (result.data as ActionResponse);
   } catch (error: any) {
     console.error('Error updating user status:', error);

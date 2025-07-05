@@ -1,4 +1,5 @@
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -46,19 +47,44 @@ export const updateUserRole = onCall(async ({ auth: callerAuth, data }: { auth?:
 interface UpdateStatusData {
     uid: string;
     disabled: boolean;
+    duration?: number; // in hours
 }
 
 export const updateUserStatus = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: UpdateStatusData }) => {
     checkAdmin(callerAuth);
 
-    const { uid, disabled } = data;
+    const { uid, disabled, duration } = data;
      if (!uid) {
         throw new HttpsError('invalid-argument', 'User ID is required.');
     }
     try {
+        const userDocRef = db.collection('users').doc(uid);
+        let banUntil: admin.firestore.Timestamp | null = null;
+
+        if (disabled && duration) {
+            // Temporary ban
+            const now = admin.firestore.Timestamp.now();
+            banUntil = admin.firestore.Timestamp.fromMillis(now.toMillis() + duration * 60 * 60 * 1000);
+        }
+
+        // Update Auth
         await auth.updateUser(uid, { disabled });
-        await db.collection('users').doc(uid).update({ disabled });
-        return { success: true, message: `User ${disabled ? 'banned' : 'unbanned'} successfully.` };
+
+        // Update Firestore
+        if (disabled) { // Banning
+             await userDocRef.update({ 
+                disabled, 
+                banUntil: banUntil // Will be null for permanent, or a timestamp for temporary
+            });
+        } else { // Unbanning
+            await userDocRef.update({ 
+                disabled, 
+                banUntil: admin.firestore.FieldValue.delete() 
+            });
+        }
+        
+        const action = disabled ? (duration ? 'temporarily banned' : 'banned') : 'unbanned';
+        return { success: true, message: `User ${action} successfully.` };
     } catch (error: any) {
         console.error('Error updating user status:', error);
         throw new HttpsError('internal', `Failed to update user status: ${error.message}`);
