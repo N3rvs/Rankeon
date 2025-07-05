@@ -1,3 +1,4 @@
+
 // functions/src/teams.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -113,7 +114,7 @@ export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
             throw new HttpsError("not-found", "El equipo no existe.");
         }
         if (teamDoc.data()?.founder !== uid && requestAuth.token.role !== 'admin') {
-            throw new HttpsError("permission-denied", "Solo el fundador o un administrador puede editar el equipo.");
+            throw new HttpsError("permission-denied", "No tienes permiso para editar este equipo. Solo su fundador o un administrador pueden hacerlo.");
         }
         
         await teamRef.update({
@@ -157,7 +158,7 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
     const isAdmin = claims.role === 'admin';
 
     if (!isFounder && !isAdmin) {
-      throw new HttpsError("permission-denied", "Solo el fundador o un administrador puede eliminarlo.");
+      throw new HttpsError("permission-denied", "No tienes permiso para eliminar este equipo. Solo su fundador o un administrador pueden hacerlo.");
     }
 
     // Step 1: Revert founder's claim if they are the one deleting.
@@ -178,7 +179,7 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
         // Update all members to remove their teamId
         teamData.memberIds.forEach((memberId: string) => {
             const userRef = db.collection("users").doc(memberId);
-            const updateData: { role?: string; teamId: null } = { teamId: null };
+            const updateData: { role?: string; teamId: null | any } = { teamId: null };
             // If this member is the founder, also revert their Firestore role
             if (memberId === uid && isFounder) {
                 updateData.role = "player";
@@ -220,7 +221,7 @@ export const updateTeamMemberRole = onCall(async ({ auth: requestAuth, data }) =
     const callerRole = callerRoleDoc.data()?.role;
 
     if (teamData?.founder !== requestAuth.uid && callerRole !== 'coach') {
-        throw new HttpsError("permission-denied", "No tienes permiso para cambiar roles.");
+        throw new HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar roles.");
     }
 
     if (teamData?.founder === memberId) {
