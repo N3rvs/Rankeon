@@ -10,11 +10,12 @@ interface AddInboxNotificationData {
   extraData?: any;
 }
 
-export const addInboxNotification = onCall(async ({ auth, data }: { auth?: any, data: AddInboxNotificationData }) => {
-  const uid = auth?.uid;
-  const { to, type, extraData } = data;
+export const addInboxNotification = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "You must be logged in.");
+  
+  const uid = request.auth.uid;
+  const { to, type, extraData } = request.data as AddInboxNotificationData;
 
-  if (!uid) throw new HttpsError("unauthenticated", "You must be logged in.");
   if (!to || !type) {
     throw new HttpsError("invalid-argument", "Missing recipient or notification type.");
   }
@@ -24,19 +25,18 @@ export const addInboxNotification = onCall(async ({ auth, data }: { auth?: any, 
     type,
     extraData: extraData || null,
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    read: false, // Ensure new notifications are unread
+    read: false,
   });
 
   return { success: true };
 });
 
-export const markNotificationsAsRead = onCall(async ({ auth, data }: { auth?: any; data: { notificationIds: string[] } }) => {
-    const uid = auth?.uid;
-    const { notificationIds } = data;
+export const markNotificationsAsRead = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "You must be logged in.");
 
-    if (!uid) {
-        throw new HttpsError("unauthenticated", "You must be logged in.");
-    }
+    const uid = request.auth.uid;
+    const { notificationIds } = request.data as { notificationIds: string[] };
+
     if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
         throw new HttpsError("invalid-argument", "An array of notification IDs is required.");
     }
@@ -57,13 +57,12 @@ export const markNotificationsAsRead = onCall(async ({ auth, data }: { auth?: an
 });
 
 
-export const clearNotifications = onCall(async ({ auth, data }: { auth?: any; data: { notificationIds: string[] } }) => {
-    const uid = auth?.uid;
-    const { notificationIds } = data;
+export const clearNotifications = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "You must be logged in.");
 
-    if (!uid) {
-        throw new HttpsError("unauthenticated", "You must be logged in.");
-    }
+    const uid = request.auth.uid;
+    const { notificationIds } = request.data as { notificationIds: string[] };
+
     if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
         throw new HttpsError("invalid-argument", "An array of notification IDs is required.");
     }
@@ -91,11 +90,13 @@ interface UnblockUserData {
   blockedUid: string;
 }
 
-export const blockUser = onCall(async ({ auth, data }: { auth?: any, data: BlockUserData }) => {
-  const uid = auth?.uid;
-  const { blockedUid } = data;
+export const blockUser = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication is required.");
 
-  if (!uid || !blockedUid) {
+  const uid = request.auth.uid;
+  const { blockedUid } = request.data as BlockUserData;
+
+  if (!blockedUid) {
     throw new HttpsError("invalid-argument", "User ID required.");
   }
   if (uid === blockedUid) {
@@ -105,17 +106,13 @@ export const blockUser = onCall(async ({ auth, data }: { auth?: any, data: Block
   const currentUserRef = db.doc(`users/${uid}`);
   const otherUserRef = db.doc(`users/${blockedUid}`);
 
-  // Use a transaction to ensure atomicity
   await db.runTransaction(async (transaction) => {
-      // 1. Add user to blocker's block list
       transaction.update(currentUserRef, {
           blocked: admin.firestore.FieldValue.arrayUnion(blockedUid)
       });
-      // 2. Remove the blocked user from the blocker's friend list
       transaction.update(currentUserRef, {
           friends: admin.firestore.FieldValue.arrayRemove(blockedUid)
       });
-      // 3. Remove the blocker from the blocked user's friend list
       transaction.update(otherUserRef, {
           friends: admin.firestore.FieldValue.arrayRemove(uid)
       });
@@ -124,11 +121,13 @@ export const blockUser = onCall(async ({ auth, data }: { auth?: any, data: Block
   return { success: true, message: "User blocked successfully." };
 });
 
-export const unblockUser = onCall(async ({ auth, data }: { auth?: any, data: UnblockUserData }) => {
-  const uid = auth?.uid;
-  const { blockedUid } = data;
+export const unblockUser = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication is required.");
+  
+  const uid = request.auth.uid;
+  const { blockedUid } = request.data as UnblockUserData;
 
-  if (!uid || !blockedUid) {
+  if (!blockedUid) {
     throw new HttpsError("invalid-argument", "User ID required.");
   }
 
