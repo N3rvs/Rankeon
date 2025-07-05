@@ -4,6 +4,29 @@ import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
+export const deleteMessage = onCall(async ({ auth, data }) => {
+  if (!auth) throw new HttpsError("unauthenticated", "User must be logged in.");
+  const { uid } = auth;
+  const { chatId, messageId } = data;
+  if (!chatId || !messageId) throw new HttpsError("invalid-argument", "Missing chat or message ID.");
+
+  const messageRef = db.collection("chats").doc(chatId).collection("messages").doc(messageId);
+
+  const messageSnap = await messageRef.get();
+  if (!messageSnap.exists) {
+    return { success: true, message: "Message already deleted." };
+  }
+
+  const messageData = messageSnap.data();
+  if (messageData?.sender !== uid) {
+    throw new HttpsError("permission-denied", "You can only delete your own messages.");
+  }
+
+  await messageRef.delete();
+
+  return { success: true, message: "Message deleted successfully." };
+});
+
 export const deleteChatHistory = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "User must be logged in.");
   const { uid } = request.auth;

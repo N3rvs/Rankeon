@@ -1,3 +1,4 @@
+
 // src/functions/index.ts
 import * as admin from 'firebase-admin';
 
@@ -5,7 +6,7 @@ import * as admin from 'firebase-admin';
 admin.initializeApp();
 
 // Now import the functions that use the initialized admin SDK.
-import { deleteChatHistory, sendMessageToFriend } from './chat';
+import { deleteChatHistory, sendMessageToFriend, deleteMessage } from './chat';
 import { sendFriendRequest, respondToFriendRequest, removeFriend } from './friends';
 import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
@@ -18,6 +19,7 @@ import { grantFirstAdminRole } from './admin';
 export {
   deleteChatHistory,
   sendMessageToFriend,
+  deleteMessage,
   sendFriendRequest,
   respondToFriendRequest,
   removeFriend,
