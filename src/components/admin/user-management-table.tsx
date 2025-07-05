@@ -21,6 +21,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { UserActions } from './user-actions';
 import { useAuth } from '@/contexts/auth-context';
 import { Twitch } from 'lucide-react';
+import Link from 'next/link';
 
 interface UserManagementTableProps {
   currentUserRole: 'admin' | 'moderator';
@@ -119,7 +120,9 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
                         <AvatarFallback>{user.name?.slice(0, 2) || user.email?.slice(0, 2)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{user.name}</p>
+                        <Link href={`/users/${user.id}`} className="font-medium hover:underline">
+                          {user.name}
+                        </Link>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
