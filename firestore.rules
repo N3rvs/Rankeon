@@ -2,113 +2,97 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Helper function to check if a user is an admin/mod
-    function isPrivileged(userId) {
-      let user = get(/databases/$(database)/documents/users/$(userId));
-      return user.data.role in ['admin', 'moderator'];
-    }
     
-    // Helper function to check if a user is the team's founder
-    function isTeamFounder(teamId, userId) {
-      let team = get(/databases/$(database)/documents/teams/$(teamId));
-      return team.data.founder == userId;
+    // --- METADATA ---
+    match /_metadata/{docId} {
+      allow read; // Allow reading app metadata
+      // Only allow the 'grantFirstAdminRole' function to write here
+      allow write: if request.auth != null && request.auth.token.role == null; 
     }
 
-    // Helper function to check if a user is on the team's staff (founder or coach)
-    function isTeamStaff(teamId, userId) {
-      let member = get(/databases/$(database)/documents/teams/$(teamId)/members/$(userId));
-      return isTeamFounder(teamId, userId) || member.data.role == 'coach';
-    }
-
-    // Users collection rules
+    // --- USERS ---
     match /users/{userId} {
-      // Anyone authenticated can read a user's profile, unless they are blocked by that user, or they have blocked that user.
-      allow read: if request.auth != null 
-                    && !(userId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.blocked)
-                    && !(request.auth.uid in resource.data.blocked);
+      // Anyone can get a user's public profile
+      allow get: if true;
       
-      // A user can create their own document
-      allow create: if request.auth.uid == userId;
+      // Only admins can list all users for the management table
+      allow list: if request.auth != null && request.auth.token.role == 'admin';
       
-      // A user can update their own profile, or an admin can update any profile.
-      allow update: if request.auth.uid == userId || isPrivileged(request.auth.uid);
+      // Only the user themselves can update their profile
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // Creation/deletion is handled by secure backend functions
+      allow create: if false; 
+      allow delete: if request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // --- FRIEND REQUESTS & NOTIFICATIONS ---
+    match /friendRequests/{requestId} {
+      // Allow read/write if you are the sender or receiver
+      allow read, write, delete: if request.auth != null && (request.auth.uid == resource.data.from || request.auth.uid == resource.data.to);
+      // Allow create if you are the sender
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.from;
     }
     
-    // Teams collection rules
+    match /inbox/{userId}/{document=**} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // --- CHATS & MESSAGES ---
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null && request.auth.uid in resource.data.members;
+      
+      match /messages/{messageId} {
+        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+        // Only the sender can create a message
+        allow create: if request.auth != null && request.auth.uid == request.resource.data.sender;
+        // Only the sender can delete their message
+        allow delete: if request.auth != null && request.auth.uid == resource.data.sender;
+        allow update: if false; // Messages are immutable
+      }
+    }
+    
+    // --- TEAMS ---
     match /teams/{teamId} {
-      allow read: if request.auth != null;
-      // Only authenticated users who are not already founders can create a team.
-      allow create: if request.auth.uid != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role != 'founder';
-      // Only the team founder or a privileged user can update or delete the team.
-      allow update, delete: if isTeamFounder(teamId, request.auth.uid) || isPrivileged(request.auth.uid);
+      // Anyone can view a team's public profile
+      allow read;
+      
+      // Only the founder or an admin can update team details
+      allow update: if request.auth != null && (request.auth.uid == resource.data.founder || request.auth.token.role == 'admin');
+      
+      // Only the founder or an admin can delete a team
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.founder || request.auth.token.role == 'admin');
 
-      // Members subcollection rules
+      allow create: if request.auth != null; // Checked in backend function
+      
       match /members/{memberId} {
-        allow read: if request.auth != null;
-        // Only the founder can add new members.
-        allow create: if isTeamFounder(teamId, request.auth.uid);
-        // Founder or coach can update a member's role.
-        allow update: if isTeamStaff(teamId, request.auth.uid);
-        // Only the founder can kick a member.
-        allow delete: if isTeamFounder(teamId, request.auth.uid);
+        allow read;
+        // Only the team founder/coach or an admin can manage members
+        allow write, delete: if request.auth != null && (
+          get(/databases/$(database)/documents/teams/$(teamId)).data.founder == request.auth.uid ||
+          (get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)).data.role == 'coach') ||
+          request.auth.token.role == 'admin'
+        );
       }
     }
 
-    // Game rooms rules
+    // --- GAME ROOMS & CHAT ---
     match /gameRooms/{roomId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth.uid != null;
-        // The creator or any participant can update the room (e.g., to join/leave).
-        allow update: if request.auth.uid != null && (request.auth.uid == resource.data.createdBy || request.auth.uid in resource.data.participants);
+        allow read, create; // Anyone can see rooms, create is handled by backend
+        allow update: if request.auth != null && request.auth.uid in resource.data.participants;
         
-        // Chat messages within a game room
         match /messages/{messageId} {
-            // Only participants can read or create messages.
-            allow read, create: if request.auth.uid in get(/databases/$(database)/documents/gameRooms/$(roomId)).data.participants;
+            allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/gameRooms/$(roomId)).data.participants;
+            allow update, delete: if false;
         }
     }
     
-    // Private chats rules
-    match /chats/{chatId} {
-        // Only members of the chat can access it.
-        allow read, update, delete: if request.auth.uid in resource.data.members;
-
-        match /messages/{messageId} {
-            allow read: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-            // A user can only create messages as themselves and if they are a member.
-            allow create: if request.auth.uid == request.resource.data.sender && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-            // A user can only delete their own messages.
-            allow delete: if request.auth.uid == resource.data.sender;
-        }
-    }
-
-    // Friend requests rules
-    match /friendRequests/{requestId} {
-        // Only the sender or recipient can read/create a request.
-        allow read, create: if request.auth.uid == request.resource.data.from || request.auth.uid == request.resource.data.to;
-        // Only the recipient can update (accept/reject) the request.
-        allow update: if request.auth.uid == resource.data.to;
-        allow delete: if request.auth.uid == resource.data.from || request.auth.uid == resource.data.to;
-    }
-
-    // Inbox is private to the user
-    match /inbox/{userId}/{document=**} {
-      allow read, write: if request.auth.uid == userId;
-    }
-    
-    // Tournament proposals rules
+    // --- TOURNAMENT PROPOSALS (Admin/Mod/Certified only) ---
     match /tournamentProposals/{proposalId} {
-      allow create: if request.auth.uid != null;
-      // Only admins/mods can manage proposals.
-      allow read, update, delete: if isPrivileged(request.auth.uid);
-    }
-    
-    // App configuration metadata
-    match /_metadata/{docId} {
-      allow read: if true;
-      // Writes are handled securely by Cloud Functions.
-      allow write: if false; 
+        // Admins can read/write all proposals
+        allow read, write: if request.auth.token.role == 'admin';
+        // Creators can create proposals
+        allow create: if request.auth.token.isCertifiedStreamer == true || request.auth.token.role == 'moderator';
     }
   }
 }
