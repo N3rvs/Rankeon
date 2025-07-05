@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, Edit, UserCheck, UserX, Award } from 'lucide-react';
+import { MoreHorizontal, Edit, UserCheck, UserX, Award, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ import type { UserProfile } from '@/lib/types';
 import { updateUserStatus, updateUserCertification } from '@/lib/actions/users';
 import { useAuth } from '@/contexts/auth-context';
 import { EditProfileDialog } from '../profile/edit-profile-dialog';
+import { RoleManagementDialog } from './role-management-dialog';
 
 interface UserActionsProps {
   user: UserProfile;
@@ -40,6 +41,7 @@ export function UserActions({ user }: UserActionsProps) {
   const [isBanAlertOpen, setIsBanAlertOpen] = useState(false);
   const [isCertifyAlertOpen, setIsCertifyAlertOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
 
   const handleBanToggle = () => {
     startTransition(async () => {
@@ -82,6 +84,7 @@ export function UserActions({ user }: UserActionsProps) {
   return (
     <>
       <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
+      <RoleManagementDialog user={user} open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen} />
       
       <AlertDialog open={isBanAlertOpen} onOpenChange={setIsBanAlertOpen}>
         <AlertDialogContent>
@@ -129,6 +132,10 @@ export function UserActions({ user }: UserActionsProps) {
           <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
              <Edit className="mr-2 h-4 w-4" />
             <span>Edit Profile</span>
+          </DropdownMenuItem>
+           <DropdownMenuItem onSelect={() => setIsRoleDialogOpen(true)}>
+            <UserCog className="mr-2 h-4 w-4" />
+            <span>Change Role</span>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setIsCertifyAlertOpen(true)}>
             <Award className="mr-2 h-4 w-4" />

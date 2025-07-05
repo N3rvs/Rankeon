@@ -8,15 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import type { UserProfile, UserRole } from '@/lib/types';
+import type { UserProfile } from '@/lib/types';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase/client';
-import { updateUserRole } from '@/lib/actions/users';
 import { useTransition, useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Info } from 'lucide-react';
@@ -28,14 +25,12 @@ const profileFormSchema = z.object({
   bio: z.string().max(300).optional(),
   lookingForTeam: z.boolean().default(false),
   skills: z.array(z.string()).optional(),
-  role: z.string(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
   const { toast } = useToast();
-  const { userProfile: adminProfile } = useAuth();
   const [isPending, startTransition] = useTransition();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(userProfile.avatarUrl);
@@ -47,7 +42,6 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       country: userProfile.country || '',
       bio: userProfile.bio || '',
       lookingForTeam: userProfile.lookingForTeam || false,
-      role: userProfile.role || 'player',
       skills: userProfile.skills || [],
     },
   });
@@ -73,16 +67,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
           newAvatarUrl = await getDownloadURL(uploadResult.ref);
         }
         
-        const { role, ...profileData } = data;
+        const profileData = data;
         const userDocRef = doc(db, 'users', userProfile.id);
         await updateDoc(userDocRef, { ...profileData, avatarUrl: newAvatarUrl });
-
-        if (adminProfile?.role === 'admin' && data.role !== userProfile.role) {
-            const result = await updateUserRole({ uid: userProfile.id, role: data.role as UserRole});
-            if (!result.success) {
-                throw new Error(result.message);
-            }
-        }
         
         toast({
             title: 'Profile Updated',
@@ -100,8 +87,6 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       }
     });
   };
-
-  const validRoles: UserRole[] = ["admin", "moderator", "player"];
 
   return (
     <Form {...form}>
@@ -205,35 +190,6 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                 </FormItem>
             )}
         />
-
-
-        {adminProfile?.role === 'admin' && (
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>User Role</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={userProfile.role === 'founder'}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {validRoles.map((role) => (
-                      <SelectItem key={role} value={role} className="capitalize">
-                        {role}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                 {userProfile.role === 'founder' && <FormDescription>El rol de Fundador no se puede cambiar manualmente.</FormDescription>}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
 
         <Button type="submit" className="w-full" disabled={isPending || form.formState.isSubmitting}>
           {isPending ? 'Saving...' : 'Save Changes'}
