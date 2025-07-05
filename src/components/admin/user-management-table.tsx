@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy, Unsubscribe } from 'firebase/firestore';
+import { collection, onSnapshot, query, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { UserProfile } from '@/lib/types';
 import {
@@ -33,7 +33,8 @@ export function UserManagementTable() {
 
     if (currentUser) {
       setLoading(true);
-      const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+      // Simplified query to ensure we can fetch data without index issues.
+      const usersQuery = query(collection(db, 'users'));
       unsubscribe = onSnapshot(usersQuery, (snapshot) => {
         const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as UserProfile));
         setUsers(usersData);
@@ -62,6 +63,14 @@ export function UserManagementTable() {
       user.country?.toLowerCase().includes(filter.toLowerCase())
     );
   }, [users, filter]);
+
+  const sortedUsers = useMemo(() => {
+    return [...filteredUsers].sort((a, b) => {
+      const timeA = a.createdAt?.toMillis() || 0;
+      const timeB = b.createdAt?.toMillis() || 0;
+      return timeB - timeA; // Sort by most recent first
+    });
+  }, [filteredUsers]);
 
   if (loading) {
     return (
@@ -96,8 +105,8 @@ export function UserManagementTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            {sortedUsers.length > 0 ? (
+              sortedUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
