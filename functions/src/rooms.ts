@@ -75,11 +75,51 @@ export const leaveRoom = onCall(async ({ auth, data }: { auth?: any, data: RoomA
 
     const roomRef = db.collection("gameRooms").doc(roomId);
 
-    await roomRef.update({
-        participants: admin.firestore.FieldValue.arrayRemove(uid)
-    });
+    return db.runTransaction(async (transaction) => {
+        const roomDoc = await transaction.get(roomRef);
 
-    return { success: true };
+        if (!roomDoc.exists) {
+            return { success: true, message: "Room no longer exists." };
+        }
+
+        const roomData = roomDoc.data();
+        if (!roomData) {
+            throw new HttpsError("internal", "Room data is invalid.");
+        }
+        
+        const currentParticipants: string[] = roomData.participants || [];
+        if (!currentParticipants.includes(uid)) {
+            return { success: true, message: "You are not in the room." };
+        }
+        
+        const remainingParticipants = currentParticipants.filter(p => p !== uid);
+
+        if (roomData.createdBy === uid) {
+            // The creator is leaving
+            if (remainingParticipants.length === 0) {
+                // Creator is the last one, delete the room
+                transaction.delete(roomRef);
+            } else {
+                // Transfer ownership to the next participant
+                const newCreatorId = remainingParticipants[0];
+                transaction.update(roomRef, {
+                    createdBy: newCreatorId,
+                    participants: remainingParticipants
+                });
+            }
+        } else {
+            // A non-creator is leaving
+            transaction.update(roomRef, {
+                participants: admin.firestore.FieldValue.arrayRemove(uid)
+            });
+        }
+        
+        return { success: true, message: "Successfully left the room." };
+    }).catch(error => {
+        console.error("Error leaving room:", error);
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", "An unexpected error occurred while leaving the room.");
+    });
 });
 
 interface SendMessageData {
