@@ -28,7 +28,7 @@ interface RoomChatProps {
 }
 
 export function RoomChat({ roomId, participants }: RoomChatProps) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -114,40 +114,58 @@ export function RoomChat({ roomId, participants }: RoomChatProps) {
                   <div
                     key={msg.id}
                     className={cn(
-                      'flex items-start gap-3',
-                      isMe && 'justify-end'
+                      'flex items-end gap-2',
+                      isMe ? 'justify-end' : 'justify-start'
                     )}
                   >
                     {!isMe && sender && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={sender.avatarUrl} data-ai-hint="person avatar"/>
-                        <AvatarFallback>
-                          {sender.name.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <>
+                        <Avatar className="h-8 w-8 shrink-0">
+                          <AvatarImage
+                            src={sender.avatarUrl}
+                            data-ai-hint="person avatar"
+                          />
+                          <AvatarFallback>
+                            {sender.name.slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="text-xs text-muted-foreground px-2">
+                            {sender.name}
+                          </span>
+                          <div
+                            className={cn(
+                              'rounded-lg px-3 py-2 text-sm max-w-xs break-words',
+                              'bg-muted'
+                            )}
+                          >
+                            {msg.content}
+                          </div>
+                        </div>
+                      </>
                     )}
-                    <div
-                      className={cn(
-                        'flex flex-col gap-1',
-                        isMe ? 'items-end' : 'items-start'
-                      )}
-                    >
-                      {!isMe && sender && (
-                        <span className="text-xs text-muted-foreground px-1">
-                          {sender.name}
-                        </span>
-                      )}
-                      <div
-                        className={cn(
-                          'rounded-lg px-3 py-2 text-sm max-w-xs break-words',
-                          isMe
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
-                        )}
-                      >
-                        {msg.content}
-                      </div>
-                    </div>
+
+                    {isMe && userProfile && (
+                      <>
+                        <div
+                          className={cn(
+                            'rounded-lg px-3 py-2 text-sm max-w-xs break-words',
+                            'bg-primary text-primary-foreground'
+                          )}
+                        >
+                          {msg.content}
+                        </div>
+                        <Avatar className="h-8 w-8 shrink-0">
+                          <AvatarImage
+                            src={userProfile.avatarUrl}
+                            data-ai-hint="person avatar"
+                          />
+                          <AvatarFallback>
+                            {userProfile.name?.slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </>
+                    )}
                   </div>
                 );
               })
