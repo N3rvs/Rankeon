@@ -1,4 +1,3 @@
-
 // src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 
@@ -55,7 +54,7 @@ export interface ChatMessage {
 }
 
 export interface Chat {
-  id: string;
+  id:string;
   members: string[]; // [uid1, uid2] sorted
   lastMessageAt?: Timestamp | null;
   lastMessage?: {
@@ -131,4 +130,30 @@ export interface Tournament {
   };
   createdAt: Timestamp;
   proposalId: string;
+  bracket?: Bracket | null;
+}
+
+// Types for Tournament Bracket
+export interface MatchTeam {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  score?: number;
+}
+
+export interface Match {
+  id: string;
+  team1: MatchTeam;
+  team2: MatchTeam;
+  winnerId?: string | null;
+}
+
+export interface Round {
+  id: string;
+  name: string;
+  matches: Match[];
+}
+
+export interface Bracket {
+  rounds: Round[];
 }

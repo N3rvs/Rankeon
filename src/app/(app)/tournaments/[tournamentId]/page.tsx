@@ -22,12 +22,15 @@ import {
   User,
   Info,
   Trophy,
+  Swords,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
+import { TournamentBracket } from '@/components/tournaments/tournament-bracket';
+import { mockBracket } from '@/lib/mock-data';
 
 function TournamentStatusBadge({ status }: { status: Tournament['status'] }) {
   switch (status) {
@@ -211,6 +214,22 @@ export default function TournamentDetailPage() {
           </Button>
         </CardContent>
       </Card>
+      
+       <Card>
+        <CardHeader>
+           <div className="flex items-center gap-3">
+                <Swords className="h-6 w-6 text-primary" />
+                 <div>
+                    <CardTitle className="font-headline text-2xl">Tournament Bracket</CardTitle>
+                    <CardDescription>Follow the action as it unfolds.</CardDescription>
+                </div>
+            </div>
+        </CardHeader>
+        <CardContent>
+           <TournamentBracket bracket={mockBracket} />
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
