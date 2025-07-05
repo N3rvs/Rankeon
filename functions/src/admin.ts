@@ -18,6 +18,7 @@ export const grantFirstAdminRole = onCall(async ({ auth: requestAuth }) => {
             if (configDoc.exists && configDoc.data()?.firstAdminGranted) {
                 throw new HttpsError('already-exists', 'An admin user already exists. This action can only be performed once.');
             }
+            // Mark that the admin role has been granted, so this can't run again.
             transaction.set(configRef, { firstAdminGranted: true, grantedAt: admin.firestore.FieldValue.serverTimestamp() });
         });
 

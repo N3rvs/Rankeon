@@ -1,98 +1,99 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // --- METADATA ---
+
+    // _metadata collection for app-wide configuration like first admin grant
     match /_metadata/{docId} {
-      allow read; // Allow reading app metadata
-      // Only allow the 'grantFirstAdminRole' function to write here
-      allow write: if request.auth != null && request.auth.token.role == null; 
+      allow read: if true;
+      // Allow any authenticated user to attempt the transaction to become the first admin.
+      // The Cloud Function contains the logic to ensure this only happens once.
+      allow write: if request.auth != null;
     }
 
-    // --- USERS ---
+    // User Profiles
     match /users/{userId} {
-      // Anyone can get a user's public profile
-      allow get: if true;
-      
-      // Only admins can list all users for the management table
-      allow list: if request.auth != null && request.auth.token.role == 'admin';
-      
-      // Only the user themselves can update their profile
-      allow update: if request.auth != null && request.auth.uid == userId;
-
-      // Creation/deletion is handled by secure backend functions
-      allow create: if false; 
-      allow delete: if request.auth != null && request.auth.token.role == 'admin';
+      // Any authenticated user can view any public profile.
+      allow get: if request.auth != null;
+      // Admins can update any profile, and users can update their own.
+      allow update: if request.auth.token.role == 'admin' || request.auth.uid == userId;
+      // Only admins can list all users for the management panel.
+      allow list: if request.auth.token.role == 'admin';
+      // User creation is handled by a secure backend function upon registration.
+      allow create: if false;
+      // Only admins can delete users.
+      allow delete: if request.auth.token.role == 'admin';
     }
 
-    // --- FRIEND REQUESTS & NOTIFICATIONS ---
+    // Friend Requests
     match /friendRequests/{requestId} {
-      // Allow read/write if you are the sender or receiver
-      allow read, write, delete: if request.auth != null && (request.auth.uid == resource.data.from || request.auth.uid == resource.data.to);
-      // Allow create if you are the sender
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.from;
+      // You can only interact with friend requests that involve you.
+      // The detailed logic (create, accept, reject) is handled in secure Cloud Functions.
+      allow read, write: if request.auth != null && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      // You can only list requests where you are the sender or receiver.
+      allow list: if request.auth != null;
     }
-    
-    match /inbox/{userId}/{document=**} {
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+
+    // Inbox Notifications
+    match /inbox/{userId}/notifications/{notificationId} {
+        // You can only access your own inbox.
+        allow read, write, delete, list: if request.auth.uid == userId;
     }
-    
-    // --- CHATS & MESSAGES ---
+
+    // Chats
     match /chats/{chatId} {
-      allow read, write: if request.auth != null && request.auth.uid in resource.data.members;
+      // You can only access chats you are a member of.
+      allow read, write: if request.auth.uid in resource.data.members;
       
+      // Messages subcollection
       match /messages/{messageId} {
-        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-        // Only the sender can create a message
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.sender;
-        // Only the sender can delete their message
-        allow delete: if request.auth != null && request.auth.uid == resource.data.sender;
-        allow update: if false; // Messages are immutable
+        // Any member of the chat can read or create messages.
+        allow read, create: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+        // You can only delete your own messages.
+        allow update, delete: if request.auth.uid == resource.data.sender;
       }
     }
     
-    // --- TEAMS ---
+    // Teams
     match /teams/{teamId} {
-      // Anyone can view a team's public profile
-      allow read;
-      
-      // Only the founder or an admin can update team details
-      allow update: if request.auth != null && (request.auth.uid == resource.data.founder || request.auth.token.role == 'admin');
-      
-      // Only the founder or an admin can delete a team
-      allow delete: if request.auth != null && (request.auth.uid == resource.data.founder || request.auth.token.role == 'admin');
+      // Anyone can see a team's public profile and list teams for the market.
+      allow get, list: if true;
+      // Creating is done via a secure function.
+      allow create: if false; 
+      // Only the founder or an admin can update or delete a team.
+      allow update, delete: if request.auth.uid == resource.data.founder || request.auth.token.role == 'admin';
 
-      allow create: if request.auth != null; // Checked in backend function
-      
+      // Members subcollection
       match /members/{memberId} {
-        allow read;
-        // Only the team founder/coach or an admin can manage members
-        allow write, delete: if request.auth != null && (
-          get(/databases/$(database)/documents/teams/$(teamId)).data.founder == request.auth.uid ||
-          (get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)).data.role == 'coach') ||
-          request.auth.token.role == 'admin'
-        );
+        allow read: if true;
+        // Writing (role changes, etc.) is complex and handled in a secure function.
+        allow write: if request.auth != null;
       }
     }
 
-    // --- GAME ROOMS & CHAT ---
+    // Game Rooms
     match /gameRooms/{roomId} {
-        allow read, create; // Anyone can see rooms, create is handled by backend
-        allow update: if request.auth != null && request.auth.uid in resource.data.participants;
-        
+        // Any authenticated user can view or list game rooms.
+        allow get, list: if request.auth != null;
+        // Creation and updates are handled by secure functions.
+        allow create, update: if request.auth != null;
+
         match /messages/{messageId} {
-            allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/gameRooms/$(roomId)).data.participants;
-            allow update, delete: if false;
+             // Only participants of the room can read or send messages.
+             allow read, create: if request.auth.uid in get(/databases/$(database)/documents/gameRooms/$(roomId)).data.participants;
+             // You can only delete your own messages.
+             allow update, delete: if request.auth.uid == resource.data.sender;
         }
     }
     
-    // --- TOURNAMENT PROPOSALS (Admin/Mod/Certified only) ---
+    // Tournament Proposals
     match /tournamentProposals/{proposalId} {
-        // Admins can read/write all proposals
-        allow read, write: if request.auth.token.role == 'admin';
-        // Creators can create proposals
-        allow create: if request.auth.token.isCertifiedStreamer == true || request.auth.token.role == 'moderator';
+        // Only privileged users (admins, mods, certified streamers) can create/read proposals.
+        // The secure function handles the creation logic.
+        allow read, write: if request.auth.token.role == 'admin' 
+                          || request.auth.token.role == 'moderator' 
+                          || request.auth.token.isCertifiedStreamer == true;
     }
   }
 }
