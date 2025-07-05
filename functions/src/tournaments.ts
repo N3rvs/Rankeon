@@ -90,9 +90,12 @@ export const reviewTournamentProposal = onCall(async ({ auth, data }: { auth?: a
   if (!proposalSnap.exists) {
     throw new HttpsError("not-found", "Tournament proposal not found.");
   }
+  
   const proposalData = proposalSnap.data();
-  if (proposalData?.status !== 'pending') {
-      throw new HttpsError("failed-precondition", "This proposal has already been reviewed.");
+
+  // More robust check
+  if (!proposalData || proposalData.status !== 'pending') {
+      throw new HttpsError("failed-precondition", "This proposal has already been reviewed or is invalid.");
   }
 
   // 3. Perform action
@@ -106,19 +109,25 @@ export const reviewTournamentProposal = onCall(async ({ auth, data }: { auth?: a
   });
 
   if (status === 'approved') {
+     // Add validation for all required fields from proposalData
+    const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName } = proposalData;
+    if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName) {
+        console.error("Proposal document is missing required fields:", proposalData);
+        throw new HttpsError("internal", "Proposal document is missing required fields. Please check logs.");
+    }
     // Create a new document in the main 'tournaments' collection
     const tournamentRef = db.collection('tournaments').doc();
     batch.set(tournamentRef, {
       id: tournamentRef.id,
-      name: proposalData.tournamentName,
-      game: proposalData.game,
-      description: proposalData.description,
-      startDate: proposalData.proposedDate,
-      format: proposalData.format,
+      name: tournamentName,
+      game: game,
+      description: description,
+      startDate: proposedDate,
+      format: format,
       status: 'upcoming',
       organizer: {
-        uid: proposalData.proposerUid,
-        name: proposalData.proposerName,
+        uid: proposerUid,
+        name: proposerName,
       },
       createdAt: reviewTimestamp,
       proposalId: proposalId,
