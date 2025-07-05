@@ -1,99 +1,11 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // _metadata collection for app-wide configuration like first admin grant
-    match /_metadata/{docId} {
-      allow read: if true;
-      // Allow any authenticated user to attempt the transaction to become the first admin.
-      // The Cloud Function contains the logic to ensure this only happens once.
-      allow write: if request.auth != null;
-    }
-
-    // User Profiles
-    match /users/{userId} {
-      // Any authenticated user can view any public profile.
-      allow get: if request.auth != null;
-      // Admins can update any profile, and users can update their own.
-      allow update: if request.auth.token.role == 'admin' || request.auth.uid == userId;
-      // Only admins can list all users for the management panel.
-      allow list: if request.auth.token.role == 'admin';
-      // User creation is handled by a secure backend function upon registration.
-      allow create: if false;
-      // Only admins can delete users.
-      allow delete: if request.auth.token.role == 'admin';
-    }
-
-    // Friend Requests
-    match /friendRequests/{requestId} {
-      // You can only interact with friend requests that involve you.
-      // The detailed logic (create, accept, reject) is handled in secure Cloud Functions.
-      allow read, write: if request.auth != null && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
-      // You can only list requests where you are the sender or receiver.
-      allow list: if request.auth != null;
-    }
-
-    // Inbox Notifications
-    match /inbox/{userId}/notifications/{notificationId} {
-        // You can only access your own inbox.
-        allow read, write, delete, list: if request.auth.uid == userId;
-    }
-
-    // Chats
-    match /chats/{chatId} {
-      // You can only access chats you are a member of.
-      allow read, write: if request.auth.uid in resource.data.members;
-      
-      // Messages subcollection
-      match /messages/{messageId} {
-        // Any member of the chat can read or create messages.
-        allow read, create: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-        // You can only delete your own messages.
-        allow update, delete: if request.auth.uid == resource.data.sender;
-      }
-    }
-    
-    // Teams
-    match /teams/{teamId} {
-      // Anyone can see a team's public profile and list teams for the market.
-      allow get, list: if true;
-      // Creating is done via a secure function.
-      allow create: if false; 
-      // Only the founder or an admin can update or delete a team.
-      allow update, delete: if request.auth.uid == resource.data.founder || request.auth.token.role == 'admin';
-
-      // Members subcollection
-      match /members/{memberId} {
-        allow read: if true;
-        // Writing (role changes, etc.) is complex and handled in a secure function.
-        allow write: if request.auth != null;
-      }
-    }
-
-    // Game Rooms
-    match /gameRooms/{roomId} {
-        // Any authenticated user can view or list game rooms.
-        allow get, list: if request.auth != null;
-        // Creation and updates are handled by secure functions.
-        allow create, update: if request.auth != null;
-
-        match /messages/{messageId} {
-             // Only participants of the room can read or send messages.
-             allow read, create: if request.auth.uid in get(/databases/$(database)/documents/gameRooms/$(roomId)).data.participants;
-             // You can only delete your own messages.
-             allow update, delete: if request.auth.uid == resource.data.sender;
-        }
-    }
-    
-    // Tournament Proposals
-    match /tournamentProposals/{proposalId} {
-        // Only privileged users (admins, mods, certified streamers) can create/read proposals.
-        // The secure function handles the creation logic.
-        allow read, write: if request.auth.token.role == 'admin' 
-                          || request.auth.token.role == 'moderator' 
-                          || request.auth.token.isCertifiedStreamer == true;
+    // Allow read/write access to the entire database if the user is authenticated.
+    // This is a common starting point for apps where all access is protected by login.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
