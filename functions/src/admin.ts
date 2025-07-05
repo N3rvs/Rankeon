@@ -9,21 +9,26 @@ export const grantFirstAdminRole = onCall(async ({ auth: requestAuth }) => {
         throw new HttpsError('unauthenticated', 'Authentication is required.');
     }
     const uid = requestAuth.uid;
+    const configRef = db.doc('_metadata/app_config');
 
     try {
-        const listUsersResult = await auth.listUsers(1000);
-        const existingAdmin = listUsersResult.users.find(
-            (user) => user.customClaims?.role === 'admin'
-        );
+        await db.runTransaction(async (transaction) => {
+            const configDoc = await transaction.get(configRef);
+            if (configDoc.exists && configDoc.data()?.firstAdminGranted) {
+                throw new HttpsError('already-exists', 'An admin user already exists. This action can only be performed once.');
+            }
+            // Mark that the admin role has been granted, so this can't run again.
+            transaction.set(configRef, { firstAdminGranted: true, grantedAt: admin.firestore.FieldValue.serverTimestamp() });
+        });
 
-        if (existingAdmin) {
-            throw new HttpsError('already-exists', 'An admin user already exists. This action can only be performed once.');
-        }
-
+        // If the transaction succeeded, proceed to grant the role.
+        // Step 1: Set the secure custom claim.
         await auth.setCustomUserClaims(uid, { role: 'admin' });
+        // Step 2: Update the user's document in Firestore for client-side display.
         await db.collection('users').doc(uid).update({ role: 'admin' });
 
         return { success: true, message: 'Admin role assigned successfully. Please sign out and sign back in to apply the changes.' };
+
     } catch (error: any) {
         console.error('Error in grantFirstAdminRole:', error);
         if (error instanceof HttpsError) {

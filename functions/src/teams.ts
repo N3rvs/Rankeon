@@ -27,18 +27,26 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
     throw new HttpsError("invalid-argument", "El nombre del equipo y el juego son obligatorios.");
   }
 
-  const userRef = db.collection("users").doc(uid);
   const isPrivilegedUser = claims.role === 'admin' || claims.role === 'moderator';
 
+  // Check precondition using the auth token as the single source of truth.
+  if (claims.role === 'founder') {
+    throw new HttpsError('failed-precondition', 'Ya eres fundador de otro equipo. No puedes crear más de uno.');
+  }
+
+  const userRef = db.collection("users").doc(uid);
+  
   try {
+    // If user is not an admin/mod, update their claim first. This is the security-critical step.
+    if (!isPrivilegedUser) {
+        await auth.setCustomUserClaims(uid, { ...claims, role: 'founder' });
+    }
+
+    // Now, create the team and update the Firestore document in a transaction.
     const teamRef = await db.runTransaction(async (transaction) => {
       const userDoc = await transaction.get(userRef);
       if (!userDoc.exists) {
         throw new HttpsError('not-found', 'User profile not found.');
-      }
-      
-      if (userDoc.data()?.role === 'founder' && !isPrivilegedUser) {
-        throw new HttpsError('failed-precondition', 'Ya eres fundador de otro equipo. No puedes crear más de uno.');
       }
       
       const newTeamRef = db.collection("teams").doc();
@@ -63,23 +71,22 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
       
+      // Update the denormalized role in Firestore.
       if (!isPrivilegedUser) {
         transaction.update(userRef, { role: 'founder' });
       }
       return newTeamRef;
     });
 
-    if (!isPrivilegedUser) {
-      await auth.setCustomUserClaims(uid, { ...claims, role: 'founder' });
-    }
-
     return { success: true, teamId: teamRef.id, message: '¡Equipo creado con éxito!' };
 
   } catch (error: any) {
     console.error("Error creating team:", error);
-    if (error instanceof HttpsError) {
-      throw error;
+    // If team creation fails, try to roll back the claim change.
+    if (!isPrivilegedUser) {
+        await auth.setCustomUserClaims(uid, { ...claims, role: 'player' });
     }
+    if (error instanceof HttpsError) throw error;
     throw new HttpsError('internal', 'Ocurrió un error inesperado al crear el equipo.');
   }
 });
@@ -142,51 +149,43 @@ interface DeleteTeamData {
 }
 
 export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
-    if (!requestAuth) {
-        throw new HttpsError("unauthenticated", "Falta autenticación.");
-    }
-    const uid = requestAuth.uid;
-    const { teamId } = data as DeleteTeamData;
+    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
     
-    if (!teamId) {
-        throw new HttpsError("invalid-argument", "Falta ID del equipo.");
-    }
+    const uid = requestAuth.uid;
+    const claims = requestAuth.token || {};
+    const { teamId } = data as DeleteTeamData;
+    if (!teamId) throw new HttpsError("invalid-argument", "Falta ID del equipo.");
 
     const teamRef = db.collection("teams").doc(teamId);
     const userRef = db.collection("users").doc(uid);
-    const claims = requestAuth.token || {};
 
+    const teamDoc = await teamRef.get();
+    if (!teamDoc.exists) return { success: true, message: "El equipo ya no existía." };
+    if (teamDoc.data()?.founder !== uid) throw new HttpsError("permission-denied", "Solo el fundador puede eliminarlo.");
+
+    // Step 1: Revert user's claim first. This is the security-critical part.
+    if (claims.role === 'founder') {
+        try {
+            await auth.setCustomUserClaims(uid, { ...claims, role: "player" });
+        } catch (error) {
+            console.error(`CRITICAL: Failed to revert claim for user ${uid} on team deletion.`, error);
+            throw new HttpsError('internal', 'No se pudo actualizar tu rol de usuario. Por favor, contacta a soporte.');
+        }
+    }
+
+    // Step 2: Delete all team documents from Firestore.
     try {
-        const teamDoc = await teamRef.get();
-        if (!teamDoc.exists) {
-            return { success: true, message: "El equipo ya no existía." };
-        }
-        if (teamDoc.data()?.founder !== uid) {
-            throw new HttpsError("permission-denied", "Solo el fundador del equipo puede eliminarlo.");
-        }
-
         const batch = db.batch();
-
         const membersSnap = await teamRef.collection("members").get();
         membersSnap.forEach(doc => batch.delete(doc.ref));
-
         batch.delete(teamRef);
-        
-        if (claims.role === 'founder') {
-             batch.update(userRef, { role: "player" });
-        }
-
+        batch.update(userRef, { role: "player" });
         await batch.commit();
-        
-        if (claims.role === 'founder') {
-             await auth.setCustomUserClaims(uid, { ...claims, role: "player" });
-        }
 
         return { success: true, message: "Equipo eliminado con éxito." };
 
     } catch (error: any) {
-        console.error("Error al eliminar el equipo:", error);
-        if (error instanceof HttpsError) throw error;
+        console.error("Error al eliminar los documentos del equipo:", error);
         throw new HttpsError("internal", "Ocurrió un error inesperado durante la eliminación del equipo.");
     }
 });

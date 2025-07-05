@@ -15,7 +15,6 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
-  updateDoc,
   Unsubscribe,
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
@@ -58,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (authUser) {
         setUser(authUser);
+        // Force refresh the token to get the latest custom claims.
         const tokenResult = await authUser.getIdTokenResult(true);
         setToken(tokenResult.token);
         setClaims(tokenResult.claims);
@@ -73,14 +73,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await setDoc(userDocRef, {
               id: authUser.uid,
               email: authUser.email,
-              role: 'player',
+              role: 'player', // Default role
               name: authUser.displayName || authUser.email?.split('@')[0] || 'New Player',
               avatarUrl: authUser.photoURL || `https://placehold.co/100x100.png`,
               bio: '',
               games: [],
               skills: [],
-              friends: [], // Ensure friends array is created
-              blocked: [], // Ensure blocked array is created
+              friends: [],
+              blocked: [],
               lookingForTeam: false,
               country: '',
               disabled: false,
@@ -92,15 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
         
-        // This syncs the 'admin' role from Custom Claims to Firestore if needed.
-        if (tokenResult.claims.role === 'admin') {
-          // We can re-use the userSnap from the check above.
-          if (userSnap.exists() && userSnap.data().role !== 'admin') {
-            await updateDoc(userDocRef, { role: 'admin' });
-          }
-        }
-        
-        // Finally, set up the real-time listener for profile changes.
+        // Set up the real-time listener for profile changes.
         unsubscribeProfile = onSnapshot(
           userDocRef,
           (docSnap) => {
