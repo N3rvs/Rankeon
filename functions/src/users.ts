@@ -1,21 +1,28 @@
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
-type UserRole = 'admin' | 'moderator' | 'player';
+type UserRole = 'admin' | 'moderator' | 'player' | 'founder';
 
 const db = admin.firestore();
 const auth = admin.auth();
 
-const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player'];
+const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player', 'founder'];
 
 interface UpdateRoleData {
     uid: string;
     role: UserRole;
 }
 
-export const updateUserRole = onCall(async ({ data }: { auth?: any, data: UpdateRoleData }) => {
-    // A production app would check if the caller has admin privileges.
-    // For now, we trust the client is controlled (e.g., admin dashboard).
+const checkAdmin = (auth: any) => {
+    if (!auth || auth.token.role !== 'admin') {
+        throw new HttpsError('permission-denied', 'This action requires administrator privileges.');
+    }
+};
+
+export const updateUserRole = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: UpdateRoleData }) => {
+    checkAdmin(callerAuth);
+    
     const { uid, role } = data;
     if (!uid || !role || !VALID_ROLES.includes(role)) {
         throw new HttpsError('invalid-argument', 'Invalid arguments provided.');
@@ -39,7 +46,9 @@ interface UpdateStatusData {
     disabled: boolean;
 }
 
-export const updateUserStatus = onCall(async ({ data }: { auth?: any, data: UpdateStatusData }) => {
+export const updateUserStatus = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: UpdateStatusData }) => {
+    checkAdmin(callerAuth);
+
     const { uid, disabled } = data;
      if (!uid) {
         throw new HttpsError('invalid-argument', 'User ID is required.');
@@ -60,7 +69,9 @@ interface UpdateCertificationData {
     isCertified: boolean;
 }
 
-export const updateUserCertification = onCall(async ({ data }: { auth?: any, data: UpdateCertificationData }) => {
+export const updateUserCertification = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: UpdateCertificationData }) => {
+    checkAdmin(callerAuth);
+    
     const { uid, isCertified } = data;
     if (!uid) {
         throw new HttpsError('invalid-argument', 'User ID is required.');

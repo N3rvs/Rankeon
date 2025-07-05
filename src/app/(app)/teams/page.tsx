@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, ShieldCheck, Trash2, Edit } from 'lucide-react';
+import { Users, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, where, onSnapshot, Unsubscribe } from 'firebase/firestore';
@@ -128,7 +129,8 @@ export default function TeamsPage() {
             setLoadingTeam(false);
           });
     
-        } else {
+        } else if (!authLoading) {
+          // If auth is done and there's no user profile, we can stop loading.
           setTeam(null);
           setLoadingTeam(false);
         }
@@ -138,7 +140,7 @@ export default function TeamsPage() {
             unsubscribe();
           }
         };
-      }, [userProfile]);
+      }, [userProfile, authLoading]);
 
       if (authLoading || loadingTeam) {
         return (

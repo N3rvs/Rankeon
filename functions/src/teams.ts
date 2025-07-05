@@ -1,3 +1,4 @@
+
 // functions/src/teams.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -24,8 +25,10 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
     throw new HttpsError("invalid-argument", "El nombre del equipo y el juego son obligatorios.");
   }
 
-  const teamRef = db.collection("teams").doc();
   const userRef = db.collection("users").doc(uid);
+  const userToUpdate = await admin.auth().getUser(uid);
+  const existingClaims = userToUpdate.customClaims || {};
+  const isPrivilegedUser = existingClaims.role === 'admin' || existingClaims.role === 'moderator';
 
   try {
     // Use a transaction for an atomic read-then-write operation.
@@ -36,7 +39,8 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
         throw new HttpsError('failed-precondition', 'Ya eres fundador de otro equipo. No puedes crear más de uno.');
       }
       
-      // If the user is not a founder, proceed to create the team and update their role.
+      const teamRef = db.collection("teams").doc();
+      
       transaction.set(teamRef, {
         id: teamRef.id,
         name,
@@ -56,15 +60,19 @@ export const createTeam = onCall(async ({ auth, data }: { auth?: any, data: Crea
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
       
-      transaction.update(userRef, { role: 'founder' });
+      if (!isPrivilegedUser) {
+        transaction.update(userRef, { role: 'founder' });
+      }
     });
 
     // This part runs only if the transaction above succeeds.
-    const userToUpdate = await admin.auth().getUser(uid);
-    const existingClaims = userToUpdate.customClaims || {};
-    await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
+    if (!isPrivilegedUser) {
+      await admin.auth().setCustomUserClaims(uid, { ...existingClaims, role: 'founder' });
+    }
 
+    const teamRef = (await db.collection("teams").where("founder", "==", uid).limit(1).get()).docs[0];
     return { success: true, teamId: teamRef.id, message: '¡Equipo creado con éxito!' };
+
   } catch (error: any) {
     console.error("Error creating team:", error);
     if (error instanceof HttpsError) {

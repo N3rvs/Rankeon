@@ -1,3 +1,4 @@
+
 // src/components/inbox/inbox-content.tsx
 'use client';
 
@@ -11,7 +12,6 @@ import {
   onSnapshot,
   limit,
   Unsubscribe,
-  where,
 } from 'firebase/firestore';
 import type { Notification } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -45,7 +45,6 @@ export function InboxContent() {
     if (user) {
       setLoading(true);
       // Query all notifications, sorted by time.
-      // Filtering for the popover (excluding messages) happens client-side for robustness.
       const q = query(
         collection(db, 'inbox', user.uid, 'notifications'),
         orderBy('timestamp', 'desc'),
@@ -116,15 +115,22 @@ export function InboxContent() {
               Notifications
             </h3>
             <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleMarkAllRead}
-                disabled={isMarking || !hasUnread}
-              >
-                <CheckCheck className="mr-2 h-4 w-4" />
-                Mark all as read
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleMarkAllRead}
+                    disabled={isMarking || !hasUnread}
+                  >
+                    <CheckCheck className="h-4 w-4" />
+                    <span className="sr-only">Mark all as read</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Mark all as read</p>
+                </TooltipContent>
+              </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
