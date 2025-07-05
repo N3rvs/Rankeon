@@ -39,7 +39,7 @@ import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/fire
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile, loading, claims } = useAuth();
   const [unreadFriendActivity, setUnreadFriendActivity] = useState(0);
 
   useEffect(() => {
@@ -178,7 +178,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               )}
             </SidebarMenuItem>
             
-            {userProfile?.role === 'admin' && (
+            {claims?.role === 'admin' && (
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
