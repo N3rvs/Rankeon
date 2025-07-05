@@ -1,3 +1,4 @@
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -17,12 +18,11 @@ export const grantFirstAdminRole = onCall(async ({ auth: requestAuth }) => {
             if (configDoc.exists && configDoc.data()?.firstAdminGranted) {
                 throw new HttpsError('already-exists', 'An admin user already exists. This action can only be performed once.');
             }
-            // Mark that the admin role has been granted, so this can't run again.
             transaction.set(configRef, { firstAdminGranted: true, grantedAt: admin.firestore.FieldValue.serverTimestamp() });
         });
 
         // If the transaction succeeded, proceed to grant the role.
-        // Step 1: Set the secure custom claim.
+        // Step 1: Set the secure custom claim. This is the source of truth for permissions.
         await auth.setCustomUserClaims(uid, { role: 'admin' });
         // Step 2: Update the user's document in Firestore for client-side display.
         await db.collection('users').doc(uid).update({ role: 'admin' });

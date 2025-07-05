@@ -31,7 +31,7 @@ export const updateUserRole = onCall(async ({ auth: callerAuth, data }: { auth?:
         const userToUpdate = await auth.getUser(uid);
         const existingClaims = userToUpdate.customClaims || {};
 
-        // Step 1: Set the secure custom claim.
+        // Step 1: Set the secure custom claim. This is the source of truth.
         await auth.setCustomUserClaims(uid, { ...existingClaims, role });
         // Step 2: Update the denormalized role in Firestore for client display.
         await db.collection('users').doc(uid).set({ role }, { merge: true });

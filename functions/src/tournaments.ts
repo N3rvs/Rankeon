@@ -21,7 +21,7 @@ export const proposeTournament = onCall(async ({ auth, data }: { auth?: any, dat
   
   const { uid, token } = auth;
   
-  // 2. Check for permissions
+  // 2. Check for permissions using the token as the single source of truth.
   const isCertified = token.isCertifiedStreamer === true;
   const isAdmin = token.role === 'admin';
   const isModerator = token.role === 'moderator';
@@ -37,7 +37,7 @@ export const proposeTournament = onCall(async ({ auth, data }: { auth?: any, dat
     throw new HttpsError("invalid-argument", "Missing required tournament proposal details.");
   }
   
-  // 4. Denormalize proposer's name
+  // 4. Denormalize proposer's name for easier display in an admin panel
   const userDoc = await db.collection('users').doc(uid).get();
   if (!userDoc.exists) {
       throw new HttpsError("not-found", "Proposer's user profile not found.");

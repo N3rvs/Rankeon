@@ -6,9 +6,6 @@ import * as admin from "firebase-admin";
 const db = admin.firestore();
 const auth = admin.auth();
 
-// =============================================
-// CREATE TEAM (Robust version)
-// =============================================
 interface CreateTeamData {
   name: string;
   game: string;
@@ -91,10 +88,6 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
   }
 });
 
-
-// =============================================
-// UPDATE TEAM (Robust version)
-// =============================================
 interface UpdateTeamData {
   teamId: string;
   name: string;
@@ -121,8 +114,8 @@ export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
         if (!teamDoc.exists) {
             throw new HttpsError("not-found", "El equipo no existe.");
         }
-        if (teamDoc.data()?.founder !== uid) {
-            throw new HttpsError("permission-denied", "Solo el fundador puede editar el equipo.");
+        if (teamDoc.data()?.founder !== uid && requestAuth.token.role !== 'admin') {
+            throw new HttpsError("permission-denied", "Solo el fundador o un administrador puede editar el equipo.");
         }
 
         await teamRef.update({
@@ -141,9 +134,6 @@ export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
 });
 
 
-// =============================================
-// DELETE TEAM (Definitive, robust version)
-// =============================================
 interface DeleteTeamData {
     teamId: string;
 }
@@ -161,10 +151,16 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
 
     const teamDoc = await teamRef.get();
     if (!teamDoc.exists) return { success: true, message: "El equipo ya no existía." };
-    if (teamDoc.data()?.founder !== uid) throw new HttpsError("permission-denied", "Solo el fundador puede eliminarlo.");
+    
+    const isFounder = teamDoc.data()?.founder === uid;
+    const isAdmin = claims.role === 'admin';
 
-    // Step 1: Revert user's claim first. This is the security-critical part.
-    if (claims.role === 'founder') {
+    if (!isFounder && !isAdmin) {
+      throw new HttpsError("permission-denied", "Solo el fundador o un administrador puede eliminarlo.");
+    }
+
+    // Step 1: Revert user's claim first if they are the founder.
+    if (isFounder && claims.role === 'founder') {
         try {
             await auth.setCustomUserClaims(uid, { ...claims, role: "player" });
         } catch (error) {
@@ -179,7 +175,10 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
         const membersSnap = await teamRef.collection("members").get();
         membersSnap.forEach(doc => batch.delete(doc.ref));
         batch.delete(teamRef);
-        batch.update(userRef, { role: "player" });
+        // Also update the firestore doc for the founder
+        if (isFounder) {
+          batch.update(userRef, { role: "player" });
+        }
         await batch.commit();
 
         return { success: true, message: "Equipo eliminado con éxito." };
