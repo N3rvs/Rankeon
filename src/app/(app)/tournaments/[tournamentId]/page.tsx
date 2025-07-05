@@ -30,7 +30,6 @@ import { format } from 'date-fns';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { TournamentBracket } from '@/components/tournaments/tournament-bracket';
-import { mockBracket } from '@/lib/mock-data';
 
 function TournamentStatusBadge({ status }: { status: Tournament['status'] }) {
   switch (status) {
@@ -226,7 +225,7 @@ export default function TournamentDetailPage() {
             </div>
         </CardHeader>
         <CardContent>
-           <TournamentBracket bracket={mockBracket} />
+           <TournamentBracket bracket={tournament.bracket} />
         </CardContent>
       </Card>
 
