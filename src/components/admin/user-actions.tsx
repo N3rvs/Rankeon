@@ -134,13 +134,17 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
                         <UserCog className="mr-2 h-4 w-4" />
                         <span>Change Role</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setIsCertifyAlertOpen(true)}>
-                        <Twitch className="mr-2 h-4 w-4" />
-                        <span>{user.isCertifiedStreamer ? 'Remove Certification' : 'Certify Streamer'}</span>
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                 </>
             )}
+            
+            <DropdownMenuItem onSelect={() => setIsCertifyAlertOpen(true)}>
+                <Twitch className="mr-2 h-4 w-4" />
+                <span>{user.isCertifiedStreamer ? 'Remove Certification' : 'Certify Streamer'}</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+
           {user.disabled ? (
             <DropdownMenuItem onSelect={() => setIsUnbanAlertOpen(true)} className="text-green-600 focus:text-green-700">
                 <UserCheck className="mr-2 h-4 w-4" />
