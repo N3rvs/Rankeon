@@ -4,8 +4,6 @@ import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
-// We need a specific type file for Cloud Functions to avoid circular dependencies
-// if we were to import from the main `types.ts` file.
 interface ProposeTournamentData {
   name: string;
   game: string;
@@ -20,14 +18,11 @@ interface ReviewTournamentData {
 }
 
 export const proposeTournament = onCall(async (request) => {
-  // 1. Check for authentication first. This is the most important guard.
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to propose a tournament.");
   }
   
   const { uid, token } = request.auth;
-  
-  // 2. Check for permissions using the token as the single source of truth.
   const isCertified = token.isCertifiedStreamer === true;
   const isAdmin = token.role === 'admin';
   const isModerator = token.role === 'moderator';
@@ -38,19 +33,16 @@ export const proposeTournament = onCall(async (request) => {
   
   const { name, game, description, proposedDate, format } = request.data as ProposeTournamentData;
   
-  // 3. Validate data
   if (!name || !game || !description || !proposedDate || !format) {
     throw new HttpsError("invalid-argument", "Missing required tournament proposal details.");
   }
   
-  // 4. Denormalize proposer's name for easier display in an admin panel
   const userDoc = await db.collection('users').doc(uid).get();
   if (!userDoc.exists) {
       throw new HttpsError("not-found", "Proposer's user profile not found.");
   }
   const proposerName = userDoc.data()?.name || 'Unknown User';
   
-  // 5. Create the proposal document
   const proposalRef = db.collection("tournamentProposals").doc();
   await proposalRef.set({
     id: proposalRef.id,
@@ -69,88 +61,80 @@ export const proposeTournament = onCall(async (request) => {
 });
 
 
+// A new, more robust implementation of reviewTournamentProposal using a transaction
 export const reviewTournamentProposal = onCall(async (request) => {
-  // 1. Check permissions
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "You must be logged in.");
-  }
-  const { uid, token } = request.auth;
-  const isModerator = token.role === 'moderator' || token.role === 'admin';
-  if (!isModerator) {
-    throw new HttpsError("permission-denied", "You do not have permission to review proposals.");
-  }
-
-  // 2. Validate data
-  const { proposalId, status } = request.data as ReviewTournamentData;
-  if (!proposalId || !['approved', 'rejected'].includes(status)) {
-    throw new HttpsError("invalid-argument", "Missing or invalid proposal data.");
-  }
-
-  const proposalRef = db.collection("tournamentProposals").doc(proposalId);
-  const proposalSnap = await proposalRef.get();
-
-  if (!proposalSnap.exists) {
-    throw new HttpsError("not-found", "Tournament proposal not found.");
-  }
-  
-  const proposalData = proposalSnap.data();
-
-  if (!proposalData || proposalData.status !== 'pending') {
-      throw new HttpsError("failed-precondition", "This proposal has already been reviewed or is invalid.");
-  }
-
-  // 3. Perform action
-  const batch = db.batch();
-  const reviewTimestamp = admin.firestore.FieldValue.serverTimestamp();
-
-  batch.update(proposalRef, {
-    status: status,
-    reviewedBy: uid,
-    reviewedAt: reviewTimestamp,
-  });
-
-  if (status === 'approved') {
-    const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName } = proposalData;
-    
-    // RIGOROUS VALIDATION
-    if (
-        typeof tournamentName !== 'string' || !tournamentName ||
-        typeof game !== 'string' || !game ||
-        typeof description !== 'string' ||
-        !(proposedDate && typeof proposedDate.toDate === 'function') || // Check if it is a Timestamp
-        typeof format !== 'string' || !format ||
-        typeof proposerUid !== 'string' || !proposerUid ||
-        typeof proposerName !== 'string' || !proposerName
-    ) {
-        console.error("Proposal document is missing or has malformed required fields:", proposalData);
-        throw new HttpsError("failed-precondition", "The proposal document has invalid data and cannot be approved.");
+    // 1. Permissions and Data Validation
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
     }
-      
-    // Create a new document in the main 'tournaments' collection
-    const tournamentRef = db.collection('tournaments').doc();
-    batch.set(tournamentRef, {
-      id: tournamentRef.id,
-      name: tournamentName,
-      game: game,
-      description: description,
-      startDate: proposedDate, // This is a valid Firestore Timestamp
-      format: format,
-      status: 'upcoming',
-      organizer: {
-        uid: proposerUid,
-        name: proposerName,
-      },
-      createdAt: reviewTimestamp,
-      proposalId: proposalId,
-    });
-  }
+    const { uid, token } = request.auth;
+    if (token.role !== 'moderator' && token.role !== 'admin') {
+        throw new HttpsError("permission-denied", "You do not have permission to review proposals.");
+    }
 
-  try {
-      await batch.commit();
-  } catch (error) {
-      console.error("Error committing tournament review batch:", error);
-      throw new HttpsError('internal', 'Failed to save changes to the database.');
-  }
+    const { proposalId, status } = request.data as ReviewTournamentData;
+    if (!proposalId || !['approved', 'rejected'].includes(status)) {
+        throw new HttpsError("invalid-argument", "Missing or invalid proposal data.");
+    }
 
-  return { success: true, message: `Proposal has been ${status}.` };
+    const proposalRef = db.collection("tournamentProposals").doc(proposalId);
+
+    try {
+        // Using a transaction to ensure atomicity, which is safer than separate writes.
+        await db.runTransaction(async (transaction) => {
+            const proposalSnap = await transaction.get(proposalRef);
+
+            if (!proposalSnap.exists) {
+                throw new HttpsError("not-found", "Tournament proposal not found. It may have been deleted or already processed.");
+            }
+            
+            const proposalData = proposalSnap.data();
+            if (!proposalData || proposalData.status !== 'pending') {
+                throw new HttpsError("failed-precondition", "This proposal has already been reviewed.");
+            }
+
+            // Step 1: Update the proposal document
+            const reviewTimestamp = admin.firestore.Timestamp.now();
+            transaction.update(proposalRef, {
+                status: status,
+                reviewedBy: uid,
+                reviewedAt: reviewTimestamp,
+            });
+
+            // Step 2: If approved, create the new tournament document
+            if (status === 'approved') {
+                const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName } = proposalData;
+                
+                // Rigorous validation. If any of these fail, the transaction will roll back.
+                if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName) {
+                    throw new HttpsError("failed-precondition", "The proposal document has invalid data and cannot be approved.");
+                }
+
+                const tournamentRef = db.collection('tournaments').doc();
+                transaction.set(tournamentRef, {
+                    id: tournamentRef.id,
+                    name: tournamentName,
+                    game: game,
+                    description: description,
+                    startDate: proposedDate, // This is a valid Firestore Timestamp
+                    format: format,
+                    status: 'upcoming',
+                    organizer: { uid: proposerUid, name: proposerName },
+                    createdAt: reviewTimestamp,
+                    proposalId: proposalId,
+                });
+            }
+        });
+
+        return { success: true, message: `Proposal has been ${status}.` };
+
+    } catch (error: any) {
+        console.error("Critical error in reviewTournamentProposal transaction:", error);
+        // If it's an HttpsError we threw ourselves, re-throw it.
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        // Otherwise, wrap it in a generic internal error.
+        throw new HttpsError('internal', 'A server error occurred while processing the proposal. Please check the function logs.');
+    }
 });
