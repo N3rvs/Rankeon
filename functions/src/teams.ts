@@ -114,7 +114,7 @@ export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
             throw new HttpsError("not-found", "El equipo no existe.");
         }
         if (teamDoc.data()?.founder !== uid && requestAuth.token.role !== 'admin') {
-            throw new HttpsError("permission-denied", "No tienes permiso para editar este equipo. Solo su fundador o un administrador pueden hacerlo.");
+            throw new HttpsError("permission-denied", "Solo el fundador o un administrador pueden editar este equipo.");
         }
         
         await teamRef.update({
@@ -141,8 +141,8 @@ interface DeleteTeamData {
 export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
     if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
     
-    const uid = requestAuth.uid;
-    const claims = requestAuth.token || {};
+    const callerUid = requestAuth.uid;
+    const callerClaims = requestAuth.token || {};
     const { teamId } = data as DeleteTeamData;
     if (!teamId) throw new HttpsError("invalid-argument", "Falta ID del equipo.");
 
@@ -154,40 +154,49 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
     const teamData = teamDoc.data();
     if (!teamData) throw new HttpsError("not-found", "El equipo no existe.");
     
-    const isFounder = teamData.founder === uid;
-    const isAdmin = claims.role === 'admin';
+    const founderId = teamData.founder;
+    const isCallerFounder = founderId === callerUid;
+    const isCallerAdmin = callerClaims.role === 'admin';
 
-    if (!isFounder && !isAdmin) {
-      throw new HttpsError("permission-denied", "No tienes permiso para eliminar este equipo. Solo su fundador o un administrador pueden hacerlo.");
+    if (!isCallerFounder && !isCallerAdmin) {
+      throw new HttpsError("permission-denied", "Solo el fundador del equipo o un administrador pueden eliminarlo.");
     }
 
-    // Step 1: Revert founder's claim if they are the one deleting.
-    if (isFounder && claims.role === 'founder') {
-        try {
-            await auth.setCustomUserClaims(uid, { ...claims, role: "player" });
-        } catch (error) {
-            console.error(`CRITICAL: Failed to revert claim for user ${uid} on team deletion.`, error);
-            throw new HttpsError('internal', 'No se pudo actualizar tu rol de usuario. Por favor, contacta a soporte.');
+    // Step 1: Revert founder's custom claim in Firebase Auth. This prevents "ghost" roles.
+    try {
+        const founderAuth = await auth.getUser(founderId);
+        const founderClaims = founderAuth.customClaims || {};
+        
+        if (founderClaims.role === 'founder') {
+            await auth.setCustomUserClaims(founderId, { ...founderClaims, role: "player" });
         }
+    } catch (error) {
+        console.error(`CRITICAL: Failed to revert claim for founder ${founderId} during team deletion.`, error);
+        throw new HttpsError('internal', 'No se pudo actualizar el rol del fundador. El equipo no fue eliminado. Por favor, contacta a soporte.');
     }
 
-    // Step 2: Delete team documents and update all members' user docs.
+    // Step 2: Delete team documents and update all members' user docs in Firestore.
     try {
         const batch = db.batch();
         const membersSnap = await teamRef.collection("members").get();
         
-        // Update all members to remove their teamId
-        teamData.memberIds.forEach((memberId: string) => {
+        // Update all members to remove their teamId and revert founder's Firestore role
+        (teamData.memberIds || []).forEach((memberId: string) => {
             const userRef = db.collection("users").doc(memberId);
-            const updateData: { role?: string; teamId: null | any } = { teamId: null };
-            // If this member is the founder, also revert their Firestore role
-            if (memberId === uid && isFounder) {
+            const updateData: any = { 
+                teamId: admin.firestore.FieldValue.delete()
+            };
+            
+            if (memberId === founderId) {
                 updateData.role = "player";
             }
             batch.update(userRef, updateData);
         });
 
+        // Delete all member documents in the subcollection
         membersSnap.forEach(doc => batch.delete(doc.ref));
+        
+        // Delete the main team document
         batch.delete(teamRef);
 
         await batch.commit();
@@ -196,7 +205,7 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
 
     } catch (error: any) {
         console.error("Error al eliminar los documentos del equipo:", error);
-        throw new HttpsError("internal", "Ocurrió un error inesperado durante la eliminación del equipo.");
+        throw new HttpsError("internal", "El rol del fundador fue actualizado, pero ocurrió un error al eliminar los datos del equipo. Por favor, contacta a soporte.");
     }
 });
 
@@ -257,7 +266,7 @@ export const kickTeamMember = onCall(async ({ auth: requestAuth, data }) => {
     const batch = db.batch();
     batch.delete(teamRef.collection('members').doc(memberId));
     batch.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayRemove(memberId) });
-    batch.update(db.collection('users').doc(memberId), { teamId: null });
+    batch.update(db.collection('users').doc(memberId), { teamId: admin.firestore.FieldValue.delete() });
 
     await batch.commit();
 
