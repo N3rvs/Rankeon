@@ -244,7 +244,7 @@ export default function ChatPage() {
         };
     
         markAsRead();
-    }, [chatId, user]);
+    }, [chatId, user, messages]);
 
 
     useEffect(() => {
