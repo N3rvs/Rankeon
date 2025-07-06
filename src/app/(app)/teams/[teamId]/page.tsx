@@ -154,7 +154,7 @@ export default function TeamProfilePage() {
               data-ai-hint="team banner"
             />
             <div className="absolute bottom-0 left-6 translate-y-1/2">
-              <Avatar className="h-32 w-32 border-4 border-background">
+              <Avatar className="h-32 w-32 border-4 border-background bg-card">
                 <AvatarImage
                   src={team.avatarUrl}
                   alt={team.name}
@@ -164,12 +164,25 @@ export default function TeamProfilePage() {
               </Avatar>
             </div>
           </div>
-          <div className="pt-20 px-6 pb-4">
-            <CardTitle className="text-3xl font-headline">{team.name}</CardTitle>
-            <CardDescription className="flex items-center gap-2 mt-1">
-              <Gamepad2 className="h-4 w-4" />
-              <span>Playing {team.game}</span>
-            </CardDescription>
+          <div className="pt-20 px-6 pb-4 flex justify-between items-start">
+            <div>
+                <CardTitle className="text-3xl font-headline">{team.name}</CardTitle>
+                <CardDescription className="flex items-center gap-2 mt-1">
+                <Gamepad2 className="h-4 w-4" />
+                <span>Playing {team.game}</span>
+                </CardDescription>
+            </div>
+            <Button
+                size="sm"
+                onClick={() =>
+                toast({
+                    title: 'Coming Soon!',
+                    description: 'The team application system is under construction.',
+                })
+                }
+            >
+                <Mail className="mr-2 h-4 w-4" /> Apply to Join
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="px-6 space-y-6">
@@ -250,19 +263,28 @@ export default function TeamProfilePage() {
               ))}
             </div>
           </div>
-          <Button
-            className="w-full"
-            onClick={() =>
-              toast({
-                title: 'Coming Soon!',
-                description: 'The team application system is under construction.',
-              })
-            }
-          >
-            <Mail className="mr-2 h-4 w-4" /> Apply to Join
-          </Button>
         </CardContent>
       </Card>
+      
+      {team.videoUrl && (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline text-2xl">Presentation Video</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                    <iframe
+                        className="w-full h-full"
+                        src={team.videoUrl.replace("watch?v=", "embed/")}
+                        title="Team Presentation Video"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                    ></iframe>
+                </div>
+            </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
