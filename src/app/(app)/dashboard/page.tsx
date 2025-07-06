@@ -5,10 +5,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight">
-          Player &amp; Team Market
+          Mercado de Equipos y Jugadores (UE)
         </h1>
         <p className="text-muted-foreground">
-          Find your next teammate or get recruited by a top team.
+          Encuentra equipos y jugadores en la región de la UE.
         </p>
       </div>
       <MarketTabs />

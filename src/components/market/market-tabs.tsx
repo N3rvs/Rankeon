@@ -16,7 +16,6 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   collection,
   query,
-  where,
   onSnapshot,
   Unsubscribe,
 } from 'firebase/firestore';
@@ -27,11 +26,13 @@ import { useAuth } from '@/contexts/auth-context';
 import { FriendshipButton } from '../friends/friendship-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
-import { Eye, Globe, Shield, UserPlus } from 'lucide-react';
-import Link from 'next/link';
+import { Search, UserPlus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getFlagEmoji } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { TeamCard } from './team-card';
 
 const valorantRanks = [
     { value: 'all', label: 'Todos los Rangos' },
@@ -40,6 +41,14 @@ const valorantRanks = [
     { value: 'Platino', label: 'Platino' },
     { value: 'Ascendente', label: 'Ascendente' },
     { value: 'Inmortal', label: 'Inmortal' },
+];
+
+const valorantRoles = [
+    { value: 'all', label: 'Todos los Roles' },
+    { value: 'Controlador', label: 'Controlador' },
+    { value: 'Iniciador', label: 'Iniciador' },
+    { value: 'Duelista', label: 'Duelista' },
+    { value: 'Centinela', label: 'Centinela' },
 ];
 
 function PlayerTable({
@@ -76,15 +85,16 @@ function PlayerTable({
   ));
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border bg-card">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[30%]">Player</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Rank</TableHead>
-            <TableHead>Skills</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="w-[30%]">Jugador</TableHead>
+            <TableHead>País</TableHead>
+            <TableHead>Rango</TableHead>
+            <TableHead>Roles</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead className="text-right">Acción</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -94,34 +104,25 @@ function PlayerTable({
             players.map((player) => (
               <TableRow key={player.id}>
                 <TableCell>
-                  <Link
-                    href={`/users/${player.id}`}
-                    className="flex items-center gap-4 group"
-                  >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={player.avatarUrl}
-                        alt={player.name}
-                        data-ai-hint="player avatar"
-                      />
-                      <AvatarFallback>{player.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold group-hover:underline">
-                        {player.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                        {player.country && <span>{getFlagEmoji(player.country)}</span>}
-                        <span>{player.country || 'Location not set'}</span>
-                      </p>
+                    <div className="flex items-center gap-4 group">
+                        <Avatar className="h-10 w-10">
+                        <AvatarImage
+                            src={player.avatarUrl}
+                            alt={player.name}
+                            data-ai-hint="player avatar"
+                        />
+                        <AvatarFallback>{player.name?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                        <h3 className="font-semibold">
+                            {player.name}
+                        </h3>
+                        </div>
                     </div>
-                  </Link>
                 </TableCell>
-                <TableCell>
-                    {player.lookingForTeam && (
-                        <Badge variant={'default'}>LFG</Badge>
-                    )}
-                </TableCell>
+                 <TableCell>
+                    <span className="text-sm text-muted-foreground">{getFlagEmoji(player.country || '')} {player.country || 'N/A'}</span>
+                 </TableCell>
                  <TableCell>
                   {player.rank ? (
                     <Badge variant="secondary">{player.rank}</Badge>
@@ -141,10 +142,15 @@ function PlayerTable({
                         ))
                     ) : (
                       <span className="text-muted-foreground text-sm">
-                        No roles
+                        Sin roles
                       </span>
                     )}
                   </div>
+                </TableCell>
+                 <TableCell>
+                    {player.lookingForTeam && (
+                        <Badge variant={'default'}>LFG</Badge>
+                    )}
                 </TableCell>
                 <TableCell className="text-right">
                    {player.lookingForTeam ? (
@@ -158,7 +164,7 @@ function PlayerTable({
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>This player is not looking for a team.</p>
+                                    <p>Este jugador no está buscando equipo.</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -168,120 +174,8 @@ function PlayerTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
-                No players found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
-function TeamTable({
-  teams,
-  loading,
-}: {
-  teams: Team[];
-  loading: boolean;
-}) {
-  const loadingSkeletons = [...Array(5)].map((_, i) => (
-    <TableRow key={i}>
-      <TableCell className="w-1/3">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-          </div>
-        </div>
-      </TableCell>
-      <TableCell>
-        <Skeleton className="h-6 w-20" />
-      </TableCell>
-      <TableCell>
-        <Skeleton className="h-6 w-32" />
-      </TableCell>
-      <TableCell className="text-right">
-        <Skeleton className="h-9 w-24 ml-auto" />
-      </TableCell>
-    </TableRow>
-  ));
-
-  return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[30%]">Team</TableHead>
-            <TableHead>Rank</TableHead>
-            <TableHead>Recruiting</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading ? (
-            loadingSkeletons
-          ) : teams.length > 0 ? (
-            teams.map((team) => (
-              <TableRow key={team.id}>
-                <TableCell>
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={team.avatarUrl}
-                        alt={team.name}
-                        data-ai-hint="team logo"
-                      />
-                      <AvatarFallback>{team.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold">{team.name}</h3>
-                      {team.country && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <span>{getFlagEmoji(team.country)}</span>
-                          {team.country}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-                 <TableCell>
-                  {(team.rankMin && team.rankMax) ? (
-                    <Badge variant="secondary">{team.rankMin === team.rankMax ? team.rankMin : `${team.rankMin} - ${team.rankMax}`}</Badge>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">N/A</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {team.recruitingRoles &&
-                    team.recruitingRoles.length > 0 ? (
-                      team.recruitingRoles.map((role) => (
-                        <Badge key={role} variant="secondary">
-                          {role}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground text-sm">
-                        Any role
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/teams/${team.id}`}>
-                      <Eye className="mr-2 h-4 w-4" /> View
-                    </Link>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
-                No teams are currently recruiting.
+              <TableCell colSpan={6} className="h-24 text-center">
+                No se encontraron jugadores.
               </TableCell>
             </TableRow>
           )}
@@ -299,8 +193,9 @@ export function MarketTabs() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
   
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
-  const [rankFilter, setRankFilter] = useState('all');
   
   const primaryGame = userProfile?.primaryGame || 'Valorant';
   
@@ -316,12 +211,10 @@ export function MarketTabs() {
     let unsubscribe: Unsubscribe | undefined;
     if (user && userProfile) {
       setLoadingPlayers(true);
-      // Fetch all users and filter on the client. This avoids complex index requirements on Firebase.
       const playersQuery = query(collection(db, 'users'));
       unsubscribe = onSnapshot(playersQuery, (snapshot) => {
         const playersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as UserProfile));
         const filteredPlayers = playersData.filter((p) => {
-          // Exclude self and blocked users
           if (p.id === user.uid) return false;
           if (userProfile.blocked?.includes(p.id)) return false;
           if (p.blocked?.includes(user.uid)) return false;
@@ -343,7 +236,6 @@ export function MarketTabs() {
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
     setLoadingTeams(true);
-     // Fetch all teams and filter on the client to avoid index requirements.
     const teamsQuery = query(collection(db, 'teams'));
     unsubscribe = onSnapshot(teamsQuery, (snapshot) => {
       const teamsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Team));
@@ -362,70 +254,128 @@ export function MarketTabs() {
     return [...new Set([...playerCountries, ...teamCountries])].sort();
   }, [players, teams]);
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setRoleFilter('all');
+    setCountryFilter('all');
+  };
+
   const filteredPlayers = useMemo(() => {
     return players.filter(p => {
         const gameMatch = p.primaryGame === primaryGame;
+        const searchMatch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const roleMatch = roleFilter === 'all' || p.skills?.includes(roleFilter);
         const countryMatch = countryFilter === 'all' || p.country === countryFilter;
-        const rankMatch = rankFilter === 'all' || p.rank === rankFilter;
-        return gameMatch && countryMatch && rankMatch;
+        return gameMatch && searchMatch && roleMatch && countryMatch;
     });
-  }, [players, primaryGame, countryFilter, rankFilter]);
+  }, [players, primaryGame, searchQuery, roleFilter, countryFilter]);
 
   const filteredTeams = useMemo(() => {
     return teams.filter(t => {
-        const lookingMatch = t.lookingForPlayers === true;
         const gameMatch = t.game === primaryGame;
+        const searchMatch = !searchQuery || t.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const roleMatch = roleFilter === 'all' || t.recruitingRoles?.includes(roleFilter);
         const countryMatch = countryFilter === 'all' || t.country === countryFilter;
-        const rankMatch = rankFilter === 'all' || (
-            t.rankMin && t.rankMax && rankOrder[rankFilter] >= rankOrder[t.rankMin] && rankOrder[rankFilter] <= rankOrder[t.rankMax]
-        );
-        return lookingMatch && gameMatch && countryMatch && rankMatch;
+        return gameMatch && searchMatch && roleMatch && countryMatch;
     });
-  }, [teams, primaryGame, countryFilter, rankFilter, rankOrder]);
+  }, [teams, primaryGame, searchQuery, roleFilter, countryFilter]);
+
+  const teamLoadingSkeletons = [...Array(3)].map((_, i) => (
+    <Card key={i}>
+      <Skeleton className="aspect-[16/9] w-full" />
+      <CardContent className="p-4">
+        <div className="flex items-start gap-4">
+          <Skeleton className="h-16 w-16 rounded-full -mt-10 border-4 border-card" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-4 w-1/4" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-full mt-2" />
+        <div className="mt-4 space-y-2">
+          <Skeleton className="h-4 w-1/3" />
+          <div className="flex gap-2">
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  ));
 
   return (
-    <Tabs defaultValue="players" className="w-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
-        <TabsList className="grid w-full sm:w-auto grid-cols-2">
-          <TabsTrigger value="players">Players Market</TabsTrigger>
-          <TabsTrigger value="teams">Teams Market</TabsTrigger>
-        </TabsList>
-        <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
-          <Select value={countryFilter} onValueChange={setCountryFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <Globe className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Filter by country" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Countries</SelectItem>
-              {countries.map(c => <SelectItem key={c} value={c}>{getFlagEmoji(c)} {c}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={rankFilter} onValueChange={setRankFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <Shield className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Filter by rank" />
-            </SelectTrigger>
-            <SelectContent>
-              {valorantRanks.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
+    <div className="space-y-6">
+      <div className="rounded-lg border bg-card p-4 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+            <div className="md:col-span-2 lg:col-span-1">
+                <Label htmlFor="search-market">Buscar equipos o jugadores...</Label>
+                <div className="relative mt-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        id="search-market"
+                        placeholder="Buscar por nombre..."
+                        className="pl-9"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
+            <div>
+                <Label htmlFor="role-filter">Filtrar por rol</Label>
+                 <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger id="role-filter" className="mt-1">
+                        <SelectValue placeholder="Filtrar por rol" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {valorantRoles.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div>
+                <Label htmlFor="country-filter">Filtrar por país</Label>
+                <Select value={countryFilter} onValueChange={setCountryFilter}>
+                    <SelectTrigger id="country-filter" className="mt-1">
+                        <SelectValue placeholder="Filtrar por país" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todos los Países</SelectItem>
+                        {countries.map(c => <SelectItem key={c} value={c}>{getFlagEmoji(c)} {c}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+         <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={handleResetFilters}>Reiniciar</Button>
+            <Button>Buscar</Button>
         </div>
       </div>
-      <TabsContent value="players">
-        <Card>
-          <CardContent className="p-0 sm:p-6">
+
+      <Tabs defaultValue="teams" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="teams">Equipos</TabsTrigger>
+          <TabsTrigger value="players">Jugadores</TabsTrigger>
+        </TabsList>
+        <TabsContent value="teams" className="mt-6">
+          {loadingTeams ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {teamLoadingSkeletons}
+            </div>
+          ) : filteredTeams.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTeams.map(team => (
+                <TeamCard key={team.id} team={team} isOwnTeam={team.id === userProfile?.teamId} />
+              ))}
+            </div>
+          ) : (
+            <Card className="flex items-center justify-center p-10">
+              <p className="text-center text-muted-foreground">No se encontraron equipos con los filtros seleccionados.</p>
+            </Card>
+          )}
+        </TabsContent>
+        <TabsContent value="players" className="mt-6">
             <PlayerTable players={filteredPlayers} loading={loadingPlayers} />
-          </CardContent>
-        </Card>
-      </TabsContent>
-      <TabsContent value="teams">
-        <Card>
-          <CardContent className="p-0 sm:p-6">
-            <TeamTable teams={filteredTeams} loading={loadingTeams} />
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
