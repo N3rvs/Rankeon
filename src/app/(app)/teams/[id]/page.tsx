@@ -4,7 +4,7 @@
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Gamepad2, Info, Target, BrainCircuit, Globe, Frown, UserPlus, CheckCircle, Crown, ShieldCheck, Film } from 'lucide-react';
+import { Users, Gamepad2, Info, Target, BrainCircuit, Globe, Frown, UserPlus, CheckCircle, Crown, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, doc, getDoc } from 'firebase/firestore';
@@ -84,7 +84,16 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
         <div className="space-y-6">
             <div className="pt-14 md:pt-8" />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* LEFT COLUMN */}
+                {/* VIDEO COLUMN */}
+                <div className="lg:col-span-3 space-y-6">
+                    <Card>
+                        <CardContent className="p-0">
+                            {renderVideo(team.videoUrl)}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* INFO COLUMN */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -159,17 +168,6 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                                     </Link>
                                 </div>
                             ))}
-                        </CardContent>
-                    </Card>
-                </div>
-                {/* RIGHT COLUMN */}
-                <div className="lg:col-span-3 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline flex items-center gap-2"><Film className="h-5 w-5" /> Showcase Video</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {renderVideo(team.videoUrl)}
                         </CardContent>
                     </Card>
                 </div>
