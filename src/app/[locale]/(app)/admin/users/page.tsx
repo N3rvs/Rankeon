@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { UserManagementTable } from '@/components/admin/user-management-table';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users } from 'lucide-react';
-import { Link } from 'next-intl/link';
+import { Link } from 'next-intl/navigation';
 import { AdminGuard } from '@/components/auth/admin-guard';
 
 export default function AdminUsersPage() {

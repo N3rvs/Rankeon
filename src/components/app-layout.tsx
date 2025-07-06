@@ -28,7 +28,7 @@ import {
   Gavel,
 } from 'lucide-react';
 import { usePathname } from 'next-intl/client';
-import { Link } from 'next-intl/link';
+import { Link } from 'next-intl/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { auth, db } from '@/lib/firebase/client';

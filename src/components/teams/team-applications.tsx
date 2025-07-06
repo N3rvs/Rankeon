@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, UserPlus, X } from 'lucide-react';
-import { Link } from 'next-intl/link';
+import { Link } from 'next-intl/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { respondToTeamApplication } from '@/lib/actions/teams';
 

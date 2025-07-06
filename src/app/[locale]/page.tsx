@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useTranslations } from 'next-intl';
-import { Link } from 'next-intl/link';
+import { Link } from 'next-intl/navigation';
 
 function HomePageContent() {
   const t = useTranslations('HomePage');

@@ -1,7 +1,7 @@
 
 import { LoginForm } from '@/components/auth/login-form';
 import { Gamepad2 } from 'lucide-react';
-import { Link } from 'next-intl/link';
+import { Link } from 'next-intl/navigation';
 import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
