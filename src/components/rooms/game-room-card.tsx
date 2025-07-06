@@ -13,7 +13,7 @@ import { Skeleton } from '../ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 
 interface GameRoomCardProps {
   room: GameRoom;

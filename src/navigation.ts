@@ -1,9 +1,2 @@
-import {
-  createSharedPathnamesNavigation
-} from 'next-intl/navigation';
- 
-export const locales = ['en', 'es', 'fr', 'de', 'it', 'pt'] as const;
-export const localePrefix = 'always';
- 
-export const {Link, redirect, usePathname, useRouter} =
-  createSharedPathnamesNavigation({locales, localePrefix});
+// This file is no longer used and can be safely deleted.
+export {};

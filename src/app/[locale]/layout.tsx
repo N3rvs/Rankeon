@@ -4,9 +4,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from '@/contexts/auth-context';
 import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
-import {NextIntlClientProvider} from 'next-intl';
-import {getMessages, unstable_setRequestLocale} from 'next-intl/server';
-import { locales } from '@/navigation';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -20,34 +17,23 @@ const spaceGrotesk = SpaceGrotesk({
   variable: '--font-space-grotesk',
 });
 
-export function generateStaticParams() {
-  return locales.map((locale) => ({locale}));
-}
-
 export const metadata: Metadata = {
   title: 'SquadUp MVP',
   description: 'Find your squad, conquer the game.',
 };
  
-export default async function LocaleLayout({
-  children,
-  params: {locale}
+export default async function RootLayout({
+  children
 }: {
   children: React.ReactNode;
-  params: {locale: string};
 }) {
-  unstable_setRequestLocale(locale);
-  const messages = await getMessages();
-
   return (
-    <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
+    <html lang="es" className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <body className={cn("font-body antialiased")}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </NextIntlClientProvider>
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

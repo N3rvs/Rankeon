@@ -21,7 +21,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { UserActions } from './user-actions';
 import { useAuth } from '@/contexts/auth-context';
 import { Twitch } from 'lucide-react';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface UserManagementTableProps {
@@ -74,7 +74,6 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
 
     if (currentUser) {
       setLoading(true);
-      // Simplified query to ensure we can fetch data without index issues.
       const usersQuery = query(collection(db, 'users'));
       unsubscribe = onSnapshot(usersQuery, (snapshot) => {
         const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as UserProfile));

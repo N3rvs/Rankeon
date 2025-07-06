@@ -20,10 +20,9 @@ import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 import { TeamApplications } from '@/components/teams/team-applications';
-import { useTranslations } from 'next-intl';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { toast } = useToast();
@@ -33,7 +32,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     const [selectedMemberProfile, setSelectedMemberProfile] = useState<UserProfile | null>(null);
 
     const handleOpenEditDialog = async () => {
-        // If we already have the profile data, just open the dialog
         if (selectedMemberProfile && selectedMemberProfile.id === member.id) {
             setIsEditDialogOpen(true);
             return;
@@ -316,23 +314,21 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
 }
 
 function NoTeamDisplay() {
-    const t = useTranslations('TeamsPage');
-
     return (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-xl font-semibold">{t('noTeamTitle')}</h3>
+            <h3 className="mt-4 text-xl font-semibold">Aún no tienes un equipo</h3>
             <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                {t('createTeamPrompt')}
+                ¡Crea tu propio equipo para empezar a reclutar jugadores!
             </p>
             <CreateTeamDialog />
             <p className="mb-4 mt-8 text-sm text-muted-foreground">
-                {t('joinTeamPrompt')}
+                Busca en el mercado para encontrar tu escuadrón ideal.
             </p>
             <Button asChild>
                 <Link href="/dashboard">
                     <Store className="mr-2 h-4 w-4" />
-                    {t('joinTeamButton')}
+                    Unete a un Equipo
                 </Link>
             </Button>
         </div>

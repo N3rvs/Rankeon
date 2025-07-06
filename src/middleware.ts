@@ -1,19 +1,10 @@
-import createMiddleware from 'next-intl/middleware';
-import {locales, localePrefix} from './navigation';
- 
-export default createMiddleware({
-  // A list of all locales that are supported
-  locales,
- 
-  // Used when no locale matches
-  defaultLocale: 'es',
+// This file is no longer used and can be safely deleted.
+import { NextRequest, NextResponse } from 'next/server';
 
-  localePrefix
-});
- 
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
+}
+
 export const config = {
-  // Match all pathnames except for
-  // - … if they start with `/api`, `/_next` or `/_vercel`
-  // - … the ones containing a dot (e.g. `favicon.ico`)
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

@@ -31,7 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
-import { useRouter } from '@/navigation';
+import { useRouter } from 'next/navigation';
 import { deleteNotifications } from '@/lib/actions/notifications';
 import { respondToTeamInvite } from '@/lib/actions/teams';
 
@@ -133,8 +133,6 @@ export function NotificationItem({
         if (result.success) {
             setIsActionTaken(true);
             toast({ title: 'Success', description: `Friend request ${accept ? 'accepted' : 'rejected'}.` });
-            // The notification is now handled, so we delete it.
-            // The backend sends a new "friend_accepted" notification if accepted.
             await deleteNotifications([notification.id]);
         } else {
             toast({ title: 'Error', description: result.message, variant: 'destructive' });
@@ -154,7 +152,7 @@ export function NotificationItem({
         if (result.success) {
             setIsActionTaken(true);
             toast({ title: 'Success', description: `Team invite ${accept ? 'accepted' : 'rejected'}.` });
-            await deleteNotifications([notification.id]); // The invite notification is now handled.
+            await deleteNotifications([notification.id]);
         } else {
             toast({ title: 'Error', description: result.message, variant: 'destructive' });
         }
@@ -163,7 +161,6 @@ export function NotificationItem({
   
   const handleDismissAndNavigate = (path: string) => {
     startDismissing(async () => {
-        // Dismiss the notification first, then navigate.
         await deleteNotifications([notification.id]);
         router.push(path);
     });

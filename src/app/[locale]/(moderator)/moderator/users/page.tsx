@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { UserManagementTable } from '@/components/admin/user-management-table';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users } from 'lucide-react';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 
 export default function ModeratorUsersPage() {
     return (
