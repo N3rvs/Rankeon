@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
+import { useParams } from 'next/navigation';
 import { doc, getDoc, collection, query, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember } from '@/lib/types';
@@ -16,7 +17,9 @@ import { useAuth } from '@/contexts/auth-context';
 import { applyToTeam } from '@/lib/actions/teams';
 import { useToast } from '@/hooks/use-toast';
 
-export default function TeamProfilePage({ params }: { params: { id: string } }) {
+export default function TeamProfilePage() {
+    const params = useParams();
+    const id = params.id as string;
     const { userProfile, loading: authLoading } = useAuth();
     const { toast } = useToast();
     const [team, setTeam] = useState<Team | null>(null);
@@ -25,18 +28,18 @@ export default function TeamProfilePage({ params }: { params: { id: string } }) 
     const [isApplying, startApplying] = useTransition();
 
     useEffect(() => {
-        if (!params.id) return;
+        if (!id) return;
 
         setLoading(true);
         let teamUnsubscribe: Unsubscribe | undefined;
         let membersUnsubscribe: Unsubscribe | undefined;
 
-        teamUnsubscribe = onSnapshot(doc(db, 'teams', params.id), (teamDoc) => {
+        teamUnsubscribe = onSnapshot(doc(db, 'teams', id), (teamDoc) => {
             if (teamDoc.exists()) {
                 const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
                 setTeam(teamData);
 
-                const membersQuery = query(collection(db, 'teams', params.id, 'members'));
+                const membersQuery = query(collection(db, 'teams', id, 'members'));
                 membersUnsubscribe = onSnapshot(membersQuery, async (membersSnapshot) => {
                     const memberPromises = membersSnapshot.docs.map(async (memberDoc) => {
                         const userDocSnap = await getDoc(doc(db, 'users', memberDoc.id));
@@ -66,7 +69,7 @@ export default function TeamProfilePage({ params }: { params: { id: string } }) 
             teamUnsubscribe?.();
             membersUnsubscribe?.();
         };
-    }, [params.id]);
+    }, [id]);
 
     const handleApply = () => {
         if (!team) return;
