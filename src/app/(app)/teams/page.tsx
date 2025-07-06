@@ -371,13 +371,14 @@ export default function TeamsPage() {
                   });
                   const memberDocs = await Promise.all(memberPromises);
                   setMembers(memberDocs.filter(Boolean) as TeamMember[]);
+                  setLoadingTeam(false); // Wait until members are also loaded
               });
 
             } else {
               setTeam(null);
               setMembers([]);
+              setLoadingTeam(false);
             }
-            setLoadingTeam(false);
           }, (error) => {
             console.error("Error fetching team: ", error);
             setLoadingTeam(false);

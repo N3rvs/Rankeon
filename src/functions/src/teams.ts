@@ -23,18 +23,18 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
     throw new HttpsError("invalid-argument", "El nombre del equipo y el juego son obligatorios.");
   }
 
-  const isPrivilegedUser = claims.role === 'admin' || claims.role === 'moderator';
-
-  // Check precondition using the auth token as the single source of truth.
-  if (claims.role === 'founder') {
-    throw new HttpsError('failed-precondition', 'Ya eres fundador de otro equipo. No puedes crear más de uno.');
-  }
-
   const userRef = db.collection("users").doc(uid);
   
   try {
     const userDoc = await userRef.get();
     const userData = userDoc.data();
+    
+    // Authoritative check on the user's document in Firestore.
+    if (userData?.teamId) {
+        throw new HttpsError('failed-precondition', 'Ya perteneces a un equipo. No puedes crear más de uno.');
+    }
+
+    const isPrivilegedUser = claims.role === 'admin' || claims.role === 'moderator';
 
     const teamRef = db.collection("teams").doc();
     
@@ -86,11 +86,14 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
 
   } catch (error: any) {
     console.error("Error creating team:", error);
-    // If team creation fails, try to roll back the claim change.
-    if (!isPrivilegedUser) {
+    if (error instanceof HttpsError) throw error;
+    
+    // If team creation fails after the claim was set, try to roll back the claim change.
+    const currentClaims = (await auth.getUser(uid)).customClaims;
+    if (currentClaims?.role === 'founder' && !isPrivilegedUser) {
         await auth.setCustomUserClaims(uid, { ...claims, role: 'player' });
     }
-    if (error instanceof HttpsError) throw error;
+    
     throw new HttpsError('internal', 'Ocurrió un error inesperado al crear el equipo.');
   }
 });
