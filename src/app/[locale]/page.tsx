@@ -8,8 +8,10 @@ import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
 
 function HomePageContent() {
+  const t = useTranslations('HomePage');
   const [currentYear, setCurrentYear] = useState<number | null>(null);
 
   useEffect(() => {
@@ -50,10 +52,10 @@ function HomePageContent() {
 
             <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
                  <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter mb-4">
-                    Reúne a tu Escuadrón de Élite
+                    {t('title')}
                 </h1>
                 <p className="max-w-3xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
-                    La plataforma LFG definitiva para Valorant. Deja de jugar solo y empieza a dominar con el equipo perfecto.
+                    {t('subtitle')}
                 </p>
                 <div className="flex justify-center gap-4">
                     <Button size="lg" asChild>

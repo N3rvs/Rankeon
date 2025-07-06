@@ -32,6 +32,7 @@ import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from './ui/skeleton';
 import { InboxIcon } from './inbox/inbox-icon';
 import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/firestore';
+import { LanguageSwitcher } from './language-switcher';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -221,7 +222,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <SidebarTrigger className="md:hidden" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher />
             <InboxIcon />
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />
