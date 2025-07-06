@@ -63,13 +63,10 @@ function PlayerTable({
         <Skeleton className="h-6 w-20" />
       </TableCell>
       <TableCell>
-        <Skeleton className="h-6 w-24" />
-      </TableCell>
-      <TableCell>
         <Skeleton className="h-6 w-32" />
       </TableCell>
       <TableCell className="text-right">
-        <Skeleton className="h-9 w-28 ml-auto" />
+        <Skeleton className="h-9 w-9 ml-auto rounded-full" />
       </TableCell>
     </TableRow>
   ));
@@ -81,7 +78,6 @@ function PlayerTable({
           <TableRow>
             <TableHead className="w-[30%]">Player</TableHead>
             <TableHead>Rank</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead>Skills</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -124,35 +120,33 @@ function PlayerTable({
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={player.lookingForTeam ? 'default' : 'outline'}>
-                    {player.lookingForTeam ? 'LFG' : 'Not Looking'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
                   <div className="flex flex-wrap gap-1">
+                    {player.lookingForTeam && (
+                        <Badge variant={'default'}>LFG</Badge>
+                    )}
                     {player.skills && player.skills.length > 0 ? (
                       player.skills
-                        .slice(0, 3)
+                        .slice(0, 2)
                         .map((skill) => (
-                          <Badge key={skill} variant="secondary">
+                          <Badge key={skill} variant="outline">
                             {skill}
                           </Badge>
                         ))
                     ) : (
                       <span className="text-muted-foreground text-sm">
-                        No skills listed
+                        No roles
                       </span>
                     )}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <FriendshipButton targetUser={player} />
+                  <FriendshipButton targetUser={player} variant="icon" />
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
+              <TableCell colSpan={4} className="h-24 text-center">
                 No players found.
               </TableCell>
             </TableRow>

@@ -17,7 +17,6 @@ import {
   Clock,
   Users,
   UserX,
-  Inbox,
   Check,
   X as XIcon,
 } from 'lucide-react';
@@ -33,9 +32,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface FriendshipButtonProps {
   targetUser: UserProfile;
+  variant?: 'default' | 'icon';
 }
 
 type FriendshipStatus =
@@ -46,7 +47,7 @@ type FriendshipStatus =
   | 'friends'
   | 'self';
 
-export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
+export function FriendshipButton({ targetUser, variant = 'default' }: FriendshipButtonProps) {
   const { user, userProfile } = useAuth();
   const { toast } = useToast();
   const [status, setStatus] = useState<FriendshipStatus>('loading');
@@ -204,6 +205,88 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
   };
 
   const renderButton = () => {
+    if (variant === 'icon') {
+        return (
+             <div className="flex justify-end">
+                {status === 'loading' && <Button variant="ghost" size="icon" disabled><Clock className="h-4 w-4 animate-spin" /></Button>}
+                {status === 'not_friends' && (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={handleSendRequest} disabled={isPending}>
+                                    <UserPlus className="h-4 w-4" />
+                                    <span className="sr-only">Add Friend</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Add Friend</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
+                 {status === 'request_sent' && (
+                     <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" disabled>
+                                    <Clock className="h-4 w-4" />
+                                    <span className="sr-only">Request Sent</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Request Sent</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
+                {status === 'request_received' && (
+                    <div className="flex items-center justify-end gap-1">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => handleResponse(true)} disabled={isPending} className="text-green-500 hover:bg-green-500/10 hover:text-green-600">
+                                        <Check className="h-4 w-4" />
+                                        <span className="sr-only">Accept Request</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Accept</p></TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => handleResponse(false)} disabled={isPending} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                        <XIcon className="h-4 w-4" />
+                                        <span className="sr-only">Decline Request</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Decline</p></TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                )}
+                {status === 'friends' && (
+                    <DropdownMenu>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <Users className="h-4 w-4 text-primary" />
+                                            <span className="sr-only">Friends</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Friends</p></TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleRemoveFriend}>
+                                <UserX className="mr-2 h-4 w-4" /> Remove Friend
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </div>
+        );
+    }
+    
     switch (status) {
       case 'loading':
         return <Button className="w-full" disabled><Clock className="mr-2 h-4 w-4" /> Loading...</Button>;
