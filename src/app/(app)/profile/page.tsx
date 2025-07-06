@@ -19,6 +19,7 @@ import {
   Edit,
 } from 'lucide-react';
 import React from "react";
+import type { UserRole } from "@/lib/types";
 
 // Mock data since this is not in the DB
 const performanceData = {
@@ -64,6 +65,13 @@ const honors = [
   { id: 'h4', icon: Smile, label: 'Positive Attitude' },
 ];
 
+const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' => {
+  if (role === 'admin' || role === 'moderator') {
+    return 'premium';
+  }
+  return 'secondary';
+};
+
 export default function ProfilePage() {
     const { userProfile, loading } = useAuth();
 
@@ -99,7 +107,7 @@ export default function ProfilePage() {
                         </Avatar>
                         <h2 className="text-2xl font-bold font-headline">{user.name}</h2>
                         <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                             <Badge variant="secondary" className="capitalize">{user.role}</Badge>
+                             <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">{user.role}</Badge>
                              <Badge variant="secondary">{primarySkill}</Badge>
                              {user.country && <Badge variant="secondary">{user.country}</Badge>}
                         </div>

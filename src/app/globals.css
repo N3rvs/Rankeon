@@ -37,6 +37,9 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 180 100% 25%;
+
+    --premium: 45 93% 47%;
+    --premium-foreground: 240 5.9% 10%;
   }
   .dark {
     --background: 220 13% 11%;
@@ -71,6 +74,9 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 25%;
     --sidebar-ring: 180 80% 50%;
+
+    --premium: 45 93% 47%;
+    --premium-foreground: 240 5.9% 10%;
   }
 }
 

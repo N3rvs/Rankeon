@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase/client';
 import { doc, getDoc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile, UserRole } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -76,6 +76,13 @@ const honors = [
   { id: 'h3', icon: MessageCircle, label: 'Good Communicator' },
   { id: 'h4', icon: Smile, label: 'Positive Attitude' },
 ];
+
+const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' => {
+  if (role === 'admin' || role === 'moderator') {
+    return 'premium';
+  }
+  return 'secondary';
+};
 
 
 export default function UserProfilePage() {
@@ -156,7 +163,7 @@ export default function UserProfilePage() {
                         </Avatar>
                         <h2 className="text-2xl font-bold font-headline">{user.name}</h2>
                         <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                             <Badge variant="secondary" className="capitalize">{user.role}</Badge>
+                             <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">{user.role}</Badge>
                              <Badge variant="secondary">{primarySkill}</Badge>
                              {user.country && <Badge variant="secondary">{user.country}</Badge>}
                         </div>

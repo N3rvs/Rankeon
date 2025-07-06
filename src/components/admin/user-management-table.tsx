@@ -52,6 +52,13 @@ const getStatusBadge = (user: UserProfile) => {
     return <Badge variant="destructive">Banned</Badge>;
 };
 
+const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' => {
+  if (role === 'admin' || role === 'moderator') {
+    return 'premium';
+  }
+  return 'secondary';
+};
+
 
 export function UserManagementTable({ currentUserRole }: UserManagementTableProps) {
   const { user: currentUser } = useAuth();
@@ -154,7 +161,7 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="capitalize">{user.role}</Badge>
+                    <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">{user.role}</Badge>
                   </TableCell>
                    <TableCell>
                     {user.isCertifiedStreamer && (
