@@ -23,6 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Link } from '@/navigation';
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 import { TeamApplications } from '@/components/teams/team-applications';
+import { useTranslations } from 'next-intl';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { toast } = useToast();
@@ -314,33 +315,26 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     );
 }
 
-function NoTeamDisplay({ userRole }: { userRole?: UserRole }) {
-    const canCreate = userRole === 'admin' || userRole === 'moderator';
+function NoTeamDisplay() {
+    const t = useTranslations('TeamsPage');
 
     return (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-xl font-semibold">Aún no tienes un equipo</h3>
-            {canCreate ? (
-                <>
-                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                        ¡Crea tu propio equipo para empezar a reclutar jugadores!
-                    </p>
-                    <CreateTeamDialog />
-                </>
-            ) : (
-                <>
-                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                        Busca en el mercado para encontrar tu escuadrón ideal.
-                    </p>
-                    <Button asChild>
-                        <Link href="/dashboard">
-                            <Store className="mr-2 h-4 w-4" />
-                            Unete a un Equipo
-                        </Link>
-                    </Button>
-                </>
-            )}
+            <h3 className="mt-4 text-xl font-semibold">{t('noTeamTitle')}</h3>
+            <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                {t('createTeamPrompt')}
+            </p>
+            <CreateTeamDialog />
+            <p className="mb-4 mt-8 text-sm text-muted-foreground">
+                {t('joinTeamPrompt')}
+            </p>
+            <Button asChild>
+                <Link href="/dashboard">
+                    <Store className="mr-2 h-4 w-4" />
+                    {t('joinTeamButton')}
+                </Link>
+            </Button>
         </div>
     );
 }
@@ -457,7 +451,7 @@ export default function TeamsPage() {
                 )}
             </div>
 
-            {team && currentUserMembership ? <TeamDisplay team={team} members={members} currentUserRole={currentUserMembership.role} /> : <NoTeamDisplay userRole={userProfile?.role} />}
+            {team && currentUserMembership ? <TeamDisplay team={team} members={members} currentUserRole={currentUserMembership.role} /> : <NoTeamDisplay />}
         </div>
     );
 }
