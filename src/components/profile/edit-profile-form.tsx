@@ -175,7 +175,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                 <Info className="h-4 w-4" />
                 <AlertTitle>Eres miembro de un equipo</AlertTitle>
                 <AlertDescription>
-                   Tu estado de "buscando equipo" y tus habilidades son gestionados por el líder de tu equipo. Para cambiarlos, sal de tu equipo actual.
+                   Tus habilidades son gestionadas por el líder de tu equipo. Para cambiarlas, sal de tu equipo actual.
                 </AlertDescription>
             </Alert>
         ) : null}
@@ -221,7 +221,6 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                         <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        disabled={isMemberOfTeam}
                         />
                     </FormControl>
                 </FormItem>
