@@ -313,6 +313,8 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
               </DropdownMenuContent>
             </DropdownMenu>
           );
+        case 'self':
+          return <div className="h-10 w-10" />;
         default:
           return null;
       }
