@@ -52,6 +52,7 @@ const valorantRoles = [
 ];
 
 const europeanCountries = [
+    { value: 'all', label: 'Todos los Países' },
     { value: 'Albania', label: 'Albania' },
     { value: 'Andorra', label: 'Andorra' },
     { value: 'Austria', label: 'Austria' },
@@ -152,7 +153,7 @@ function PlayerTable({
             players.map((player) => (
               <TableRow key={player.id}>
                 <TableCell>
-                    <div className="flex items-center gap-4 group">
+                    <Link href={`/users/${player.id}`} className="flex items-center gap-4 group">
                         <Avatar className="h-10 w-10">
                         <AvatarImage
                             src={player.avatarUrl}
@@ -162,11 +163,11 @@ function PlayerTable({
                         <AvatarFallback>{player.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                        <h3 className="font-semibold">
+                        <h3 className="font-semibold group-hover:underline">
                             {player.name}
                         </h3>
                         </div>
-                    </div>
+                    </Link>
                 </TableCell>
                  <TableCell>
                     <span className="text-sm text-muted-foreground">{getFlagEmoji(player.country || '')} {player.country || 'N/A'}</span>
@@ -364,7 +365,6 @@ export function MarketTabs() {
       unsubscribe = onSnapshot(playersQuery, (snapshot) => {
         const playersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as UserProfile));
         const filteredPlayers = playersData.filter((p) => {
-          if (p.id === user.uid) return false;
           if (userProfile.blocked?.includes(p.id)) return false;
           if (p.blocked?.includes(user.uid)) return false;
           return true;
