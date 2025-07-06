@@ -16,7 +16,7 @@ import { blockUser, removeFriend } from '@/lib/actions/friends';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, ArrowLeft, MoreVertical, UserCircle, ShieldBan, Trash2, UserX } from 'lucide-react';
+import { Send, ArrowLeft, UserCircle, ShieldBan, Trash2, UserX } from 'lucide-react';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -59,49 +59,47 @@ function ChatHeader({
   }
 
   return (
-    <div className="p-4 border-b flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4 overflow-hidden">
+    <div className="p-4 border-b flex items-center gap-4">
         <Button variant="ghost" size="icon" className="md:hidden flex-shrink-0" asChild>
-          <Link href="/messages">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <Avatar className="flex-shrink-0">
-          <AvatarImage src={recipient.avatarUrl} data-ai-hint="person avatar" />
-          <AvatarFallback>{recipient.name.slice(0, 2)}</AvatarFallback>
-        </Avatar>
-        <h2 className="text-lg font-semibold truncate">{recipient.name}</h2>
-      </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="flex-shrink-0">
-            <MoreVertical className="h-5 w-5" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <Link href={`/users/${recipient.id}`}>
-              <UserCircle className="mr-2 h-4 w-4" />
-              Ver Perfil
+            <Link href="/messages">
+                <ArrowLeft className="h-4 w-4" />
             </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={onRemoveFriend} className="text-destructive focus:text-destructive">
-            <UserX className="mr-2 h-4 w-4" />
-            Eliminar Amigo
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={onBlock} className="text-destructive focus:text-destructive">
-            <ShieldBan className="mr-2 h-4 w-4" />
-            Bloquear Usuario
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={onDeleteHistory} className="text-destructive focus:text-destructive">
-            <Trash2 className="mr-2 h-4 w-4" />
-            Eliminar Historial
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </Button>
+        
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <div className="flex-1 flex items-center gap-4 overflow-hidden cursor-pointer rounded-md p-2 -m-2 hover:bg-muted">
+                    <Avatar className="flex-shrink-0">
+                        <AvatarImage src={recipient.avatarUrl} data-ai-hint="person avatar" />
+                        <AvatarFallback>{recipient.name.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <h2 className="text-lg font-semibold truncate">{recipient.name}</h2>
+                </div>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                    <Link href={`/users/${recipient.id}`}>
+                        <UserCircle className="mr-2 h-4 w-4" />
+                        Ver Perfil
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={onRemoveFriend} className="text-destructive focus:text-destructive">
+                    <UserX className="mr-2 h-4 w-4" />
+                    Eliminar Amigo
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={onBlock} className="text-destructive focus:text-destructive">
+                    <ShieldBan className="mr-2 h-4 w-4" />
+                    Bloquear Usuario
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={onDeleteHistory} className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Eliminar Historial
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     </div>
   );
 }

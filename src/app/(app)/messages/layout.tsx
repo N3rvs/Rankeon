@@ -4,89 +4,85 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase/client';
-import { collection, query, where, onSnapshot, doc, getDoc, Unsubscribe } from 'firebase/firestore';
-import type { UserProfile, Chat } from '@/lib/types';
+import { doc, getDoc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 function ChatSidebar() {
-    const { user, loading: authLoading } = useAuth();
-    const [chats, setChats] = useState<(Chat & { otherUser: UserProfile })[]>([]);
+    const { user, userProfile, loading: authLoading } = useAuth();
+    const [friends, setFriends] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const pathname = usePathname();
 
     useEffect(() => {
-        if (!user) {
+        if (!userProfile?.friends || userProfile.friends.length === 0) {
             setLoading(false);
+            setFriends([]);
             return;
         }
 
         let isMounted = true;
         setLoading(true);
         
-        const chatsQuery = query(
-            collection(db, 'chats'), 
-            where('members', 'array-contains', user.uid)
-        );
-
-        const unsubscribeChats = onSnapshot(chatsQuery, async (snapshot) => {
-            if (snapshot.empty) {
+        const fetchFriends = async () => {
+            const friendPromises = userProfile.friends!.map(friendId => getDoc(doc(db, 'users', friendId)));
+            try {
+                const friendDocs = await Promise.all(friendPromises);
+                const friendProfiles = friendDocs
+                    .filter(snap => snap.exists())
+                    .map(snap => ({ id: snap.id, ...snap.data() } as UserProfile));
+                
                 if (isMounted) {
-                    setChats([]);
+                    setFriends(friendProfiles);
+                }
+            } catch (error) {
+                console.error("Error fetching friends' profiles:", error);
+            } finally {
+                if (isMounted) {
                     setLoading(false);
                 }
-                return;
             }
-            let chatsData = snapshot.docs.map(d => ({ id: d.id, ...d.data({serverTimestamps: 'estimate'}) } as Chat));
-
-            chatsData.sort((a, b) => (b.lastMessageAt?.toMillis() || 0) - (a.lastMessageAt?.toMillis() || 0));
-
-            const chatPromises = chatsData.map(async (chat) => {
-                const otherUserId = chat.members.find(id => id !== user.uid);
-                if (!otherUserId) return null;
-                const userDoc = await getDoc(doc(db, 'users', otherUserId));
-                if (!userDoc.exists()) return null; // Filter out chats with deleted users
-                
-                return { ...chat, otherUser: { id: userDoc.id, ...userDoc.data() } as UserProfile };
-            });
-
-            const chatsWithUsers = (await Promise.all(chatPromises)).filter(Boolean) as (Chat & { otherUser: UserProfile })[];
-            
-            if (isMounted) {
-                setChats(chatsWithUsers);
-                setLoading(false);
-            }
-        }, (error) => {
-            console.error("Error fetching chats: ", error);
-            if (isMounted) {
-                setLoading(false);
-            }
-        });
-
-        return () => {
-            isMounted = false;
-            unsubscribeChats();
         };
 
-    }, [user]);
+        if (user) {
+            fetchFriends();
+        } else {
+            setLoading(false);
+        }
 
+        return () => { isMounted = false; };
+    }, [user, userProfile?.friends]);
+    
+    // Simulate online/offline status for UI. In a real app, this would use a presence system.
+    const onlineFriends = friends.slice(0, Math.ceil(friends.length / 2));
+    const offlineFriends = friends.slice(Math.ceil(friends.length / 2));
+
+    const getChatId = (friendId: string) => {
+        if (!user) return '';
+        return [user.uid, friendId].sort().join('_');
+    };
 
     if (authLoading || loading) {
         return (
-            <div className="p-4 space-y-3">
-                {[...Array(5)].map((_, i) => (
-                     <div key={i} className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="flex-1 space-y-1">
-                            <Skeleton className="h-4 w-3/4" />
-                            <Skeleton className="h-3 w-1/2" />
-                        </div>
+            <div className="p-4 space-y-4">
+                <Skeleton className="h-4 w-1/3 mb-2" />
+                {[...Array(3)].map((_, i) => (
+                     <div key={i} className="flex items-center gap-3 p-2">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </div>
+                ))}
+                <Skeleton className="h-4 w-1/3 mt-4 mb-2" />
+                 {[...Array(2)].map((_, i) => (
+                     <div key={i} className="flex items-center gap-3 p-2">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <Skeleton className="h-4 w-3/4" />
                     </div>
                 ))}
             </div>
@@ -95,37 +91,60 @@ function ChatSidebar() {
 
     return (
         <ScrollArea className="flex-1">
-            <nav className="p-2 space-y-1">
-                {chats.length > 0 ? chats.map(chat => (
-                    <Link
-                        key={chat.id}
-                        href={`/messages/${chat.id}`}
-                        className={cn(
-                            "flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-muted",
-                            pathname === `/messages/${chat.id}` && "bg-muted"
-                        )}
-                    >
-                        <Avatar>
-                            <AvatarImage src={chat.otherUser.avatarUrl} data-ai-hint="person avatar"/>
-                            <AvatarFallback>{chat.otherUser.name.slice(0,2)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 truncate">
-                            <p className="font-semibold text-sm">{chat.otherUser.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{chat.lastMessage?.content}</p>
+            <nav className="p-2 space-y-4">
+                {friends.length > 0 ? (
+                    <>
+                        <div>
+                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Online — {onlineFriends.length}</h3>
+                            <div className="space-y-1">
+                                {onlineFriends.map(friend => (
+                                    <Link
+                                        key={friend.id}
+                                        href={`/messages/${getChatId(friend.id)}`}
+                                        className={cn(
+                                            "flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-muted",
+                                            pathname === `/messages/${getChatId(friend.id)}` && "bg-muted"
+                                        )}
+                                    >
+                                        <div className="relative">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={friend.avatarUrl} data-ai-hint="person avatar"/>
+                                                <AvatarFallback>{friend.name.slice(0,2)}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-card" />
+                                        </div>
+                                        <p className="font-semibold text-sm">{friend.name}</p>
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
-                        {chat.lastMessageAt && (
-                            <p className="text-xs text-muted-foreground self-start shrink-0">
-                                {formatDistanceToNow(chat.lastMessageAt.toDate(), { addSuffix: true, includeSeconds: true })
-                                    .replace('about a minute', '1m')
-                                    .replace('less than a minute', 'now')
-                                    .replace(' minutes', 'm')
-                                    .replace(' minute', 'm')
-                                }
-                            </p>
-                        )}
-                    </Link>
-                )) : (
-                    <p className="p-4 text-sm text-center text-muted-foreground">No hay chats activos. Envía un mensaje a un amigo.</p>
+                        <div>
+                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Offline — {offlineFriends.length}</h3>
+                            <div className="space-y-1">
+                                {offlineFriends.map(friend => (
+                                    <Link
+                                        key={friend.id}
+                                        href={`/messages/${getChatId(friend.id)}`}
+                                        className={cn(
+                                            "flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-muted",
+                                            pathname === `/messages/${getChatId(friend.id)}` && "bg-muted"
+                                        )}
+                                    >
+                                        <div className="relative">
+                                            <Avatar className="h-8 w-8 opacity-60">
+                                                <AvatarImage src={friend.avatarUrl} data-ai-hint="person avatar"/>
+                                                <AvatarFallback>{friend.name.slice(0,2)}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-muted-foreground ring-2 ring-card" />
+                                        </div>
+                                        <p className="font-semibold text-sm text-muted-foreground">{friend.name}</p>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <p className="p-4 text-sm text-center text-muted-foreground">No tienes amigos. Añade amigos desde el mercado para empezar a chatear.</p>
                 )}
             </nav>
         </ScrollArea>
@@ -140,8 +159,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
                 <div className="col-span-1 flex flex-col border-r h-full">
                     <div className="p-4 border-b">
                          <h2 className="text-xl font-bold font-headline flex items-center gap-2">
-                            <Users />
-                            Chats
+                            Mensajes Directos
                         </h2>
                     </div>
                     <ChatSidebar />
