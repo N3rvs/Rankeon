@@ -121,6 +121,15 @@ export default function TeamProfilePage() {
     return () => unsubscribe();
   }, [teamId, router, toast]);
 
+  const handleApply = () => {
+    startTransition(() => {
+        toast({
+            title: '¡Próximamente!',
+            description: 'El sistema de solicitud de equipos está en construcción.',
+        })
+    });
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -145,15 +154,6 @@ export default function TeamProfilePage() {
   }
 
   const safeVideoUrl = team.videoUrl ? team.videoUrl.replace("watch?v=", "embed/") : '';
-
-  const handleApply = () => {
-    startTransition(() => {
-        toast({
-            title: '¡Próximamente!',
-            description: 'El sistema de solicitud de equipos está en construcción.',
-        })
-    });
-  }
 
   return (
     <div className="space-y-6">
@@ -185,7 +185,7 @@ export default function TeamProfilePage() {
         </div>
       </div>
       
-      <div className="pt-14">
+      <div className="pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             {/* LEFT COLUMN */}
             <div className="lg:col-span-2 space-y-6">
@@ -205,8 +205,18 @@ export default function TeamProfilePage() {
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
+                        {team.lookingForPlayers && team.founder !== user?.uid && (
+                            <Button
+                                onClick={handleApply}
+                                disabled={isPending}
+                                size="sm"
+                            >
+                                <UserPlus className="mr-2 h-4 w-4" /> 
+                                {isPending ? 'Aplicando...' : 'Aplicar'}
+                            </Button>
+                        )}
                     </CardHeader>
                     <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {members.map((member) => (
@@ -222,17 +232,19 @@ export default function TeamProfilePage() {
             {/* RIGHT COLUMN */}
             <div className="lg:col-span-1 space-y-6">
                 {team.videoUrl && (
-                    <Card className="overflow-hidden">
-                        <div className="aspect-video bg-muted">
-                            <iframe
-                                className="w-full h-full"
-                                src={safeVideoUrl}
-                                title="Vídeo de Presentación del Equipo"
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
-                        </div>
+                    <Card className="overflow-hidden p-0">
+                         <CardContent className="p-0">
+                            <div className="aspect-video bg-muted">
+                                <iframe
+                                    className="w-full h-full"
+                                    src={safeVideoUrl}
+                                    title="Vídeo de Presentación del Equipo"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                         </CardContent>
                     </Card>
                 )}
                 
@@ -257,16 +269,6 @@ export default function TeamProfilePage() {
                                 </p>
                             )}
                         </div>
-                        {team.lookingForPlayers && team.founder !== user?.uid && (
-                            <Button
-                                className="w-full"
-                                onClick={handleApply}
-                                disabled={isPending}
-                            >
-                                <UserPlus className="mr-2 h-4 w-4" /> 
-                                {isPending ? 'Aplicando...' : 'Aplicar al Equipo'}
-                            </Button>
-                        )}
                     </CardContent>
                 </Card>
                 <Card>
@@ -292,6 +294,13 @@ export default function TeamProfilePage() {
                             <Button variant="outline" asChild className="w-full justify-start">
                                 <Link href={team.twitterUrl} target="_blank">
                                 <Twitter className="h-4 w-4 mr-2" /> Twitter / X
+                                </Link>
+                            </Button>
+                        )}
+                         {team.videoUrl && (
+                             <Button variant="outline" asChild className="w-full justify-start">
+                                <Link href={team.videoUrl} target="_blank">
+                                <Youtube className="h-4 w-4 mr-2" /> YouTube
                                 </Link>
                             </Button>
                         )}
