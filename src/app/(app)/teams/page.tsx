@@ -1,4 +1,3 @@
-
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -253,7 +252,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                             <CardHeader>
                                 <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
                             </CardHeader>
-                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <CardContent className="space-y-4">
                                 {members.map(member => (
                                     <div key={member.id} className="p-3 flex items-center justify-between rounded-lg border bg-background">
                                         <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
