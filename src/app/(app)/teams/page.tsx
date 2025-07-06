@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store } from 'lucide-react';
+import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, getDocs, doc, getDoc } from 'firebase/firestore';
@@ -183,13 +183,49 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
         coach: <ShieldCheck className="h-4 w-4 text-blue-400" />,
     };
 
+    const renderVideo = (videoUrl?: string) => {
+        if (!videoUrl) {
+          return (
+            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+              <p className="text-muted-foreground">No se ha proporcionado un vídeo de presentación.</p>
+            </div>
+          );
+        }
+        
+        let embedUrl = '';
+        if (videoUrl.includes("youtube.com/watch?v=")) {
+          const videoId = videoUrl.split('v=')[1].split('&')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        } else if (videoUrl.includes("youtu.be/")) {
+          const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        if (embedUrl) {
+          return (
+            <div className="aspect-video">
+              <iframe
+                className="w-full h-full rounded-lg"
+                src={embedUrl}
+                title="Team Showcase Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
+          );
+        }
+
+        // Assume it's a direct video link (.mp4 etc)
+        return <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />;
+    };
+
     return (
         <div className="space-y-6">
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
             
             <div className="pt-14 md:pt-8" />
             
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                     {/* LEFT COLUMN */}
                     <div className="lg:col-span-2 space-y-6">
                         <Card>
@@ -244,6 +280,22 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                 <p className="text-muted-foreground text-sm">{team.description || 'No se ha proporcionado una descripción.'}</p>
                             </CardContent>
                         </Card>
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> Estado de Reclutamiento</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>{team.lookingForPlayers ? 'Activamente Reclutando' : 'Equipo Lleno'}</Badge>
+                                <div className="flex flex-wrap gap-2">
+                                    {team.lookingForPlayers && team.recruitingRoles && team.recruitingRoles.length > 0 ? (
+                                        team.recruitingRoles.map((role) => <Badge key={role} variant="outline">{role}</Badge>)
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? 'Cualquier rol es bienvenido.' : 'No se están buscando roles específicos.'}</p>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         <TeamApplications teamId={team.id} />
 
@@ -289,20 +341,13 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                     </div>
 
                     {/* RIGHT COLUMN */}
-                     <div className="lg:col-span-1 space-y-6">
+                     <div className="lg:col-span-3 space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> Estado de Reclutamiento</CardTitle>
+                                <CardTitle className="font-headline flex items-center gap-2"><Film className="h-5 w-5" /> Vídeo de Presentación</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>{team.lookingForPlayers ? 'Activamente Reclutando' : 'Equipo Lleno'}</Badge>
-                                <div className="flex flex-wrap gap-2">
-                                    {team.lookingForPlayers && team.recruitingRoles && team.recruitingRoles.length > 0 ? (
-                                        team.recruitingRoles.map((role) => <Badge key={role} variant="outline">{role}</Badge>)
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? 'Cualquier rol es bienvenido.' : 'No se están buscando roles específicos.'}</p>
-                                    )}
-                                </div>
+                            <CardContent>
+                                {renderVideo(team.videoUrl)}
                             </CardContent>
                         </Card>
                     </div>
