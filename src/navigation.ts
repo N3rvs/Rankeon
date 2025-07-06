@@ -17,8 +17,21 @@ export const pathnames = {
   '/register': '/register',
   '/profile': '/profile',
   '/teams': '/teams',
+  '/rooms': '/rooms',
+  '/tournaments': '/tournaments',
+  '/messages': '/messages',
+ 
   '/admin': '/admin',
+  '/admin/users': '/admin/users',
+  '/admin/teams': '/admin/teams',
+  '/admin/dashboard': '/admin/dashboard',
+  '/admin/settings': '/admin/settings',
+
   '/moderator': '/moderator',
+  '/moderator/users': '/moderator/users',
+  '/moderator/tournaments': '/moderator/tournaments',
+  '/moderator/tickets': '/moderator/tickets',
+  '/moderator/chats': '/moderator/chats',
  
 } satisfies Pathnames<typeof locales>;
  
