@@ -2,12 +2,42 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write access to the entire database if the user is authenticated.
-    // This provides a simple security model for development and for apps
-    // where all access is protected by login. For more granular security,
-    // you can define specific rules for each collection.
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    // Allow users to read/update their own profile, and allow anyone to read public profiles.
+    match /users/{userId} {
+      allow read: if true;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow create, delete: if false;
     }
+
+    // Allow authenticated users to read team/tournament/room data. Writes are handled by secure Cloud Functions.
+    match /teams/{teamId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Writes are handled by Cloud Functions
+    }
+    match /tournaments/{tournamentId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Writes are handled by Cloud Functions
+    }
+    match /gameRooms/{roomId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Writes are handled by Cloud Functions
+    }
+    
+    // Allow chat members to access their chats and messages.
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null && request.auth.uid in resource.data.members;
+    }
+    match /chats/{chatId}/messages/{messageId} {
+      allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+    }
+    
+    // Allow users to access their own inbox.
+    match /inbox/{userId}/{allPaths=**} {
+      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Friend requests and tournament proposals are handled by secure Cloud Functions.
+    // The default rule is to deny all access, which is appropriate here.
   }
 }
