@@ -1,21 +1,38 @@
 rules_version = '2';
-
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    // Rule for user avatars
-    // Allow a user to read/write to their own avatar folder.
-    match /avatars/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+    // Avatares de usuario
+    match /avatars/{userId}/{fileName} {
+      // Cualquiera puede leer los avatares para mostrar perfiles
+      allow read;
+      // El usuario puede actualizar su propio avatar, o un admin puede hacerlo
+      allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'admin');
     }
 
-    // Rule for team images (avatar and banner)
-    // Allow write only if the user is the founder of the team.
-    // We get the team document from Firestore to check the founder's UID.
-    match /teams/{teamId}/{allPaths=**} {
-      allow read; // Allow public reads for team images
-      allow write: if request.auth != null 
-                    && get(/databases/$(database)/documents/teams/$(teamId)).data.founder == request.auth.uid;
+    // Avatares de equipos
+    match /teams/{teamId}/avatar/{fileName} {
+      allow read;
+      // Solo el fundador o un admin puede actualizar el avatar del equipo.
+      allow write: if request.auth != null && (
+                     get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid ||
+                     request.auth.token.role == 'admin'
+                   );
+    }
+
+    // Banners de equipos
+    match /teams/{teamId}/banner/{fileName} {
+      allow read;
+      // Solo el fundador o un admin puede actualizar el banner del equipo.
+      allow write: if request.auth != null && (
+                     get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid ||
+                     request.auth.token.role == 'admin'
+                   );
+    }
+
+    // Denegar todo lo demás por seguridad
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }
