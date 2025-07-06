@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,11 +20,13 @@ import {
   ArrowLeft,
   Users,
   Gamepad2,
-  ShieldCheck,
   Mail,
   Twitch,
   Twitter,
-  Link as LinkIcon,
+  Youtube,
+  Info,
+  Target,
+  UserPlus
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -43,21 +46,18 @@ function MemberCard({
   isFounder: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+    <Card className="p-3 flex items-center justify-between transition-colors hover:bg-muted/50">
       <div className="flex items-center gap-3">
         <Avatar>
           <AvatarImage src={profile.avatarUrl} data-ai-hint="person avatar" />
           <AvatarFallback>{profile.name.slice(0, 2)}</AvatarFallback>
         </Avatar>
-        <span className="font-medium">{profile.name}</span>
+        <div className="flex flex-col">
+            <span className="font-semibold text-sm">{profile.name}</span>
+            <span className="text-xs text-muted-foreground">{isFounder ? 'Founder' : 'Member'}</span>
+        </div>
       </div>
-      <Badge
-        variant={isFounder ? 'default' : 'secondary'}
-        className="capitalize"
-      >
-        {isFounder ? 'Founder' : 'Member'}
-      </Badge>
-    </div>
+    </Card>
   );
 }
 
@@ -118,16 +118,17 @@ export default function TeamProfilePage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-48 w-full" />
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-24 w-full" />
-          </CardContent>
-        </Card>
+        <div className="relative w-full h-64 bg-muted rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+            <div className="lg:col-span-1 space-y-6">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+            </div>
+        </div>
       </div>
     );
   }
@@ -136,6 +137,8 @@ export default function TeamProfilePage() {
     return null; // Redirect is handled in effect
   }
 
+  const safeVideoUrl = team.videoUrl ? team.videoUrl.replace("watch?v=", "embed/") : '';
+
   return (
     <div className="space-y-6">
       <Button variant="ghost" onClick={() => router.back()}>
@@ -143,80 +146,136 @@ export default function TeamProfilePage() {
         Volver al Mercado
       </Button>
 
-      <Card>
-        <CardHeader className="p-0">
-          <div className="relative h-56 w-full">
-            <Image
-              src={team.bannerUrl || 'https://placehold.co/1200x400.png'}
+      {/* Banner & Avatar */}
+      <div className="relative w-full rounded-lg overflow-hidden">
+        <div className="h-64 bg-muted">
+             <Image
+              src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
               alt={`${team.name} banner`}
               fill
-              className="object-cover rounded-t-lg"
+              className="object-cover"
               data-ai-hint="team banner"
             />
-            <div className="absolute bottom-0 left-6 translate-y-1/2">
-              <Avatar className="h-32 w-32 border-4 border-background bg-card">
-                <AvatarImage
-                  src={team.avatarUrl}
-                  alt={team.name}
-                  data-ai-hint="team logo"
-                />
-                <AvatarFallback>{team.name.slice(0, 2)}</AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
-          <div className="pt-20 px-6 pb-4 flex justify-between items-start">
-            <div>
-                <CardTitle className="text-3xl font-headline">{team.name}</CardTitle>
-                <CardDescription className="flex items-center gap-2 mt-1">
-                <Gamepad2 className="h-4 w-4" />
-                <span>Playing {team.game}</span>
-                </CardDescription>
-            </div>
-            <Button
-                size="sm"
-                onClick={() =>
-                toast({
-                    title: 'Coming Soon!',
-                    description: 'The team application system is under construction.',
-                })
-                }
-            >
-                <Mail className="mr-2 h-4 w-4" /> Apply to Join
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="px-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 space-y-6">
-              <div>
-                <h3 className="font-semibold font-headline mb-2">About Team</h3>
-                <p className="text-muted-foreground text-sm">
-                  {team.description || 'No description provided.'}
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold font-headline mb-2 flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5" />
-                  We are recruiting
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {team.recruitingRoles && team.recruitingRoles.length > 0 ? (
-                    team.recruitingRoles.map((role) => (
-                      <Badge key={role} variant="secondary">
-                        {role}
-                      </Badge>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Any role is welcome.
+        </div>
+        <div className="absolute top-full -translate-y-1/2 left-8">
+            <Avatar className="h-32 w-32 border-4 border-background bg-card">
+            <AvatarImage
+                src={team.avatarUrl}
+                alt={team.name}
+                data-ai-hint="team logo"
+            />
+            <AvatarFallback>{team.name.slice(0, 2)}</AvatarFallback>
+            </Avatar>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="pt-20 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left Column */}
+        <div className="lg:col-span-2 space-y-6">
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <CardTitle className="text-3xl font-headline">{team.name}</CardTitle>
+                            <CardDescription className="flex items-center gap-2 mt-1">
+                            <Gamepad2 className="h-4 w-4" />
+                            <span>Jugando {team.game}</span>
+                            </CardDescription>
+                        </div>
+                        <Button
+                            size="sm"
+                            onClick={() =>
+                            toast({
+                                title: '¡Próximamente!',
+                                description: 'El sistema de solicitud de equipos está en construcción.',
+                            })
+                            }
+                        >
+                            <UserPlus className="mr-2 h-4 w-4" /> Aplicar
+                        </Button>
+                    </div>
+                </CardHeader>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-2"><Info className="h-5 w-5" /> Sobre el Equipo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                     <p className="text-muted-foreground text-sm">
+                        {team.description || 'No se ha proporcionado una descripción.'}
                     </p>
-                  )}
-                </div>
-              </div>
-            </div>
-             <div className="md:col-span-1">
-                 <h3 className="font-semibold font-headline mb-3">Social Links</h3>
-                 <div className="space-y-2">
+                </CardContent>
+            </Card>
+
+            {team.videoUrl && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-2xl flex items-center gap-2"><Youtube className="h-6 w-6" /> Vídeo de Presentación</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                            <iframe
+                                className="w-full h-full"
+                                src={safeVideoUrl}
+                                title="Vídeo de Presentación del Equipo"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros ({members.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {members.map((member) => (
+                        <MemberCard
+                        key={member.id}
+                        profile={member}
+                        isFounder={member.id === team.founder}
+                        />
+                    ))}
+                </CardContent>
+            </Card>
+
+        </div>
+
+        {/* Right Column */}
+        <div className="lg:col-span-1 space-y-6">
+            <Card>
+                 <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> Estado de Reclutamiento</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>
+                        {team.lookingForPlayers ? 'Activamente Reclutando' : 'Equipo Lleno'}
+                    </Badge>
+                    <div className="flex flex-wrap gap-2">
+                        {team.recruitingRoles && team.recruitingRoles.length > 0 ? (
+                            team.recruitingRoles.map((role) => (
+                            <Badge key={role} variant="outline">
+                                {role}
+                            </Badge>
+                            ))
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                            Cualquier rol es bienvenido.
+                            </p>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                     <CardTitle className="font-headline">Conecta</CardTitle>
+                </CardHeader>
+                 <CardContent className="space-y-2">
                     {team.discordUrl && (
                         <Button variant="outline" asChild className="w-full justify-start">
                             <Link href={team.discordUrl} target="_blank">
@@ -238,53 +297,10 @@ export default function TeamProfilePage() {
                             </Link>
                         </Button>
                     )}
-                     {team.videoUrl && (
-                        <Button variant="outline" asChild className="w-full justify-start">
-                            <Link href={team.videoUrl} target="_blank">
-                               <LinkIcon className="h-4 w-4 mr-2" /> Presentation
-                            </Link>
-                        </Button>
-                    )}
-                 </div>
-            </div>
-          </div>
-          <div className="border-t pt-6">
-            <h3 className="font-semibold font-headline mb-4 flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Members ({members.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {members.map((member) => (
-                <MemberCard
-                  key={member.id}
-                  profile={member}
-                  isFounder={member.id === team.founder}
-                />
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {team.videoUrl && (
-        <Card>
-            <CardHeader>
-                <CardTitle className="font-headline text-2xl">Presentation Video</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                    <iframe
-                        className="w-full h-full"
-                        src={team.videoUrl.replace("watch?v=", "embed/")}
-                        title="Team Presentation Video"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                    ></iframe>
-                </div>
-            </CardContent>
-        </Card>
-      )}
+                 </CardContent>
+            </Card>
+        </div>
+      </div>
     </div>
   );
 }
