@@ -2,5 +2,8 @@
   "HomePage": {
     "title": "Stellen Sie Ihr Elite-Team zusammen",
     "subtitle": "Die definitive LFG-Plattform für Valorant. Hören Sie auf, alleine zu spielen, und fangen Sie an, mit dem perfekten Team zu dominieren."
+  },
+  "LanguageSwitcher": {
+    "change_language": "Sprache ändern"
   }
 }

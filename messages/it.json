@@ -2,5 +2,8 @@
   "HomePage": {
     "title": "Assembla la tua squadra d'élite",
     "subtitle": "La piattaforma LFG definitiva per Valorant. Smetti di giocare da solo e inizia a dominare con la squadra perfetta."
+  },
+  "LanguageSwitcher": {
+    "change_language": "Cambia lingua"
   }
 }

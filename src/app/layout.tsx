@@ -2,6 +2,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from '@/contexts/auth-context';
+import { I18nProvider } from '@/contexts/i18n-context';
 import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
 import type { Metadata } from 'next';
 
@@ -30,10 +31,12 @@ export default function RootLayout({
   return (
     <html lang="es" className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <body className={cn("font-body antialiased")}>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
+          <I18nProvider>
+            <AuthProvider>
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </I18nProvider>
       </body>
     </html>
   );
