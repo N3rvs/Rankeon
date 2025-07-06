@@ -1,5 +1,4 @@
-import {NextIntlClientProvider, useMessages} from 'next-intl';
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import '../globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
@@ -24,23 +23,17 @@ export const metadata: Metadata = {
 };
  
 export default function LocaleLayout({
-  children,
-  params: {locale}
+  children
 }: {
   children: React.ReactNode;
-  params: {locale: string};
 }) {
-  const messages = useMessages();
- 
   return (
-    <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
+    <html lang="es" className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <body className={cn("font-body antialiased")}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </NextIntlClientProvider>
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

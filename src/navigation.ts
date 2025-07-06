@@ -1,28 +1,6 @@
-import {createLocalizedPathnamesNavigation} from 'next-intl/navigation';
+// This file is now a compatibility layer to prevent breaking imports.
+// It re-exports from next/navigation and next/link.
+import Link from 'next/link';
+import { usePathname, useRouter, redirect } from 'next/navigation';
 
-export const locales = ['en', 'es', 'fr', 'de', 'it', 'pt'] as const;
-export const defaultLocale = 'es';
-export const localePrefix = 'as-needed';
-
-// The `pathnames` object holds pairs of internal names and translated paths.
-export const pathnames = {
-  '/': '/',
-  '/profile': '/profile',
-  '/dashboard': '/dashboard',
-  '/login': '/login',
-  '/register': '/register',
-  '/teams': '/teams',
-  '/rooms': '/rooms',
-  '/tournaments': '/tournaments',
-  '/messages': {
-    en: '/messages',
-    es: '/mensajes',
-    fr: '/messages',
-    de: '/nachrichten',
-    it: '/messaggi',
-    pt: '/mensagens'
-  },
-};
-
-export const {Link, redirect, usePathname, useRouter} =
-  createLocalizedPathnamesNavigation({locales, localePrefix, pathnames});
+export { Link, redirect, usePathname, useRouter };
