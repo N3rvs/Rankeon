@@ -9,8 +9,7 @@ import type { UserProfile, Chat } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/navigation';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -22,7 +21,6 @@ function ChatList() {
     const [loading, setLoading] = useState(true);
     const pathname = usePathname();
 
-    // Listener for unread message notifications
     useEffect(() => {
         if (!user) {
             setUnreadChatIds(new Set());
@@ -40,8 +38,6 @@ function ChatList() {
         return () => unsubscribe();
     }, [user]);
 
-
-    // Listener for chat documents and their partners
     useEffect(() => {
         if (!user) {
             setLoading(false);
@@ -51,20 +47,19 @@ function ChatList() {
         setLoading(true);
         const q = query(
             collection(db, 'chats'),
-            where('members', 'array-contains', user.uid),
-            orderBy('lastMessageAt', 'desc')
+            where('members', 'array-contains', user.uid)
         );
 
         const unsubscribe = onSnapshot(q, async (snapshot) => {
-            // Filter to only include chats that have at least one message.
             const initialChats = snapshot.docs
                 .map(doc => ({ id: doc.id, ...doc.data() } as Chat))
                 .filter(chat => !!chat.lastMessage);
-
+            
             const chatMap = new Map<string, Chat>();
             initialChats.forEach(doc => {
                 chatMap.set(doc.id, doc);
             });
+
             const sortedChats = Array.from(chatMap.values()).sort((a, b) => {
                 const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
                 const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
@@ -98,7 +93,7 @@ function ChatList() {
         });
 
         return () => unsubscribe();
-    }, [user]);
+    }, [user, chatPartners]);
 
     if (authLoading || loading) {
         return (
@@ -125,7 +120,7 @@ function ChatList() {
                         if (!partnerId) return null;
                         
                         const partner = chatPartners.get(partnerId);
-                        if (!partner) return null; // Or show a loading state for this specific item
+                        if (!partner) return null;
 
                         const isUnread = unreadChatIds.has(chat.id);
                         const isLastMessageFromMe = chat.lastMessage?.sender === user?.uid;

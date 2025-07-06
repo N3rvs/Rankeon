@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,14 +10,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { HonorsSection } from '@/components/profile/honors-section';
 import { TeamInfoCard } from '@/components/profile/team-info-card';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Link, useRouter } from '@/navigation';
 import { ArrowLeft, Frown, Twitch } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { FriendshipButton } from '@/components/friends/friendship-button';
-import { useRouter } from 'next/navigation';
 
 export default function UserProfilePage() {
   const params = useParams();

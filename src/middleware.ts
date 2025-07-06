@@ -1,10 +1,15 @@
-// This file is obsolete and can be safely deleted.
-import { NextRequest, NextResponse } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { locales, defaultLocale } from './i18n';
+import { pathnames } from './navigation';
 
-export function middleware(request: NextRequest) {
-  return NextResponse.next();
-}
+export default createMiddleware({
+  defaultLocale,
+  locales,
+  pathnames,
+  localePrefix: 'as-needed'
+});
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  // Match only internationalized pathnames
+  matcher: ['/', '/(de|en|es|fr|it|pt)/:path*']
 };

@@ -8,8 +8,7 @@ import { z } from 'zod';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter, Link } from '@/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -40,7 +39,6 @@ export function RegisterForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       
-      // Create the full user document on registration
       await setDoc(doc(db, "users", user.uid), {
         id: user.uid,
         email: user.email,
@@ -51,8 +49,8 @@ export function RegisterForm() {
         primaryGame: 'Valorant',
         skills: [],
         rank: '',
-        friends: [], // Initialize empty friends list
-        blocked: [], // Initialize empty blocked list
+        friends: [],
+        blocked: [],
         lookingForTeam: false,
         country: '',
         disabled: false,

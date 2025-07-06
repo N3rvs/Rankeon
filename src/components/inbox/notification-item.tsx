@@ -1,4 +1,4 @@
-// src/components/inbox/notification-item.tsx
+
 'use client';
 
 import type { Notification, UserProfile } from '@/lib/types';
@@ -30,7 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/navigation';
 import { deleteNotifications } from '@/lib/actions/notifications';
 import { respondToTeamInvite } from '@/lib/actions/teams';
 
@@ -80,7 +80,6 @@ export function NotificationItem({
     if (notification.extraData?.requestId) {
         return notification.extraData.requestId;
     }
-    // Fallback query if requestId is missing from notification payload
     if (notification.type === 'friend_request' && user) {
         try {
             const q = query(
@@ -102,7 +101,6 @@ export function NotificationItem({
     if (notification.extraData?.inviteId) {
         return notification.extraData.inviteId;
     }
-    // Fallback query if inviteId is missing
     if (notification.type === 'team_invite_received' && user) {
         try {
             const q = query(
@@ -125,7 +123,7 @@ export function NotificationItem({
         const requestId = await findRequestId();
         if (!requestId) {
             toast({ title: 'Request Unavailable', description: 'This friend request may have been resolved already.' });
-            await deleteNotifications([notification.id]); // Clean up stale notification
+            await deleteNotifications([notification.id]);
             return;
         }
         const result = await respondToFriendRequest({ requestId, accept });
@@ -209,7 +207,6 @@ export function NotificationItem({
           {notification.timestamp ? formatDistanceToNow(notification.timestamp.toDate(), { addSuffix: true }) : ''}
         </p>
 
-        {/* Action buttons */}
         {notification.type === 'friend_request' && !isActionTaken && (
           <div className="flex gap-2 pt-1">
             <Button size="sm" className="h-7 px-2" onClick={() => handleFriendRequestResponse(true)} disabled={isResponding}>

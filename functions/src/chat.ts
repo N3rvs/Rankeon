@@ -37,11 +37,14 @@ export const deleteChatHistory = onCall(async (request) => {
       lastDoc = snapshot.docs[snapshot.docs.length - 1];
     }
 
-    if (chatData?.lastMessage) {
-        await chatRef.update({
-          'lastMessage.content': 'Historial de chat borrado.',
-        });
-    }
+    // Unconditionally update the lastMessage object to ensure the chat remains visible.
+    await chatRef.update({
+      lastMessage: {
+        content: 'Historial de chat borrado.',
+        sender: uid, // Use the UID of the user who initiated the action.
+      },
+      lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
 
     return { success: true, message: "Chat history cleared." };
   } catch (error) {

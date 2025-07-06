@@ -16,9 +16,9 @@ import { blockUser, removeFriend } from '@/lib/actions/friends';
 import { markNotificationsAsRead } from '@/lib/actions/notifications';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useRouter, Link } from '@/navigation';
 import { Send, ArrowLeft, UserCircle, ShieldBan, Trash2, UserX, MoreVertical } from 'lucide-react';
-import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,13 +42,11 @@ function ChatHeader({
   onBlock,
   onDeleteHistory,
   onRemoveFriend,
-  locale,
 }: {
   recipient: UserProfile | null;
   onBlock: () => void;
   onDeleteHistory: () => void;
   onRemoveFriend: () => void;
-  locale?: string;
 }) {
   if (!recipient) {
     return (
@@ -61,19 +59,16 @@ function ChatHeader({
     );
   }
 
-  const profileLink = locale ? `/${locale}/users/${recipient.id}` : `/users/${recipient.id}`;
-  const messagesLink = locale ? `/${locale}/messages` : '/messages';
-
   return (
     <div className="p-4 border-b flex items-center justify-between gap-4 h-16">
         <div className="flex items-center gap-4 flex-1 overflow-hidden">
              <Button variant="ghost" size="icon" className="md:hidden flex-shrink-0" asChild>
-                <Link href={messagesLink}>
+                <Link href="/messages">
                     <ArrowLeft className="h-4 w-4" />
                 </Link>
             </Button>
             
-            <Link href={profileLink} className="flex-1 flex items-center gap-4 overflow-hidden rounded-md p-2 -m-2 hover:bg-muted">
+            <Link href={`/users/${recipient.id}`} className="flex-1 flex items-center gap-4 overflow-hidden rounded-md p-2 -m-2 hover:bg-muted">
                 <Avatar className="flex-shrink-0">
                     <AvatarImage src={recipient.avatarUrl} data-ai-hint="person avatar" />
                     <AvatarFallback>{recipient.name.slice(0, 2)}</AvatarFallback>
@@ -92,7 +87,7 @@ function ChatHeader({
 
             <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                    <Link href={profileLink}>
+                    <Link href={`/users/${recipient.id}`}>
                         <UserCircle className="mr-2 h-4 w-4" />
                         Ver Perfil
                     </Link>
@@ -209,7 +204,6 @@ export default function ChatPage() {
     const params = useParams();
     const router = useRouter();
     const chatId = params.chatId as string;
-    const locale = params.locale as string | undefined;
     
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [recipient, setRecipient] = useState<UserProfile | null>(null);
@@ -258,7 +252,6 @@ export default function ChatPage() {
 
         const setupPage = async () => {
             try {
-                // 1. Validate chat document and user membership
                 const chatDocRef = doc(db, 'chats', chatId);
                 const chatDocSnap = await getDoc(chatDocRef);
 
@@ -271,7 +264,6 @@ export default function ChatPage() {
                     throw new Error("You are not a member of this chat.");
                 }
 
-                // 2. Get recipient ID and fetch their profile
                 const recipientId = chatData.members.find((id: string) => id !== user.uid);
                 if (!recipientId) {
                     throw new Error('Could not identify the other user in this chat.');
@@ -279,11 +271,10 @@ export default function ChatPage() {
                 
                 const userDoc = await getDoc(doc(db, 'users', recipientId));
                 if (!userDoc.exists()) {
-                    throw new Error('The other user in this chat no longer exists.');
+                    throw new Error('Recipient not found.');
                 }
                 setRecipient({ id: userDoc.id, ...userDoc.data() } as UserProfile);
 
-                // 3. Set up message listener
                 const messagesRef = collection(db, 'chats', chatId, 'messages');
                 const q = query(messagesRef, orderBy('createdAt', 'asc'));
 
@@ -300,7 +291,7 @@ export default function ChatPage() {
             } catch (error: any) {
                 console.error('Failed to setup chat page:', error);
                 toast({ title: 'Error', description: error.message || 'Could not load chat.', variant: 'destructive' });
-                router.push(locale ? `/${locale}/messages` : '/messages');
+                router.push('/messages');
             }
         };
 
@@ -311,7 +302,7 @@ export default function ChatPage() {
                 unsubscribe();
             }
         };
-    }, [chatId, user, router, toast, locale]);
+    }, [chatId, user, router, toast]);
 
 
     const handleSendMessage = async (content: string) => {
@@ -328,7 +319,7 @@ export default function ChatPage() {
             const result = await blockUser(recipient.id);
             if (result.success) {
                 toast({ title: 'Usuario Bloqueado', description: `${recipient.name} ha sido bloqueado. No podrás enviarle mensajes.` });
-                router.push(locale ? `/${locale}/messages` : '/messages');
+                router.push('/messages');
             } else {
                 toast({ title: 'Error', description: result.message, variant: 'destructive' });
             }
@@ -342,7 +333,7 @@ export default function ChatPage() {
             const result = await removeFriend(recipient.id);
             if (result.success) {
                 toast({ title: 'Amigo Eliminado', description: `${recipient.name} ya no es tu amigo.` });
-                router.push(locale ? `/${locale}/messages` : '/messages');
+                router.push('/messages');
             } else {
                 toast({ title: 'Error', description: result.message, variant: 'destructive' });
             }
@@ -441,7 +432,6 @@ export default function ChatPage() {
                     onBlock={() => setIsBlockAlertOpen(true)}
                     onDeleteHistory={() => setIsDeleteAlertOpen(true)}
                     onRemoveFriend={() => setIsRemoveFriendAlertOpen(true)}
-                    locale={locale}
                 />
                 <ChatMessages messages={messages} recipient={recipient} currentUserProfile={userProfile} />
                 {recipient && <ChatInput recipientId={recipient.id} onSend={handleSendMessage} />}

@@ -1,5 +1,4 @@
 
-// src/components/app-layout.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -27,8 +26,7 @@ import {
   Shield,
   Gavel,
 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import { usePathname, Link } from '@/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { auth, db } from '@/lib/firebase/client';
@@ -45,9 +43,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     let unsubscribe: Unsubscribe | undefined;
 
     if (user) {
-      // This query now correctly only listens for unread messages,
-      // so the dot on the "Amigos" link is not confusingly triggered
-      // by friend requests, which are handled by the main notification bell.
       const q = query(
         collection(db, 'inbox', user.uid, 'notifications'),
         where('read', '==', false),
