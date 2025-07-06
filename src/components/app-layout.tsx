@@ -18,7 +18,6 @@ import {
   Gamepad2,
   UserCircle,
   LogOut,
-  Search,
   Dices,
   Users,
   Store,
@@ -29,8 +28,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { auth, db } from '@/lib/firebase/client';
@@ -230,13 +227,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="flex h-16 items-center justify-between border-b bg-background/50 backdrop-blur-sm px-4 md:px-6">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="md:hidden" />
-            <div className="relative hidden md:block w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search players, teams, or games..."
-                className="pl-9"
-              />
-            </div>
           </div>
           <div className="flex items-center gap-4">
             <InboxIcon />
