@@ -20,6 +20,7 @@ import { Globe, Info, Shield } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
+import { useAuth } from '@/contexts/auth-context';
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
@@ -96,6 +97,7 @@ const europeanCountries = [
 ];
 
 export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
+  const { userProfile: loggedInUserProfile } = useAuth();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -113,12 +115,10 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       skills: userProfile.skills || [],
     },
   });
-
+  
+  const canEditAvatar = loggedInUserProfile?.id === userProfile.id || loggedInUserProfile?.role === 'admin';
   const isMemberOfTeam = !!userProfile.teamId;
-  // Game fields are locked only for regular players who are part of a team.
-  // Founders, coaches, admins, and unassigned players can edit these fields.
-  const isGameFieldsLocked = userProfile.role === 'player' && isMemberOfTeam;
-
+  const isGameFieldsLocked = (userProfile.role === 'player') ? isMemberOfTeam : false;
 
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
@@ -136,7 +136,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       try {
         let newAvatarUrl = userProfile.avatarUrl;
 
-        if (avatarFile) {
+        if (avatarFile && canEditAvatar) {
           const storageRef = ref(storage, `avatars/${userProfile.id}/${avatarFile.name}`);
           const uploadResult = await uploadBytes(storageRef, avatarFile);
           newAvatarUrl = await getDownloadURL(uploadResult.ref);
@@ -173,7 +173,8 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             </Avatar>
             <div className="grid w-full max-w-sm items-center gap-1.5">
                 <FormLabel htmlFor="avatar-upload">Update Avatar</FormLabel>
-                <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} />
+                <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} disabled={!canEditAvatar} />
+                {!canEditAvatar && <FormDescription>Only the user or an admin can change the avatar.</FormDescription>}
             </div>
         </div>
         
