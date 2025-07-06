@@ -31,7 +31,7 @@ import { getFlagEmoji } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { sendTeamInvite } from '@/lib/actions/teams';
 

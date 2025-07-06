@@ -1,7 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 import { ArrowLeft, Ticket } from 'lucide-react';
 
 export default function ModeratorTicketsPage() {

@@ -25,14 +25,14 @@ import {
   Shield,
   Gavel,
 } from 'lucide-react';
-import { usePathname, Link } from '@/navigation';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from './ui/skeleton';
 import { InboxIcon } from './inbox/inbox-icon';
 import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/firestore';
-import { LanguageSwitcher } from './language-switcher';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -223,7 +223,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger className="md:hidden" />
           </div>
           <div className="flex items-center gap-4">
-            <LanguageSwitcher />
             <InboxIcon />
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />

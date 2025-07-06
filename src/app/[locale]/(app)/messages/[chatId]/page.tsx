@@ -15,8 +15,8 @@ import { blockUser, removeFriend } from '@/lib/actions/friends';
 import { markNotificationsAsRead } from '@/lib/actions/notifications';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useParams } from 'next/navigation';
-import { useRouter, Link } from '@/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Send, ArrowLeft, UserCircle, ShieldBan, Trash2, UserX, MoreVertical } from 'lucide-react';
 import {
   DropdownMenu,

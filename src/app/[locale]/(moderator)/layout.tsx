@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from '@/navigation';
+import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Layout({ children }: { children: ReactNode }) {

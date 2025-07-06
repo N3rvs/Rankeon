@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { UserProfile } from '@/lib/types';
@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { HonorsSection } from '@/components/profile/honors-section';
 import { TeamInfoCard } from '@/components/profile/team-info-card';
 import { Button } from '@/components/ui/button';
-import { Link, useRouter } from '@/navigation';
+import Link from 'next/link';
 import { ArrowLeft, Frown, Twitch } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';

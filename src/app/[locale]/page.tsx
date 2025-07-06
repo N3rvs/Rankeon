@@ -3,15 +3,18 @@
 import { Button } from '@/components/ui/button';
 import { Gamepad2, Rocket, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
-import { useRouter, Link } from '@/navigation';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTranslations } from 'next-intl';
 
 function HomePageContent() {
-  const t = useTranslations('HomePage');
+  const t = { 
+    title: "Reúne a tu Escuadrón de Élite", 
+    subtitle: "La plataforma LFG definitiva para Valorant. Deja de jugar solo y empieza a dominar con el equipo perfecto." 
+  };
   const [currentYear, setCurrentYear] = useState<number | null>(null);
 
   useEffect(() => {
@@ -52,10 +55,10 @@ function HomePageContent() {
 
             <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
                  <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter mb-4">
-                    {t('title')}
+                    {t.title}
                 </h1>
                 <p className="max-w-3xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
-                    {t('subtitle')}
+                    {t.subtitle}
                 </p>
                 <div className="flex justify-center gap-4">
                     <Button size="lg" asChild>

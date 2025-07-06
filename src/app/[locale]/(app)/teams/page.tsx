@@ -18,7 +18,7 @@ import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 import { TeamApplications } from '@/components/teams/team-applications';
 

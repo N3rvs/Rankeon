@@ -1,7 +1,7 @@
 import { RegisterForm } from '@/components/auth/register-form';
 import { Button } from '@/components/ui/button';
 import { Gamepad2 } from 'lucide-react';
-import { Link } from '@/navigation';
+import Link from 'next/link';
 
 export default function RegisterPage() {
   return (
