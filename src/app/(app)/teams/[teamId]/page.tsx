@@ -23,7 +23,6 @@ import {
   Globe,
   Twitch,
   Twitter,
-  Youtube,
   Info,
   Target,
   UserPlus,
@@ -50,31 +49,27 @@ function MemberCard({
   profile: UserProfile;
   isFounder: boolean;
 }) {
-  return (
-    <Button variant="ghost" asChild className="h-auto w-full p-0">
-        <Link href={`/users/${profile.id}`} className="group w-full">
-            <div className="p-2 w-full flex items-center justify-between transition-colors hover:bg-muted/50 rounded-lg border">
-                <div className="flex items-center gap-3">
-                    <Avatar>
-                    <AvatarImage src={profile.avatarUrl} data-ai-hint="person avatar" />
-                    <AvatarFallback>{profile.name.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col items-start">
-                        <span className="font-semibold text-sm group-hover:underline">{profile.name}</span>
-                        <span className="text-xs text-muted-foreground capitalize">{isFounder ? 'Founder' : 'Member'}</span>
-                        {profile.skills && profile.skills.length > 0 && (
-                            <div className="flex items-center gap-1 mt-1">
-                                {profile.skills.slice(0, 2).map(skill => (
-                                    <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+    return (
+        <div className="p-2 w-full flex items-center justify-between transition-colors hover:bg-muted/50 rounded-lg border">
+            <Link href={`/users/${profile.id}`} className="flex items-center gap-3 group flex-1">
+                <Avatar>
+                <AvatarImage src={profile.avatarUrl} data-ai-hint="person avatar" />
+                <AvatarFallback>{profile.name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col items-start">
+                    <span className="font-semibold text-sm group-hover:underline">{profile.name}</span>
+                     <span className="text-xs text-muted-foreground capitalize">{isFounder ? 'Founder' : 'Member'}</span>
+                    {profile.skills && profile.skills.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                            {profile.skills.slice(0, 2).map(skill => (
+                                <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                            ))}
+                        </div>
+                    )}
                 </div>
-                {isFounder && <Crown className="h-4 w-4 text-amber-400" />}
-            </div>
-        </Link>
-    </Button>
+            </Link>
+            {isFounder && <Crown className="h-4 w-4 text-amber-400" />}
+        </div>
   );
 }
 
