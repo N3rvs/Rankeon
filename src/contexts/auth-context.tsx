@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               name: authUser.displayName || authUser.email?.split('@')[0] || 'New Player',
               avatarUrl: authUser.photoURL || `https://placehold.co/100x100.png`,
               bio: '',
-              games: [],
+              primaryGame: "Valorant",
               skills: [],
               friends: [],
               blocked: [],

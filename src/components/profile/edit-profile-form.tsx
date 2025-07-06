@@ -18,16 +18,25 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Info } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Checkbox } from '../ui/checkbox';
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
   country: z.string().max(50).optional(),
   bio: z.string().max(300).optional(),
+  primaryGame: z.string().min(1, "Please select a primary game."),
   lookingForTeam: z.boolean().default(false),
-  skills: z.array(z.string()).optional(),
+  skills: z.array(z.string()).max(2, { message: "Puedes seleccionar hasta 2 roles." }).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+const gameRoles: Record<string, readonly string[]> = {
+  Valorant: ["Controlador", "Iniciador", "Duelista", "Centinela"],
+  // Future games can be added here
+};
+const availableGames = Object.keys(gameRoles);
 
 export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
   const { toast } = useToast();
@@ -41,12 +50,15 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       name: userProfile.name || '',
       country: userProfile.country || '',
       bio: userProfile.bio || '',
+      primaryGame: userProfile.primaryGame || 'Valorant',
       lookingForTeam: userProfile.lookingForTeam || false,
       skills: userProfile.skills || [],
     },
   });
 
   const isMemberOfTeam = !!userProfile.teamId;
+  const selectedGame = form.watch('primaryGame');
+  const selectedSkills = form.watch('skills') || [];
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -156,6 +168,32 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
         )}
 
         <FormField
+          control={form.control}
+          name="primaryGame"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Juego Principal</FormLabel>
+              <Select onValueChange={(value) => {
+                  field.onChange(value);
+                  form.setValue('skills', []); // Reset skills when game changes
+                }} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un juego..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {availableGames.map(game => (
+                    <SelectItem key={game} value={game}>{game}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
             control={form.control}
             name="lookingForTeam"
             render={({ field }) => (
@@ -177,15 +215,38 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
         <FormField
             control={form.control}
             name="skills"
-            render={({ field }) => (
+            render={() => (
                 <FormItem>
-                    <FormLabel>Skills</FormLabel>
-                    <FormControl>
-                         <Input placeholder="Duelist, IGL, Support..." {...field} disabled={isMemberOfTeam} value={Array.isArray(field.value) ? field.value.join(', ') : ''} onChange={e => field.onChange(e.target.value.split(',').map(s => s.trim()))} />
-                    </FormControl>
-                     <FormDescription>
-                        Separa las habilidades con comas.
+                    <FormLabel>Roles / Habilidades</FormLabel>
+                    <FormDescription>
+                        Selecciona hasta 2 roles para tu juego principal.
                     </FormDescription>
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                        {(gameRoles[selectedGame] || []).map((role) => (
+                        <FormField
+                            key={role}
+                            control={form.control}
+                            name="skills"
+                            render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                <FormControl>
+                                <Checkbox
+                                    checked={field.value?.includes(role)}
+                                    disabled={isMemberOfTeam || (!field.value?.includes(role) && selectedSkills.length >= 2)}
+                                    onCheckedChange={(checked) => {
+                                        const currentSkills = field.value || [];
+                                        return checked
+                                            ? field.onChange([...currentSkills, role])
+                                            : field.onChange(currentSkills.filter((value) => value !== role));
+                                    }}
+                                />
+                                </FormControl>
+                                <FormLabel className="font-normal">{role}</FormLabel>
+                            </FormItem>
+                            )}
+                        />
+                        ))}
+                    </div>
                     <FormMessage />
                 </FormItem>
             )}

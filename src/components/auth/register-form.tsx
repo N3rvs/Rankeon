@@ -47,7 +47,7 @@ export function RegisterForm() {
         name: user.email?.split('@')[0] || 'New Player',
         avatarUrl: `https://placehold.co/100x100.png`,
         bio: '',
-        games: [],
+        primaryGame: 'Valorant',
         skills: [],
         friends: [], // Initialize empty friends list
         blocked: [], // Initialize empty blocked list

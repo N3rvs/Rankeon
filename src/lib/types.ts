@@ -9,7 +9,7 @@ export interface UserProfile {
   avatarUrl: string;
   email: string;
   role: UserRole;
-  games: string[];
+  primaryGame: string;
   skills: string[];
   bio: string;
   lookingForTeam: boolean;

@@ -167,7 +167,6 @@ function TeamTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-[30%]">Team</TableHead>
-            <TableHead>Game</TableHead>
             <TableHead>Recruiting</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -200,9 +199,6 @@ function TeamTable({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">{team.game}</Badge>
-                </TableCell>
-                <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {team.recruitingRoles &&
                     team.recruitingRoles.length > 0 ? (
@@ -229,7 +225,7 @@ function TeamTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
+              <TableCell colSpan={3} className="h-24 text-center">
                 No teams are currently recruiting.
               </TableCell>
             </TableRow>
@@ -248,12 +244,18 @@ export function MarketTabs() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [countryFilter, setCountryFilter] = useState('all');
+  
+  const primaryGame = userProfile?.primaryGame || 'Valorant';
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
     if (user && userProfile) {
       setLoadingPlayers(true);
-      const playersQuery = query(collection(db, 'users'), where('lookingForTeam', '==', true));
+      const playersQuery = query(
+        collection(db, 'users'), 
+        where('lookingForTeam', '==', true),
+        where('primaryGame', '==', primaryGame)
+      );
       unsubscribe = onSnapshot(playersQuery, (snapshot) => {
         const playersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as UserProfile));
         const filteredPlayers = playersData.filter((p) => {
@@ -273,12 +275,16 @@ export function MarketTabs() {
       setLoadingPlayers(false);
     }
     return () => unsubscribe?.();
-  }, [user, userProfile]);
+  }, [user, userProfile, primaryGame]);
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
     setLoadingTeams(true);
-    const teamsQuery = query(collection(db, 'teams'), where('lookingForPlayers', '==', true));
+    const teamsQuery = query(
+      collection(db, 'teams'), 
+      where('lookingForPlayers', '==', true),
+      where('game', '==', primaryGame)
+    );
     unsubscribe = onSnapshot(teamsQuery, (snapshot) => {
       const teamsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Team));
       setTeams(teamsData);
@@ -288,7 +294,7 @@ export function MarketTabs() {
       setLoadingTeams(false);
     });
     return () => unsubscribe?.();
-  }, []);
+  }, [primaryGame]);
 
   const countries = useMemo(() => {
     const playerCountries = players.map(p => p.country).filter((c): c is string => !!c);
