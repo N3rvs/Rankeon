@@ -26,17 +26,18 @@ export const metadata: Metadata = {
  
 export default async function LocaleLayout({
   children,
-  params: {locale}
+  params
 }: {
   children: React.ReactNode;
   params: {locale: string};
 }) {
+  const { locale } = params;
   const messages = await getMessages();
 
   return (
     <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <body className={cn("font-body antialiased")}>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <AuthProvider>
             {children}
             <Toaster />
