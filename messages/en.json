@@ -1,7 +1,18 @@
+
 {
   "HomePage": {
     "title": "Assemble Your Elite Squad",
-    "subtitle": "The definitive LFG platform for Valorant. Stop solo queuing and start dominating with the perfect team."
+    "subtitle": "The definitive LFG platform for Valorant. Stop solo queuing and start dominating with the perfect team.",
+    "get_started": "Get Started",
+    "find_squad": "Find your Squad",
+    "register_player": "Register as a Player",
+    "built_for_champions": "Built for Champions",
+    "champions_subtitle": "Everything you need to conquer the competition.",
+    "find_players_title": "Find Players",
+    "find_players_desc": "Browse detailed player profiles, filter by role and rank, and find the perfect fit for your roster.",
+    "ai_tools_title": "AI-Powered Tools",
+    "ai_tools_desc": "Use our AI to craft the perfect player bio to get noticed by other players.",
+    "footer_text": "© {year} SquadUp. All rights reserved. Built for the future of esports."
   },
   "LanguageSwitcher": {
     "change_language": "Change language"

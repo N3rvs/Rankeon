@@ -1,7 +1,18 @@
+
 {
   "HomePage": {
     "title": "Assembla la tua squadra d'élite",
-    "subtitle": "La piattaforma LFG definitiva per Valorant. Smetti di giocare da solo e inizia a dominare con la squadra perfetta."
+    "subtitle": "La piattaforma LFG definitiva per Valorant. Smetti di giocare da solo e inizia a dominare con la squadra perfetta.",
+    "get_started": "Inizia",
+    "find_squad": "Trova la tua squadra",
+    "register_player": "Registrati come giocatore",
+    "built_for_champions": "Costruito per i campioni",
+    "champions_subtitle": "Tutto ciò di cui hai bisogno per conquistare la competizione.",
+    "find_players_title": "Trova giocatori",
+    "find_players_desc": "Sfoglia profili dettagliati dei giocatori, filtra per ruolo e grado e trova la soluzione perfetta per il tuo roster.",
+    "ai_tools_title": "Strumenti basati sull'IA",
+    "ai_tools_desc": "Usa la nostra intelligenza artificiale per creare la biografia del giocatore perfetta per farti notare dagli altri giocatori.",
+    "footer_text": "© {year} SquadUp. Tutti i diritti riservati. Costruito per il futuro degli eSport."
   },
   "LanguageSwitcher": {
     "change_language": "Cambia lingua"

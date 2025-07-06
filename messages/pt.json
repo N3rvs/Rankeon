@@ -1,7 +1,18 @@
+
 {
   "HomePage": {
     "title": "Monte seu Esquadrão de Elite",
-    "subtitle": "A plataforma LFG definitiva para Valorant. Pare de jogar sozinho e comece a dominar com a equipe perfeita."
+    "subtitle": "A plataforma LFG definitiva para Valorant. Pare de jogar sozinho e comece a dominar com a equipe perfeita.",
+    "get_started": "Começar",
+    "find_squad": "Encontre seu Esquadrão",
+    "register_player": "Registrar-se como jogador",
+    "built_for_champions": "Construído para Campeões",
+    "champions_subtitle": "Tudo o que você precisa para conquistar a competição.",
+    "find_players_title": "Encontrar Jogadores",
+    "find_players_desc": "Navegue por perfis detalhados de jogadores, filtre por função e classificação e encontre o ajuste perfeito para sua lista.",
+    "ai_tools_title": "Ferramentas com IA",
+    "ai_tools_desc": "Use nossa IA para criar a biografia de jogador perfeita para ser notado por outros jogadores.",
+    "footer_text": "© {year} SquadUp. Todos os direitos reservados. Construído para o futuro dos e-sports."
   },
   "LanguageSwitcher": {
     "change_language": "Mudar idioma"
