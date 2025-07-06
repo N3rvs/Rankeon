@@ -118,12 +118,15 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   
   const canEditAvatar = loggedInUserProfile?.id === userProfile.id || loggedInUserProfile?.role === 'admin';
   
-  // Game fields are locked ONLY if a regular player is on a team and editing their own profile.
-  // Admins, mods, founders, and coaches can always edit.
-  const isGameFieldsLocked =
-    userProfile.role === 'player' &&
-    !!userProfile.teamId &&
-    userProfile.id === loggedInUserProfile?.id;
+  // Determine if the user has permissions to edit game fields
+  const canManageProfiles = loggedInUserProfile?.role === 'admin' || loggedInUserProfile?.role === 'moderator' || loggedInUserProfile?.role === 'founder' || loggedInUserProfile?.role === 'coach';
+
+  // Check if the target is a regular player trying to edit their own profile
+  const isPlayerEditingSelf = userProfile.role === 'player' && userProfile.id === loggedInUserProfile?.id;
+  
+  // Lock game fields only when a player tries to edit their own profile, as they don't have management permissions.
+  // Founders, coaches, admins, etc., will have canManageProfiles=true, so fields won't be locked for them, even when editing themselves.
+  const isGameFieldsLocked = isPlayerEditingSelf && !canManageProfiles;
 
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
