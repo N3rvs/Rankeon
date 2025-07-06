@@ -137,7 +137,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
              <Card>
                 <CardHeader className="p-0">
-                    <div className="relative h-48 w-full">
+                    <div className="relative h-56 w-full">
                         <Image
                         src={team.bannerUrl || 'https://placehold.co/1200x400.png'}
                         alt={`${team.name} banner`}
@@ -146,7 +146,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                         data-ai-hint="team banner"
                         />
                         <div className="absolute bottom-0 left-6 translate-y-1/2">
-                        <Avatar className="h-24 w-24 border-4 border-background bg-card">
+                        <Avatar className="h-32 w-32 border-4 border-background bg-card">
                             <AvatarImage
                             src={team.avatarUrl}
                             alt={team.name}
@@ -156,7 +156,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                         </Avatar>
                         </div>
                     </div>
-                    <div className="pt-16 px-6 pb-4 flex justify-between items-start">
+                    <div className="pt-20 px-6 pb-4 flex justify-between items-start">
                         <div>
                             <CardTitle className="text-3xl font-headline">{team.name}</CardTitle>
                             <CardDescription>{team.description || "No hay descripción para este equipo."}</CardDescription>

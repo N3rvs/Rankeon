@@ -145,7 +145,7 @@ export default function TeamProfilePage() {
 
       <Card>
         <CardHeader className="p-0">
-          <div className="relative h-48 w-full">
+          <div className="relative h-56 w-full">
             <Image
               src={team.bannerUrl || 'https://placehold.co/1200x400.png'}
               alt={`${team.name} banner`}
@@ -154,7 +154,7 @@ export default function TeamProfilePage() {
               data-ai-hint="team banner"
             />
             <div className="absolute bottom-0 left-6 translate-y-1/2">
-              <Avatar className="h-24 w-24 border-4 border-background">
+              <Avatar className="h-32 w-32 border-4 border-background">
                 <AvatarImage
                   src={team.avatarUrl}
                   alt={team.name}
@@ -164,7 +164,7 @@ export default function TeamProfilePage() {
               </Avatar>
             </div>
           </div>
-          <div className="pt-16 px-6 pb-4">
+          <div className="pt-20 px-6 pb-4">
             <CardTitle className="text-3xl font-headline">{team.name}</CardTitle>
             <CardDescription className="flex items-center gap-2 mt-1">
               <Gamepad2 className="h-4 w-4" />
