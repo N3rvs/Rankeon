@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useTransition } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase/client';
-import { collection, query, orderBy, onSnapshot, Unsubscribe, doc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, Unsubscribe, doc, getDoc, where, getDocs } from 'firebase/firestore';
 import type { ChatMessage, UserProfile } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { sendMessageToFriend, deleteChatHistory } from '@/lib/actions/messages';
 import { blockUser, removeFriend } from '@/lib/actions/friends';
+import { markNotificationsAsRead } from '@/lib/actions/notifications';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useParams, useRouter } from 'next/navigation';
@@ -218,6 +219,36 @@ export default function ChatPage() {
     const [isBlockAlertOpen, setIsBlockAlertOpen] = useState(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
     const [isRemoveFriendAlertOpen, setIsRemoveFriendAlertOpen] = useState(false);
+
+    useEffect(() => {
+        if (!chatId || !user) {
+            setLoading(false);
+            return;
+        };
+
+        const markAsRead = async () => {
+            const notificationsRef = collection(db, 'inbox', user.uid, 'notifications');
+            const q = query(
+                notificationsRef, 
+                where('chatId', '==', chatId), 
+                where('read', '==', false),
+                where('type', '==', 'new_message')
+            );
+            
+            try {
+                const snapshot = await getDocs(q);
+                if (!snapshot.empty) {
+                    const unreadIds = snapshot.docs.map(doc => doc.id);
+                    await markNotificationsAsRead(unreadIds);
+                }
+            } catch (error) {
+                console.error("Failed to mark chat as read:", error);
+            }
+        };
+    
+        markAsRead();
+    }, [chatId, user]);
+
 
     useEffect(() => {
         if (!chatId || !user) {
