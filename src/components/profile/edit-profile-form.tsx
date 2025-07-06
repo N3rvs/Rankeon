@@ -117,26 +117,13 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   });
   
   const canEditAvatar = loggedInUserProfile?.id === userProfile.id || loggedInUserProfile?.role === 'admin';
-  const isMemberOfTeam = !!userProfile.teamId;
-
-  // Determine if the logged-in user has permission to edit the game fields.
-  const isPrivilegedEditor = 
-    loggedInUserProfile?.role === 'admin' || 
-    loggedInUserProfile?.role === 'moderator';
-    
-  const isTeamStaffOfEditedUser = 
-    loggedInUserProfile && 
-    userProfile.teamId && 
-    loggedInUserProfile.teamId === userProfile.teamId &&
-    (loggedInUserProfile.role === 'founder' || loggedInUserProfile.role === 'coach');
-
-  // Fields are locked if the user is a regular player on a team,
-  // AND the person editing them doesn't have special permissions to do so.
-  const isGameFieldsLocked = 
-    userProfile.role === 'player' && 
-    isMemberOfTeam && 
-    !isPrivilegedEditor && 
-    !isTeamStaffOfEditedUser;
+  
+  // Game fields are locked ONLY if a regular player is on a team and editing their own profile.
+  // Admins, mods, founders, and coaches can always edit.
+  const isGameFieldsLocked =
+    userProfile.role === 'player' &&
+    !!userProfile.teamId &&
+    userProfile.id === loggedInUserProfile?.id;
 
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
