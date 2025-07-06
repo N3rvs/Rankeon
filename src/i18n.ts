@@ -1,4 +1,13 @@
+import {getRequestConfig} from 'next-intl/server';
+import {locales} from './navigation';
+import {notFound} from 'next/navigation';
+ 
+export default getRequestConfig(async ({locale}) => {
+  if (!locales.includes(locale as any)) {
+    notFound();
+  }
 
-// This file is no longer used for internationalization.
-// It is kept to prevent build errors from stray imports from a previous configuration.
-// All internationalization has been removed for stability.
+  return {
+    messages: (await import(`../messages/${locale}.json`)).default
+  };
+});

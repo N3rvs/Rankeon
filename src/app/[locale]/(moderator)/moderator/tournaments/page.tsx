@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TournamentProposalsList } from '@/components/moderator/tournament-proposals-list';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Gavel } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@/navigation';
 
 export default function ModeratorTournamentsPage() {
     return (

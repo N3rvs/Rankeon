@@ -1,7 +1,47 @@
+import {NextIntlClientProvider, useMessages} from 'next-intl';
+import type {Metadata} from 'next';
+import '../globals.css';
+import { Toaster } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
+import { AuthProvider } from '@/contexts/auth-context';
+import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
 
-import { ReactNode } from 'react';
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
-// This layout is a placeholder to override the i18n layout and prevent build errors.
-export default function LocaleLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+const spaceGrotesk = SpaceGrotesk({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-space-grotesk',
+});
+
+export const metadata: Metadata = {
+  title: 'SquadUp MVP',
+  description: 'Find your squad, conquer the game.',
+};
+ 
+export default function LocaleLayout({
+  children,
+  params: {locale}
+}: {
+  children: React.ReactNode;
+  params: {locale: string};
+}) {
+  const messages = useMessages();
+ 
+  return (
+    <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
+      <body className={cn("font-body antialiased")}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
 }

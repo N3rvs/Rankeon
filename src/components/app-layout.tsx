@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,8 +25,7 @@ import {
   Shield,
   Gavel,
 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import { usePathname, Link } from '@/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { auth, db } from '@/lib/firebase/client';

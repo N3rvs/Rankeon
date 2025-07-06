@@ -1,19 +1,16 @@
+import createMiddleware from 'next-intl/middleware';
+import {locales, localePrefix, pathnames, defaultLocale} from './navigation';
 
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
- 
-// This middleware does nothing and is used to override the previous i18n middleware.
-export function middleware(request: NextRequest) {
-  return NextResponse.next()
-}
+export default createMiddleware({
+  defaultLocale,
+  locales,
+  pathnames,
+  localePrefix
+});
  
 export const config = {
-  matcher: [
-    // Match all request paths except for the ones starting with:
-    // - api (API routes)
-    // - _next/static (static files)
-    // - _next/image (image optimization files)
-    // - favicon.ico (favicon file)
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
-}
+  // Match all pathnames except for
+  // - … if they start with `/api`, `/_next` or `/_vercel`
+  // - … the ones containing a dot (e.g. `favicon.ico`)
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
+};

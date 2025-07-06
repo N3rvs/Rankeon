@@ -1,11 +1,9 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Gamepad2, Rocket, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter, Link } from '@/navigation';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
