@@ -3,6 +3,9 @@
 
 import * as React from "react"
 import { Globe } from "lucide-react"
+import { useParams } from "next/navigation";
+import { usePathname, useRouter } from "@/navigation";
+
 
 import { Button } from "@/components/ui/button"
 import {
@@ -16,16 +19,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function LanguageSwitcher() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useParams();
   const [isPending, startTransition] = React.useTransition();
-  const [locale, setLocale] = React.useState('es');
+  
+  const locale = typeof params.locale === 'string' ? params.locale : 'es';
 
-  // This is a mock implementation since next-intl is removed.
-  // In a real scenario, you'd need a different way to handle locales.
-  function onSelectChange(value: string) {
+  function onSelectChange(nextLocale: string) {
     startTransition(() => {
-      // This won't actually change the language anymore,
-      // as the i18n logic has been removed.
-      setLocale(value);
+      router.replace(pathname, {locale: nextLocale});
     });
   }
 
@@ -41,7 +44,7 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" disabled={true}>
+        <Button variant="ghost" size="icon" disabled={isPending}>
           <Globe className="h-5 w-5" />
           <span className="sr-only">Change language</span>
         </Button>

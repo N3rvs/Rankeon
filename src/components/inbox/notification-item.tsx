@@ -31,7 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/navigation';
 import { deleteNotifications } from '@/lib/actions/notifications';
 import { respondToTeamInvite } from '@/lib/actions/teams';
 

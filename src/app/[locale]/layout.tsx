@@ -4,6 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from '@/contexts/auth-context';
 import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
+import {NextIntlClientProvider} from 'next-intl';
+import {getMessages} from 'next-intl/server';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -29,13 +31,17 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: {locale: string};
 }) {
+  const messages = await getMessages();
+
   return (
     <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <body className={cn("font-body antialiased")}>
-            <AuthProvider>
-              {children}
-              <Toaster />
-            </AuthProvider>
+        <NextIntlClientProvider messages={messages}>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
