@@ -44,7 +44,7 @@ export function EditProfileDialog({ userProfile, open, onOpenChange, children }:
           )}
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEditingSelf ? 'Edit Your Profile' : `Edit ${userProfile.name}'s Profile`}

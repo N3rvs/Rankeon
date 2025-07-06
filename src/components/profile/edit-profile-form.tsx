@@ -103,8 +103,8 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
+        <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <Avatar className="h-20 w-20 shrink-0">
                 <AvatarImage src={avatarPreview || undefined} alt="Avatar Preview" data-ai-hint="person avatar"/>
                 <AvatarFallback>{userProfile.name?.charAt(0)}</AvatarFallback>
             </Avatar>
@@ -114,7 +114,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
             control={form.control}
             name="name"
@@ -221,7 +221,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                     <FormDescription>
                         Selecciona hasta 2 roles para tu juego principal.
                     </FormDescription>
-                    <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         {(gameRoles[selectedGame] || []).map((role) => (
                         <FormField
                             key={role}
