@@ -47,6 +47,8 @@
     --founder-foreground: 0 0% 98%;
     --coach: 25 90% 40%;
     --coach-foreground: 0 0% 98%;
+    --player: 140 60% 45%;
+    --player-foreground: 140 90% 5%;
   }
   .dark {
     --background: 220 13% 11%;
@@ -90,6 +92,8 @@
     --founder-foreground: 0 0% 98%;
     --coach: 25 90% 55%;
     --coach-foreground: 25 90% 5%;
+    --player: 140 55% 55%;
+    --player-foreground: 140 90% 5%;
   }
 }
 

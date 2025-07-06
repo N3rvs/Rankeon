@@ -24,6 +24,8 @@ const badgeVariants = cva(
           "border-transparent bg-founder text-founder-foreground hover:bg-founder/80",
         coach:
           "border-transparent bg-coach text-coach-foreground hover:bg-coach/80",
+        player:
+          "border-transparent bg-player text-player-foreground hover:bg-player/80",
       },
     },
     defaultVariants: {

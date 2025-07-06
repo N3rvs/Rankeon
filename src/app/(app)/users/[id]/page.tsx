@@ -86,7 +86,8 @@ export default function UserProfilePage() {
   }
   
   const getRoleVariant = (role: string) => {
-    const variants: { [key: string]: 'founder' | 'coach' | 'moderator' | 'admin' | 'secondary' } = {
+    const variants: { [key: string]: 'player' | 'founder' | 'coach' | 'moderator' | 'admin' | 'secondary' } = {
+        player: 'player',
         founder: 'founder',
         coach: 'coach',
         moderator: 'moderator',

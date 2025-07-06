@@ -52,14 +52,15 @@ const getStatusBadge = (user: UserProfile) => {
     return <Badge variant="destructive">Banned</Badge>;
 };
 
-const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderator' => {
-  if (role === 'admin') {
-    return 'premium';
-  }
-  if (role === 'moderator') {
-    return 'moderator';
-  }
-  return 'secondary';
+const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderator' | 'player' | 'founder' | 'coach' => {
+  const roleVariantMap: { [key in UserRole]?: 'premium' | 'player' | 'moderator' | 'founder' | 'coach' } = {
+    admin: 'premium',
+    moderator: 'moderator',
+    player: 'player',
+    founder: 'founder',
+    coach: 'coach',
+  };
+  return roleVariantMap[role] || 'secondary';
 };
 
 

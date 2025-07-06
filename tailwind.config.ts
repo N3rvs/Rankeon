@@ -61,6 +61,10 @@ export default {
           DEFAULT: 'hsl(var(--coach))',
           foreground: 'hsl(var(--coach-foreground))',
         },
+        player: {
+          DEFAULT: 'hsl(var(--player))',
+          foreground: 'hsl(var(--player-foreground))',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
