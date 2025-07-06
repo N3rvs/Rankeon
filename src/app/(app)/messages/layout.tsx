@@ -56,10 +56,14 @@ function ChatList() {
         );
 
         const unsubscribe = onSnapshot(q, async (snapshot) => {
-            // De-duplicate and sort chats manually to prevent race conditions or unexpected snapshot behavior.
+            // Filter to only include chats that have at least one message.
+            const initialChats = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() } as Chat))
+                .filter(chat => !!chat.lastMessage);
+
             const chatMap = new Map<string, Chat>();
-            snapshot.docs.forEach(doc => {
-                chatMap.set(doc.id, { id: doc.id, ...doc.data() } as Chat);
+            initialChats.forEach(doc => {
+                chatMap.set(doc.id, doc);
             });
             const sortedChats = Array.from(chatMap.values()).sort((a, b) => {
                 const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
