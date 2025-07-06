@@ -227,88 +227,13 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
             <div className="pt-14 md:pt-8" />
             
              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                    {/* VIDEO COLUMN */}
+                    {/* VIDEO & MEMBERS COLUMN */}
                     <div className="lg:col-span-3 space-y-6">
                         <Card>
                             <CardContent className="p-0">
                                 {renderVideo(team.videoUrl)}
                             </CardContent>
                         </Card>
-                    </div>
-
-                    {/* INFO COLUMN */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <Card>
-                             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                <div>
-                                    <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
-                                    <CardDescription className="flex items-center gap-4 pt-1">
-                                        <span className="flex items-center gap-2">
-                                            <Gamepad2 className="h-4 w-4" />
-                                            <span>Jugando {team.game}</span>
-                                        </span>
-                                        {team.country && (
-                                            <>
-                                                <span className="text-muted-foreground/50">|</span>
-                                                <span className="flex items-center gap-2">
-                                                    <Globe className="h-4 w-4" />
-                                                    <span>{team.country}</span>
-                                                </span>
-                                            </>
-                                        )}
-                                    </CardDescription>
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                     <Button onClick={() => setIsEditDialogOpen(true)} size="sm">
-                                        <Edit className="mr-2 h-4 w-4" /> Editar
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="destructive" size="sm">
-                                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente tu equipo y todos sus datos. Tu rol volverá a ser "jugador".
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                                    {isPending ? "Eliminando..." : "Sí, eliminar equipo"}
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <h3 className="font-headline font-semibold mb-2 flex items-center gap-2"><Info className="h-5 w-5" /> Sobre el Equipo</h3>
-                                <p className="text-muted-foreground text-sm">{team.description || 'No se ha proporcionado una descripción.'}</p>
-                            </CardContent>
-                        </Card>
-                        
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> Estado de Reclutamiento</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>{team.lookingForPlayers ? 'Activamente Reclutando' : 'Equipo Lleno'}</Badge>
-                                <div className="flex flex-wrap gap-2">
-                                    {team.lookingForPlayers && team.recruitingRoles && team.recruitingRoles.length > 0 ? (
-                                        team.recruitingRoles.map((role) => <Badge key={role} variant="outline">{role}</Badge>)
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? 'Cualquier rol es bienvenido.' : 'No se están buscando roles específicos.'}</p>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <TeamApplications teamId={team.id} />
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
@@ -348,6 +273,82 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                 ))}
                             </CardContent>
                         </Card>
+                    </div>
+
+                    {/* INFO COLUMN */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card>
+                             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div>
+                                    <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
+                                    <CardDescription className="flex items-center gap-4 pt-1">
+                                        <span className="flex items-center gap-2">
+                                            <Gamepad2 className="h-4 w-4" />
+                                            <span>Jugando {team.game}</span>
+                                        </span>
+                                        {team.country && (
+                                            <>
+                                                <span className="text-muted-foreground/50">|</span>
+                                                <span className="flex items-center gap-2">
+                                                    <Globe className="h-4 w-4" />
+                                                    <span>{team.country}</span>
+                                                </span>
+                                            </>
+                                        )}
+                                    </CardDescription>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                     <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary">
+                                        <Edit className="h-4 w-4" />
+                                        <span className="sr-only">Editar</span>
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="icon">
+                                                <Trash2 className="h-4 w-4" />
+                                                <span className="sr-only">Eliminar</span>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente tu equipo y todos sus datos. Tu rol volverá a ser "jugador".
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                                    {isPending ? "Eliminando..." : "Sí, eliminar equipo"}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <h3 className="font-headline font-semibold mb-2 flex items-center gap-2"><Info className="h-5 w-5" /> Sobre el Equipo</h3>
+                                <p className="text-muted-foreground text-sm">{team.description || 'No se ha proporcionado una descripción.'}</p>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> Estado de Reclutamiento</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>{team.lookingForPlayers ? 'Activamente Reclutando' : 'Equipo Lleno'}</Badge>
+                                <div className="flex flex-wrap gap-2">
+                                    {team.lookingForPlayers && team.recruitingRoles && team.recruitingRoles.length > 0 ? (
+                                        team.recruitingRoles.map((role) => <Badge key={role} variant="outline">{role}</Badge>)
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? 'Cualquier rol es bienvenido.' : 'No se están buscando roles específicos.'}</p>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <TeamApplications teamId={team.id} />
                     </div>
                 </div>
         </div>
