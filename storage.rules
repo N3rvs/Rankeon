@@ -3,17 +3,19 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // User Avatars: Anyone can read, but only the user can write to their own avatar folder.
+    // Rule for user avatars
+    // Allow a user to read/write to their own avatar folder.
     match /avatars/{userId}/{allPaths=**} {
-        allow read;
-        allow write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Team Images (Avatars and Banners): Anyone can read, but only the team founder can write.
-    // This rule checks the 'founder' field in the corresponding Firestore 'teams' document.
-    match /teams/{teamId}/{imageType}/{allPaths=**} where imageType in ['avatar', 'banner'] {
-      allow read;
-      allow write: if request.auth != null && get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid;
+    // Rule for team images (avatar and banner)
+    // Allow write only if the user is the founder of the team.
+    // We get the team document from Firestore to check the founder's UID.
+    match /teams/{teamId}/{allPaths=**} {
+      allow read; // Allow public reads for team images
+      allow write: if request.auth != null 
+                    && get(/databases/$(database)/documents/teams/$(teamId)).data.founder == request.auth.uid;
     }
   }
 }
