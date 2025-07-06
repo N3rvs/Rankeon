@@ -254,26 +254,36 @@ export default function ChatPage() {
         }
 
         setLoading(true);
-        const memberIds = chatId.split('_');
-        const recipientId = memberIds.find((id) => id !== user.uid);
-
-        if (!recipientId) {
-            toast({ title: 'Error', description: 'Invalid chat ID.', variant: 'destructive' });
-            router.push(locale ? `/${locale}/messages` : '/messages');
-            setLoading(false);
-            return;
-        }
-        
         let unsubscribe: Unsubscribe | undefined;
 
         const setupPage = async () => {
             try {
+                // 1. Validate chat document and user membership
+                const chatDocRef = doc(db, 'chats', chatId);
+                const chatDocSnap = await getDoc(chatDocRef);
+
+                if (!chatDocSnap.exists()) {
+                    throw new Error('Chat not found. It may have been deleted.');
+                }
+                
+                const chatData = chatDocSnap.data();
+                if (!chatData?.members?.includes(user.uid)) {
+                    throw new Error("You are not a member of this chat.");
+                }
+
+                // 2. Get recipient ID and fetch their profile
+                const recipientId = chatData.members.find((id: string) => id !== user.uid);
+                if (!recipientId) {
+                    throw new Error('Could not identify the other user in this chat.');
+                }
+                
                 const userDoc = await getDoc(doc(db, 'users', recipientId));
                 if (!userDoc.exists()) {
-                    throw new Error('Recipient not found.');
+                    throw new Error('The other user in this chat no longer exists.');
                 }
                 setRecipient({ id: userDoc.id, ...userDoc.data() } as UserProfile);
 
+                // 3. Set up message listener
                 const messagesRef = collection(db, 'chats', chatId, 'messages');
                 const q = query(messagesRef, orderBy('createdAt', 'asc'));
 
@@ -286,6 +296,7 @@ export default function ChatPage() {
                     toast({ title: 'Error', description: 'Could not load messages.', variant: 'destructive' });
                     setLoading(false);
                 });
+
             } catch (error: any) {
                 console.error('Failed to setup chat page:', error);
                 toast({ title: 'Error', description: error.message || 'Could not load chat.', variant: 'destructive' });
