@@ -194,7 +194,7 @@ export default function TeamProfilePage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-48" />
-        <div className="relative w-full h-64 bg-muted rounded-lg animate-pulse" />
+        <div className="relative -mx-4 md:-mx-6 h-48 md:h-64"><Skeleton className="h-full w-full" /></div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
                 <Skeleton className="h-48 w-full" />
@@ -224,8 +224,8 @@ export default function TeamProfilePage() {
         Volver al Mercado
       </Button>
 
-      <div className="relative">
-        <div className="h-48 md:h-64 bg-muted rounded-lg overflow-hidden">
+      <div className="relative -mx-4 md:-mx-6">
+        <div className="h-48 md:h-64 bg-muted overflow-hidden">
              <Image
               src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
               alt={`${team.name} banner`}
