@@ -58,8 +58,7 @@ export function HonorsSection({ targetUser }: HonorsSectionProps) {
   }, [currentUser, targetUser.id, isOwnProfile]);
 
   const handleGiveHonor = (honorType: string) => {
-    if (isOwnProfile) return;
-    if (givenHonors.includes(honorType)) return;
+    if (isOwnProfile || givenHonors.length > 0) return;
 
     startTransition(async () => {
       const result = await giveHonorToUser(targetUser.id, honorType);
@@ -86,9 +85,10 @@ export function HonorsSection({ targetUser }: HonorsSectionProps) {
       </CardHeader>
       <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {honorsConfig.map(honor => {
-          const hasGiven = givenHonors.includes(honor.id);
+          const anyHonorGiven = givenHonors.length > 0;
+          const isThisHonorGiven = givenHonors.includes(honor.id);
           const count = honorCounts[honor.id] || 0;
-          const isDisabled = isOwnProfile || hasGiven || isPending || loadingGiven;
+          const isDisabled = isOwnProfile || anyHonorGiven || isPending || loadingGiven;
 
           return (
              <TooltipProvider key={honor.id}>
@@ -102,7 +102,7 @@ export function HonorsSection({ targetUser }: HonorsSectionProps) {
                       disabled={isDisabled}
                       className={cn(
                         "h-14 w-14 rounded-lg bg-primary/5 border-primary/10 text-primary hover:bg-primary/20 relative",
-                        hasGiven && "bg-primary/20 border-primary/30 ring-2 ring-primary/50"
+                        isThisHonorGiven && "bg-primary/20 border-primary/30 ring-2 ring-primary/50"
                       )}
                     >
                       <honor.icon className="h-6 w-6" />

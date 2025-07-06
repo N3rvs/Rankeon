@@ -41,15 +41,15 @@ export const giveHonor = onCall(async ({ auth, data }: { auth?: any, data: GiveH
         }
 
         const givenHonors = honorDoc.exists ? honorDoc.data()?.honors || [] : [];
-        if (givenHonors.includes(honorType)) {
-            throw new HttpsError("already-exists", "You have already given this honor to this user.");
+        if (givenHonors.length > 0) {
+            throw new HttpsError("already-exists", "You have already given an honor to this user. You can only give one honor per user.");
         }
 
         // Add the honor to the specific giver->recipient document
         transaction.set(honorDocRef, {
             giverId,
             recipientId,
-            honors: admin.firestore.FieldValue.arrayUnion(honorType),
+            honors: [honorType],
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         }, { merge: true });
 
