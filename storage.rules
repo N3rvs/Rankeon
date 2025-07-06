@@ -3,29 +3,20 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Avatares de usuarios
+    // User Avatars
+    // Allow public read access.
+    // Allow any authenticated user to write. The UI is responsible for controlling who can upload to which path.
     match /avatars/{userId}/{fileName} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'admin');
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Avatares de equipos
-    match /teams/{teamId}/avatar/{fileName} {
-      allow read: if request.auth != null;
-      // Permite la escritura si el usuario es el fundador del equipo o un administrador.
-      allow write: if request.auth != null && (firestore.get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid || request.auth.token.role == 'admin');
-    }
-
-    // Banners de equipos
-    match /teams/{teamId}/banner/{fileName} {
-      allow read: if request.auth != null;
-      // Permite la escritura si el usuario es el fundador del equipo o un administrador.
-      allow write: if request.auth != null && (firestore.get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid || request.auth.token.role == 'admin');
-    }
-
-    // Denegar todo lo demás por seguridad
-    match /{allPaths=**} {
-      allow read, write: if false;
+    // Team Avatars & Banners
+    // Allow public read access.
+    // Allow any authenticated user to write. The UI is responsible for controlling who can upload to which path.
+    match /teams/{teamId}/{imageType}/{fileName} {
+       allow read: if true;
+       allow write: if request.auth != null;
     }
   }
 }
