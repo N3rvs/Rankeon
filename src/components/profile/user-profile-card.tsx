@@ -40,8 +40,10 @@ export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
             </h2>
             <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-muted-foreground">
                {userProfile.role && <Badge variant={getRoleVariant(userProfile.role)} className="capitalize">{userProfile.role}</Badge>}
-               {userProfile.skills?.map(skill => <Badge key={skill} variant="outline">{skill}</Badge>)}
                {userProfile.country && <span className="ml-1">{userProfile.country}</span>}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+                {userProfile.skills?.map(skill => <Badge key={skill} variant="outline">{skill}</Badge>)}
             </div>
           </div>
         </div>
