@@ -150,6 +150,7 @@ export interface Tournament {
   createdAt: Timestamp;
   proposalId: string;
   bracket?: Bracket | null;
+  participants?: MatchTeam[];
 }
 
 // Types for Tournament Bracket
