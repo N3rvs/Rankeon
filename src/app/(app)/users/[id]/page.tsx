@@ -16,6 +16,8 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { FriendshipButton } from '@/components/friends/friendship-button';
+import { PerformanceAnalysisCard } from '@/components/profile/performance-analysis-card';
+import { RecentMatchesCard } from '@/components/profile/recent-matches-card';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -61,6 +63,8 @@ export default function UserProfilePage() {
         </div>
         <div className="lg:col-span-2 space-y-6">
           <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-72 w-full" />
         </div>
       </div>
     );
@@ -134,6 +138,8 @@ export default function UserProfilePage() {
                          {!userProfile.skills?.length && !userProfile.rank && <p className="text-sm text-muted-foreground">No skills or rank specified.</p>}
                     </CardContent>
                 </Card>
+                <PerformanceAnalysisCard />
+                <RecentMatchesCard />
             </div>
         </div>
     </>
