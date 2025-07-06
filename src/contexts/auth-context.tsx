@@ -56,17 +56,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (authUser) {
+        // We get the token result without forcing a refresh.
+        // onIdTokenChanged provides the latest user object.
+        const tokenResult = await authUser.getIdTokenResult();
+        
         setUser(authUser);
-        // Force refresh the token to get the latest custom claims.
-        const tokenResult = await authUser.getIdTokenResult(true);
         setToken(tokenResult.token);
         setClaims(tokenResult.claims);
 
         const userDocRef = doc(db, 'users', authUser.uid);
         
-        // This is a robust check to ensure the user profile document exists.
-        // It runs every time auth state changes, fixing cases where a user
-        // exists in Auth but not in Firestore.
         const userSnap = await getDoc(userDocRef);
         if (!userSnap.exists()) {
           try {
@@ -93,23 +92,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
         
-        // Set up the real-time listener for profile changes.
         unsubscribeProfile = onSnapshot(
           userDocRef,
-          (docSnap) => {
+          async (docSnap) => {
             if (docSnap.exists()) {
               const newProfileData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
+              // Get the latest token claims to ensure our check is up-to-date
+              const currentTokenResult = await authUser.getIdTokenResult();
 
-              // Force a token refresh if custom claims have been updated on the backend.
-              // This is crucial for role changes to take effect immediately.
               const claimsRefreshedAt = newProfileData._claimsRefreshedAt?.toMillis();
-              // claims.auth_time is in seconds, so multiply by 1000 for milliseconds
-              const tokenAuthTime = claims ? claims.auth_time * 1000 : 0;
+              const tokenAuthTime = currentTokenResult.claims.auth_time * 1000;
               
-              if (user && claimsRefreshedAt && claimsRefreshedAt > tokenAuthTime) {
-                // This will trigger onIdTokenChanged, which will re-fetch the token
-                // with the new claims and update the state.
-                user.getIdToken(true);
+              if (claimsRefreshedAt && claimsRefreshedAt > tokenAuthTime) {
+                // A role change has happened on the backend. Force a token refresh.
+                // This will re-trigger the onIdTokenChanged listener with the new claims.
+                await authUser.getIdToken(true);
+                return; // Exit early, the listener will re-run with the fresh data.
               }
               
               setUserProfile(newProfileData);
@@ -139,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         unsubscribeProfile();
       }
     };
-  }, [claims, user]);
+  }, []); // The effect runs only once on mount to set up the listeners.
 
   return (
     <AuthContext.Provider value={{ user, userProfile, token, claims, loading, setToken }}>
