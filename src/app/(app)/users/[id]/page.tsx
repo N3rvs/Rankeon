@@ -16,10 +16,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { FriendshipButton } from '@/components/friends/friendship-button';
 import { SendMessageDialog } from '@/components/messages/send-message-dialog';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
-export default function UserProfilePage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function UserProfilePage() {
+  const params = useParams();
+  const id = params.id as string;
   const { user } = useAuth();
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
