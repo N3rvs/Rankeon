@@ -1,4 +1,3 @@
-
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -6,12 +5,12 @@ import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe } from 'lucide-react';
+import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import type { Team, TeamMember, UserProfile } from '@/lib/types';
+import type { Team, TeamMember, UserProfile, UserRole } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { deleteTeam, kickTeamMember, updateTeamMemberRole, setTeamIGL } from '@/lib/actions/teams';
@@ -314,15 +313,33 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     );
 }
 
-function NoTeamDisplay() {
+function NoTeamDisplay({ userRole }: { userRole?: UserRole }) {
+    const canCreate = userRole === 'admin' || userRole === 'moderator';
+
     return (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-xl font-semibold">Aún no tienes un equipo</h3>
-            <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                ¡Crea tu propio equipo para empezar a reclutar jugadores!
-            </p>
-            <CreateTeamDialog />
+            {canCreate ? (
+                <>
+                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                        ¡Crea tu propio equipo para empezar a reclutar jugadores!
+                    </p>
+                    <CreateTeamDialog />
+                </>
+            ) : (
+                <>
+                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                        Busca en el mercado para encontrar tu escuadrón ideal.
+                    </p>
+                    <Button asChild>
+                        <Link href="/dashboard">
+                            <Store className="mr-2 h-4 w-4" />
+                            Unete a un Equipo
+                        </Link>
+                    </Button>
+                </>
+            )}
         </div>
     );
 }
@@ -439,7 +456,7 @@ export default function TeamsPage() {
                 )}
             </div>
 
-            {team && currentUserMembership ? <TeamDisplay team={team} members={members} currentUserRole={currentUserMembership.role} /> : <NoTeamDisplay />}
+            {team && currentUserMembership ? <TeamDisplay team={team} members={members} currentUserRole={currentUserMembership.role} /> : <NoTeamDisplay userRole={userProfile?.role} />}
         </div>
     );
 }
