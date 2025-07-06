@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import type { Team, TeamMember } from '@/lib/types';
+import type { Team, TeamMember, UserProfile } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { deleteTeam, kickTeamMember, updateTeamMemberRole, setTeamIGL } from '@/lib/actions/teams';
@@ -20,11 +20,31 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { toast } = useToast();
     const [isKickAlertOpen, setKickAlertOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [selectedMemberProfile, setSelectedMemberProfile] = useState<UserProfile | null>(null);
+
+    const handleOpenEditDialog = async () => {
+        // If we already have the profile data, just open the dialog
+        if (selectedMemberProfile && selectedMemberProfile.id === member.id) {
+            setIsEditDialogOpen(true);
+            return;
+        }
+        startTransition(async () => {
+            const userDoc = await getDoc(doc(db, 'users', member.id));
+            if (userDoc.exists()) {
+                setSelectedMemberProfile({ id: userDoc.id, ...userDoc.data() } as UserProfile);
+                setIsEditDialogOpen(true);
+            } else {
+                toast({ title: "Error", description: "Could not find user profile.", variant: "destructive" });
+            }
+        });
+    };
 
     const handleRoleChange = (newRole: 'coach' | 'member') => {
         if (member.role === newRole) return;
@@ -61,16 +81,24 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
         });
     };
 
+    const canEditProfile = currentUserRole === 'founder' || currentUserRole === 'coach';
     const canManageRoles = currentUserRole === 'founder' || currentUserRole === 'coach';
     const canKick = currentUserRole === 'founder' || (currentUserRole === 'coach' && member.role === 'member');
     const canSetIGL = currentUserRole === 'founder' || currentUserRole === 'coach';
 
-    if (member.role === 'founder' || (!canManageRoles && !canKick)) {
+    if (member.role === 'founder' || (!canManageRoles && !canKick && !canEditProfile)) {
         return null;
     }
 
     return (
         <>
+            {selectedMemberProfile && (
+                <EditProfileDialog
+                    userProfile={selectedMemberProfile}
+                    open={isEditDialogOpen}
+                    onOpenChange={setIsEditDialogOpen}
+                />
+            )}
             <AlertDialog open={isKickAlertOpen} onOpenChange={setKickAlertOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -95,6 +123,12 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                    {canEditProfile && (
+                        <DropdownMenuItem onSelect={handleOpenEditDialog} disabled={isPending}>
+                            <Edit className="mr-2 h-4 w-4" /> Editar Perfil
+                        </DropdownMenuItem>
+                    )}
+                    {(canEditProfile && (canManageRoles || canSetIGL)) && <DropdownMenuSeparator />}
                     {canManageRoles && (
                         <>
                             {member.role === 'member' && (
