@@ -19,9 +19,10 @@ interface EditProfileDialogProps {
     userProfile: UserProfile;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    children?: React.ReactNode;
 }
 
-export function EditProfileDialog({ userProfile, open, onOpenChange }: EditProfileDialogProps) {
+export function EditProfileDialog({ userProfile, open, onOpenChange, children }: EditProfileDialogProps) {
   const { userProfile: loggedInUserProfile } = useAuth();
   const [internalOpen, setInternalOpen] = useState(false);
 
@@ -35,10 +36,12 @@ export function EditProfileDialog({ userProfile, open, onOpenChange }: EditProfi
     <Dialog open={currentOpen} onOpenChange={setCurrentOpen}>
       {!isControlled && (
         <DialogTrigger asChild>
-          <Button>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Profile
-          </Button>
+          {children || (
+            <Button>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Profile
+            </Button>
+          )}
         </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-md">

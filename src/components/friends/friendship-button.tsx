@@ -18,6 +18,8 @@ import {
   Users,
   UserX,
   Inbox,
+  Check,
+  X as XIcon,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -31,7 +33,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../ui/tooltip';
 
 interface FriendshipButtonProps {
   targetUser: UserProfile;
@@ -57,28 +58,22 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
     let isMounted = true;
 
     const determineStatus = async () => {
-        // Guard against missing user/profile
         if (!user || !userProfile) {
             if (isMounted) setStatus('loading');
             return;
         }
 
-        // Don't show button for self
         if (user.uid === targetUser.id) {
             if (isMounted) setStatus('self');
             return;
         }
         
-        // --- STEP 1: Check friendship status directly from the user profile ---
-        // This is the primary source of truth.
         if (userProfile.friends?.includes(targetUser.id)) {
             if (isMounted) setStatus('friends');
             return;
         }
 
-        // --- STEP 2: If not friends, check for a pending friend request ---
         try {
-            // Query for a request sent FROM ME TO TARGET
             const sentQuery = query(
                 collection(db, 'friendRequests'),
                 where('from', '==', user.uid),
@@ -92,10 +87,9 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
                     setRequestId(sentSnapshot.docs[0].id);
                     setStatus('request_sent');
                 }
-                return; // Found a request, stop here.
+                return;
             }
             
-            // Query for a request sent FROM TARGET TO ME
             const receivedQuery = query(
                 collection(db, 'friendRequests'),
                 where('from', '==', targetUser.id),
@@ -109,10 +103,9 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
                     setRequestId(receivedSnapshot.docs[0].id);
                     setStatus('request_received');
                 }
-                return; // Found a request, stop here.
+                return;
             }
 
-            // --- STEP 3: If no friendship and no requests, they are not friends ---
             if (isMounted) {
               setStatus('not_friends');
               setRequestId(null);
@@ -120,13 +113,12 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
 
         } catch (error) {
             console.error("Error checking friendship status:", error);
-            if (isMounted) setStatus('not_friends'); // Default to safe state on error
+            if (isMounted) setStatus('not_friends');
         }
     };
 
     determineStatus();
 
-    // Cleanup function
     return () => {
         isMounted = false;
     };
@@ -145,7 +137,6 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
             title: 'Success',
             description: 'Friend request sent.',
           });
-          // Manually update status to give instant feedback
           setStatus('request_sent');
         } else {
           if (result.message.includes('already-exists') || result.message.includes('already sent')) {
@@ -155,7 +146,6 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
                   variant: 'destructive',
                   duration: 8000,
               });
-              // Correct the state if the backend confirms a request exists
               setStatus('request_sent');
           } else {
               toast({
@@ -180,7 +170,6 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           title: 'Success',
           description: `Friend request ${accept ? 'accepted' : 'rejected'}.`,
         });
-        // Optimistic update for instant UI feedback
         setStatus(accept ? 'friends' : 'not_friends');
       } else {
         toast({
@@ -188,7 +177,6 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           description: result.message,
           variant: 'destructive',
         });
-        // If the request was not found, it means it was resolved. Update UI.
         if (result.message.includes('not-found')) {
             setStatus('not_friends');
         }
@@ -204,7 +192,6 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
           title: 'Friend Removed',
           description: `You are no longer friends with ${targetUser.name}.`,
         });
-        // Optimistic update for instant UI feedback
         setStatus('not_friends');
       } else {
         toast({
@@ -219,67 +206,45 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
   const renderButton = () => {
     switch (status) {
       case 'loading':
-        return <Button size="icon" variant="outline" className="w-10 h-10" disabled><Clock className="h-4 w-4" /></Button>;
+        return <Button className="w-full" disabled><Clock className="mr-2 h-4 w-4" /> Loading...</Button>;
       case 'self':
         return null;
       case 'not_friends':
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button size="icon" onClick={handleSendRequest} disabled={isPending}>
-                <UserPlus className="h-4 w-4" />
-                <span className="sr-only">Add Friend</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add Friend</p>
-            </TooltipContent>
-          </Tooltip>
+          <Button onClick={handleSendRequest} disabled={isPending} className="w-full">
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Friend
+          </Button>
         );
       case 'request_sent':
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button size="icon" variant="outline" disabled>
-                <Clock className="h-4 w-4" />
-                 <span className="sr-only">Request Sent</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Request Sent</p>
-            </TooltipContent>
-          </Tooltip>
+          <Button variant="outline" disabled className="w-full">
+            <Clock className="mr-2 h-4 w-4" />
+            Request Sent
+          </Button>
         );
       case 'request_received':
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button size="icon" variant="outline" disabled>
-                <Inbox className="h-4 w-4" />
-                 <span className="sr-only">Request Received</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Request Received</p>
-            </TooltipContent>
-          </Tooltip>
+            <div className="flex gap-2 w-full">
+                <Button onClick={() => handleResponse(true)} disabled={isPending} className="w-full">
+                    <Check className="mr-2 h-4 w-4" />
+                    Accept
+                </Button>
+                 <Button onClick={() => handleResponse(false)} disabled={isPending} className="w-full" variant="secondary">
+                    <XIcon className="mr-2 h-4 w-4" />
+                    Decline
+                </Button>
+            </div>
         );
       case 'friends':
         return (
           <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="secondary">
-                    <Users className="h-4 w-4" />
-                     <span className="sr-only">Friends</span>
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Friends</p>
-              </TooltipContent>
-            </Tooltip>
+            <DropdownMenuTrigger asChild>
+              <Button variant="secondary" className="w-full">
+                <Users className="mr-2 h-4 w-4" />
+                Friends
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleRemoveFriend}>
                 <UserX className="mr-2 h-4 w-4" /> Remove Friend
@@ -292,9 +257,5 @@ export function FriendshipButton({ targetUser }: FriendshipButtonProps) {
     }
   }
 
-  return (
-    <TooltipProvider>
-      {renderButton()}
-    </TooltipProvider>
-  )
+  return renderButton();
 }
