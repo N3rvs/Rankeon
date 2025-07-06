@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditProfileDialog } from "@/components/profile/edit-profile-dialog";
@@ -10,16 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
-  Heart,
-  Shield,
-  MessageCircle,
-  Smile,
   BarChart2,
   Swords,
   Edit,
 } from 'lucide-react';
 import React from "react";
 import type { UserRole } from "@/lib/types";
+import { HonorsSection } from '@/components/profile/honors-section';
 
 // Mock data since this is not in the DB
 const performanceData = {
@@ -56,13 +53,6 @@ const recentMatches = [
     d: 14,
     a: 12,
   },
-];
-
-const honors = [
-  { id: 'h1', icon: Heart, label: 'Great Teammate' },
-  { id: 'h2', icon: Shield, label: 'Leader' },
-  { id: 'h3', icon: MessageCircle, label: 'Good Communicator' },
-  { id: 'h4', icon: Smile, label: 'Positive Attitude' },
 ];
 
 const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' => {
@@ -123,24 +113,7 @@ export default function ProfilePage() {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline flex items-center gap-2 text-lg">
-                            <span className="text-primary">✩</span>
-                            Honores
-                        </CardTitle>
-                        <CardDescription>
-                            Honores otorgados por entrenadores y fundadores de equipos.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-around">
-                        {honors.map(honor => (
-                             <Button key={honor.id} variant="outline" size="icon" className="h-12 w-12 rounded-lg bg-primary/10 border-primary/20 text-primary hover:bg-primary/20">
-                                <honor.icon className="h-6 w-6" />
-                            </Button>
-                        ))}
-                    </CardContent>
-                </Card>
+                <HonorsSection targetUser={user} />
             </div>
 
             {/* Right Column */}

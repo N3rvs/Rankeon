@@ -21,6 +21,15 @@ export interface UserProfile {
   isCertifiedStreamer?: boolean;
   teamId?: string | null;
   banUntil?: Timestamp;
+  honorCounts?: { [key: string]: number };
+}
+
+export interface HonorsGiven {
+  id: string; // giverId_recipientId
+  giverId: string;
+  recipientId: string;
+  honors: string[]; // e.g., ['great_teammate', 'leader']
+  updatedAt: Timestamp;
 }
 
 export interface Team {
