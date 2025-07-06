@@ -253,9 +253,9 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                             <CardHeader>
                                 <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
                             </CardHeader>
-                            <CardContent className="grid grid-cols-1 gap-3">
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {members.map(member => (
-                                    <Card key={member.id} className="p-2 flex items-center justify-between">
+                                    <div key={member.id} className="p-3 flex items-center justify-between rounded-lg border bg-background">
                                         <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
                                             <Avatar>
                                                 <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
@@ -284,7 +284,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                             </div>
                                         </Link>
                                         <MemberManager team={team} member={member} currentUserRole={currentUserRole} />
-                                    </Card>
+                                    </div>
                                 ))}
                             </CardContent>
                         </Card>

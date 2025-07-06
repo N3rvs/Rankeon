@@ -182,30 +182,28 @@ export default function TeamProfilePage({ params }: { params: { id: string } }) 
 
                     <Card>
                         <CardHeader><CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle></CardHeader>
-                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {members.map(member => (
-                                <Card key={member.id} className="p-2 flex items-center justify-between">
-                                    <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
-                                        <Avatar>
-                                            <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
-                                            <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
-                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                 {roleIcons[member.role] || null}
-                                                 <span className="capitalize">{member.role}</span>
-                                                 {member.isIGL && (
-                                                    <>
-                                                        <span className="mx-1">·</span>
-                                                        <BrainCircuit className="h-4 w-4 text-sky-400" />
-                                                        <span>IGL</span>
-                                                    </>
-                                                 )}
-                                            </div>
+                                <Link href={`/users/${member.id}`} key={member.id} className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-muted/50">
+                                    <Avatar>
+                                        <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
+                                        <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold text-sm">{member.name}</p>
+                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                             {roleIcons[member.role] || null}
+                                             <span className="capitalize">{member.role}</span>
+                                             {member.isIGL && (
+                                                <>
+                                                    <span className="mx-1">·</span>
+                                                    <BrainCircuit className="h-4 w-4 text-sky-400" />
+                                                    <span>IGL</span>
+                                                </>
+                                             )}
                                         </div>
-                                    </Link>
-                                </Card>
+                                    </div>
+                                </Link>
                             ))}
                         </CardContent>
                     </Card>
