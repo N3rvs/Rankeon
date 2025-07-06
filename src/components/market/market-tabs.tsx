@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   collection,
   query,
@@ -29,53 +29,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
 import { Eye, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
-function PlayerTable() {
-  const { user, userProfile } = useAuth();
-  const [players, setPlayers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let unsubscribe: Unsubscribe | undefined;
-
-    if (user && userProfile) {
-      setLoading(true);
-      const playersQuery = query(
-        collection(db, 'users'),
-        where('lookingForTeam', '==', true)
-      );
-      unsubscribe = onSnapshot(
-        playersQuery,
-        (snapshot) => {
-          const playersData = snapshot.docs.map(
-            (doc) => ({ id: doc.id, ...doc.data() } as UserProfile)
-          );
-
-          const filteredPlayers = playersData.filter((p) => {
-            if (p.id === user.uid) return false;
-            if (userProfile.blocked?.includes(p.id)) return false;
-            if (p.blocked?.includes(user.uid)) return false;
-            return true;
-          });
-
-          setPlayers(filteredPlayers);
-          setLoading(false);
-        },
-        (error) => {
-          console.error('Error fetching players:', error);
-          setLoading(false);
-        }
-      );
-    } else {
-      setPlayers([]);
-      setLoading(false);
-    }
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [user, userProfile]);
-
+function PlayerTable({
+  players,
+  loading,
+}: {
+  players: UserProfile[];
+  loading: boolean;
+}) {
   const loadingSkeletons = [...Array(5)].map((_, i) => (
     <TableRow key={i}>
       <TableCell className="w-1/3">
@@ -88,13 +50,10 @@ function PlayerTable() {
         </div>
       </TableCell>
       <TableCell>
-        <Skeleton className="h-6 w-20" />
-      </TableCell>
-      <TableCell>
         <Skeleton className="h-6 w-32" />
       </TableCell>
       <TableCell className="text-right">
-        <Skeleton className="h-8 w-20 ml-auto" />
+        <Skeleton className="h-9 w-28 ml-auto" />
       </TableCell>
     </TableRow>
   ));
@@ -104,8 +63,7 @@ function PlayerTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[30%]">Player</TableHead>
-            <TableHead>Primary Game</TableHead>
+            <TableHead className="w-[40%]">Player</TableHead>
             <TableHead>Skills</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -117,7 +75,10 @@ function PlayerTable() {
             players.map((player) => (
               <TableRow key={player.id}>
                 <TableCell>
-                  <div className="flex items-center gap-4">
+                  <Link
+                    href={`/users/${player.id}`}
+                    className="flex items-center gap-4 group"
+                  >
                     <Avatar className="h-10 w-10">
                       <AvatarImage
                         src={player.avatarUrl}
@@ -127,19 +88,14 @@ function PlayerTable() {
                       <AvatarFallback>{player.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-semibold">{player.name}</h3>
+                      <h3 className="font-semibold group-hover:underline">
+                        {player.name}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
                         {player.country || 'Location not set'}
                       </p>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {player.games && player.games.length > 0 ? (
-                    <Badge variant="outline">{player.games[0]}</Badge>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">N/A</span>
-                  )}
+                  </Link>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
@@ -159,15 +115,13 @@ function PlayerTable() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <FriendshipButton targetUser={player} />
-                  </div>
+                  <FriendshipButton targetUser={player} />
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
+              <TableCell colSpan={3} className="h-24 text-center">
                 No players are currently looking for a team.
               </TableCell>
             </TableRow>
@@ -178,38 +132,13 @@ function PlayerTable() {
   );
 }
 
-function TeamTable() {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let unsubscribe: Unsubscribe | undefined;
-
-    setLoading(true);
-    const teamsQuery = query(
-      collection(db, 'teams'),
-      where('lookingForPlayers', '==', true)
-    );
-    unsubscribe = onSnapshot(
-      teamsQuery,
-      (snapshot) => {
-        const teamsData = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() } as Team)
-        );
-        setTeams(teamsData);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching teams:', error);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, []);
-
+function TeamTable({
+  teams,
+  loading,
+}: {
+  teams: Team[];
+  loading: boolean;
+}) {
   const loadingSkeletons = [...Array(5)].map((_, i) => (
     <TableRow key={i}>
       <TableCell className="w-1/3">
@@ -262,10 +191,10 @@ function TeamTable() {
                     <div>
                       <h3 className="font-semibold">{team.name}</h3>
                       {team.country && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                              <Globe className="h-3 w-3" />
-                              {team.country}
-                          </p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Globe className="h-3 w-3" />
+                          {team.country}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -275,7 +204,8 @@ function TeamTable() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {team.recruitingRoles && team.recruitingRoles.length > 0 ? (
+                    {team.recruitingRoles &&
+                    team.recruitingRoles.length > 0 ? (
                       team.recruitingRoles.map((role) => (
                         <Badge key={role} variant="secondary">
                           {role}
@@ -311,23 +241,102 @@ function TeamTable() {
 }
 
 export function MarketTabs() {
+  const { user, userProfile } = useAuth();
+  
+  const [players, setPlayers] = useState<UserProfile[]>([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(true);
+  const [countryFilter, setCountryFilter] = useState('all');
+
+  useEffect(() => {
+    let unsubscribe: Unsubscribe | undefined;
+    if (user && userProfile) {
+      setLoadingPlayers(true);
+      const playersQuery = query(collection(db, 'users'), where('lookingForTeam', '==', true));
+      unsubscribe = onSnapshot(playersQuery, (snapshot) => {
+        const playersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as UserProfile));
+        const filteredPlayers = playersData.filter((p) => {
+          if (p.id === user.uid) return false;
+          if (userProfile.blocked?.includes(p.id)) return false;
+          if (p.blocked?.includes(user.uid)) return false;
+          return true;
+        });
+        setPlayers(filteredPlayers);
+        setLoadingPlayers(false);
+      }, (error) => {
+        console.error('Error fetching players:', error);
+        setLoadingPlayers(false);
+      });
+    } else {
+      setPlayers([]);
+      setLoadingPlayers(false);
+    }
+    return () => unsubscribe?.();
+  }, [user, userProfile]);
+
+  useEffect(() => {
+    let unsubscribe: Unsubscribe | undefined;
+    setLoadingTeams(true);
+    const teamsQuery = query(collection(db, 'teams'), where('lookingForPlayers', '==', true));
+    unsubscribe = onSnapshot(teamsQuery, (snapshot) => {
+      const teamsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Team));
+      setTeams(teamsData);
+      setLoadingTeams(false);
+    }, (error) => {
+      console.error('Error fetching teams:', error);
+      setLoadingTeams(false);
+    });
+    return () => unsubscribe?.();
+  }, []);
+
+  const countries = useMemo(() => {
+    const playerCountries = players.map(p => p.country).filter((c): c is string => !!c);
+    const teamCountries = teams.map(t => t.country).filter((c): c is string => !!c);
+    return [...new Set([...playerCountries, ...teamCountries])].sort();
+  }, [players, teams]);
+
+  const filteredPlayers = useMemo(() => {
+    if (countryFilter === 'all') return players;
+    return players.filter(p => p.country === countryFilter);
+  }, [players, countryFilter]);
+
+  const filteredTeams = useMemo(() => {
+    if (countryFilter === 'all') return teams;
+    return teams.filter(t => t.country === countryFilter);
+  }, [teams, countryFilter]);
+
   return (
     <Tabs defaultValue="players" className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="players">Players Looking for Team</TabsTrigger>
-        <TabsTrigger value="teams">Teams Looking for Players</TabsTrigger>
-      </TabsList>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+        <TabsList className="grid w-full sm:w-auto grid-cols-2">
+          <TabsTrigger value="players">Players Looking for Team</TabsTrigger>
+          <TabsTrigger value="teams">Teams Looking for Players</TabsTrigger>
+        </TabsList>
+        <div className="w-full sm:w-auto sm:max-w-xs">
+          <Select value={countryFilter} onValueChange={setCountryFilter}>
+            <SelectTrigger>
+              <Globe className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Filter by country" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Countries</SelectItem>
+              {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <TabsContent value="players">
         <Card>
-          <CardContent className="pt-6">
-            <PlayerTable />
+          <CardContent className="p-0 sm:p-6">
+            <PlayerTable players={filteredPlayers} loading={loadingPlayers} />
           </CardContent>
         </Card>
       </TabsContent>
       <TabsContent value="teams">
         <Card>
-          <CardContent className="pt-6">
-            <TeamTable />
+          <CardContent className="p-0 sm:p-6">
+            <TeamTable teams={filteredTeams} loading={loadingTeams} />
           </CardContent>
         </Card>
       </TabsContent>
