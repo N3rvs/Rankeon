@@ -13,7 +13,7 @@ import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
 import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL, sendTeamInvite, respondToTeamInvite, applyToTeam, respondToTeamApplication } from './teams';
 import { proposeTournament, reviewTournamentProposal } from './tournaments';
-import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
+import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence } from './users';
 
 export {
   deleteChatHistory,
@@ -47,5 +47,6 @@ export {
   reviewTournamentProposal,
   updateUserRole,
   updateUserStatus,
-  updateUserCertification
+  updateUserCertification,
+  updateUserPresence
 };

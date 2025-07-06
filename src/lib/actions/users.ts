@@ -3,7 +3,7 @@
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
-import type { UserRole } from '../types';
+import type { UserRole, UserStatus } from '../types';
 
 const functions = getFunctions(app);
 
@@ -61,6 +61,17 @@ export async function updateUserCertification({
     return (result.data as ActionResponse);
   } catch (error: any) {
     console.error('Error updating user certification:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function updateUserPresence(status: UserStatus): Promise<ActionResponse> {
+  try {
+    const updateUserPresenceFunc = httpsCallable(functions, 'updateUserPresence');
+    const result = await updateUserPresenceFunc({ status });
+    return (result.data as ActionResponse);
+  } catch (error: any) {
+    console.error('Error updating user presence:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }

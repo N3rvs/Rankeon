@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import {
   SidebarProvider,
   Sidebar,
@@ -24,7 +24,17 @@ import {
   Trophy,
   Shield,
   Gavel,
+  Circle,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -35,12 +45,17 @@ import { InboxIcon } from './inbox/inbox-icon';
 import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/firestore';
 import { LanguageSwitcher } from './i18n/language-switcher';
 import { useI18n } from '@/contexts/i18n-context';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
+import type { UserStatus } from '@/lib/types';
+import { updateUserPresence } from '@/lib/actions/users';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, userProfile, loading, claims } = useAuth();
   const [unreadFriendActivity, setUnreadFriendActivity] = useState(0);
   const { t } = useI18n();
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -69,6 +84,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const handleLogout = async () => {
     await auth.signOut();
     window.location.assign('/login');
+  };
+
+  const handleStatusChange = (status: UserStatus) => {
+    startTransition(async () => {
+      await updateUserPresence(status);
+    });
   };
 
   const isActive = (path: string) => {
@@ -231,16 +252,53 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />
             ) : (
-              <Avatar>
-                <AvatarImage
-                  src={userProfile?.avatarUrl}
-                  alt={userProfile?.name}
-                  data-ai-hint="male avatar"
-                />
-                <AvatarFallback>
-                  {userProfile?.name?.charAt(0) || user?.email?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
+               <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage
+                        src={userProfile?.avatarUrl}
+                        alt={userProfile?.name}
+                        data-ai-hint="male avatar"
+                      />
+                      <AvatarFallback>
+                        {userProfile?.name?.charAt(0) || user?.email?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                     <span className={cn(
+                        "absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-background",
+                        userProfile?.status === 'available' && 'bg-green-500',
+                        userProfile?.status === 'busy' && 'bg-red-500',
+                        userProfile?.status === 'away' && 'bg-yellow-400',
+                        !userProfile?.status && 'bg-gray-400'
+                    )} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>{userProfile?.name}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>{t('Status.title')}</DropdownMenuLabel>
+                    <DropdownMenuItem onSelect={() => handleStatusChange('available')} disabled={isPending}>
+                        <Circle className="mr-2 h-4 w-4 text-green-500 fill-green-500" />
+                        <span>{t('Status.available')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleStatusChange('busy')} disabled={isPending}>
+                        <Circle className="mr-2 h-4 w-4 text-red-500 fill-red-500" />
+                        <span>{t('Status.busy')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleStatusChange('away')} disabled={isPending}>
+                        <Circle className="mr-2 h-4 w-4 text-yellow-400 fill-yellow-400" />
+                        <span>{t('Status.away')}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>{t('Sidebar.logout')}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </header>

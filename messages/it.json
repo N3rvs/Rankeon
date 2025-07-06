@@ -122,6 +122,12 @@
     "mod_panel": "Pannello Mod",
     "logout": "Esci"
   },
+  "Status": {
+    "title": "Stato",
+    "available": "Disponibile",
+    "busy": "Occupato",
+    "away": "Assente"
+  },
   "RoomsPage": {
     "title": "Stanze di gioco",
     "subtitle": "Trova un gruppo o creane uno tuo per giocare ora.",

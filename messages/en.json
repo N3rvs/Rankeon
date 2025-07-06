@@ -122,6 +122,12 @@
     "mod_panel": "Mod Panel",
     "logout": "Logout"
   },
+  "Status": {
+    "title": "Status",
+    "available": "Available",
+    "busy": "Busy",
+    "away": "Away"
+  },
   "RoomsPage": {
     "title": "Game Rooms",
     "subtitle": "Find a group or create your own to play now.",

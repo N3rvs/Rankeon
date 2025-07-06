@@ -122,6 +122,12 @@
     "mod_panel": "Panel Mod",
     "logout": "Cerrar Sesión"
   },
+  "Status": {
+    "title": "Estado",
+    "available": "Disponible",
+    "busy": "Ocupado",
+    "away": "Ausente"
+  },
   "RoomsPage": {
     "title": "Salas de Juego",
     "subtitle": "Encuentra un grupo o crea el tuyo para jugar ahora.",

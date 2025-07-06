@@ -43,6 +43,7 @@ export function RegisterForm() {
         id: user.uid,
         email: user.email,
         role: "player",
+        status: "available",
         name: user.email?.split('@')[0] || 'New Player',
         avatarUrl: `https://placehold.co/100x100.png`,
         bio: '',

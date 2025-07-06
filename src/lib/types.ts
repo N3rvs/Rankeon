@@ -2,6 +2,7 @@
 import { Timestamp } from 'firebase/firestore';
 
 export type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
+export type UserStatus = 'available' | 'busy' | 'away';
 
 export interface UserProfile {
   id: string;
@@ -9,6 +10,7 @@ export interface UserProfile {
   avatarUrl: string;
   email: string;
   role: UserRole;
+  status?: UserStatus;
   primaryGame: string;
   skills: string[];
   bio: string;

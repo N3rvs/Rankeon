@@ -2,7 +2,7 @@
 {
   "HomePage": {
     "title": "Monte seu Esquadrão de Elite",
-    "subtitle": "A plataforma LFG definitiva para Valorant. Pare de jogar sozinho e comece a dominar com a equipe perfeita.",
+    "subtitle": "A plataforma LFG definitiva para Valorant. Pare de jogar sozinho e comece a dominar com la equipe perfeita.",
     "get_started": "Começar",
     "find_squad": "Encontre seu Esquadrão",
     "register_player": "Registrar-se como jogador",
@@ -11,7 +11,7 @@
     "find_players_title": "Encontrar Jogadores",
     "find_players_desc": "Navegue por perfis detalhados de jogadores, filtre por função e classificação e encontre o ajuste perfeito para sua lista.",
     "ai_tools_title": "Ferramentas com IA",
-    "ai_tools_desc": "Use nossa IA para criar a biografia de jogador perfeita para ser notado por outros jogadores.",
+    "ai_tools_desc": "Use nossa IA para criar la biografia de jogador perfeita para ser notado por outros jogadores.",
     "footer_text": "© {year} SquadUp. Todos os direitos reservados. Construído para o futuro dos e-sports."
   },
   "LanguageSwitcher": {
@@ -121,6 +121,12 @@
     "admin_panel": "Painel Admin",
     "mod_panel": "Painel Mod",
     "logout": "Sair"
+  },
+  "Status": {
+    "title": "Status",
+    "available": "Disponível",
+    "busy": "Ocupado",
+    "away": "Ausente"
   },
   "RoomsPage": {
     "title": "Salas de Jogo",

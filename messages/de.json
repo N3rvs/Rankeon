@@ -122,6 +122,12 @@
     "mod_panel": "Mod-Panel",
     "logout": "Abmelden"
   },
+  "Status": {
+    "title": "Status",
+    "available": "Verfügbar",
+    "busy": "Beschäftigt",
+    "away": "Abwesend"
+  },
   "RoomsPage": {
     "title": "Spielräume",
     "subtitle": "Finde eine Gruppe oder erstelle deine eigene, um jetzt zu spielen.",
