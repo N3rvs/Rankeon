@@ -10,36 +10,92 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { sendMessageToFriend } from '@/lib/actions/messages';
+import { sendMessageToFriend, deleteChatHistory } from '@/lib/actions/messages';
+import { blockUser } from '@/lib/actions/friends';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useParams } from 'next/navigation';
-import { Send, ArrowLeft } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { Send, ArrowLeft, MoreVertical, UserCircle, ShieldBan, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-function ChatHeader({ recipient }: { recipient: UserProfile | null }) {
-     if (!recipient) {
-        return (
-             <div className="p-4 border-b flex items-center gap-4">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <Skeleton className="h-6 w-32" />
-            </div>
-        )
-    }
+function ChatHeader({
+  recipient,
+  onBlock,
+  onDeleteHistory,
+}: {
+  recipient: UserProfile | null;
+  onBlock: () => void;
+  onDeleteHistory: () => void;
+}) {
+  if (!recipient) {
     return (
-        <div className="p-4 border-b flex items-center gap-4">
-             <Button variant="ghost" size="icon" className="md:hidden" asChild>
-                <Link href="/messages">
-                    <ArrowLeft className="h-4 w-4" />
-                </Link>
-            </Button>
-            <Avatar>
-                <AvatarImage src={recipient.avatarUrl} data-ai-hint="person avatar"/>
-                <AvatarFallback>{recipient.name.slice(0,2)}</AvatarFallback>
-            </Avatar>
-            <h2 className="text-lg font-semibold">{recipient.name}</h2>
+      <div className="p-4 border-b flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="h-6 w-32" />
         </div>
-    )
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 border-b flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4 overflow-hidden">
+        <Button variant="ghost" size="icon" className="md:hidden flex-shrink-0" asChild>
+          <Link href="/messages">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Avatar className="flex-shrink-0">
+          <AvatarImage src={recipient.avatarUrl} data-ai-hint="person avatar" />
+          <AvatarFallback>{recipient.name.slice(0, 2)}</AvatarFallback>
+        </Avatar>
+        <h2 className="text-lg font-semibold truncate">{recipient.name}</h2>
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="flex-shrink-0">
+            <MoreVertical className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href={`/users/${recipient.id}`}>
+              <UserCircle className="mr-2 h-4 w-4" />
+              Ver Perfil
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={onBlock} className="text-destructive focus:text-destructive">
+            <ShieldBan className="mr-2 h-4 w-4" />
+            Bloquear Usuario
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={onDeleteHistory} className="text-destructive focus:text-destructive">
+            <Trash2 className="mr-2 h-4 w-4" />
+            Eliminar Historial
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
 }
 
 function ChatMessages({ messages, recipient, currentUserProfile }: { messages: ChatMessage[], recipient: UserProfile | null, currentUserProfile: UserProfile | null }) {
@@ -132,11 +188,16 @@ export default function ChatPage() {
     const { user, userProfile, loading: authLoading } = useAuth();
     const { toast } = useToast();
     const params = useParams();
+    const router = useRouter();
     const chatId = params.chatId as string;
     
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [recipient, setRecipient] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isPending, startTransition] = useTransition();
+
+    const [isBlockAlertOpen, setIsBlockAlertOpen] = useState(false);
+    const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
     useEffect(() => {
         if (!chatId || !user) {
@@ -177,13 +238,40 @@ export default function ChatPage() {
         return () => unsubscribe();
     }, [chatId, user]);
 
-     const handleSendMessage = async (content: string) => {
+    const handleSendMessage = async (content: string) => {
         if (!recipient) return;
         const result = await sendMessageToFriend({ to: recipient.id, content });
         if (!result.success) {
             toast({ title: 'Error', description: result.message, variant: 'destructive' });
         }
     };
+
+    const handleBlockUser = () => {
+        if (!recipient) return;
+        startTransition(async () => {
+            const result = await blockUser(recipient.id);
+            if (result.success) {
+                toast({ title: 'Usuario Bloqueado', description: `${recipient.name} ha sido bloqueado. No podrás enviarle mensajes.` });
+                router.push('/messages');
+            } else {
+                toast({ title: 'Error', description: result.message, variant: 'destructive' });
+            }
+            setIsBlockAlertOpen(false);
+        });
+    }
+
+    const handleDeleteHistory = () => {
+        if (!chatId) return;
+        startTransition(async () => {
+            const result = await deleteChatHistory({ chatId });
+            if (result.success) {
+                toast({ title: 'Historial Eliminado', description: 'El historial de este chat ha sido eliminado.' });
+            } else {
+                toast({ title: 'Error', description: result.message, variant: 'destructive' });
+            }
+            setIsDeleteAlertOpen(false);
+        });
+    }
 
     if (loading || authLoading) {
         return (
@@ -205,10 +293,50 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="flex flex-col h-full">
-            <ChatHeader recipient={recipient} />
-            <ChatMessages messages={messages} recipient={recipient} currentUserProfile={userProfile} />
-            {recipient && <ChatInput recipientId={recipient.id} onSend={handleSendMessage} />}
-        </div>
+        <>
+            <AlertDialog open={isBlockAlertOpen} onOpenChange={setIsBlockAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Bloquear a {recipient?.name}?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta acción es irreversible. No podrás enviar ni recibir mensajes de este usuario y será eliminado de tu lista de amigos.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleBlockUser} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            {isPending ? 'Bloqueando...' : 'Sí, bloquear'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar historial del chat?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta acción eliminará permanentemente todos los mensajes de esta conversación para ti. El otro usuario conservará su copia. Esta acción no se puede deshacer.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteHistory} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            {isPending ? 'Eliminando...' : 'Sí, eliminar'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <div className="flex flex-col h-full">
+                <ChatHeader 
+                    recipient={recipient} 
+                    onBlock={() => setIsBlockAlertOpen(true)}
+                    onDeleteHistory={() => setIsDeleteAlertOpen(true)}
+                />
+                <ChatMessages messages={messages} recipient={recipient} currentUserProfile={userProfile} />
+                {recipient && <ChatInput recipientId={recipient.id} onSend={handleSendMessage} />}
+            </div>
+        </>
     );
 }
