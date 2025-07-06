@@ -1,19 +1,18 @@
+'use client';
+
 import { MarketTabs } from '@/components/market/market-tabs';
-import { Metadata } from 'next';
+import { useI18n } from '@/contexts/i18n-context';
 
-export const metadata: Metadata = {
-  title: "Mercado de Equipos y Jugadores (UE)",
-};
-
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold font-headline tracking-tight">
-          Mercado de Equipos y Jugadores (UE)
+          {t('DashboardPage.title')}
         </h1>
         <p className="text-muted-foreground">
-          Encuentra equipos y jugadores en la región de la UE.
+          {t('DashboardPage.subtitle')}
         </p>
       </div>
       <MarketTabs />

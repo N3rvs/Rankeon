@@ -34,71 +34,7 @@ import { Label } from '../ui/label';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { sendTeamInvite } from '@/lib/actions/teams';
-
-const valorantRanks = [
-    { value: 'all', label: 'Todos los Rangos' },
-    { value: 'Plata', label: 'Plata' },
-    { value: 'Oro', label: 'Oro' },
-    { value: 'Platino', label: 'Platino' },
-    { value: 'Ascendente', label: 'Ascendente' },
-    { value: 'Inmortal', label: 'Inmortal' },
-];
-
-const valorantRoles = [
-    { value: 'all', label: 'Todos los Roles' },
-    { value: 'Controlador', label: 'Controlador' },
-    { value: 'Iniciador', label: 'Iniciador' },
-    { value: 'Duelista', label: 'Duelista' },
-    { value: 'Centinela', label: 'Centinela' },
-];
-
-const europeanCountries = [
-    { value: 'Albania', label: 'Albania' },
-    { value: 'Andorra', label: 'Andorra' },
-    { value: 'Austria', label: 'Austria' },
-    { value: 'Belarus', label: 'Belarus' },
-    { value: 'Belgium', label: 'Belgium' },
-    { value: 'Bosnia and Herzegovina', label: 'Bosnia and Herzegovina' },
-    { value: 'Bulgaria', label: 'Bulgaria' },
-    { value: 'Croatia', label: 'Croatia' },
-    { value: 'Cyprus', label: 'Cyprus' },
-    { value: 'Czech Republic', label: 'Czech Republic' },
-    { value: 'Denmark', label: 'Denmark' },
-    { value: 'Estonia', label: 'Estonia' },
-    { value: 'Finland', label: 'Finland' },
-    { value: 'France', label: 'France' },
-    { value: 'Germany', label: 'Germany' },
-    { value: 'Greece', label: 'Greece' },
-    { value: 'Hungary', label: 'Hungary' },
-    { value: 'Iceland', label: 'Iceland' },
-    { value: 'Ireland', label: 'Ireland' },
-    { value: 'Italy', label: 'Italy' },
-    { value: 'Latvia', label: 'Latvia' },
-    { value: 'Liechtenstein', label: 'Liechtenstein' },
-    { value: 'Lithuania', label: 'Lithuania' },
-    { value: 'Luxembourg', label: 'Luxembourg' },
-    { value: 'Malta', label: 'Malta' },
-    { value: 'Moldova', label: 'Moldova' },
-    { value: 'Monaco', label: 'Monaco' },
-    { value: 'Montenegro', label: 'Montenegro' },
-    { value: 'Netherlands', label: 'Netherlands' },
-    { value: 'North Macedonia', label: 'North Macedonia' },
-    { value: 'Norway', label: 'Norway' },
-    { value: 'Poland', label: 'Poland' },
-    { value: 'Portugal', label: 'Portugal' },
-    { value: 'Romania', label: 'Romania' },
-    { value: 'Russia', label: 'Russia' },
-    { value: 'San Marino', label: 'San Marino' },
-    { value: 'Serbia', label: 'Serbia' },
-    { value: 'Slovakia', label: 'Slovakia' },
-    { value: 'Slovenia', label: 'Slovenia' },
-    { value: 'Spain', label: 'Spain' },
-    { value: 'Sweden', label: 'Sweden' },
-    { value: 'Switzerland', label: 'Switzerland' },
-    { value: 'Ukraine', label: 'Ukraine' },
-    { value: 'United Kingdom', label: 'United Kingdom' },
-    { value: 'Vatican City', label: 'Vatican City' }
-];
+import { useI18n } from '@/contexts/i18n-context';
 
 function PlayerTable({
   players,
@@ -110,6 +46,7 @@ function PlayerTable({
   const { userProfile, claims } = useAuth();
   const { toast } = useToast();
   const [isInviting, startInviting] = useTransition();
+  const { t } = useI18n();
 
   const canInvite = userProfile?.teamId && (userProfile.role === 'founder' || userProfile.role === 'coach' || claims?.role === 'admin');
 
@@ -167,11 +104,11 @@ function PlayerTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[30%]">Jugador</TableHead>
-            <TableHead>País</TableHead>
-            <TableHead>Rango</TableHead>
-            <TableHead>Roles</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
+            <TableHead className="w-[30%]">{t('Market.player_header')}</TableHead>
+            <TableHead>{t('Market.country_header')}</TableHead>
+            <TableHead>{t('Market.rank_header')}</TableHead>
+            <TableHead>{t('Market.roles_header')}</TableHead>
+            <TableHead className="text-right">{t('Market.actions_header')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -198,13 +135,13 @@ function PlayerTable({
                     </Link>
                 </TableCell>
                  <TableCell>
-                    <span className="text-sm text-muted-foreground">{getFlagEmoji(player.country || '')} {player.country || 'N/A'}</span>
+                    <span className="text-sm text-muted-foreground">{getFlagEmoji(player.country || '')} {player.country || t('Market.not_applicable')}</span>
                  </TableCell>
                  <TableCell>
                   {player.rank ? (
                     <Badge variant="secondary">{player.rank}</Badge>
                   ) : (
-                    <span className="text-sm text-muted-foreground">N/A</span>
+                    <span className="text-sm text-muted-foreground">{t('Market.not_applicable')}</span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -219,7 +156,7 @@ function PlayerTable({
                         ))
                     ) : (
                       <span className="text-muted-foreground text-sm">
-                        Sin roles
+                        {t('Market.no_roles')}
                       </span>
                     )}
                   </div>
@@ -236,7 +173,7 @@ function PlayerTable({
                                                 size="icon"
                                                 onClick={() => handleInvitePlayer(player)}
                                                 disabled={!player.lookingForTeam || !!player.teamId || isInviting}
-                                                aria-label="Invitar al equipo"
+                                                aria-label={t('Market.invite_tooltip')}
                                             >
                                                 <MailPlus className="h-4 w-4" />
                                             </Button>
@@ -244,11 +181,11 @@ function PlayerTable({
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         {!player.lookingForTeam ? (
-                                            <p>Este jugador no busca equipo.</p>
+                                            <p>{t('Market.not_looking_tooltip')}</p>
                                         ) : player.teamId ? (
-                                            <p>Este jugador ya está en un equipo.</p>
+                                            <p>{t('Market.already_in_team_tooltip')}</p>
                                         ) : (
-                                            <p>Invitar al equipo</p>
+                                            <p>{t('Market.invite_tooltip')}</p>
                                         )}
                                     </TooltipContent>
                                 </Tooltip>
@@ -262,7 +199,7 @@ function PlayerTable({
           ) : (
             <TableRow>
               <TableCell colSpan={5} className="h-24 text-center">
-                No se encontraron jugadores.
+                {t('Market.no_players_found')}
               </TableCell>
             </TableRow>
           )}
@@ -281,6 +218,8 @@ function TeamTable({
   loading: boolean;
   isOwnTeam: (teamId: string) => boolean;
 }) {
+  const { t } = useI18n();
+
   const loadingSkeletons = [...Array(5)].map((_, i) => (
     <TableRow key={i}>
       <TableCell className="w-1/3">
@@ -303,10 +242,10 @@ function TeamTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[30%]">Equipo</TableHead>
-            <TableHead>País</TableHead>
-            <TableHead>Rango</TableHead>
-            <TableHead>Roles Buscados</TableHead>
+            <TableHead className="w-[30%]">{t('Market.team_header')}</TableHead>
+            <TableHead>{t('Market.country_header')}</TableHead>
+            <TableHead>{t('Market.rank_header')}</TableHead>
+            <TableHead>{t('Market.roles_wanted_header')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -328,7 +267,7 @@ function TeamTable({
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm text-muted-foreground">{getFlagEmoji(team.country || '')} {team.country || 'N/A'}</span>
+                  <span className="text-sm text-muted-foreground">{getFlagEmoji(team.country || '')} {team.country || t('Market.not_applicable')}</span>
                 </TableCell>
                 <TableCell>
                   {team.rankMin || team.rankMax ? (
@@ -336,7 +275,7 @@ function TeamTable({
                       {team.rankMin}{team.rankMin && team.rankMax && team.rankMin !== team.rankMax ? ` - ${team.rankMax}` : ''}
                     </Badge>
                   ) : (
-                    <span className="text-sm text-muted-foreground">N/A</span>
+                    <span className="text-sm text-muted-foreground">{t('Market.not_applicable')}</span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -347,7 +286,7 @@ function TeamTable({
                       ))
                     ) : (
                       <span className="text-muted-foreground text-sm">
-                        {team.lookingForPlayers ? 'Todos' : 'Cerrado'}
+                        {team.lookingForPlayers ? t('Market.all_welcome') : t('Market.closed')}
                       </span>
                     )}
                   </div>
@@ -356,7 +295,7 @@ function TeamTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">No se encontraron equipos.</TableCell>
+              <TableCell colSpan={4} className="h-24 text-center">{t('Market.no_teams_found')}</TableCell>
             </TableRow>
           )}
         </TableBody>
@@ -368,6 +307,7 @@ function TeamTable({
 
 export function MarketTabs() {
   const { user, userProfile } = useAuth();
+  const { t } = useI18n();
   
   const [players, setPlayers] = useState<UserProfile[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
@@ -388,6 +328,72 @@ export function MarketTabs() {
         'Ascendente': 4,
         'Inmortal': 5,
     };
+
+    const valorantRanks = [
+      { value: 'all', label: t('Market.all_ranks') },
+      { value: 'Plata', label: t('Ranks.silver') },
+      { value: 'Oro', label: t('Ranks.gold') },
+      { value: 'Platino', label: t('Ranks.platinum') },
+      { value: 'Ascendente', label: t('Ranks.ascendant') },
+      { value: 'Inmortal', label: t('Ranks.immortal') },
+  ];
+  
+  const valorantRoles = [
+      { value: 'all', label: t('Market.all_roles') },
+      { value: 'Controlador', label: t('Roles.controller') },
+      { value: 'Iniciador', label: t('Roles.initiator') },
+      { value: 'Duelista', label: t('Roles.duelist') },
+      { value: 'Centinela', label: t('Roles.sentinel') },
+  ];
+
+  const europeanCountries = [
+    { value: 'all', label: t('Market.all_countries') },
+    { value: 'Albania', label: `${getFlagEmoji('Albania')} ${t('Countries.albania')}` },
+    { value: 'Andorra', label: `${getFlagEmoji('Andorra')} ${t('Countries.andorra')}` },
+    { value: 'Austria', label: `${getFlagEmoji('Austria')} ${t('Countries.austria')}` },
+    { value: 'Belarus', label: `${getFlagEmoji('Belarus')} ${t('Countries.belarus')}` },
+    { value: 'Belgium', label: `${getFlagEmoji('Belgium')} ${t('Countries.belgium')}` },
+    { value: 'Bosnia and Herzegovina', label: `${getFlagEmoji('Bosnia and Herzegovina')} ${t('Countries.bosnia_and_herzegovina')}` },
+    { value: 'Bulgaria', label: `${getFlagEmoji('Bulgaria')} ${t('Countries.bulgaria')}` },
+    { value: 'Croatia', label: `${getFlagEmoji('Croatia')} ${t('Countries.croatia')}` },
+    { value: 'Cyprus', label: `${getFlagEmoji('Cyprus')} ${t('Countries.cyprus')}` },
+    { value: 'Czech Republic', label: `${getFlagEmoji('Czech Republic')} ${t('Countries.czech_republic')}` },
+    { value: 'Denmark', label: `${getFlagEmoji('Denmark')} ${t('Countries.denmark')}` },
+    { value: 'Estonia', label: `${getFlagEmoji('Estonia')} ${t('Countries.estonia')}` },
+    { value: 'Finland', label: `${getFlagEmoji('Finland')} ${t('Countries.finland')}` },
+    { value: 'France', label: `${getFlagEmoji('France')} ${t('Countries.france')}` },
+    { value: 'Germany', label: `${getFlagEmoji('Germany')} ${t('Countries.germany')}` },
+    { value: 'Greece', label: `${getFlagEmoji('Greece')} ${t('Countries.greece')}` },
+    { value: 'Hungary', label: `${getFlagEmoji('Hungary')} ${t('Countries.hungary')}` },
+    { value: 'Iceland', label: `${getFlagEmoji('Iceland')} ${t('Countries.iceland')}` },
+    { value: 'Ireland', label: `${getFlagEmoji('Ireland')} ${t('Countries.ireland')}` },
+    { value: 'Italy', label: `${getFlagEmoji('Italy')} ${t('Countries.italy')}` },
+    { value: 'Latvia', label: `${getFlagEmoji('Latvia')} ${t('Countries.latvia')}` },
+    { value: 'Liechtenstein', label: `${getFlagEmoji('Liechtenstein')} ${t('Countries.liechtenstein')}` },
+    { value: 'Lithuania', label: `${getFlagEmoji('Lithuania')} ${t('Countries.lithuania')}` },
+    { value: 'Luxembourg', label: `${getFlagEmoji('Luxembourg')} ${t('Countries.luxembourg')}` },
+    { value: 'Malta', label: `${getFlagEmoji('Malta')} ${t('Countries.malta')}` },
+    { value: 'Moldova', label: `${getFlagEmoji('Moldova')} ${t('Countries.moldova')}` },
+    { value: 'Monaco', label: `${getFlagEmoji('Monaco')} ${t('Countries.monaco')}` },
+    { value: 'Montenegro', label: `${getFlagEmoji('Montenegro')} ${t('Countries.montenegro')}` },
+    { value: 'Netherlands', label: `${getFlagEmoji('Netherlands')} ${t('Countries.netherlands')}` },
+    { value: 'North Macedonia', label: `${getFlagEmoji('North Macedonia')} ${t('Countries.north_macedonia')}` },
+    { value: 'Norway', label: `${getFlagEmoji('Norway')} ${t('Countries.norway')}` },
+    { value: 'Poland', label: `${getFlagEmoji('Poland')} ${t('Countries.poland')}` },
+    { value: 'Portugal', label: `${getFlagEmoji('Portugal')} ${t('Countries.portugal')}` },
+    { value: 'Romania', label: `${getFlagEmoji('Romania')} ${t('Countries.romania')}` },
+    { value: 'Russia', label: `${getFlagEmoji('Russia')} ${t('Countries.russia')}` },
+    { value: 'San Marino', label: `${getFlagEmoji('San Marino')} ${t('Countries.san_marino')}` },
+    { value: 'Serbia', label: `${getFlagEmoji('Serbia')} ${t('Countries.serbia')}` },
+    { value: 'Slovakia', label: `${getFlagEmoji('Slovakia')} ${t('Countries.slovakia')}` },
+    { value: 'Slovenia', label: `${getFlagEmoji('Slovenia')} ${t('Countries.slovenia')}` },
+    { value: 'Spain', label: `${getFlagEmoji('Spain')} ${t('Countries.spain')}` },
+    { value: 'Sweden', label: `${getFlagEmoji('Sweden')} ${t('Countries.sweden')}` },
+    { value: 'Switzerland', label: `${getFlagEmoji('Switzerland')} ${t('Countries.switzerland')}` },
+    { value: 'Ukraine', label: `${getFlagEmoji('Ukraine')} ${t('Countries.ukraine')}` },
+    { value: 'United Kingdom', label: `${getFlagEmoji('United Kingdom')} ${t('Countries.united_kingdom')}` },
+    { value: 'Vatican City', label: `${getFlagEmoji('Vatican City')} ${t('Countries.vatican_city')}` }
+  ];
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -467,12 +473,12 @@ export function MarketTabs() {
       <div className="rounded-lg border bg-card p-4 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <div>
-                <Label htmlFor="search-market">Buscar equipos o jugadores...</Label>
+                <Label htmlFor="search-market">{t('Market.search_label')}</Label>
                 <div className="relative mt-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         id="search-market"
-                        placeholder="Buscar por nombre..."
+                        placeholder={t('Market.search_placeholder')}
                         className="pl-9"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -480,10 +486,10 @@ export function MarketTabs() {
                 </div>
             </div>
              <div>
-                <Label htmlFor="rank-filter">Filtrar por rango</Label>
+                <Label htmlFor="rank-filter">{t('Market.rank_filter_label')}</Label>
                  <Select value={rankFilter} onValueChange={setRankFilter}>
                     <SelectTrigger id="rank-filter" className="mt-1">
-                        <SelectValue placeholder="Filtrar por rango" />
+                        <SelectValue placeholder={t('Market.all_ranks')} />
                     </SelectTrigger>
                     <SelectContent>
                         {valorantRanks.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
@@ -491,10 +497,10 @@ export function MarketTabs() {
                 </Select>
             </div>
             <div>
-                <Label htmlFor="role-filter">Filtrar por rol</Label>
+                <Label htmlFor="role-filter">{t('Market.role_filter_label')}</Label>
                  <Select value={roleFilter} onValueChange={setRoleFilter}>
                     <SelectTrigger id="role-filter" className="mt-1">
-                        <SelectValue placeholder="Filtrar por rol" />
+                        <SelectValue placeholder={t('Market.all_roles')} />
                     </SelectTrigger>
                     <SelectContent>
                         {valorantRoles.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
@@ -502,28 +508,27 @@ export function MarketTabs() {
                 </Select>
             </div>
             <div>
-                <Label htmlFor="country-filter">Filtrar por país</Label>
+                <Label htmlFor="country-filter">{t('Market.country_filter_label')}</Label>
                 <Select value={countryFilter} onValueChange={setCountryFilter}>
                     <SelectTrigger id="country-filter" className="mt-1">
-                        <SelectValue placeholder="Filtrar por país" />
+                        <SelectValue placeholder={t('Market.all_countries')} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">🏳️ Todos los Países</SelectItem>
-                        {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{getFlagEmoji(c.value)} {c.label}</SelectItem>)}
+                        {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
         </div>
          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={handleResetFilters}>Reiniciar</Button>
-            <Button>Buscar</Button>
+            <Button variant="ghost" onClick={handleResetFilters}>{t('Market.reset_button')}</Button>
+            <Button>{t('Market.search_button')}</Button>
         </div>
       </div>
 
       <Tabs defaultValue="teams" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="teams">Equipos</TabsTrigger>
-          <TabsTrigger value="players">Jugadores</TabsTrigger>
+          <TabsTrigger value="teams">{t('Market.teams_tab')}</TabsTrigger>
+          <TabsTrigger value="players">{t('Market.players_tab')}</TabsTrigger>
         </TabsList>
         <TabsContent value="teams" className="mt-6">
             <TeamTable teams={filteredTeams} loading={loadingTeams} isOwnTeam={(teamId) => teamId === userProfile?.teamId} />
