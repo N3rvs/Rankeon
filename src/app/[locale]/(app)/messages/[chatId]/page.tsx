@@ -271,6 +271,7 @@ export default function ChatPage() {
                 
                 const userDoc = await getDoc(doc(db, 'users', recipientId));
                 if (!userDoc.exists()) {
+                    setRecipient(null); // Explicitly set to null
                     throw new Error('Recipient not found.');
                 }
                 setRecipient({ id: userDoc.id, ...userDoc.data() } as UserProfile);
