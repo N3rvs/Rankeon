@@ -48,7 +48,7 @@ function MemberCard({
 }) {
   return (
     <Button variant="ghost" asChild className="h-auto w-full p-0">
-        <Link href={`/users/${profile.id}`}>
+        <Link href={`/users/${profile.id}`} className="group w-full">
             <Card className="p-2 w-full flex items-center justify-between transition-colors hover:bg-muted/50">
                 <div className="flex items-center gap-3">
                     <Avatar>
@@ -56,7 +56,7 @@ function MemberCard({
                     <AvatarFallback>{profile.name.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col items-start">
-                        <span className="font-semibold text-sm">{profile.name}</span>
+                        <span className="font-semibold text-sm group-hover:underline">{profile.name}</span>
                         <span className="text-xs text-muted-foreground">{profile.role === 'founder' ? 'Founder' : 'Member'}</span>
                     </div>
                 </div>

@@ -191,7 +191,7 @@ export default function TournamentDetailPage() {
                 <p className="font-semibold">Organized by</p>
                 {organizer ? (
                   <Button variant="link" asChild className="p-0 h-auto">
-                     <Link href={`/users/${organizer.id}`} className="text-muted-foreground flex items-center gap-2">
+                     <Link href={`/users/${organizer.id}`} className="text-muted-foreground flex items-center gap-2 hover:underline">
                       <Avatar className="h-6 w-6">
                           <AvatarImage src={organizer.avatarUrl} data-ai-hint="person avatar" />
                           <AvatarFallback>{organizer.name.slice(0,2)}</AvatarFallback>

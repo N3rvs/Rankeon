@@ -62,7 +62,7 @@ export function TeamInfoCard({ teamId }: TeamInfoCardProps) {
 
   return (
     <Card className="transition-colors hover:bg-muted/50">
-      <Link href={`/teams/${team.id}`} className="block">
+      <Link href={`/teams/${team.id}`} className="block group">
         <CardHeader>
           <CardTitle className="font-headline flex items-center gap-2 text-lg">
             <Swords className="h-5 w-5 text-primary" />
@@ -76,7 +76,7 @@ export function TeamInfoCard({ teamId }: TeamInfoCardProps) {
               <AvatarFallback>{team.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">{team.name}</p>
+              <p className="font-semibold group-hover:underline">{team.name}</p>
               <p className="text-sm text-muted-foreground">{team.game}</p>
             </div>
           </div>

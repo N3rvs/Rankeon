@@ -253,13 +253,13 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {members.map(member => (
                                     <Card key={member.id} className="p-2 flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
+                                        <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
                                             <Avatar>
                                                 <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
                                                 <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex flex-col items-start">
-                                                <span className="font-semibold text-sm">{member.name}</span>
+                                                <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
                                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                                      {roleIcons[member.role] || null}
                                                      <span className="capitalize">{member.role}</span>
@@ -279,7 +279,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                                     </div>
                                                 )}
                                             </div>
-                                        </div>
+                                        </Link>
                                         <MemberManager team={team} member={member} currentUserRole={currentUserRole} />
                                     </Card>
                                 ))}
