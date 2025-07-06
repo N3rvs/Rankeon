@@ -1,33 +1,26 @@
+
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Avatares de usuario
+    // Avatares de usuarios
     match /avatars/{userId}/{fileName} {
-      // Cualquiera puede leer los avatares para mostrar perfiles
-      allow read;
-      // El usuario puede actualizar su propio avatar, o un admin puede hacerlo
+      allow read: if request.auth != null;
       allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'admin');
     }
 
     // Avatares de equipos
     match /teams/{teamId}/avatar/{fileName} {
-      allow read;
-      // Solo el fundador o un admin puede actualizar el avatar del equipo.
-      allow write: if request.auth != null && (
-                     get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid ||
-                     request.auth.token.role == 'admin'
-                   );
+      allow read: if request.auth != null;
+      // Permite la escritura si el usuario es el fundador del equipo o un administrador.
+      allow write: if request.auth != null && (firestore.get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid || request.auth.token.role == 'admin');
     }
 
     // Banners de equipos
     match /teams/{teamId}/banner/{fileName} {
-      allow read;
-      // Solo el fundador o un admin puede actualizar el banner del equipo.
-      allow write: if request.auth != null && (
-                     get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid ||
-                     request.auth.token.role == 'admin'
-                   );
+      allow read: if request.auth != null;
+      // Permite la escritura si el usuario es el fundador del equipo o un administrador.
+      allow write: if request.auth != null && (firestore.get(/databases/(default)/documents/teams/$(teamId)).data.founder == request.auth.uid || request.auth.token.role == 'admin');
     }
 
     // Denegar todo lo demás por seguridad
