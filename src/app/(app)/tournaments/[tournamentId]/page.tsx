@@ -158,9 +158,11 @@ export default function TournamentDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" onClick={() => router.back()}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Tournaments
+      <Button variant="ghost" asChild>
+        <Link href="/tournaments">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Tournaments
+        </Link>
       </Button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -188,7 +190,7 @@ export default function TournamentDetailPage() {
               <div>
                 <h3 className="font-semibold font-headline mb-2 flex items-center gap-2">
                   <Info className="h-5 w-5" />
-                  Description & Rules
+                  Description &amp; Rules
                 </h3>
                 <p className="text-muted-foreground text-sm whitespace-pre-wrap">
                   {tournament.description}

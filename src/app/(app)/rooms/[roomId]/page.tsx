@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { joinRoom, leaveRoom } from '@/lib/actions/rooms';
 import { formatDistanceToNow } from 'date-fns';
 import { RoomChat } from '@/components/rooms/room-chat';
+import Link from 'next/link';
 
 function ParticipantCard({
   profile,
@@ -164,9 +165,11 @@ export default function RoomDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" onClick={() => router.back()}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Volver a las salas
+      <Button variant="ghost" asChild>
+        <Link href="/rooms">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver a las salas
+        </Link>
       </Button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">

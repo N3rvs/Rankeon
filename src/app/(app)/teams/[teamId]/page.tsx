@@ -50,7 +50,7 @@ function MemberCard({
   isFounder: boolean;
 }) {
     return (
-        <div className="p-2 w-full flex items-center justify-between transition-colors hover:bg-muted/50 rounded-lg border">
+        <Card className="p-2 flex items-center justify-between transition-colors hover:bg-muted/50">
             <Link href={`/users/${profile.id}`} className="flex items-center gap-3 group flex-1">
                 <Avatar>
                 <AvatarImage src={profile.avatarUrl} data-ai-hint="person avatar" />
@@ -69,7 +69,7 @@ function MemberCard({
                 </div>
             </Link>
             {isFounder && <Crown className="h-4 w-4 text-amber-400" />}
-        </div>
+        </Card>
   );
 }
 
@@ -230,9 +230,11 @@ export default function TeamProfilePage() {
                 className="object-cover"
                 data-ai-hint="team banner"
             />
-             <Button variant="ghost" onClick={() => router.back()} className="absolute top-4 left-4 md:left-6 z-20 bg-black/50 text-white hover:bg-black/70 hover:text-white">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Volver
+            <Button asChild variant="ghost" className="absolute top-4 left-4 md:left-6 z-20 bg-black/50 text-white hover:bg-black/70 hover:text-white">
+                <Link href="/dashboard">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Volver
+                </Link>
             </Button>
         </div>
         

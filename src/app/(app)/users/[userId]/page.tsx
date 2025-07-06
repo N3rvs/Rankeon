@@ -32,6 +32,7 @@ import { Separator } from '@/components/ui/separator';
 import React from 'react';
 import { HonorsSection } from '@/components/profile/honors-section';
 import { TeamInfoCard } from '@/components/profile/team-info-card';
+import Link from 'next/link';
 
 // Mock data as this is not in the DB
 const performanceData = {
@@ -143,9 +144,11 @@ export default function UserProfilePage() {
   
   return (
     <div className="space-y-6">
-        <Button variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Back
+        <Button variant="ghost" asChild>
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Go Back
+            </Link>
         </Button>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             {/* Left Column */}
