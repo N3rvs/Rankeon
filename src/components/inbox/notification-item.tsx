@@ -1,3 +1,4 @@
+
 // src/components/inbox/notification-item.tsx
 'use client';
 
@@ -24,6 +25,7 @@ import {
   X,
   MessageSquare,
   Bell,
+  LogIn,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
@@ -176,12 +178,16 @@ export function NotificationItem({
   const getNotificationDetails = () => {
     const fromName = fromUser?.name || 'Someone';
     const teamName = notification.extraData?.teamName || 'A team';
+    const applicantName = notification.extraData?.applicantName || 'A player';
 
     switch (notification.type) {
       case 'friend_request': return { icon: UserPlus, message: `${fromName} sent you a friend request.` };
       case 'friend_accepted': return { icon: UserCheck, message: `You are now friends with ${fromName}.` };
       case 'team_invite_received': return { icon: Users, message: `${teamName} has invited you to join them.` };
       case 'team_invite_accepted': return { icon: UserCheck, message: `${fromName} has joined your team.` };
+      case 'team_application_received': return { icon: LogIn, message: `${applicantName} has applied to join your team.` };
+      case 'team_application_accepted': return { icon: UserCheck, message: `Congratulations! You've been accepted to ${teamName}.` };
+      case 'team_application_rejected': return { icon: X, message: `Your application to ${teamName} was declined.` };
       default: return { icon: Bell, message: 'You have a new notification.' };
     }
   };
@@ -197,7 +203,7 @@ export function NotificationItem({
     <div className={cn( 'flex items-start gap-3 p-3 transition-colors hover:bg-accent rounded-lg', !notification.read && 'bg-primary/5 hover:bg-primary/10' )}>
       <div className="flex-shrink-0">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={fromUser?.avatarUrl} data-ai-hint="person avatar" />
+          <AvatarImage src={fromUser?.avatarUrl || notification.extraData?.applicantAvatarUrl} data-ai-hint="person avatar" />
           <AvatarFallback>{fromUser ? fallbackInitials : <Icon className="h-5 w-5" />}</AvatarFallback>
         </Avatar>
       </div>
@@ -241,11 +247,27 @@ export function NotificationItem({
         )}
         {notification.type === 'team_invite_accepted' && (
            <div className="flex gap-2 pt-1">
-              <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/teams/${notification.extraData.teamId}`)} disabled={isDismissing}>
+              <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/teams`)} disabled={isDismissing}>
                   <Users className="h-4 w-4 mr-1" />
                   {isDismissing ? "Loading..." : "View Team"}
               </Button>
           </div>
+        )}
+        {notification.type === 'team_application_received' && (
+            <div className="flex gap-2 pt-1">
+                <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/teams`)} disabled={isDismissing}>
+                    <Users className="h-4 w-4 mr-1" />
+                    {isDismissing ? "Loading..." : "View Applications"}
+                </Button>
+            </div>
+        )}
+        {(notification.type === 'team_application_accepted' || notification.type === 'team_application_rejected') && (
+            <div className="flex gap-2 pt-1">
+                <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/teams/${notification.extraData.teamId}`)} disabled={isDismissing}>
+                    <Users className="h-4 w-4 mr-1" />
+                    {isDismissing ? "Loading..." : "View Team"}
+                </Button>
+            </div>
         )}
       </div>
     </div>

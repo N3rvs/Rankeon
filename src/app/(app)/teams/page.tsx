@@ -1,3 +1,4 @@
+
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -21,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
+import { TeamApplications } from '@/components/teams/team-applications';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { toast } = useToast();
@@ -245,6 +247,8 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                 <p className="text-muted-foreground text-sm">{team.description || 'No se ha proporcionado una descripción.'}</p>
                             </CardContent>
                         </Card>
+
+                        <TeamApplications teamId={team.id} />
 
                         <Card>
                             <CardHeader>

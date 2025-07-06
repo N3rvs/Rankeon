@@ -1,4 +1,5 @@
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -545,5 +546,138 @@ export const respondToTeamInvite = onCall(async ({ auth: requestAuth, data }) =>
         }
 
         return { success: true };
+    });
+});
+
+
+interface ApplyToTeamData {
+    teamId: string;
+}
+
+export const applyToTeam = onCall(async ({ auth: requestAuth, data }) => {
+    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+    const applicantId = requestAuth.uid;
+    const { teamId } = data as ApplyToTeamData;
+
+    if (!teamId) throw new HttpsError("invalid-argument", "Falta el ID del equipo.");
+
+    const applicantRef = db.collection("users").doc(applicantId);
+    const teamRef = db.collection("teams").doc(teamId);
+
+    const [applicantSnap, teamSnap] = await Promise.all([applicantRef.get(), teamRef.get()]);
+
+    if (!applicantSnap.exists) throw new HttpsError("not-found", "Tu perfil no existe.");
+    if (!teamSnap.exists) throw new HttpsError("not-found", "El equipo no existe.");
+
+    const applicantData = applicantSnap.data()!;
+    const teamData = teamSnap.data()!;
+
+    if (applicantData.teamId) throw new HttpsError("failed-precondition", "Ya perteneces a un equipo.");
+    if (!teamData.lookingForPlayers) throw new HttpsError("failed-precondition", "Este equipo no está buscando jugadores.");
+    
+    const applicationQuery = db.collection("teamApplications")
+        .where("teamId", "==", teamId)
+        .where("applicantId", "==", applicantId)
+        .where("status", "==", "pending");
+    
+    const existingApplication = await applicationQuery.get();
+    if (!existingApplication.empty) throw new HttpsError("already-exists", "Ya has enviado una solicitud a este equipo.");
+
+    const batch = db.batch();
+    const applicationRef = db.collection("teamApplications").doc();
+
+    batch.set(applicationRef, {
+        teamId,
+        applicantId,
+        applicantName: applicantData.name,
+        applicantAvatarUrl: applicantData.avatarUrl,
+        status: "pending",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const founderId = teamData.founder;
+    const notificationRef = db.collection(`inbox/${founderId}/notifications`).doc();
+    batch.set(notificationRef, {
+        type: "team_application_received",
+        from: applicantId, // The applicant
+        read: false,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        extraData: {
+            applicationId: applicationRef.id,
+            applicantId,
+            applicantName: applicantData.name,
+            teamId,
+        }
+    });
+
+    await batch.commit();
+
+    return { success: true, message: "Solicitud enviada." };
+});
+
+interface RespondToTeamApplicationData {
+    applicationId: string;
+    accept: boolean;
+}
+
+export const respondToTeamApplication = onCall(async ({ auth: requestAuth, data }) => {
+    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+    const callerId = requestAuth.uid;
+    const { applicationId, accept } = data as RespondToTeamApplicationData;
+
+    if (!applicationId) throw new HttpsError("invalid-argument", "Falta el ID de la solicitud.");
+
+    const applicationRef = db.collection("teamApplications").doc(applicationId);
+
+    return db.runTransaction(async (transaction) => {
+        const applicationSnap = await transaction.get(applicationRef);
+        if (!applicationSnap.exists) throw new HttpsError("not-found", "Solicitud no encontrada.");
+
+        const applicationData = applicationSnap.data()!;
+        const { teamId, applicantId } = applicationData;
+
+        const teamRef = db.collection("teams").doc(teamId);
+        const teamSnap = await transaction.get(teamRef);
+        if (!teamSnap.exists) throw new HttpsError("not-found", "El equipo ya no existe.");
+        
+        const memberRef = teamRef.collection("members").doc(callerId);
+        const memberSnap = await transaction.get(memberRef);
+        if (!memberSnap.exists || (memberSnap.data()?.role !== 'founder' && memberSnap.data()?.role !== 'coach')) {
+            throw new HttpsError("permission-denied", "No tienes permisos para gestionar solicitudes.");
+        }
+
+        const applicantRef = db.collection("users").doc(applicantId);
+        const applicantSnap = await transaction.get(applicantRef);
+        if (!applicantSnap.exists) throw new HttpsError("not-found", "El solicitante ya no existe.");
+        if (applicantSnap.data()?.teamId) throw new HttpsError("failed-precondition", "El solicitante ya se ha unido a otro equipo.");
+
+        if (accept) {
+            transaction.update(applicationRef, { status: "accepted" });
+
+            const newMemberRef = teamRef.collection("members").doc(applicantId);
+            transaction.set(newMemberRef, { role: "member", joinedAt: admin.firestore.FieldValue.serverTimestamp() });
+            transaction.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayUnion(applicantId) });
+            transaction.update(applicantRef, { teamId: teamId });
+
+            const notifRef = db.collection(`inbox/${applicantId}/notifications`).doc();
+            transaction.set(notifRef, {
+                type: "team_application_accepted",
+                from: callerId,
+                read: false,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                extraData: { teamId: teamId, teamName: teamSnap.data()?.name }
+            });
+
+        } else {
+            transaction.update(applicationRef, { status: "rejected" });
+            const notifRef = db.collection(`inbox/${applicantId}/notifications`).doc();
+            transaction.set(notifRef, {
+                type: "team_application_rejected",
+                from: callerId,
+                read: false,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                extraData: { teamId: teamId, teamName: teamSnap.data()?.name }
+            });
+        }
     });
 });

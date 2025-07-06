@@ -1,3 +1,4 @@
+
 // src/lib/actions/teams.ts
 'use client';
 
@@ -171,6 +172,28 @@ export async function respondToTeamInvite(inviteId: string, accept: boolean): Pr
     return result.data as ActionResponse;
   } catch (error: any) {
     console.error('Error calling respondToTeamInvite function:', error);
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+  }
+}
+
+export async function applyToTeam(teamId: string): Promise<ActionResponse> {
+  try {
+    const applyFunc = httpsCallable(functions, 'applyToTeam');
+    const result = await applyFunc({ teamId });
+    return result.data as ActionResponse;
+  } catch (error: any) {
+    console.error('Error calling applyToTeam function:', error);
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+  }
+}
+
+export async function respondToTeamApplication(values: { applicationId: string; accept: boolean }): Promise<ActionResponse> {
+  try {
+    const respondFunc = httpsCallable(functions, 'respondToTeamApplication');
+    const result = await respondFunc(values);
+    return result.data as ActionResponse;
+  } catch (error: any) {
+    console.error('Error calling respondToTeamApplication function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }

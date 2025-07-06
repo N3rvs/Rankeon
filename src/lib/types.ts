@@ -1,3 +1,4 @@
+
 // src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 
@@ -88,7 +89,10 @@ export type NotificationType =
   | 'friend_accepted'
   | 'friend_removed'
   | 'team_invite_received'
-  | 'team_invite_accepted';
+  | 'team_invite_accepted'
+  | 'team_application_received'
+  | 'team_application_accepted'
+  | 'team_application_rejected';
 
 export interface Notification {
   id: string;
@@ -105,6 +109,17 @@ export interface TeamInvitation {
   fromTeamId: string;
   fromTeamName: string;
   toUserId: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+  createdAt: Timestamp;
+}
+
+export interface TeamApplication {
+  id: string;
+  teamId: string;
+  applicantId: string;
+  applicantName: string;
+  applicantAvatarUrl: string;
+  message?: string;
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
   createdAt: Timestamp;
 }
