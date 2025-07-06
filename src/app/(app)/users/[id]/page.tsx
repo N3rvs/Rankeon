@@ -19,6 +19,7 @@ import { SendMessageDialog } from '@/components/messages/send-message-dialog';
 import { useRouter } from 'next/navigation';
 
 export default function UserProfilePage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const { user } = useAuth();
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -26,14 +27,14 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (user?.uid === params.id) {
+    if (user?.uid === id) {
         router.replace('/profile');
     }
 
     let unsubscribe: Unsubscribe | undefined;
-    if (params.id) {
+    if (id) {
       setLoading(true);
-      const userRef = doc(db, 'users', params.id);
+      const userRef = doc(db, 'users', id);
       unsubscribe = onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) {
           setUserProfile({ id: docSnap.id, ...docSnap.data() } as UserProfile);
@@ -48,7 +49,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
       });
     }
     return () => unsubscribe?.();
-  }, [params.id, user?.uid, router]);
+  }, [id, user?.uid, router]);
 
 
   if (loading) {
