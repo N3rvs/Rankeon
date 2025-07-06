@@ -7,8 +7,6 @@ export default createMiddleware({
  
   // Used when no locale matches
   defaultLocale,
-
-  // Don't use a locale prefix for the default locale
   localePrefix: 'as-needed'
 });
  
