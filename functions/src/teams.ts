@@ -33,6 +33,9 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
   const userRef = db.collection("users").doc(uid);
   
   try {
+    const userDoc = await userRef.get();
+    const userData = userDoc.data();
+
     const teamRef = db.collection("teams").doc();
     
     // Create the team and update user docs/claims in a single transaction-like batch
@@ -43,6 +46,7 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
         name,
         game,
         description: description || '',
+        country: userData?.country || '',
         avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0,2)}`,
         bannerUrl: 'https://placehold.co/1200x400.png',
         founder: uid,

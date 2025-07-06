@@ -27,6 +27,7 @@ export interface Team {
   id: string;
   name: string;
   game: string;
+  country?: string;
   avatarUrl: string;
   bannerUrl: string;
   videoUrl?: string;

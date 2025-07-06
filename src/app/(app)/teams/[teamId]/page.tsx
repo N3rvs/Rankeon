@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   Users,
   Gamepad2,
+  Globe,
   Twitch,
   Twitter,
   Youtube,
@@ -192,9 +193,20 @@ export default function TeamProfilePage() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
-                        <CardDescription className="flex items-center gap-2 pt-1">
-                            <Gamepad2 className="h-4 w-4" />
-                            <span>Jugando {team.game}</span>
+                        <CardDescription className="flex items-center gap-4 pt-1">
+                            <span className="flex items-center gap-2">
+                                <Gamepad2 className="h-4 w-4" />
+                                <span>Jugando {team.game}</span>
+                            </span>
+                            {team.country && (
+                                <>
+                                    <span className="text-muted-foreground/50">|</span>
+                                    <span className="flex items-center gap-2">
+                                        <Globe className="h-4 w-4" />
+                                        <span>{team.country}</span>
+                                    </span>
+                                </>
+                            )}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -207,16 +219,6 @@ export default function TeamProfilePage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
-                        {team.lookingForPlayers && team.founder !== user?.uid && (
-                            <Button
-                                onClick={handleApply}
-                                disabled={isPending}
-                                size="sm"
-                            >
-                                <UserPlus className="mr-2 h-4 w-4" /> 
-                                {isPending ? 'Aplicando...' : 'Aplicar'}
-                            </Button>
-                        )}
                     </CardHeader>
                     <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {members.map((member) => (
@@ -231,12 +233,12 @@ export default function TeamProfilePage() {
             </div>
             {/* RIGHT COLUMN */}
             <div className="lg:col-span-1 space-y-6">
-                {team.videoUrl && (
-                    <Card className="overflow-hidden p-0">
-                         <CardContent className="p-0">
-                            <div className="aspect-video bg-muted">
+                 {team.videoUrl && (
+                    <Card>
+                        <CardContent className="p-0">
+                            <div className="aspect-video">
                                 <iframe
-                                    className="w-full h-full"
+                                    className="w-full h-full rounded-lg"
                                     src={safeVideoUrl}
                                     title="Vídeo de Presentación del Equipo"
                                     frameBorder="0"
@@ -269,6 +271,16 @@ export default function TeamProfilePage() {
                                 </p>
                             )}
                         </div>
+                        {team.lookingForPlayers && team.founder !== user?.uid && (
+                            <Button
+                                onClick={handleApply}
+                                disabled={isPending}
+                                className="w-full mt-2"
+                            >
+                                <UserPlus className="mr-2 h-4 w-4" /> 
+                                {isPending ? 'Aplicando...' : 'Aplicar al Equipo'}
+                            </Button>
+                        )}
                     </CardContent>
                 </Card>
                 <Card>
@@ -294,13 +306,6 @@ export default function TeamProfilePage() {
                             <Button variant="outline" asChild className="w-full justify-start">
                                 <Link href={team.twitterUrl} target="_blank">
                                 <Twitter className="h-4 w-4 mr-2" /> Twitter / X
-                                </Link>
-                            </Button>
-                        )}
-                         {team.videoUrl && (
-                             <Button variant="outline" asChild className="w-full justify-start">
-                                <Link href={team.videoUrl} target="_blank">
-                                <Youtube className="h-4 w-4 mr-2" /> YouTube
                                 </Link>
                             </Button>
                         )}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,7 +27,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { FriendshipButton } from '../friends/friendship-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Globe } from 'lucide-react';
 import Link from 'next/link';
 
 function PlayerTable() {
@@ -178,42 +179,36 @@ function PlayerTable() {
 }
 
 function TeamTable() {
-  const { user } = useAuth();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
 
-    if (user) {
-      setLoading(true);
-      const teamsQuery = query(
-        collection(db, 'teams'),
-        where('lookingForPlayers', '==', true)
-      );
-      unsubscribe = onSnapshot(
-        teamsQuery,
-        (snapshot) => {
-          const teamsData = snapshot.docs.map(
-            (doc) => ({ id: doc.id, ...doc.data() } as Team)
-          );
-          setTeams(teamsData);
-          setLoading(false);
-        },
-        (error) => {
-          console.error('Error fetching teams:', error);
-          setLoading(false);
-        }
-      );
-    } else {
-      setTeams([]);
-      setLoading(false);
-    }
+    setLoading(true);
+    const teamsQuery = query(
+      collection(db, 'teams'),
+      where('lookingForPlayers', '==', true)
+    );
+    unsubscribe = onSnapshot(
+      teamsQuery,
+      (snapshot) => {
+        const teamsData = snapshot.docs.map(
+          (doc) => ({ id: doc.id, ...doc.data() } as Team)
+        );
+        setTeams(teamsData);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Error fetching teams:', error);
+        setLoading(false);
+      }
+    );
 
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [user]);
+  }, []);
 
   const loadingSkeletons = [...Array(5)].map((_, i) => (
     <TableRow key={i}>
@@ -266,6 +261,12 @@ function TeamTable() {
                     </Avatar>
                     <div>
                       <h3 className="font-semibold">{team.name}</h3>
+                      {team.country && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                              <Globe className="h-3 w-3" />
+                              {team.country}
+                          </p>
+                      )}
                     </div>
                   </div>
                 </TableCell>

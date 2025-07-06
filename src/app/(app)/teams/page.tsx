@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit } from 'lucide-react';
+import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, where, onSnapshot, Unsubscribe, getDocs, collectionGroup } from 'firebase/firestore';
@@ -153,21 +153,33 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     return (
         <div className="space-y-6">
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
-            <div className="pt-20" />
+            
+            <div className="pt-14 md:pt-8" />
             
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     {/* LEFT COLUMN */}
                     <div className="lg:col-span-2 space-y-6">
                         <Card>
-                             <CardHeader className="flex-row items-center justify-between">
+                             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                 <div>
                                     <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
-                                    <CardDescription className="flex items-center gap-2 pt-1">
-                                        <Gamepad2 className="h-4 w-4" />
-                                        <span>Jugando {team.game}</span>
+                                    <CardDescription className="flex items-center gap-4 pt-1">
+                                        <span className="flex items-center gap-2">
+                                            <Gamepad2 className="h-4 w-4" />
+                                            <span>Jugando {team.game}</span>
+                                        </span>
+                                        {team.country && (
+                                            <>
+                                                <span className="text-muted-foreground/50">|</span>
+                                                <span className="flex items-center gap-2">
+                                                    <Globe className="h-4 w-4" />
+                                                    <span>{team.country}</span>
+                                                </span>
+                                            </>
+                                        )}
                                     </CardDescription>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 shrink-0">
                                      <Button onClick={() => setIsEditDialogOpen(true)} size="sm">
                                         <Edit className="mr-2 h-4 w-4" /> Editar
                                     </Button>
@@ -259,7 +271,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
 
 function NoTeamDisplay() {
     return (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full">
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-xl font-semibold">Aún no tienes un equipo</h3>
             <p className="mb-4 mt-2 text-sm text-muted-foreground">
