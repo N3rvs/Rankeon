@@ -31,6 +31,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import React from 'react';
 import { HonorsSection } from '@/components/profile/honors-section';
+import { TeamInfoCard } from '@/components/profile/team-info-card';
 
 // Mock data as this is not in the DB
 const performanceData = {
@@ -126,6 +127,7 @@ export default function UserProfilePage() {
             <div className="lg:col-span-1 flex flex-col gap-6">
                 <Skeleton className="h-72 w-full" />
                 <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-40 w-full" />
             </div>
             <div className="lg:col-span-2 flex flex-col gap-6">
                 <Skeleton className="h-56 w-full" />
@@ -168,6 +170,8 @@ export default function UserProfilePage() {
                         </div>
                     </CardContent>
                 </Card>
+
+                {user.teamId && <TeamInfoCard teamId={user.teamId} />}
 
                 <HonorsSection targetUser={user} />
             </div>
