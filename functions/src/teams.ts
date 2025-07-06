@@ -258,11 +258,33 @@ export const kickTeamMember = onCall(async ({ auth: requestAuth, data }) => {
     const teamDoc = await teamRef.get();
     if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
 
-    if (teamDoc.data()?.founder !== requestAuth.uid) {
-        throw new HttpsError("permission-denied", "Solo el fundador puede expulsar miembros.");
+    // Check permissions
+    const callerMemberDoc = await teamRef.collection("members").doc(requestAuth.uid).get();
+    if (!callerMemberDoc.exists) {
+        throw new HttpsError("permission-denied", "No eres miembro de este equipo.");
     }
-     if (teamDoc.data()?.founder === memberId) {
-         throw new HttpsError("permission-denied", "El fundador no puede ser expulsado.");
+    const callerRole = callerMemberDoc.data()?.role;
+
+    const memberToKickDoc = await teamRef.collection("members").doc(memberId).get();
+    if (!memberToKickDoc.exists) {
+        // The member is already not in the team. Succeed silently.
+        return { success: true, message: "El miembro ya no estaba en el equipo." };
+    }
+    const memberToKickRole = memberToKickDoc.data()?.role;
+
+    if (memberId === teamDoc.data()?.founder) {
+        throw new HttpsError("permission-denied", "El fundador no puede ser expulsado.");
+    }
+
+    if (callerRole === 'founder') {
+        // Founder can kick anyone (except themselves, checked above).
+    } else if (callerRole === 'coach') {
+        // Coach can only kick members.
+        if (memberToKickRole !== 'member') {
+            throw new HttpsError("permission-denied", "Un entrenador solo puede expulsar a los miembros.");
+        }
+    } else {
+        throw new HttpsError("permission-denied", "Solo el fundador o un entrenador pueden expulsar miembros.");
     }
 
     const batch = db.batch();
@@ -273,4 +295,51 @@ export const kickTeamMember = onCall(async ({ auth: requestAuth, data }) => {
     await batch.commit();
 
     return { success: true, message: "Miembro expulsado del equipo." };
+});
+
+interface IGLData {
+    teamId: string;
+    memberId: string | null;
+}
+
+export const setTeamIGL = onCall(async ({ auth: requestAuth, data }) => {
+    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+
+    const { teamId, memberId } = data as IGLData;
+    if (!teamId) throw new HttpsError("invalid-argument", "Falta ID del equipo.");
+
+    const teamRef = db.collection("teams").doc(teamId);
+    const teamDoc = await teamRef.get();
+    if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
+    
+    // Permission check: Caller must be founder or coach.
+    const callerMemberRef = teamRef.collection("members").doc(requestAuth.uid);
+    const callerMemberSnap = await callerMemberRef.get();
+    if (!callerMemberSnap.exists) {
+        throw new HttpsError("permission-denied", "No eres miembro de este equipo.");
+    }
+    const callerRole = callerMemberSnap.data()?.role;
+    if (callerRole !== 'founder' && callerRole !== 'coach') {
+        throw new HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar el rol de IGL.");
+    }
+    
+    return db.runTransaction(async (transaction) => {
+        const membersRef = teamRef.collection("members");
+        const membersQuery = await transaction.get(membersRef);
+
+        // Unset previous IGL
+        for (const memberDoc of membersQuery.docs) {
+            if (memberDoc.data().isIGL === true) {
+                transaction.update(memberDoc.ref, { isIGL: admin.firestore.FieldValue.delete() });
+            }
+        }
+        
+        // Set new IGL
+        if (memberId) {
+            const newIglRef = membersRef.doc(memberId);
+            transaction.update(newIglRef, { isIGL: true });
+        }
+
+        return { success: true, message: "Rol de IGL actualizado."};
+    });
 });

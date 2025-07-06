@@ -47,6 +47,7 @@ export interface TeamMember {
   name: string;
   avatarUrl: string;
   id: string;
+  isIGL?: boolean;
 }
 
 export interface ChatMessage {

@@ -116,3 +116,14 @@ export async function updateTeamMemberRole(teamId: string, memberId: string, rol
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
+
+export async function setTeamIGL(teamId: string, memberId: string | null): Promise<ActionResponse> {
+  try {
+    const setIglFunc = httpsCallable(functions, 'setTeamIGL');
+    const result = await setIglFunc({ teamId, memberId });
+    return result.data as ActionResponse;
+  } catch (error: any) {
+    console.error('Error calling setTeamIGL function:', error);
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+  }
+}
