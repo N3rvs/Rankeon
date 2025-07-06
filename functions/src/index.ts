@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 admin.initializeApp();
 
 // Now import the functions that use the initialized admin SDK.
-import { deleteChatHistory, sendMessageToFriend, deleteMessage } from './chat';
+import { deleteChatHistory, sendMessageToFriend } from './chat';
 import { sendFriendRequest, respondToFriendRequest, removeFriend } from './friends';
 import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
@@ -17,7 +17,6 @@ import { updateUserRole, updateUserStatus, updateUserCertification } from './use
 export {
   deleteChatHistory,
   sendMessageToFriend,
-  deleteMessage,
   sendFriendRequest,
   respondToFriendRequest,
   removeFriend,
