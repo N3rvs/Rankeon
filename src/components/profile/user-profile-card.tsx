@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { UserProfile } from '@/lib/types';
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { EditProfileDialog } from './edit-profile-dialog';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
+import { Twitch } from 'lucide-react';
 
 export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
   const { user } = useAuth();
@@ -34,7 +34,10 @@ export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
             <AvatarFallback>{userProfile.name.slice(0, 2)}</AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-2xl font-bold font-headline">{userProfile.name}</h2>
+            <h2 className="text-2xl font-bold font-headline flex items-center gap-2">
+              <span>{userProfile.name}</span>
+              {userProfile.isCertifiedStreamer && <Twitch className="h-5 w-5 text-purple-500" />}
+            </h2>
             <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-muted-foreground">
                {userProfile.role && <Badge variant={getRoleVariant(userProfile.role)} className="capitalize">{userProfile.role}</Badge>}
                {userProfile.skills?.map(skill => <Badge key={skill} variant="outline">{skill}</Badge>)}
