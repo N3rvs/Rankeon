@@ -59,11 +59,6 @@ function ChatSidebar() {
         return () => { isMounted = false; };
     }, [user, userProfile?.friends]);
     
-    // NOTE: A real presence system is not implemented. For now, all friends are shown as online.
-    const onlineFriends = friends;
-    const offlineFriends: UserProfile[] = [];
-
-
     const getChatId = (friendId: string) => {
         if (!user) return '';
         return [user.uid, friendId].sort().join('_');
@@ -85,60 +80,24 @@ function ChatSidebar() {
 
     return (
         <ScrollArea className="flex-1">
-            <nav className="p-2 space-y-4">
+            <nav className="p-2 space-y-1">
                 {friends.length > 0 ? (
-                    <>
-                        <div>
-                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Online — {onlineFriends.length}</h3>
-                            <div className="space-y-1">
-                                {onlineFriends.map(friend => (
-                                    <Link
-                                        key={friend.id}
-                                        href={`/messages/${getChatId(friend.id)}`}
-                                        className={cn(
-                                            "flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-muted",
-                                            pathname === `/messages/${getChatId(friend.id)}` && "bg-muted"
-                                        )}
-                                    >
-                                        <div className="relative">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src={friend.avatarUrl} data-ai-hint="person avatar"/>
-                                                <AvatarFallback>{friend.name.slice(0,2)}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-card" />
-                                        </div>
-                                        <p className="font-semibold text-sm">{friend.name}</p>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                        {offlineFriends.length > 0 && (
-                            <div>
-                                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Offline — {offlineFriends.length}</h3>
-                                <div className="space-y-1">
-                                    {offlineFriends.map(friend => (
-                                        <Link
-                                            key={friend.id}
-                                            href={`/messages/${getChatId(friend.id)}`}
-                                            className={cn(
-                                                "flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-muted",
-                                                pathname === `/messages/${getChatId(friend.id)}` && "bg-muted"
-                                            )}
-                                        >
-                                            <div className="relative">
-                                                <Avatar className="h-8 w-8 opacity-60">
-                                                    <AvatarImage src={friend.avatarUrl} data-ai-hint="person avatar"/>
-                                                    <AvatarFallback>{friend.name.slice(0,2)}</AvatarFallback>
-                                                </Avatar>
-                                                <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-muted-foreground ring-2 ring-card" />
-                                            </div>
-                                            <p className="font-semibold text-sm text-muted-foreground">{friend.name}</p>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </>
+                    friends.map(friend => (
+                        <Link
+                            key={friend.id}
+                            href={`/messages/${getChatId(friend.id)}`}
+                            className={cn(
+                                "flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-muted",
+                                pathname === `/messages/${getChatId(friend.id)}` && "bg-muted"
+                            )}
+                        >
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={friend.avatarUrl} data-ai-hint="person avatar"/>
+                                <AvatarFallback>{friend.name.slice(0,2)}</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold text-sm">{friend.name}</p>
+                        </Link>
+                    ))
                 ) : (
                     <p className="p-4 text-sm text-center text-muted-foreground">No tienes amigos. Añade amigos desde el mercado para empezar a chatear.</p>
                 )}
