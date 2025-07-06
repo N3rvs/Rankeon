@@ -1,9 +1,10 @@
 'use client';
 
+import { ReactNode } from 'react';
 import { AppLayout } from '@/components/app-layout';
-import { AuthGuard } from '@/contexts/auth-context';
+import { AuthGuard } from '@/components/auth/auth-guard';
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <AuthGuard>
       <AppLayout>{children}</AppLayout>

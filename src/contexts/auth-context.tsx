@@ -1,4 +1,3 @@
-
 // src/contexts/auth-context.tsx
 'use client';
 
@@ -18,8 +17,6 @@ import {
   Unsubscribe,
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next-intl/navigation';
 import { UserProfile } from '@/lib/types';
 
 interface AuthContextType {
@@ -147,24 +144,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-export function AuthGuard({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
-
-  if (loading || !user) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Skeleton className="h-12 w-12 rounded-full" />
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-}
