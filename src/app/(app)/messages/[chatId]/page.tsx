@@ -41,11 +41,13 @@ function ChatHeader({
   onBlock,
   onDeleteHistory,
   onRemoveFriend,
+  locale,
 }: {
   recipient: UserProfile | null;
   onBlock: () => void;
   onDeleteHistory: () => void;
   onRemoveFriend: () => void;
+  locale?: string;
 }) {
   if (!recipient) {
     return (
@@ -58,16 +60,19 @@ function ChatHeader({
     );
   }
 
+  const profileLink = locale ? `/${locale}/users/${recipient.id}` : `/users/${recipient.id}`;
+  const messagesLink = locale ? `/${locale}/messages` : '/messages';
+
   return (
     <div className="p-4 border-b flex items-center justify-between gap-4 h-16">
         <div className="flex items-center gap-4 flex-1 overflow-hidden">
              <Button variant="ghost" size="icon" className="md:hidden flex-shrink-0" asChild>
-                <Link href="/messages">
+                <Link href={messagesLink}>
                     <ArrowLeft className="h-4 w-4" />
                 </Link>
             </Button>
             
-            <Link href={`/users/${recipient.id}`} className="flex-1 flex items-center gap-4 overflow-hidden rounded-md p-2 -m-2 hover:bg-muted">
+            <Link href={profileLink} className="flex-1 flex items-center gap-4 overflow-hidden rounded-md p-2 -m-2 hover:bg-muted">
                 <Avatar className="flex-shrink-0">
                     <AvatarImage src={recipient.avatarUrl} data-ai-hint="person avatar" />
                     <AvatarFallback>{recipient.name.slice(0, 2)}</AvatarFallback>
@@ -86,7 +91,7 @@ function ChatHeader({
 
             <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                    <Link href={`/users/${recipient.id}`}>
+                    <Link href={profileLink}>
                         <UserCircle className="mr-2 h-4 w-4" />
                         Ver Perfil
                     </Link>
@@ -203,6 +208,7 @@ export default function ChatPage() {
     const params = useParams();
     const router = useRouter();
     const chatId = params.chatId as string;
+    const locale = params.locale as string | undefined;
     
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [recipient, setRecipient] = useState<UserProfile | null>(null);
@@ -266,7 +272,7 @@ export default function ChatPage() {
             const result = await blockUser(recipient.id);
             if (result.success) {
                 toast({ title: 'Usuario Bloqueado', description: `${recipient.name} ha sido bloqueado. No podrás enviarle mensajes.` });
-                router.push('/messages');
+                router.push(locale ? `/${locale}/messages` : '/messages');
             } else {
                 toast({ title: 'Error', description: result.message, variant: 'destructive' });
             }
@@ -280,7 +286,7 @@ export default function ChatPage() {
             const result = await removeFriend(recipient.id);
             if (result.success) {
                 toast({ title: 'Amigo Eliminado', description: `${recipient.name} ya no es tu amigo.` });
-                router.push('/messages');
+                router.push(locale ? `/${locale}/messages` : '/messages');
             } else {
                 toast({ title: 'Error', description: result.message, variant: 'destructive' });
             }
@@ -379,6 +385,7 @@ export default function ChatPage() {
                     onBlock={() => setIsBlockAlertOpen(true)}
                     onDeleteHistory={() => setIsDeleteAlertOpen(true)}
                     onRemoveFriend={() => setIsRemoveFriendAlertOpen(true)}
+                    locale={locale}
                 />
                 <ChatMessages messages={messages} recipient={recipient} currentUserProfile={userProfile} />
                 {recipient && <ChatInput recipientId={recipient.id} onSend={handleSendMessage} />}
