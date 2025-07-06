@@ -226,27 +226,72 @@ interface MemberRoleData {
 
 export const updateTeamMemberRole = onCall(async ({ auth: requestAuth, data }) => {
     if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+    
     const { teamId, memberId, role } = data as MemberRoleData;
-    if (!teamId || !memberId || !role) throw new HttpsError("invalid-argument", "Faltan datos.");
+    if (!teamId || !memberId || !role || !['coach', 'member'].includes(role)) {
+        throw new HttpsError("invalid-argument", "Faltan datos o el rol no es válido.");
+    }
+    
+    // Get user's current platform role before the transaction to see if they are privileged
+    const userToUpdateAuth = await auth.getUser(memberId);
+    const existingClaims = userToUpdateAuth.customClaims || {};
+    const isPrivilegedUser = existingClaims.role === 'admin' || existingClaims.role === 'moderator';
 
     const teamRef = db.collection("teams").doc(teamId);
-    const teamDoc = await teamRef.get();
-    if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
     
-    const teamData = teamDoc.data();
-    const callerRoleDoc = await teamRef.collection('members').doc(requestAuth.uid).get();
-    const callerRole = callerRoleDoc.data()?.role;
+    try {
+        await db.runTransaction(async (transaction) => {
+            const teamDoc = await transaction.get(teamRef);
+            if (!teamDoc.exists) {
+                throw new HttpsError("not-found", "El equipo no existe.");
+            }
+            const teamData = teamDoc.data()!;
+            
+            const callerMemberRef = teamRef.collection('members').doc(requestAuth.uid);
+            const callerMemberDoc = await transaction.get(callerMemberRef);
+            if (!callerMemberDoc.exists) {
+                throw new HttpsError("permission-denied", "No eres miembro de este equipo.");
+            }
+            const callerRole = callerMemberDoc.data()?.role;
 
-    if (teamData?.founder !== requestAuth.uid && callerRole !== 'coach') {
-        throw new HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar roles.");
+            if (teamData.founder !== requestAuth.uid && callerRole !== 'coach') {
+                throw new HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar roles.");
+            }
+
+            if (teamData.founder === memberId) {
+                throw new HttpsError("permission-denied", "No puedes cambiar el rol del fundador.");
+            }
+            
+            const memberToUpdateRef = teamRef.collection('members').doc(memberId);
+            const memberToUpdateDoc = await transaction.get(memberToUpdateRef);
+            if (!memberToUpdateDoc.exists) {
+                throw new HttpsError("not-found", "El miembro que intentas actualizar no existe en el equipo.");
+            }
+
+            // Update role within the team's subcollection
+            transaction.update(memberToUpdateRef, { role });
+
+            // If not an admin/mod, update the denormalized role in the users collection
+            if (!isPrivilegedUser) {
+                const platformRole = role === 'coach' ? 'coach' : 'player';
+                const userRef = db.collection('users').doc(memberId);
+                transaction.update(userRef, { role: platformRole });
+            }
+        });
+
+        // After the transaction succeeds, update the custom claim if necessary
+        if (!isPrivilegedUser) {
+            const platformRole = role === 'coach' ? 'coach' : 'player';
+            await auth.setCustomUserClaims(memberId, { ...existingClaims, role: platformRole });
+        }
+
+        return { success: true, message: "Rol del miembro actualizado." };
+
+    } catch (error: any) {
+        console.error("Error updating team member role:", error);
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", "Ocurrió un error inesperado al actualizar el rol.");
     }
-
-    if (teamData?.founder === memberId) {
-         throw new HttpsError("permission-denied", "No puedes cambiar el rol del fundador.");
-    }
-
-    await teamRef.collection('members').doc(memberId).update({ role });
-    return { success: true, message: "Rol del miembro actualizado." };
 });
 
 
