@@ -142,7 +142,6 @@ function PlayerTable({
             <TableHead>País</TableHead>
             <TableHead>Rango</TableHead>
             <TableHead>Roles</TableHead>
-            <TableHead>Estado</TableHead>
             <TableHead className="text-right">Acción</TableHead>
           </TableRow>
         </TableHeader>
@@ -196,11 +195,6 @@ function PlayerTable({
                     )}
                   </div>
                 </TableCell>
-                 <TableCell>
-                    {player.lookingForTeam && (
-                        <Badge variant={'default'}>LFG</Badge>
-                    )}
-                </TableCell>
                 <TableCell className="text-right">
                    {player.lookingForTeam ? (
                         <FriendshipButton targetUser={player} variant="icon" />
@@ -223,7 +217,7 @@ function PlayerTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
+              <TableCell colSpan={5} className="h-24 text-center">
                 No se encontraron jugadores.
               </TableCell>
             </TableRow>
