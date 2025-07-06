@@ -51,6 +51,54 @@ const valorantRoles = [
     { value: 'Centinela', label: 'Centinela' },
 ];
 
+const europeanCountries = [
+    { value: 'Albania', label: 'Albania' },
+    { value: 'Andorra', label: 'Andorra' },
+    { value: 'Austria', label: 'Austria' },
+    { value: 'Belarus', label: 'Belarus' },
+    { value: 'Belgium', label: 'Belgium' },
+    { value: 'Bosnia and Herzegovina', label: 'Bosnia and Herzegovina' },
+    { value: 'Bulgaria', label: 'Bulgaria' },
+    { value: 'Croatia', label: 'Croatia' },
+    { value: 'Cyprus', label: 'Cyprus' },
+    { value: 'Czech Republic', label: 'Czech Republic' },
+    { value: 'Denmark', label: 'Denmark' },
+    { value: 'Estonia', label: 'Estonia' },
+    { value: 'Finland', label: 'Finland' },
+    { value: 'France', label: 'France' },
+    { value: 'Germany', label: 'Germany' },
+    { value: 'Greece', label: 'Greece' },
+    { value: 'Hungary', label: 'Hungary' },
+    { value: 'Iceland', label: 'Iceland' },
+    { value: 'Ireland', label: 'Ireland' },
+    { value: 'Italy', label: 'Italy' },
+    { value: 'Latvia', label: 'Latvia' },
+    { value: 'Liechtenstein', label: 'Liechtenstein' },
+    { value: 'Lithuania', label: 'Lithuania' },
+    { value: 'Luxembourg', label: 'Luxembourg' },
+    { value: 'Malta', label: 'Malta' },
+    { value: 'Moldova', label: 'Moldova' },
+    { value: 'Monaco', label: 'Monaco' },
+    { value: 'Montenegro', label: 'Montenegro' },
+    { value: 'Netherlands', label: 'Netherlands' },
+    { value: 'North Macedonia', label: 'North Macedonia' },
+    { value: 'Norway', label: 'Norway' },
+    { value: 'Poland', label: 'Poland' },
+    { value: 'Portugal', label: 'Portugal' },
+    { value: 'Romania', label: 'Romania' },
+    { value: 'Russia', label: 'Russia' },
+    { value: 'San Marino', label: 'San Marino' },
+    { value: 'Serbia', label: 'Serbia' },
+    { value: 'Slovakia', label: 'Slovakia' },
+    { value: 'Slovenia', label: 'Slovenia' },
+    { value: 'Spain', label: 'Spain' },
+    { value: 'Sweden', label: 'Sweden' },
+    { value: 'Switzerland', label: 'Switzerland' },
+    { value: 'Ukraine', label: 'Ukraine' },
+    { value: 'United Kingdom', label: 'United Kingdom' },
+    { value: 'Vatican City', label: 'Vatican City' }
+];
+
 function PlayerTable({
   players,
   loading,
@@ -349,12 +397,6 @@ export function MarketTabs() {
     return () => unsubscribe?.();
   }, []);
 
-  const countries = useMemo(() => {
-    const playerCountries = players.map(p => p.country).filter((c): c is string => !!c);
-    const teamCountries = teams.map(t => t.country).filter((c): c is string => !!c);
-    return [...new Set([...playerCountries, ...teamCountries])].sort();
-  }, [players, teams]);
-
   const handleResetFilters = () => {
     setSearchQuery('');
     setRoleFilter('all');
@@ -417,7 +459,7 @@ export function MarketTabs() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">Todos los Países</SelectItem>
-                        {countries.map(c => <SelectItem key={c} value={c}>{getFlagEmoji(c)} {c}</SelectItem>)}
+                        {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{getFlagEmoji(c.value)} {c.label}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
