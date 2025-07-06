@@ -1,5 +1,3 @@
-import {NextIntlClientProvider} from 'next-intl';
-import {getMessages} from 'next-intl/server';
 import type {Metadata} from 'next';
 import './../globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -24,24 +22,18 @@ export const metadata: Metadata = {
   description: 'Find your squad, conquer the game.',
 };
  
-export default async function RootLayout({
+export default function RootLayout({
   children,
-  params: {locale}
 }: {
   children: React.ReactNode;
-  params: {locale: string};
 }) {
-  const messages = await getMessages();
-
   return (
-    <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
+    <html lang="es" className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <body className={cn("font-body antialiased")}>
-        <NextIntlClientProvider messages={messages}>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </NextIntlClientProvider>
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );
