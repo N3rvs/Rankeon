@@ -221,10 +221,7 @@ export default function ChatPage() {
     const [isRemoveFriendAlertOpen, setIsRemoveFriendAlertOpen] = useState(false);
 
     useEffect(() => {
-        if (!chatId || !user) {
-            setLoading(false);
-            return;
-        };
+        if (!chatId || !user) return;
 
         const markAsRead = async () => {
             const notificationsRef = collection(db, 'inbox', user.uid, 'notifications');
@@ -254,40 +251,57 @@ export default function ChatPage() {
         if (!chatId || !user) {
             setLoading(false);
             return;
-        };
+        }
 
         setLoading(true);
-
         const memberIds = chatId.split('_');
-        const recipientId = memberIds.find(id => id !== user.uid);
+        const recipientId = memberIds.find((id) => id !== user.uid);
 
         if (!recipientId) {
+            toast({ title: 'Error', description: 'Invalid chat ID.', variant: 'destructive' });
+            router.push(locale ? `/${locale}/messages` : '/messages');
             setLoading(false);
             return;
         }
+        
+        let unsubscribe: Unsubscribe | undefined;
 
-        const fetchRecipient = async () => {
-             const userDoc = await getDoc(doc(db, 'users', recipientId));
-             if (userDoc.exists()) {
-                 setRecipient({id: userDoc.id, ...userDoc.data()} as UserProfile);
-             }
-        }
-        fetchRecipient();
+        const setupPage = async () => {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', recipientId));
+                if (!userDoc.exists()) {
+                    throw new Error('Recipient not found.');
+                }
+                setRecipient({ id: userDoc.id, ...userDoc.data() } as UserProfile);
 
-        const messagesRef = collection(db, 'chats', chatId, 'messages');
-        const q = query(messagesRef, orderBy('createdAt', 'asc'));
+                const messagesRef = collection(db, 'chats', chatId, 'messages');
+                const q = query(messagesRef, orderBy('createdAt', 'asc'));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-                const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
-                setMessages(msgs);
-                setLoading(false);
-            }, (error) => {
-                console.error('Error fetching chat messages:', error);
-                setLoading(false);
-            });
+                unsubscribe = onSnapshot(q, (snapshot) => {
+                    const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
+                    setMessages(msgs);
+                    setLoading(false);
+                }, (error) => {
+                    console.error('Error fetching chat messages:', error);
+                    toast({ title: 'Error', description: 'Could not load messages.', variant: 'destructive' });
+                    setLoading(false);
+                });
+            } catch (error: any) {
+                console.error('Failed to setup chat page:', error);
+                toast({ title: 'Error', description: error.message || 'Could not load chat.', variant: 'destructive' });
+                router.push(locale ? `/${locale}/messages` : '/messages');
+            }
+        };
 
-        return () => unsubscribe();
-    }, [chatId, user]);
+        setupPage();
+
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
+    }, [chatId, user, router, toast, locale]);
+
 
     const handleSendMessage = async (content: string) => {
         if (!recipient) return;
@@ -341,7 +355,7 @@ export default function ChatPage() {
     if (loading || authLoading) {
         return (
             <div className="flex flex-col h-full">
-                <div className="p-4 border-b flex items-center gap-4">
+                <div className="p-4 border-b flex items-center gap-4 h-16">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <Skeleton className="h-6 w-32" />
                 </div>
