@@ -16,7 +16,7 @@ import { db, storage } from '@/lib/firebase/client';
 import { useTransition, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Info } from 'lucide-react';
+import { Globe, Info } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
@@ -37,6 +37,54 @@ const gameRoles: Record<string, readonly string[]> = {
   // Future games can be added here
 };
 const availableGames = Object.keys(gameRoles);
+
+const europeanCountries = [
+    { value: 'Albania', label: 'Albania' },
+    { value: 'Andorra', label: 'Andorra' },
+    { value: 'Austria', label: 'Austria' },
+    { value: 'Belarus', label: 'Belarus' },
+    { value: 'Belgium', label: 'Belgium' },
+    { value: 'Bosnia and Herzegovina', label: 'Bosnia and Herzegovina' },
+    { value: 'Bulgaria', label: 'Bulgaria' },
+    { value: 'Croatia', label: 'Croatia' },
+    { value: 'Cyprus', label: 'Cyprus' },
+    { value: 'Czech Republic', label: 'Czech Republic' },
+    { value: 'Denmark', label: 'Denmark' },
+    { value: 'Estonia', label: 'Estonia' },
+    { value: 'Finland', label: 'Finland' },
+    { value: 'France', label: 'France' },
+    { value: 'Germany', label: 'Germany' },
+    { value: 'Greece', label: 'Greece' },
+    { value: 'Hungary', label: 'Hungary' },
+    { value: 'Iceland', label: 'Iceland' },
+    { value: 'Ireland', label: 'Ireland' },
+    { value: 'Italy', label: 'Italy' },
+    { value: 'Latvia', label: 'Latvia' },
+    { value: 'Liechtenstein', label: 'Liechtenstein' },
+    { value: 'Lithuania', label: 'Lithuania' },
+    { value: 'Luxembourg', label: 'Luxembourg' },
+    { value: 'Malta', label: 'Malta' },
+    { value: 'Moldova', label: 'Moldova' },
+    { value: 'Monaco', label: 'Monaco' },
+    { value: 'Montenegro', label: 'Montenegro' },
+    { value: 'Netherlands', label: 'Netherlands' },
+    { value: 'North Macedonia', label: 'North Macedonia' },
+    { value: 'Norway', label: 'Norway' },
+    { value: 'Poland', label: 'Poland' },
+    { value: 'Portugal', label: 'Portugal' },
+    { value: 'Romania', label: 'Romania' },
+    { value: 'Russia', label: 'Russia' },
+    { value: 'San Marino', label: 'San Marino' },
+    { value: 'Serbia', label: 'Serbia' },
+    { value: 'Slovakia', label: 'Slovakia' },
+    { value: 'Slovenia', label: 'Slovenia' },
+    { value: 'Spain', label: 'Spain' },
+    { value: 'Sweden', label: 'Sweden' },
+    { value: 'Switzerland', label: 'Switzerland' },
+    { value: 'Ukraine', label: 'Ukraine' },
+    { value: 'United Kingdom', label: 'United Kingdom' },
+    { value: 'Vatican City', label: 'Vatican City' }
+];
 
 export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
   const { toast } = useToast();
@@ -59,7 +107,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   const isMemberOfTeam = !!userProfile.teamId;
   const canEditGameFields = userProfile.role === 'admin' || userProfile.role === 'founder' || userProfile.role === 'coach';
   const isGameFieldsLocked = !canEditGameFields;
-  const isRegularMemberOfTeam = isMemberOfTeam && (userProfile.role === 'player' || userProfile.role === null);
+  const isRegularMemberOfTeam = isMemberOfTeam && !canEditGameFields;
 
 
   const selectedGame = form.watch('primaryGame');
@@ -134,17 +182,31 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             )}
             />
             <FormField
-            control={form.control}
-            name="country"
-            render={({ field }) => (
+              control={form.control}
+              name="country"
+              render={({ field }) => (
                 <FormItem>
-                <FormLabel>Country</FormLabel>
-                <FormControl>
-                    <Input placeholder="e.g. USA" {...field} />
-                </FormControl>
-                <FormMessage />
+                  <FormLabel>Country</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your country..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {europeanCountries.map(country => (
+                        <SelectItem key={country.value} value={country.value}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
-            )}
+              )}
             />
         </div>
         
@@ -162,15 +224,17 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
           )}
         />
         
-        {isGameFieldsLocked ? (
-             <Alert>
-                <Info className="h-4 w-4" />
+        {isGameFieldsLocked && (
+            <Alert>
+                <Globe className="h-4 w-4" />
                 <AlertTitle>Campos de Juego Bloqueados</AlertTitle>
                 <AlertDescription>
                   Solo los fundadores, coaches o administradores pueden cambiar el juego principal y los roles.
                 </AlertDescription>
             </Alert>
-        ) : isRegularMemberOfTeam ? (
+        )}
+
+        {isRegularMemberOfTeam && (
             <Alert>
                 <Info className="h-4 w-4" />
                 <AlertTitle>Eres miembro de un equipo</AlertTitle>
@@ -178,7 +242,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                    Tus habilidades son gestionadas por el líder de tu equipo. Para cambiarlas, sal de tu equipo actual.
                 </AlertDescription>
             </Alert>
-        ) : null}
+        )}
 
         <FormField
           control={form.control}
@@ -216,6 +280,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
                         <FormLabel>Looking for a team?</FormLabel>
+                        <FormDescription>
+                           This makes you visible in the player market.
+                        </FormDescription>
                     </div>
                     <FormControl>
                         <Switch
