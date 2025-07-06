@@ -1,43 +1,99 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Allow users to read/update their own profile, and allow anyone to read public profiles.
+    
+    // USER PROFILES
     match /users/{userId} {
-      allow read: if true;
-      allow update: if request.auth != null && request.auth.uid == userId;
-      allow create, delete: if false;
+      // Anyone authenticated can read/list user profiles.
+      // This is needed for the Market, user search, admin/mod panels, etc.
+      allow read: if request.auth != null;
+
+      // A user can only write to their own profile.
+      allow write: if request.auth.uid == userId;
     }
 
-    // Allow authenticated users to read team/tournament/room data. Writes are handled by secure Cloud Functions.
+    // INBOX & NOTIFICATIONS
+    match /inbox/{userId}/{document=**} {
+      // A user can only access their own inbox.
+      allow read, write: if request.auth.uid == userId;
+    }
+    
+    // TEAMS
     match /teams/{teamId} {
+      // Anyone authenticated can read/list team data.
       allow read: if request.auth != null;
-      allow write: if false; // Writes are handled by Cloud Functions
-    }
-    match /tournaments/{tournamentId} {
-      allow read: if request.auth != null;
-      allow write: if false; // Writes are handled by Cloud Functions
-    }
-    match /gameRooms/{roomId} {
-      allow read: if request.auth != null;
-      allow write: if false; // Writes are handled by Cloud Functions
-    }
-    
-    // Allow chat members to access their chats and messages.
-    match /chats/{chatId} {
-      allow read, write: if request.auth != null && request.auth.uid in resource.data.members;
-    }
-    match /chats/{chatId}/messages/{messageId} {
-      allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-    }
-    
-    // Allow users to access their own inbox.
-    match /inbox/{userId}/{allPaths=**} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+
+      // Team updates are handled by secure cloud functions, but we can allow
+      // the founder to write directly for simple updates.
+      allow update: if get(/databases/$(database)/documents/teams/$(teamId)).data.founder == request.auth.uid;
+      allow create: if false; // Creation is handled by a function
+      allow delete: if false; // Deletion is handled by a function
     }
 
-    // Friend requests and tournament proposals are handled by secure Cloud Functions.
-    // The default rule is to deny all access, which is appropriate here.
+    match /teams/{teamId}/members/{memberId} {
+        // Anyone can read the members list of a team.
+        allow read;
+        // Writes are handled by cloud functions.
+        allow write: if false;
+    }
+
+    // CHATS & MESSAGES
+    match /chats/{chatId} {
+      // Members of a chat can read its data (like lastMessage).
+      allow read: if request.auth.uid in resource.data.members;
+      // Chat documents are managed by functions, not created/updated on the client.
+      allow write: if false;
+    }
+
+    match /chats/{chatId}/messages/{messageId} {
+      // Members of a chat can read messages.
+      allow read: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+      // Writing messages is handled by a secure function.
+      allow write: if false;
+    }
+
+    // FRIEND REQUESTS
+    match /friendRequests/{requestId} {
+      // The client queries for requests where it is either the sender or receiver.
+      // To allow this query, we must allow list access.
+      allow list: if request.auth != null;
+      // For getting a single document, we can be more specific.
+      allow get: if request.auth.uid == resource.data.from || request.auth.uid == resource.data.to;
+
+      // All friend request logic is handled by server functions.
+      allow write: if false;
+    }
+
+    // GAME ROOMS
+    match /gameRooms/{roomId} {
+        // Anyone authenticated can read/list game rooms.
+        allow read: if request.auth != null;
+        // Room creation and updates are handled by server functions.
+        allow write: if false;
+    }
+    
+    match /gameRooms/{roomId}/messages/{messageId} {
+        // Only participants can read messages in a room.
+        allow read: if request.auth.uid in get(/databases/$(database)/documents/gameRooms/$(roomId)).data.participants;
+        // Sending messages is handled by a server function.
+        allow write: if false;
+    }
+    
+    // TOURNAMENTS
+    match /tournaments/{tournamentId} {
+        // Anyone authenticated can read/list tournaments.
+        allow read: if request.auth != null;
+        // Tournaments are managed by server functions.
+        allow write: if false;
+    }
+    
+    match /tournamentProposals/{proposalId} {
+        // Only moderators and admins can read/list tournament proposals.
+        allow read: if request.auth.token.role in ['admin', 'moderator'];
+        // Proposals are created and reviewed by server functions.
+        allow write: if false;
+    }
   }
 }
