@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useTransition } from 'react';
@@ -316,7 +317,7 @@ export default function ChatPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>¿Eliminar historial del chat?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción eliminará permanentemente todos los mensajes de esta conversación para ti. El otro usuario conservará su copia. Esta acción no se puede deshacer.
+                            Esta acción eliminará permanentemente todos los mensajes de esta conversación para ambos participantes. Esta acción no se puede deshacer.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -340,3 +341,5 @@ export default function ChatPage() {
         </>
     );
 }
+
+    
