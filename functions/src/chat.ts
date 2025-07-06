@@ -36,6 +36,15 @@ export const deleteChatHistory = onCall(async (request) => {
       await batch.commit();
       lastDoc = snapshot.docs[snapshot.docs.length - 1];
     }
+    
+    // NEW: Delete all notifications for this chat for ALL members
+    const members: string[] = chatData.members;
+    const notificationDeleteBatch = db.batch();
+    for (const memberId of members) {
+        const notifSnap = await db.collection(`inbox/${memberId}/notifications`).where('chatId', '==', chatId).get();
+        notifSnap.forEach(doc => notificationDeleteBatch.delete(doc.ref));
+    }
+    await notificationDeleteBatch.commit();
 
     // Unconditionally update the lastMessage object to ensure the chat remains visible.
     await chatRef.update({

@@ -49,7 +49,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       const q = query(
         collection(db, 'inbox', user.uid, 'notifications'),
         where('read', '==', false),
-        where('type', '==', 'new_message')
+        where('type', 'in', ['new_message', 'friend_request'])
       );
 
       unsubscribe = onSnapshot(q, (snapshot) => {

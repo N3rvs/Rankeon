@@ -173,6 +173,15 @@ export const removeFriend = onCall(async ({ auth, data }: { auth?: any, data: Re
 
     // Delete the main chat document after its subcollection is empty
     await chatRef.delete();
+    
+    // NEW: Also delete any notifications associated with this chat
+    const deleteNotifsBatch = db.batch();
+    for(const memberId of members) {
+        const notifSnap = await db.collection(`inbox/${memberId}/notifications`).where('chatId', '==', chatId).get();
+        notifSnap.forEach(doc => deleteNotifsBatch.delete(doc.ref));
+    }
+    await deleteNotifsBatch.commit();
+
   } catch(error) {
     console.error(`Failed to delete chat history for friend removal between ${uid} and ${friendUid}. The friendship was removed successfully.`, error);
   }
