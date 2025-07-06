@@ -41,7 +41,7 @@ function ApplicationCard({ application }: { application: TeamApplication }) {
     }
 
     return (
-        <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+        <div className="flex items-center justify-between">
             <Link href={`/users/${application.applicantId}`} className="flex items-center gap-3 group flex-1">
                 <Avatar>
                     <AvatarImage src={application.applicantAvatarUrl} data-ai-hint="person avatar" />
@@ -118,7 +118,7 @@ export function TeamApplications({ teamId }: { teamId: string }) {
                     Revisa a los jugadores que quieren unirse a tu equipo.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-3">
+            <CardContent className="space-y-4">
                 {applications.map(app => (
                     <ApplicationCard key={app.id} application={app} />
                 ))}
