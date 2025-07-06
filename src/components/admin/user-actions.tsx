@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -74,10 +73,11 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
     <>
       <BanUserDialog user={user} open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen} />
       
-      <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
-
       {currentUserRole === 'admin' && (
-        <RoleManagementDialog user={user} open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen} />
+        <>
+          <EditProfileDialog userProfile={user} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
+          <RoleManagementDialog user={user} open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen} />
+        </>
       )}
       
       <AlertDialog open={isUnbanAlertOpen} onOpenChange={setIsUnbanAlertOpen}>
@@ -124,20 +124,20 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           
-          <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
-            <Edit className="mr-2 h-4 w-4" />
-            <span>Edit Profile</span>
-          </DropdownMenuItem>
-
           {currentUserRole === 'admin' && (
-            <DropdownMenuItem onSelect={() => setIsRoleDialogOpen(true)}>
-              <UserCog className="mr-2 h-4 w-4" />
-              <span>Change Role</span>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>Edit Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setIsRoleDialogOpen(true)}>
+                <UserCog className="mr-2 h-4 w-4" />
+                <span>Change Role</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
           )}
           
-          <DropdownMenuSeparator />
-            
           <DropdownMenuItem onSelect={() => setIsCertifyAlertOpen(true)}>
               <Twitch className="mr-2 h-4 w-4" />
               <span>{user.isCertifiedStreamer ? 'Remove Certification' : 'Certify Streamer'}</span>
