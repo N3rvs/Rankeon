@@ -47,7 +47,8 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
         game,
         description: description || '',
         country: userData?.country || '',
-        rank: userData?.rank || '',
+        rankMin: userData?.rank || '',
+        rankMax: userData?.rank || '',
         avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0,2)}`,
         bannerUrl: 'https://placehold.co/1200x400.png',
         founder: uid,
@@ -106,7 +107,8 @@ interface UpdateTeamData {
   discordUrl?: string;
   twitchUrl?: string;
   twitterUrl?: string;
-  rank?: string;
+  rankMin?: string;
+  rankMax?: string;
 }
 
 export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {

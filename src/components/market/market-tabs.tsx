@@ -27,10 +27,11 @@ import { useAuth } from '@/contexts/auth-context';
 import { FriendshipButton } from '../friends/friendship-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
-import { Eye, Globe, Shield } from 'lucide-react';
+import { Eye, Globe, Shield, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getFlagEmoji } from '@/lib/utils';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 
 const valorantRanks = [
     { value: 'all', label: 'Todos los Rangos' },
@@ -59,6 +60,9 @@ function PlayerTable({
           </div>
         </div>
       </TableCell>
+       <TableCell>
+        <Skeleton className="h-6 w-16" />
+      </TableCell>
       <TableCell>
         <Skeleton className="h-6 w-20" />
       </TableCell>
@@ -77,6 +81,7 @@ function PlayerTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-[30%]">Player</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Rank</TableHead>
             <TableHead>Skills</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -112,6 +117,11 @@ function PlayerTable({
                     </div>
                   </Link>
                 </TableCell>
+                <TableCell>
+                    {player.lookingForTeam && (
+                        <Badge variant={'default'}>LFG</Badge>
+                    )}
+                </TableCell>
                  <TableCell>
                   {player.rank ? (
                     <Badge variant="secondary">{player.rank}</Badge>
@@ -121,9 +131,6 @@ function PlayerTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {player.lookingForTeam && (
-                        <Badge variant={'default'}>LFG</Badge>
-                    )}
                     {player.skills && player.skills.length > 0 ? (
                       player.skills
                         .slice(0, 2)
@@ -140,13 +147,28 @@ function PlayerTable({
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <FriendshipButton targetUser={player} variant="icon" />
+                   {player.lookingForTeam ? (
+                        <FriendshipButton targetUser={player} variant="icon" />
+                    ) : (
+                         <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" disabled>
+                                        <UserPlus className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>This player is not looking for a team.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
+              <TableCell colSpan={5} className="h-24 text-center">
                 No players found.
               </TableCell>
             </TableRow>
@@ -225,8 +247,8 @@ function TeamTable({
                   </div>
                 </TableCell>
                  <TableCell>
-                  {team.rank ? (
-                    <Badge variant="secondary">{team.rank}</Badge>
+                  {(team.rankMin && team.rankMax) ? (
+                    <Badge variant="secondary">{team.rankMin === team.rankMax ? team.rankMin : `${team.rankMin} - ${team.rankMax}`}</Badge>
                   ) : (
                     <span className="text-sm text-muted-foreground">N/A</span>
                   )}
@@ -281,6 +303,14 @@ export function MarketTabs() {
   const [rankFilter, setRankFilter] = useState('all');
   
   const primaryGame = userProfile?.primaryGame || 'Valorant';
+  
+  const rankOrder: { [key: string]: number } = {
+        'Plata': 1,
+        'Oro': 2,
+        'Platino': 3,
+        'Ascendente': 4,
+        'Inmortal': 5,
+    };
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -346,10 +376,12 @@ export function MarketTabs() {
         const lookingMatch = t.lookingForPlayers === true;
         const gameMatch = t.game === primaryGame;
         const countryMatch = countryFilter === 'all' || t.country === countryFilter;
-        const rankMatch = rankFilter === 'all' || t.rank === rankFilter;
+        const rankMatch = rankFilter === 'all' || (
+            t.rankMin && t.rankMax && rankOrder[rankFilter] >= rankOrder[t.rankMin] && rankOrder[rankFilter] <= rankOrder[t.rankMax]
+        );
         return lookingMatch && gameMatch && countryMatch && rankMatch;
     });
-  }, [teams, primaryGame, countryFilter, rankFilter]);
+  }, [teams, primaryGame, countryFilter, rankFilter, rankOrder]);
 
   return (
     <Tabs defaultValue="players" className="w-full">

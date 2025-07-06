@@ -56,7 +56,8 @@ export function EditTeamDialog({ team, open, onOpenChange }: EditTeamDialogProps
       teamId: team.id,
       name: team.name || '',
       description: team.description || '',
-      rank: team.rank || '',
+      rankMin: team.rankMin || '',
+      rankMax: team.rankMax || '',
       lookingForPlayers: team.lookingForPlayers || false,
       recruitingRoles: team.recruitingRoles || [],
       videoUrl: team.videoUrl || '',
@@ -176,29 +177,54 @@ export function EditTeamDialog({ team, open, onOpenChange }: EditTeamDialogProps
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="rank"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Rango medio del equipo</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                        <SelectTrigger>
+            <div className="grid grid-cols-2 gap-4">
+                 <FormField
+                  control={form.control}
+                  name="rankMin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rango Mínimo</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
                             <Shield className="mr-2 h-4 w-4" />
-                            <SelectValue placeholder="Selecciona el rango del equipo" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {valorantRanks.map(rank => (
-                        <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                            <SelectValue placeholder="Rango Mín." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {valorantRanks.map(rank => (
+                            <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="rankMax"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rango Máximo</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <Shield className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder="Rango Máx." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {valorantRanks.map(rank => (
+                            <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>
             <FormField
               control={form.control}
               name="description"

@@ -38,7 +38,8 @@ export interface Team {
   name: string;
   game: string;
   country?: string;
-  rank?: string;
+  rankMin?: string;
+  rankMax?: string;
   avatarUrl: string;
   bannerUrl: string;
   videoUrl?: string;

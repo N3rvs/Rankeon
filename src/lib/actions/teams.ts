@@ -17,18 +17,42 @@ export type CreateTeamData = z.infer<typeof CreateTeamSchema>;
 
 // Schema for updating a team
 export const UpdateTeamSchema = z.object({
-  teamId: z.string().min(1),
-  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50),
-  description: z.string().max(500, 'La descripción es muy larga.').optional(),
-  lookingForPlayers: z.boolean(),
-  recruitingRoles: z.array(z.string()).optional(),
-  videoUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
-  avatarUrl: z.string().url().optional(),
-  bannerUrl: z.string().url().optional(),
-  discordUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
-  twitchUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
-  twitterUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
-  rank: z.string().optional(),
+    teamId: z.string().min(1),
+    name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50),
+    description: z.string().max(500, 'La descripción es muy larga.').optional(),
+    lookingForPlayers: z.boolean(),
+    recruitingRoles: z.array(z.string()).optional(),
+    videoUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
+    avatarUrl: z.string().url().optional(),
+    bannerUrl: z.string().url().optional(),
+    discordUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
+    twitchUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
+    twitterUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
+    rankMin: z.string().optional(),
+    rankMax: z.string().optional(),
+}).refine((data) => {
+    if (data.rankMin && !data.rankMax) {
+        data.rankMax = data.rankMin;
+    }
+    if (!data.rankMin && data.rankMax) {
+        data.rankMin = data.rankMax;
+    }
+    return true;
+}).refine((data) => {
+    if (data.rankMin && data.rankMax) {
+        const rankOrder: { [key: string]: number } = {
+            'Plata': 1,
+            'Oro': 2,
+            'Platino': 3,
+            'Ascendente': 4,
+            'Inmortal': 5,
+        };
+        return rankOrder[data.rankMin as keyof typeof rankOrder] <= rankOrder[data.rankMax as keyof typeof rankOrder];
+    }
+    return true;
+}, {
+    message: "El rango mínimo no puede ser superior al máximo.",
+    path: ["rankMin"],
 });
 export type UpdateTeamData = z.infer<typeof UpdateTeamSchema>;
 
