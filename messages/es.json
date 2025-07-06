@@ -1,0 +1,49 @@
+{
+  "HomePage": {
+    "title": "SquadUp",
+    "login": "Login",
+    "getStarted": "Empezar",
+    "heroTitle": "Reúne a tu Escuadrón de Élite",
+    "heroSubtitle": "La plataforma LFG definitiva para Valorant. Deja de jugar solo y empieza a dominar con el equipo perfecto.",
+    "findSquad": "Encuentra tu Escuadrón",
+    "registerPlayer": "Registrarse como Jugador",
+    "featuresTitle": "Construido para Campeones",
+    "featuresSubtitle": "Todo lo que necesitas para conquistar la competencia.",
+    "findPlayersTitle": "Encuentra Jugadores",
+    "findPlayersDescription": "Explora perfiles detallados de jugadores, filtra por rol y rango, y encuentra el ajuste perfecto para tu plantilla.",
+    "aiToolsTitle": "Herramientas con IA",
+    "aiToolsDescription": "Usa nuestra IA para crear la biografía de jugador perfecta para que otros jugadores te noten.",
+    "footer": "© {year} SquadUp. Todos los derechos reservados. Construido para el futuro de los esports."
+  },
+  "DashboardPage": {
+    "title": "Mercado de Equipos y Jugadores (UE)",
+    "description": "Encuentra equipos y jugadores en la región de la UE."
+  },
+  "AppLayout": {
+    "profile": "Perfil",
+    "market": "Mercado",
+    "gameRooms": "Salas de Juego",
+    "tournaments": "Torneos",
+    "myTeam": "Mi Equipo",
+    "friends": "Amigos",
+    "adminPanel": "Panel Admin",
+    "modPanel": "Panel Mod",
+    "logout": "Cerrar Sesión"
+  },
+  "LanguageSwitcher": {
+    "label": "Seleccionar Idioma",
+    "en": "Inglés",
+    "es": "Español",
+    "fr": "Francés",
+    "de": "Alemán",
+    "it": "Italiano",
+    "pt": "Portugués"
+  },
+  "TeamsPage": {
+    "noTeamTitle": "Aún no tienes un equipo",
+    "createTeamPrompt": "¡Crea tu propio equipo para empezar a reclutar jugadores!",
+    "createTeamButton": "Crear Equipo",
+    "joinTeamPrompt": "Busca en el mercado para encontrar tu escuadrón ideal.",
+    "joinTeamButton": "Unete a un Equipo"
+  }
+}

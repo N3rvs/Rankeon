@@ -18,7 +18,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next-intl/client';
 import { UserProfile } from '@/lib/types';
 
 interface AuthContextType {

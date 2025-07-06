@@ -7,13 +7,13 @@ import { z } from 'zod';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next-intl/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
+import { Link } from 'next-intl/client';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
