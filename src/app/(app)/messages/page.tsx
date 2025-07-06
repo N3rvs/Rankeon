@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase/client';
-import { collection, query, where, onSnapshot, doc, getDoc, Unsubscribe, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, Unsubscribe } from 'firebase/firestore';
 import type { UserProfile, Chat, FriendRequest } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -50,10 +50,19 @@ export default function MessagesPage() {
             setRequests(reqsWithUsers);
         });
         
-        const chatsQuery = query(collection(db, 'chats'), where('members', 'array-contains', user.uid), orderBy('lastMessageAt', 'desc'), limit(20));
+        const chatsQuery = query(collection(db, 'chats'), where('members', 'array-contains', user.uid));
         const unsubscribeChats = onSnapshot(chatsQuery, async (snapshot) => {
             const chatsData = snapshot.docs.map(d => ({ id: d.id, ...d.data({serverTimestamps: 'estimate'}) } as Chat));
-            const chatsWithUsers = await Promise.all(chatsData.map(async (chat) => {
+            
+            // Client-side sorting as a workaround for missing Firestore index
+            chatsData.sort((a, b) => {
+                const timeA = a.lastMessageAt?.toMillis() || 0;
+                const timeB = b.lastMessageAt?.toMillis() || 0;
+                return timeB - timeA;
+            });
+            const limitedChats = chatsData.slice(0, 20);
+
+            const chatsWithUsers = await Promise.all(limitedChats.map(async (chat) => {
                 const otherUserId = chat.members.find(id => id !== user.uid);
                 if (!otherUserId) return chat;
                 const userDoc = await getDoc(doc(db, 'users', otherUserId));
