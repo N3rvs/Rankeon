@@ -26,13 +26,14 @@ import { useAuth } from '@/contexts/auth-context';
 import { FriendshipButton } from '../friends/friendship-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
-import { Search, UserPlus } from 'lucide-react';
+import { Search, MailPlus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getFlagEmoji } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 const valorantRanks = [
     { value: 'all', label: 'Todos los Rangos' },
@@ -106,6 +107,18 @@ function PlayerTable({
   players: UserProfile[];
   loading: boolean;
 }) {
+  const { userProfile } = useAuth();
+  const { toast } = useToast();
+
+  const canInvite = userProfile?.teamId && (userProfile.role === 'founder' || userProfile.role === 'coach');
+
+  const handleInvitePlayer = (playerName: string) => {
+    toast({
+        title: 'Función en desarrollo',
+        description: `La función para invitar a ${playerName} a tu equipo estará disponible pronto.`,
+    });
+  };
+
   const loadingSkeletons = [...Array(5)].map((_, i) => (
     <TableRow key={i}>
       <TableCell className="w-1/3">
@@ -127,7 +140,10 @@ function PlayerTable({
         <Skeleton className="h-6 w-32" />
       </TableCell>
       <TableCell className="text-right">
-        <Skeleton className="h-9 w-9 ml-auto rounded-full" />
+        <div className="flex items-center justify-end gap-1">
+            <Skeleton className="h-9 w-9 rounded-md" />
+            <Skeleton className="h-9 w-9 rounded-md" />
+        </div>
       </TableCell>
     </TableRow>
   ));
@@ -141,7 +157,7 @@ function PlayerTable({
             <TableHead>País</TableHead>
             <TableHead>Rango</TableHead>
             <TableHead>Roles</TableHead>
-            <TableHead className="text-right">Acción</TableHead>
+            <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -195,22 +211,37 @@ function PlayerTable({
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                   {player.lookingForTeam ? (
-                        <FriendshipButton targetUser={player} variant="icon" />
-                    ) : (
-                         <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" disabled>
-                                        <UserPlus className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Este jugador no está buscando equipo.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
+                   <div className="flex items-center justify-end gap-1">
+                        {canInvite && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div> {/* Wrapper for disabled button */}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleInvitePlayer(player.name)}
+                                                disabled={!player.lookingForTeam || !!player.teamId}
+                                                aria-label="Invitar al equipo"
+                                            >
+                                                <MailPlus className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {!player.lookingForTeam ? (
+                                            <p>Este jugador no busca equipo.</p>
+                                        ) : player.teamId ? (
+                                            <p>Este jugador ya está en un equipo.</p>
+                                        ) : (
+                                            <p>Invitar al equipo</p>
+                                        )}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                       <FriendshipButton targetUser={player} variant="icon" />
+                   </div>
                 </TableCell>
               </TableRow>
             ))
@@ -250,7 +281,6 @@ function TeamTable({
       <TableCell><Skeleton className="h-6 w-16" /></TableCell>
       <TableCell><Skeleton className="h-6 w-20" /></TableCell>
       <TableCell><Skeleton className="h-6 w-32" /></TableCell>
-      <TableCell className="text-right"><Skeleton className="h-9 w-24 ml-auto" /></TableCell>
     </TableRow>
   ));
 
@@ -263,7 +293,6 @@ function TeamTable({
             <TableHead>País</TableHead>
             <TableHead>Rango</TableHead>
             <TableHead>Roles Buscados</TableHead>
-            <TableHead className="text-right">Acción</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -309,16 +338,11 @@ function TeamTable({
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
-                  <Button asChild variant="outline" size="sm">
-                     <Link href={`/teams/${team.id}`}>Ver Equipo</Link>
-                  </Button>
-                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">No se encontraron equipos.</TableCell>
+              <TableCell colSpan={4} className="h-24 text-center">No se encontraron equipos.</TableCell>
             </TableRow>
           )}
         </TableBody>
