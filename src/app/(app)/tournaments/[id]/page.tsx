@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Tournament } from '@/lib/types';
@@ -17,8 +18,9 @@ import { registerTeamForTournament } from '@/lib/actions/tournaments';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function TournamentDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function TournamentDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const { userProfile, loading: authLoading } = useAuth();
     const { toast } = useToast();
     const [tournament, setTournament] = useState<Tournament | null>(null);
