@@ -30,6 +30,7 @@ import { Button } from '../ui/button';
 import { Eye, Globe, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { getFlagEmoji } from '@/lib/utils';
 
 const valorantRanks = [
     { value: 'all', label: 'Todos los Rangos' },
@@ -109,7 +110,7 @@ function PlayerTable({
                         {player.name}
                       </h3>
                       <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                        <Globe className="h-3 w-3" />
+                        {player.country && <span>{getFlagEmoji(player.country)}</span>}
                         <span>{player.country || 'Location not set'}</span>
                       </p>
                     </div>
@@ -222,7 +223,7 @@ function TeamTable({
                       <h3 className="font-semibold">{team.name}</h3>
                       {team.country && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <Globe className="h-3 w-3" />
+                          <span>{getFlagEmoji(team.country)}</span>
                           {team.country}
                         </p>
                       )}
@@ -291,13 +292,12 @@ export function MarketTabs() {
     let unsubscribe: Unsubscribe | undefined;
     if (user && userProfile) {
       setLoadingPlayers(true);
-      const playersQuery = query(
-        collection(db, 'users'), 
-        where('primaryGame', '==', primaryGame)
-      );
+      // Fetch all users and filter on the client. This avoids complex index requirements on Firebase.
+      const playersQuery = query(collection(db, 'users'));
       unsubscribe = onSnapshot(playersQuery, (snapshot) => {
         const playersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as UserProfile));
         const filteredPlayers = playersData.filter((p) => {
+          // Exclude self and blocked users
           if (p.id === user.uid) return false;
           if (userProfile.blocked?.includes(p.id)) return false;
           if (p.blocked?.includes(user.uid)) return false;
@@ -314,16 +314,13 @@ export function MarketTabs() {
       setLoadingPlayers(false);
     }
     return () => unsubscribe?.();
-  }, [user, userProfile, primaryGame]);
+  }, [user, userProfile]);
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
     setLoadingTeams(true);
-    const teamsQuery = query(
-      collection(db, 'teams'), 
-      where('lookingForPlayers', '==', true),
-      where('game', '==', primaryGame)
-    );
+     // Fetch all teams and filter on the client to avoid index requirements.
+    const teamsQuery = query(collection(db, 'teams'));
     unsubscribe = onSnapshot(teamsQuery, (snapshot) => {
       const teamsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Team));
       setTeams(teamsData);
@@ -333,7 +330,7 @@ export function MarketTabs() {
       setLoadingTeams(false);
     });
     return () => unsubscribe?.();
-  }, [primaryGame]);
+  }, []);
 
   const countries = useMemo(() => {
     const playerCountries = players.map(p => p.country).filter((c): c is string => !!c);
@@ -343,19 +340,22 @@ export function MarketTabs() {
 
   const filteredPlayers = useMemo(() => {
     return players.filter(p => {
+        const gameMatch = p.primaryGame === primaryGame;
         const countryMatch = countryFilter === 'all' || p.country === countryFilter;
         const rankMatch = rankFilter === 'all' || p.rank === rankFilter;
-        return countryMatch && rankMatch;
+        return gameMatch && countryMatch && rankMatch;
     });
-  }, [players, countryFilter, rankFilter]);
+  }, [players, primaryGame, countryFilter, rankFilter]);
 
   const filteredTeams = useMemo(() => {
     return teams.filter(t => {
+        const lookingMatch = t.lookingForPlayers === true;
+        const gameMatch = t.game === primaryGame;
         const countryMatch = countryFilter === 'all' || t.country === countryFilter;
         const rankMatch = rankFilter === 'all' || t.rank === rankFilter;
-        return countryMatch && rankMatch;
+        return lookingMatch && gameMatch && countryMatch && rankMatch;
     });
-  }, [teams, countryFilter, rankFilter]);
+  }, [teams, primaryGame, countryFilter, rankFilter]);
 
   return (
     <Tabs defaultValue="players" className="w-full">
@@ -372,7 +372,7 @@ export function MarketTabs() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Countries</SelectItem>
-              {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {countries.map(c => <SelectItem key={c} value={c}>{getFlagEmoji(c)} {c}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={rankFilter} onValueChange={setRankFilter}>
