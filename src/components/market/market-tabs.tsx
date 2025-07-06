@@ -378,6 +378,7 @@ export function MarketTabs() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
+  const [rankFilter, setRankFilter] = useState('all');
   
   const primaryGame = userProfile?.primaryGame || 'Valorant';
   
@@ -433,6 +434,7 @@ export function MarketTabs() {
     setSearchQuery('');
     setRoleFilter('all');
     setCountryFilter('all');
+    setRankFilter('all');
   };
 
   const filteredPlayers = useMemo(() => {
@@ -441,9 +443,10 @@ export function MarketTabs() {
         const searchMatch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
         const roleMatch = roleFilter === 'all' || p.skills?.includes(roleFilter);
         const countryMatch = countryFilter === 'all' || p.country === countryFilter;
-        return gameMatch && searchMatch && roleMatch && countryMatch;
+        const rankMatch = rankFilter === 'all' || p.rank === rankFilter;
+        return gameMatch && searchMatch && roleMatch && countryMatch && rankMatch;
     });
-  }, [players, primaryGame, searchQuery, roleFilter, countryFilter]);
+  }, [players, primaryGame, searchQuery, roleFilter, countryFilter, rankFilter]);
 
   const filteredTeams = useMemo(() => {
     return teams.filter(t => {
@@ -451,15 +454,20 @@ export function MarketTabs() {
         const searchMatch = !searchQuery || t.name.toLowerCase().includes(searchQuery.toLowerCase());
         const roleMatch = roleFilter === 'all' || t.recruitingRoles?.includes(roleFilter);
         const countryMatch = countryFilter === 'all' || t.country === countryFilter;
-        return gameMatch && searchMatch && roleMatch && countryMatch;
+        const rankMatch = rankFilter === 'all' || (
+            t.rankMin && t.rankMax && rankOrder[rankFilter] &&
+            rankOrder[rankFilter] >= rankOrder[t.rankMin] &&
+            rankOrder[rankFilter] <= rankOrder[t.rankMax]
+        );
+        return gameMatch && searchMatch && roleMatch && countryMatch && rankMatch;
     });
-  }, [teams, primaryGame, searchQuery, roleFilter, countryFilter]);
+  }, [teams, primaryGame, searchQuery, roleFilter, countryFilter, rankFilter]);
 
   return (
     <div className="space-y-6">
       <div className="rounded-lg border bg-card p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-            <div className="md:col-span-2 lg:col-span-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div>
                 <Label htmlFor="search-market">Buscar equipos o jugadores...</Label>
                 <div className="relative mt-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -471,6 +479,17 @@ export function MarketTabs() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
+            </div>
+             <div>
+                <Label htmlFor="rank-filter">Filtrar por rango</Label>
+                 <Select value={rankFilter} onValueChange={setRankFilter}>
+                    <SelectTrigger id="rank-filter" className="mt-1">
+                        <SelectValue placeholder="Filtrar por rango" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {valorantRanks.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
             </div>
             <div>
                 <Label htmlFor="role-filter">Filtrar por rol</Label>
