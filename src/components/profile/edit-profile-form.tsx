@@ -16,7 +16,7 @@ import { db, storage } from '@/lib/firebase/client';
 import { useTransition, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Globe, Info } from 'lucide-react';
+import { Globe, Info, Shield } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
@@ -25,6 +25,7 @@ const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
   country: z.string().max(50).optional(),
   bio: z.string().max(300).optional(),
+  rank: z.string().optional(),
   primaryGame: z.string().min(1, "Please select a primary game."),
   lookingForTeam: z.boolean().default(false),
   skills: z.array(z.string()).max(2, { message: "Puedes seleccionar hasta 2 roles." }).optional(),
@@ -37,6 +38,14 @@ const gameRoles: Record<string, readonly string[]> = {
   // Future games can be added here
 };
 const availableGames = Object.keys(gameRoles);
+
+const valorantRanks = [
+    { value: 'Plata', label: 'Plata' },
+    { value: 'Oro', label: 'Oro' },
+    { value: 'Platino', label: 'Platino' },
+    { value: 'Ascendente', label: 'Ascendente' },
+    { value: 'Inmortal', label: 'Inmortal' },
+];
 
 const europeanCountries = [
     { value: 'Albania', label: 'Albania' },
@@ -98,6 +107,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       name: userProfile.name || '',
       country: userProfile.country || '',
       bio: userProfile.bio || '',
+      rank: userProfile.rank || '',
       primaryGame: userProfile.primaryGame || 'Valorant',
       lookingForTeam: userProfile.lookingForTeam || false,
       skills: userProfile.skills || [],
@@ -243,35 +253,59 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                 </AlertDescription>
             </Alert>
         )}
-
-        <FormField
-          control={form.control}
-          name="primaryGame"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Juego Principal</FormLabel>
-              <Select onValueChange={(value) => {
-                  field.onChange(value);
-                  form.setValue('skills', []); // Reset skills when game changes
-                }} 
-                defaultValue={field.value}
-                disabled={isGameFieldsLocked}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un juego..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {availableGames.map(game => (
-                    <SelectItem key={game} value={game}>{game}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="primaryGame"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Juego Principal</FormLabel>
+                <Select onValueChange={(value) => {
+                    field.onChange(value);
+                    form.setValue('skills', []); // Reset skills when game changes
+                    }} 
+                    defaultValue={field.value}
+                    disabled={isGameFieldsLocked}
+                >
+                    <FormControl>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un juego..." />
+                    </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                    {availableGames.map(game => (
+                        <SelectItem key={game} value={game}>{game}</SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+             <FormField
+              control={form.control}
+              name="rank"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rank</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                        <SelectTrigger>
+                            <Shield className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder="Select your rank" />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {valorantRanks.map(rank => (
+                        <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+        </div>
 
         <FormField
             control={form.control}

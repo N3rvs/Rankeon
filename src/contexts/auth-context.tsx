@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               bio: '',
               primaryGame: "Valorant",
               skills: [],
+              rank: '',
               friends: [],
               blocked: [],
               lookingForTeam: false,

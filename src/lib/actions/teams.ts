@@ -28,6 +28,7 @@ export const UpdateTeamSchema = z.object({
   discordUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
   twitchUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
   twitterUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
+  rank: z.string().optional(),
 });
 export type UpdateTeamData = z.infer<typeof UpdateTeamSchema>;
 

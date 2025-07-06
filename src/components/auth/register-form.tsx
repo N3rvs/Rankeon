@@ -49,6 +49,7 @@ export function RegisterForm() {
         bio: '',
         primaryGame: 'Valorant',
         skills: [],
+        rank: '',
         friends: [], // Initialize empty friends list
         blocked: [], // Initialize empty blocked list
         lookingForTeam: false,

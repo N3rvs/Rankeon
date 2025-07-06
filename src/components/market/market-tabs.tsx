@@ -27,9 +27,18 @@ import { useAuth } from '@/contexts/auth-context';
 import { FriendshipButton } from '../friends/friendship-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
-import { Eye, Globe } from 'lucide-react';
+import { Eye, Globe, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+
+const valorantRanks = [
+    { value: 'all', label: 'Todos los Rangos' },
+    { value: 'Plata', label: 'Plata' },
+    { value: 'Oro', label: 'Oro' },
+    { value: 'Platino', label: 'Platino' },
+    { value: 'Ascendente', label: 'Ascendente' },
+    { value: 'Inmortal', label: 'Inmortal' },
+];
 
 function PlayerTable({
   players,
@@ -50,6 +59,12 @@ function PlayerTable({
         </div>
       </TableCell>
       <TableCell>
+        <Skeleton className="h-6 w-20" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-6 w-24" />
+      </TableCell>
+      <TableCell>
         <Skeleton className="h-6 w-32" />
       </TableCell>
       <TableCell className="text-right">
@@ -63,7 +78,9 @@ function PlayerTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[40%]">Player</TableHead>
+            <TableHead className="w-[30%]">Player</TableHead>
+            <TableHead>Rank</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Skills</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -98,6 +115,18 @@ function PlayerTable({
                     </div>
                   </Link>
                 </TableCell>
+                 <TableCell>
+                  {player.rank ? (
+                    <Badge variant="secondary">{player.rank}</Badge>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">N/A</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={player.lookingForTeam ? 'default' : 'outline'}>
+                    {player.lookingForTeam ? 'LFG' : 'Not Looking'}
+                  </Badge>
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {player.skills && player.skills.length > 0 ? (
@@ -122,8 +151,8 @@ function PlayerTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={3} className="h-24 text-center">
-                No players are currently looking for a team.
+              <TableCell colSpan={5} className="h-24 text-center">
+                No players found.
               </TableCell>
             </TableRow>
           )}
@@ -168,6 +197,7 @@ function TeamTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-[30%]">Team</TableHead>
+            <TableHead>Rank</TableHead>
             <TableHead>Recruiting</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -199,6 +229,13 @@ function TeamTable({
                     </div>
                   </div>
                 </TableCell>
+                 <TableCell>
+                  {team.rank ? (
+                    <Badge variant="secondary">{team.rank}</Badge>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">N/A</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {team.recruitingRoles &&
@@ -226,7 +263,7 @@ function TeamTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={3} className="h-24 text-center">
+              <TableCell colSpan={4} className="h-24 text-center">
                 No teams are currently recruiting.
               </TableCell>
             </TableRow>
@@ -244,7 +281,9 @@ export function MarketTabs() {
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
+  
   const [countryFilter, setCountryFilter] = useState('all');
+  const [rankFilter, setRankFilter] = useState('all');
   
   const primaryGame = userProfile?.primaryGame || 'Valorant';
 
@@ -254,7 +293,6 @@ export function MarketTabs() {
       setLoadingPlayers(true);
       const playersQuery = query(
         collection(db, 'users'), 
-        where('lookingForTeam', '==', true),
         where('primaryGame', '==', primaryGame)
       );
       unsubscribe = onSnapshot(playersQuery, (snapshot) => {
@@ -304,31 +342,46 @@ export function MarketTabs() {
   }, [players, teams]);
 
   const filteredPlayers = useMemo(() => {
-    if (countryFilter === 'all') return players;
-    return players.filter(p => p.country === countryFilter);
-  }, [players, countryFilter]);
+    return players.filter(p => {
+        const countryMatch = countryFilter === 'all' || p.country === countryFilter;
+        const rankMatch = rankFilter === 'all' || p.rank === rankFilter;
+        return countryMatch && rankMatch;
+    });
+  }, [players, countryFilter, rankFilter]);
 
   const filteredTeams = useMemo(() => {
-    if (countryFilter === 'all') return teams;
-    return teams.filter(t => t.country === countryFilter);
-  }, [teams, countryFilter]);
+    return teams.filter(t => {
+        const countryMatch = countryFilter === 'all' || t.country === countryFilter;
+        const rankMatch = rankFilter === 'all' || t.rank === rankFilter;
+        return countryMatch && rankMatch;
+    });
+  }, [teams, countryFilter, rankFilter]);
 
   return (
     <Tabs defaultValue="players" className="w-full">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
         <TabsList className="grid w-full sm:w-auto grid-cols-2">
-          <TabsTrigger value="players">Players Looking for Team</TabsTrigger>
-          <TabsTrigger value="teams">Teams Looking for Players</TabsTrigger>
+          <TabsTrigger value="players">Players Market</TabsTrigger>
+          <TabsTrigger value="teams">Teams Market</TabsTrigger>
         </TabsList>
-        <div className="w-full sm:w-auto sm:max-w-xs">
+        <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
           <Select value={countryFilter} onValueChange={setCountryFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px]">
               <Globe className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Filter by country" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Countries</SelectItem>
               {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={rankFilter} onValueChange={setRankFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <Shield className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Filter by rank" />
+            </SelectTrigger>
+            <SelectContent>
+              {valorantRanks.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>

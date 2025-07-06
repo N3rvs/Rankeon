@@ -14,6 +14,7 @@ export interface UserProfile {
   bio: string;
   lookingForTeam: boolean;
   country?: string;
+  rank?: string;
   disabled?: boolean;
   createdAt?: Timestamp;
   blocked?: string[]; // Array of user IDs
@@ -37,6 +38,7 @@ export interface Team {
   name: string;
   game: string;
   country?: string;
+  rank?: string;
   avatarUrl: string;
   bannerUrl: string;
   videoUrl?: string;
