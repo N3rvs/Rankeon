@@ -1,3 +1,4 @@
+
 // src/components/friends/friendship-button.tsx
 'use client';
 
@@ -206,85 +207,115 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
 
   const renderButton = () => {
     if (variant === 'icon') {
-        return (
-             <div className="flex justify-end">
-                {status === 'loading' && <Button variant="ghost" size="icon" disabled><Clock className="h-4 w-4 animate-spin" /></Button>}
-                {status === 'not_friends' && (
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={handleSendRequest} disabled={isPending}>
-                                    <UserPlus className="h-4 w-4" />
-                                    <span className="sr-only">Add Friend</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Add Friend</p></TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                )}
-                 {status === 'request_sent' && (
-                     <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" disabled>
-                                    <Clock className="h-4 w-4" />
-                                    <span className="sr-only">Request Sent</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Request Sent</p></TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                )}
-                {status === 'request_received' && (
-                    <div className="flex items-center justify-end gap-1">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={() => handleResponse(true)} disabled={isPending} className="text-green-500 hover:bg-green-500/10 hover:text-green-600">
-                                        <Check className="h-4 w-4" />
-                                        <span className="sr-only">Accept Request</span>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Accept</p></TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={() => handleResponse(false)} disabled={isPending} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                                        <XIcon className="h-4 w-4" />
-                                        <span className="sr-only">Decline Request</span>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Decline</p></TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                )}
-                {status === 'friends' && (
-                    <DropdownMenu>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <Users className="h-4 w-4 text-primary" />
-                                            <span className="sr-only">Friends</span>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Friends</p></TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleRemoveFriend}>
-                                <UserX className="mr-2 h-4 w-4" /> Remove Friend
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
-            </div>
-        );
+      switch (status) {
+        case 'loading':
+          return (
+            <Button variant="ghost" size="icon" disabled>
+              <Clock className="h-4 w-4 animate-spin" />
+            </Button>
+          );
+        case 'not_friends':
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleSendRequest}
+                    disabled={isPending}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span className="sr-only">Añadir Amigo</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Añadir Amigo</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        case 'request_sent':
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" disabled>
+                    <Clock className="h-4 w-4" />
+                    <span className="sr-only">Solicitud Enviada</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Solicitud Enviada</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        case 'request_received':
+          return (
+             <DropdownMenu>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="relative">
+                        <UserPlus className="h-4 w-4 text-primary" />
+                        <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-primary ring-1 ring-background" />
+                        <span className="sr-only">Responder a solicitud</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Responder a solicitud</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => handleResponse(true)} disabled={isPending}>
+                  <Check className="mr-2 h-4 w-4" /> Aceptar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={() => handleResponse(false)}
+                  disabled={isPending}
+                >
+                  <XIcon className="mr-2 h-4 w-4" /> Rechazar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        case 'friends':
+          return (
+            <DropdownMenu>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Users className="h-4 w-4 text-primary" />
+                        <span className="sr-only">Amigos</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Amigos</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={handleRemoveFriend}
+                  disabled={isPending}
+                >
+                  <UserX className="mr-2 h-4 w-4" /> Eliminar Amigo
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        default:
+          return null;
+      }
     }
     
     switch (status) {
@@ -296,14 +327,14 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
         return (
           <Button onClick={handleSendRequest} disabled={isPending} className="w-full">
             <UserPlus className="mr-2 h-4 w-4" />
-            Add Friend
+            Añadir Amigo
           </Button>
         );
       case 'request_sent':
         return (
           <Button variant="outline" disabled className="w-full">
             <Clock className="mr-2 h-4 w-4" />
-            Request Sent
+            Solicitud Enviada
           </Button>
         );
       case 'request_received':
@@ -311,11 +342,11 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
             <div className="flex gap-2 w-full">
                 <Button onClick={() => handleResponse(true)} disabled={isPending} className="w-full">
                     <Check className="mr-2 h-4 w-4" />
-                    Accept
+                    Aceptar
                 </Button>
                  <Button onClick={() => handleResponse(false)} disabled={isPending} className="w-full" variant="secondary">
                     <XIcon className="mr-2 h-4 w-4" />
-                    Decline
+                    Rechazar
                 </Button>
             </div>
         );
@@ -325,12 +356,12 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" className="w-full">
                 <Users className="mr-2 h-4 w-4" />
-                Friends
+                Amigos
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleRemoveFriend}>
-                <UserX className="mr-2 h-4 w-4" /> Remove Friend
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleRemoveFriend} disabled={isPending}>
+                <UserX className="mr-2 h-4 w-4" /> Eliminar Amigo
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
