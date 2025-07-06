@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Trophy, Gamepad2, Calendar, Shield, User, Eye } from 'lucide-react';
+import { Trophy, Gamepad2, Calendar, Shield, User, Eye, Users } from 'lucide-react';
 import { ProposeTournamentDialog } from '@/components/tournaments/propose-tournament-dialog';
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase/client';
@@ -18,9 +18,9 @@ import Link from 'next/link';
 function TournamentCard({ tournament }: { tournament: Tournament }) {
   const getStatusBadge = (status: 'upcoming' | 'ongoing' | 'completed') => {
     switch (status) {
-      case 'upcoming': return <Badge variant="secondary">Upcoming</Badge>;
-      case 'ongoing': return <Badge className="bg-green-500/20 text-green-400 border-transparent">Ongoing</Badge>;
-      case 'completed': return <Badge variant="outline">Completed</Badge>;
+      case 'upcoming': return <Badge variant="secondary">Próximo</Badge>;
+      case 'ongoing': return <Badge className="bg-green-500/20 text-green-400 border-transparent">En curso</Badge>;
+      case 'completed': return <Badge variant="outline">Completado</Badge>;
       default: return null;
     }
   }
@@ -41,22 +41,26 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
       <CardContent className="flex-grow space-y-3">
         <div className="flex items-center text-sm text-muted-foreground gap-2">
             <Calendar className="h-4 w-4" />
-            <span>Starts: {format(tournament.startDate.toDate(), "PPP")}</span>
+            <span>Inicia: {format(tournament.startDate.toDate(), "PPP")}</span>
         </div>
         <div className="flex items-center text-sm text-muted-foreground gap-2">
             <Shield className="h-4 w-4" />
             <span className="capitalize">{tournament.format.replace('-', ' ')}</span>
         </div>
          <div className="flex items-center text-sm text-muted-foreground gap-2">
+            <Users className="h-4 w-4" />
+            <span>{tournament.participants?.length || 0} equipos inscritos</span>
+        </div>
+         <div className="flex items-center text-sm text-muted-foreground gap-2">
             <User className="h-4 w-4" />
-            <span>Organized by {tournament.organizer.name}</span>
+            <span>Organizado por {tournament.organizer.name}</span>
         </div>
       </CardContent>
       <CardFooter>
         <Button variant="outline" className="w-full" asChild>
           <Link href={`/tournaments/${tournament.id}`}>
             <Eye className="mr-2 h-4 w-4" />
-            View Details
+            Ver Detalles
           </Link>
         </Button>
       </CardFooter>
