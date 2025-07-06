@@ -190,6 +190,48 @@ export default function TeamProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             {/* LEFT COLUMN */}
             <div className="lg:col-span-2 space-y-6">
+                {team.videoUrl && (
+                    <Card>
+                        <CardContent className="p-0">
+                            <div className="aspect-video">
+                                <iframe
+                                    className="w-full h-full rounded-lg"
+                                    src={safeVideoUrl}
+                                    title="Vídeo de Presentación del Equipo"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                         </CardContent>
+                    </Card>
+                )}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
+                        {team.lookingForPlayers && team.founder !== user?.uid && (
+                            <Button
+                                onClick={handleApply}
+                                disabled={isPending}
+                            >
+                                <UserPlus className="mr-2 h-4 w-4" /> 
+                                {isPending ? 'Aplicando...' : 'Aplicar al Equipo'}
+                            </Button>
+                        )}
+                    </CardHeader>
+                    <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {members.map((member) => (
+                            <MemberCard
+                            key={member.id}
+                            profile={member}
+                            isFounder={member.id === team.founder}
+                            />
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+            {/* RIGHT COLUMN */}
+            <div className="lg:col-span-1 space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
@@ -216,39 +258,6 @@ export default function TeamProfilePage() {
                         </p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {members.map((member) => (
-                            <MemberCard
-                            key={member.id}
-                            profile={member}
-                            isFounder={member.id === team.founder}
-                            />
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-            {/* RIGHT COLUMN */}
-            <div className="lg:col-span-1 space-y-6">
-                 {team.videoUrl && (
-                    <Card>
-                        <CardContent className="p-0">
-                            <div className="aspect-video">
-                                <iframe
-                                    className="w-full h-full rounded-lg"
-                                    src={safeVideoUrl}
-                                    title="Vídeo de Presentación del Equipo"
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
-                            </div>
-                         </CardContent>
-                    </Card>
-                )}
                 
                 <Card>
                     <CardHeader>
@@ -271,16 +280,6 @@ export default function TeamProfilePage() {
                                 </p>
                             )}
                         </div>
-                        {team.lookingForPlayers && team.founder !== user?.uid && (
-                            <Button
-                                onClick={handleApply}
-                                disabled={isPending}
-                                className="w-full mt-2"
-                            >
-                                <UserPlus className="mr-2 h-4 w-4" /> 
-                                {isPending ? 'Aplicando...' : 'Aplicar al Equipo'}
-                            </Button>
-                        )}
                     </CardContent>
                 </Card>
                 <Card>
