@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,7 +17,7 @@ import { cn } from '@/lib/utils';
 
 function ChatSidebar() {
     const { user, loading: authLoading } = useAuth();
-    const [chats, setChats] = useState<(Chat & { otherUser?: UserProfile })[]>([]);
+    const [chats, setChats] = useState<(Chat & { otherUser: UserProfile })[]>([]);
     const [loading, setLoading] = useState(true);
     const pathname = usePathname();
 
@@ -25,41 +26,56 @@ function ChatSidebar() {
             setLoading(false);
             return;
         }
+
+        let isMounted = true;
         setLoading(true);
         
         const chatsQuery = query(
             collection(db, 'chats'), 
             where('members', 'array-contains', user.uid)
         );
+
         const unsubscribeChats = onSnapshot(chatsQuery, async (snapshot) => {
             if (snapshot.empty) {
-                setChats([]);
-                setLoading(false);
+                if (isMounted) {
+                    setChats([]);
+                    setLoading(false);
+                }
                 return;
             }
             let chatsData = snapshot.docs.map(d => ({ id: d.id, ...d.data({serverTimestamps: 'estimate'}) } as Chat));
 
-            // Client-side sorting to avoid missing Firestore index error
             chatsData.sort((a, b) => (b.lastMessageAt?.toMillis() || 0) - (a.lastMessageAt?.toMillis() || 0));
 
-            const chatsWithUsers = await Promise.all(chatsData.map(async (chat) => {
+            const chatPromises = chatsData.map(async (chat) => {
                 const otherUserId = chat.members.find(id => id !== user.uid);
-                if (!otherUserId) return chat;
+                if (!otherUserId) return null;
                 const userDoc = await getDoc(doc(db, 'users', otherUserId));
-                return { ...chat, otherUser: userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } as UserProfile : undefined };
-            }));
-            setChats(chatsWithUsers);
-            setLoading(false);
+                if (!userDoc.exists()) return null; // Filter out chats with deleted users
+                
+                return { ...chat, otherUser: { id: userDoc.id, ...userDoc.data() } as UserProfile };
+            });
+
+            const chatsWithUsers = (await Promise.all(chatPromises)).filter(Boolean) as (Chat & { otherUser: UserProfile })[];
+            
+            if (isMounted) {
+                setChats(chatsWithUsers);
+                setLoading(false);
+            }
         }, (error) => {
             console.error("Error fetching chats: ", error);
-            setLoading(false);
+            if (isMounted) {
+                setLoading(false);
+            }
         });
 
         return () => {
+            isMounted = false;
             unsubscribeChats();
         };
 
     }, [user]);
+
 
     if (authLoading || loading) {
         return (
@@ -80,7 +96,7 @@ function ChatSidebar() {
     return (
         <ScrollArea className="flex-1">
             <nav className="p-2 space-y-1">
-                {chats.length > 0 ? chats.map(chat => chat.otherUser ? (
+                {chats.length > 0 ? chats.map(chat => (
                     <Link
                         key={chat.id}
                         href={`/messages/${chat.id}`}
@@ -108,7 +124,7 @@ function ChatSidebar() {
                             </p>
                         )}
                     </Link>
-                ) : null) : (
+                )) : (
                     <p className="p-4 text-sm text-center text-muted-foreground">No hay chats activos. Envía un mensaje a un amigo.</p>
                 )}
             </nav>

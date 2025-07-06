@@ -1,4 +1,5 @@
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -139,7 +140,6 @@ export const removeFriend = onCall(async ({ auth, data }: { auth?: any, data: Re
   batch.update(friendUserRef, { friends: admin.firestore.FieldValue.arrayRemove(uid) });
 
   // Optional: Clean up the friend request document(s) between them.
-  // This is a "fire-and-forget" query, but should be quick.
   const requestsSnap = await db.collection("friendRequests")
     .where("from", "in", [uid, friendUid])
     .where("to", "in", [uid, friendUid])
@@ -147,7 +147,35 @@ export const removeFriend = onCall(async ({ auth, data }: { auth?: any, data: Re
   
   requestsSnap.forEach(doc => batch.delete(doc.ref));
 
+  // Commit the primary changes first.
   await batch.commit();
+
+  // --- NEW LOGIC: Delete the chat document and its messages ---
+  // This is done after the main batch to ensure friend removal succeeds first,
+  // even if the chat cleanup fails for some reason.
+  try {
+    const members = [uid, friendUid].sort();
+    const chatId = members.join('_');
+    const chatRef = db.collection("chats").doc(chatId);
+    const messagesRef = chatRef.collection("messages");
+
+    // Batched delete of subcollection
+    const batchSize = 400;
+    let snapshot;
+    do {
+      snapshot = await messagesRef.limit(batchSize).get();
+      if (snapshot.empty) break;
+
+      const deleteBatch = db.batch();
+      snapshot.docs.forEach((doc) => deleteBatch.delete(doc.ref));
+      await deleteBatch.commit();
+    } while (!snapshot.empty);
+
+    // Delete the main chat document after its subcollection is empty
+    await chatRef.delete();
+  } catch(error) {
+    console.error(`Failed to delete chat history for friend removal between ${uid} and ${friendUid}. The friendship was removed successfully.`, error);
+  }
 
   return { success: true };
 });
