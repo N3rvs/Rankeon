@@ -165,6 +165,13 @@ export default function UserProfilePage() {
                              <Badge variant="outline" className="flex items-center gap-1.5"><Gamepad2 className="h-3 w-3" />{user.primaryGame}</Badge>
                              {user.country && <Badge variant="secondary" className="flex items-center gap-1.5"><Globe className="h-3 w-3" />{user.country}</Badge>}
                         </div>
+                        {user.skills && user.skills.length > 0 && (
+                            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                                {user.skills.map((skill) => (
+                                    <Badge key={skill} variant="outline">{skill}</Badge>
+                                ))}
+                            </div>
+                        )}
                         <p className="text-muted-foreground text-sm mt-4">
                             {user.bio || "I'm new to SquadUp! Ready to find a team and compete."}
                         </p>
