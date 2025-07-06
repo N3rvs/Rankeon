@@ -10,13 +10,12 @@ import { HonorsSection } from '@/components/profile/honors-section';
 import { TeamInfoCard } from '@/components/profile/team-info-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Frown, MessageSquare, Twitch } from 'lucide-react';
+import { ArrowLeft, Frown, Twitch } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { FriendshipButton } from '@/components/friends/friendship-button';
-import { SendMessageDialog } from '@/components/messages/send-message-dialog';
 import { useRouter } from 'next/navigation';
 
 export default function UserProfilePage() {
@@ -26,7 +25,6 @@ export default function UserProfilePage() {
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user?.uid === id) {
@@ -98,7 +96,6 @@ export default function UserProfilePage() {
 
   return (
     <>
-        <SendMessageDialog recipient={userProfile} open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <div className="lg:col-span-1 space-y-6">
                 <Card>
@@ -108,23 +105,19 @@ export default function UserProfilePage() {
                                 <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name} data-ai-hint="person avatar"/>
                                 <AvatarFallback>{userProfile.name.slice(0, 2)}</AvatarFallback>
                             </Avatar>
-                            <h2 className="text-2xl font-bold font-headline flex items-center gap-2">
-                                <span>{userProfile.name}</span>
-                                {userProfile.isCertifiedStreamer && <Twitch className="h-5 w-5 text-purple-500" />}
-                            </h2>
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-2xl font-bold font-headline flex items-center gap-2">
+                                    <span>{userProfile.name}</span>
+                                    {userProfile.isCertifiedStreamer && <Twitch className="h-5 w-5 text-purple-500" />}
+                                </h2>
+                                <FriendshipButton targetUser={userProfile} variant="icon"/>
+                            </div>
                             <div className="flex flex-wrap items-center justify-center gap-2 mt-1 text-sm text-muted-foreground">
                             {userProfile.role && <Badge variant={getRoleVariant(userProfile.role)} className="capitalize">{userProfile.role}</Badge>}
                             {userProfile.country && <span className="ml-1">{userProfile.country}</span>}
                             </div>
                         </div>
                         <p className="text-muted-foreground mt-4 text-center text-sm">{userProfile.bio || "This user hasn't set a bio yet."}</p>
-                         <div className="flex flex-col gap-2 mt-4">
-                            <FriendshipButton targetUser={userProfile} />
-                            <Button variant="outline" onClick={() => setIsMessageDialogOpen(true)}>
-                                <MessageSquare className="mr-2 h-4 w-4" />
-                                Message
-                            </Button>
-                        </div>
                     </CardContent>
                 </Card>
                 {userProfile.teamId && <TeamInfoCard teamId={userProfile.teamId} />}
