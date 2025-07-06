@@ -14,6 +14,7 @@ import {
   Swords,
   Edit,
   Gamepad2,
+  Globe,
 } from 'lucide-react';
 import React from "react";
 import type { UserRole } from "@/lib/types";
@@ -99,8 +100,8 @@ export default function ProfilePage() {
                         <h2 className="text-2xl font-bold font-headline">{user.name}</h2>
                         <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                              <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">{user.role}</Badge>
-                             <Badge variant="outline" className="flex items-center gap-1"><Gamepad2 className="h-3 w-3" />{user.primaryGame}</Badge>
-                             {user.country && <Badge variant="secondary">{user.country}</Badge>}
+                             <Badge variant="outline" className="flex items-center gap-1.5"><Gamepad2 className="h-3 w-3" />{user.primaryGame}</Badge>
+                             {user.country && <Badge variant="secondary" className="flex items-center gap-1.5"><Globe className="h-3 w-3"/>{user.country}</Badge>}
                         </div>
                         <p className="text-muted-foreground text-sm mt-4">
                             {user.bio || "I'm new to SquadUp! Ready to find a team and compete."}

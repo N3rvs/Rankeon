@@ -91,8 +91,9 @@ function PlayerTable({
                       <h3 className="font-semibold group-hover:underline">
                         {player.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {player.country || 'Location not set'}
+                      <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                        <Globe className="h-3 w-3" />
+                        <span>{player.country || 'Location not set'}</span>
                       </p>
                     </div>
                   </Link>
