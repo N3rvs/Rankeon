@@ -220,13 +220,11 @@ export default function TeamProfilePage() {
   return (
     <div>
       <div className="-mx-4 md:-mx-6 mb-6">
-        <div className="px-4 md:px-6 pb-4">
-            <Button variant="ghost" onClick={() => router.back()}>
+        <div className="relative">
+            <Button variant="ghost" onClick={() => router.back()} className="absolute top-4 left-4 md:left-6 z-20 bg-black/50 text-white hover:bg-black/70 hover:text-white">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Volver
             </Button>
-        </div>
-        <div className="relative">
             <div className="h-48 md:h-64 bg-muted overflow-hidden">
                 <Image
                     src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
