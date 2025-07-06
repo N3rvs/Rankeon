@@ -32,7 +32,7 @@ import { getFlagEmoji } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { TeamCard } from './team-card';
+import Link from 'next/link';
 
 const valorantRanks = [
     { value: 'all', label: 'Todos los Rangos' },
@@ -185,6 +185,107 @@ function PlayerTable({
   );
 }
 
+function TeamTable({
+  teams,
+  loading,
+  isOwnTeam
+}: {
+  teams: Team[];
+  loading: boolean;
+  isOwnTeam: (teamId: string) => boolean;
+}) {
+  const loadingSkeletons = [...Array(5)].map((_, i) => (
+    <TableRow key={i}>
+      <TableCell className="w-1/3">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+      </TableCell>
+      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+      <TableCell><Skeleton className="h-6 w-32" /></TableCell>
+      <TableCell className="text-right"><Skeleton className="h-9 w-24 ml-auto" /></TableCell>
+    </TableRow>
+  ));
+
+  return (
+    <div className="rounded-md border bg-card">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[30%]">Equipo</TableHead>
+            <TableHead>País</TableHead>
+            <TableHead>Rango</TableHead>
+            <TableHead>Roles Buscados</TableHead>
+            <TableHead className="text-right">Acción</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            loadingSkeletons
+          ) : teams.length > 0 ? (
+            teams.map((team) => (
+              <TableRow key={team.id} className={isOwnTeam(team.id) ? 'bg-primary/5' : ''}>
+                <TableCell>
+                  <Link href={`/teams/${team.id}`} className="flex items-center gap-4 group">
+                    <Avatar className="h-10 w-10 rounded-lg">
+                      <AvatarImage src={team.avatarUrl} alt={team.name} data-ai-hint="team logo" />
+                      <AvatarFallback>{team.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold group-hover:underline">{team.name}</h3>
+                      <p className="text-xs text-muted-foreground">{team.game}</p>
+                    </div>
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm text-muted-foreground">{getFlagEmoji(team.country || '')} {team.country || 'N/A'}</span>
+                </TableCell>
+                <TableCell>
+                  {team.rankMin || team.rankMax ? (
+                    <Badge variant="secondary">
+                      {team.rankMin}{team.rankMin && team.rankMax && team.rankMin !== team.rankMax ? ` - ${team.rankMax}` : ''}
+                    </Badge>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">N/A</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {team.lookingForPlayers && team.recruitingRoles && team.recruitingRoles.length > 0 ? (
+                      team.recruitingRoles.slice(0, 2).map((role) => (
+                        <Badge key={role} variant="outline">{role}</Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-sm">
+                        {team.lookingForPlayers ? 'Todos' : 'Cerrado'}
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button asChild variant="outline" size="sm">
+                     <Link href={`/teams/${team.id}`}>Ver Equipo</Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={5} className="h-24 text-center">No se encontraron equipos.</TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+
 export function MarketTabs() {
   const { user, userProfile } = useAuth();
   
@@ -280,29 +381,6 @@ export function MarketTabs() {
     });
   }, [teams, primaryGame, searchQuery, roleFilter, countryFilter]);
 
-  const teamLoadingSkeletons = [...Array(3)].map((_, i) => (
-    <Card key={i}>
-      <Skeleton className="aspect-[16/9] w-full" />
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          <Skeleton className="h-16 w-16 rounded-full -mt-10 border-4 border-card" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-4 w-1/4" />
-          </div>
-        </div>
-        <Skeleton className="h-10 w-full mt-2" />
-        <div className="mt-4 space-y-2">
-          <Skeleton className="h-4 w-1/3" />
-          <div className="flex gap-2">
-            <Skeleton className="h-5 w-16 rounded-full" />
-            <Skeleton className="h-5 w-20 rounded-full" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  ));
-
   return (
     <div className="space-y-6">
       <div className="rounded-lg border bg-card p-4 space-y-4">
@@ -356,21 +434,7 @@ export function MarketTabs() {
           <TabsTrigger value="players">Jugadores</TabsTrigger>
         </TabsList>
         <TabsContent value="teams" className="mt-6">
-          {loadingTeams ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {teamLoadingSkeletons}
-            </div>
-          ) : filteredTeams.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTeams.map(team => (
-                <TeamCard key={team.id} team={team} isOwnTeam={team.id === userProfile?.teamId} />
-              ))}
-            </div>
-          ) : (
-            <Card className="flex items-center justify-center p-10">
-              <p className="text-center text-muted-foreground">No se encontraron equipos con los filtros seleccionados.</p>
-            </Card>
-          )}
+            <TeamTable teams={filteredTeams} loading={loadingTeams} isOwnTeam={(teamId) => teamId === userProfile?.teamId} />
         </TabsContent>
         <TabsContent value="players" className="mt-6">
             <PlayerTable players={filteredPlayers} loading={loadingPlayers} />
