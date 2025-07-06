@@ -14,6 +14,7 @@ import { Edit } from 'lucide-react';
 import { EditProfileForm } from './edit-profile-form';
 import type { UserProfile } from '@/lib/types';
 import { useAuth } from '@/contexts/auth-context';
+import { useI18n } from '@/contexts/i18n-context';
 
 interface EditProfileDialogProps {
     userProfile: UserProfile;
@@ -24,6 +25,7 @@ interface EditProfileDialogProps {
 
 export function EditProfileDialog({ userProfile, open, onOpenChange, children }: EditProfileDialogProps) {
   const { userProfile: loggedInUserProfile } = useAuth();
+  const { t } = useI18n();
   const [internalOpen, setInternalOpen] = useState(false);
 
   const isControlled = open !== undefined && onOpenChange !== undefined;
@@ -39,7 +41,7 @@ export function EditProfileDialog({ userProfile, open, onOpenChange, children }:
           {children || (
             <Button>
               <Edit className="mr-2 h-4 w-4" />
-              Edit Profile
+              {t('ProfilePage.edit_profile')}
             </Button>
           )}
         </DialogTrigger>
@@ -47,10 +49,10 @@ export function EditProfileDialog({ userProfile, open, onOpenChange, children }:
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditingSelf ? 'Edit Your Profile' : `Edit ${userProfile.name}'s Profile`}
+            {isEditingSelf ? t('EditProfileDialog.title_self') : t('EditProfileDialog.title_other', { name: userProfile.name })}
           </DialogTitle>
           <DialogDescription>
-            Make changes to the profile here. Click save when you're done.
+            {t('EditProfileDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <EditProfileForm userProfile={userProfile} onFinished={() => setCurrentOpen(false)} />

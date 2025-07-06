@@ -13,13 +13,7 @@ import { doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-
-const honorsConfig = [
-  { id: 'great_teammate', icon: Heart, label: 'Great Teammate' },
-  { id: 'leader', icon: Shield, label: 'Leader' },
-  { id: 'good_communicator', icon: MessageCircle, label: 'Good Communicator' },
-  { id: 'positive_attitude', icon: Smile, label: 'Positive Attitude' },
-];
+import { useI18n } from '@/contexts/i18n-context';
 
 interface HonorsSectionProps {
   targetUser: UserProfile;
@@ -27,12 +21,21 @@ interface HonorsSectionProps {
 
 export function HonorsSection({ targetUser }: HonorsSectionProps) {
   const { user: currentUser } = useAuth();
+  const { t } = useI18n();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [givenHonors, setGivenHonors] = useState<string[]>([]);
   const [loadingGiven, setLoadingGiven] = useState(true);
   
   const isOwnProfile = currentUser?.uid === targetUser.id;
+
+  const honorsConfig = useMemo(() => [
+    { id: 'great_teammate', icon: Heart, label: t('Honors.great_teammate') },
+    { id: 'leader', icon: Shield, label: t('Honors.leader') },
+    { id: 'good_communicator', icon: MessageCircle, label: t('Honors.good_communicator') },
+    { id: 'positive_attitude', icon: Smile, label: t('Honors.positive_attitude') },
+  ], [t]);
+
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -63,7 +66,7 @@ export function HonorsSection({ targetUser }: HonorsSectionProps) {
     startTransition(async () => {
       const result = await giveHonorToUser(targetUser.id, honorType);
       if (result.success) {
-        toast({ title: 'Honor Awarded!', description: `You've recognized ${targetUser.name} for their skill.` });
+        toast({ title: t('Honors.honor_awarded'), description: t('Honors.honor_awarded_desc', { name: targetUser.name }) });
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -77,7 +80,7 @@ export function HonorsSection({ targetUser }: HonorsSectionProps) {
       <CardHeader className="p-4">
         <CardTitle className="font-headline flex items-center gap-2 text-base">
           <span className="text-primary">✩</span>
-          Honors
+          {t('ProfilePage.honors')}
         </CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-4 gap-3 p-4 pt-0">

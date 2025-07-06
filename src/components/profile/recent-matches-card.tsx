@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/contexts/i18n-context";
 
 const recentMatches = [
   { status: 'Victoria', map: 'Ascent', score: '13-5', k: 25, d: 10, a: 8 },
@@ -13,14 +14,15 @@ const recentMatches = [
 ];
 
 export function RecentMatchesCard() {
+    const { t } = useI18n();
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-headline">
           <Swords className="h-5 w-5" />
-          Partidas Recientes
+          {t('ProfilePage.recent_matches')}
         </CardTitle>
-        <CardDescription>Tus últimas 3 partidas competitivas</CardDescription>
+        <CardDescription>{t('ProfilePage.last_matches_desc')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {recentMatches.map((match, index) => (
@@ -33,7 +35,7 @@ export function RecentMatchesCard() {
               <p className={cn(
                   "font-semibold",
                   match.status === 'Victoria' ? 'text-primary' : 'text-destructive'
-              )}>{match.status}</p>
+              )}>{match.status === 'Victoria' ? t('ProfilePage.victory') : t('ProfilePage.defeat')}</p>
               <p className="text-sm text-muted-foreground">{match.map}</p>
             </div>
             <div className="text-center">
@@ -42,7 +44,7 @@ export function RecentMatchesCard() {
             <div className="hidden sm:block text-sm text-muted-foreground">
               K: <span className="font-medium text-foreground">{match.k}</span> D: <span className="font-medium text-foreground">{match.d}</span> A: <span className="font-medium text-foreground">{match.a}</span>
             </div>
-            <Button variant="ghost" size="sm">Detalles</Button>
+            <Button variant="ghost" size="sm">{t('ProfilePage.details')}</Button>
           </div>
         ))}
       </CardContent>

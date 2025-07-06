@@ -35,6 +35,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useI18n } from '@/contexts/i18n-context';
 
 function ChatHeader({
   recipient,
@@ -47,6 +48,8 @@ function ChatHeader({
   onDeleteHistory: () => void;
   onRemoveFriend: () => void;
 }) {
+  const { t } = useI18n();
+
   if (!recipient) {
     return (
       <div className="p-4 border-b flex items-center justify-between h-16">
@@ -88,22 +91,22 @@ function ChatHeader({
                 <DropdownMenuItem asChild>
                     <Link href={`/users/${recipient.id}`}>
                         <UserCircle className="mr-2 h-4 w-4" />
-                        Ver Perfil
+                        {t('MessagesPage.view_profile')}
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={onRemoveFriend} className="text-destructive focus:text-destructive">
                     <UserX className="mr-2 h-4 w-4" />
-                    Eliminar Amigo
+                    {t('MessagesPage.remove_friend')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={onBlock} className="text-destructive focus:text-destructive">
                     <ShieldBan className="mr-2 h-4 w-4" />
-                    Bloquear Usuario
+                    {t('MessagesPage.block_user')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={onDeleteHistory} className="text-destructive focus:text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Eliminar Historial
+                    {t('MessagesPage.delete_history')}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -158,6 +161,7 @@ function ChatMessages({ messages, recipient, currentUserProfile }: { messages: C
 }
 
 function ChatInput({ recipientId, onSend }: { recipientId: string, onSend: (content: string) => Promise<void>}) {
+    const { t } = useI18n();
     const [newMessage, setNewMessage] = useState('');
     const [isPending, startTransition] = useTransition();
 
@@ -179,7 +183,7 @@ function ChatInput({ recipientId, onSend }: { recipientId: string, onSend: (cont
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Escribe un mensaje..."
+              placeholder={t('MessagesPage.type_message')}
               className="pr-12"
               disabled={isPending}
             />
@@ -199,6 +203,7 @@ function ChatInput({ recipientId, onSend }: { recipientId: string, onSend: (cont
 
 export default function ChatPage() {
     const { user, userProfile, loading: authLoading } = useAuth();
+    const { t } = useI18n();
     const { toast } = useToast();
     const params = useParams();
     const router = useRouter();
@@ -378,15 +383,15 @@ export default function ChatPage() {
             <AlertDialog open={isBlockAlertOpen} onOpenChange={setIsBlockAlertOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Bloquear a {recipient?.name}?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('MessagesPage.block_confirm_title', { name: recipient?.name })}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción es irreversible. No podrás enviar ni recibir mensajes de este usuario y será eliminado de tu lista de amigos.
+                           {t('MessagesPage.block_confirm_desc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction onClick={handleBlockUser} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            {isPending ? 'Bloqueando...' : 'Sí, bloquear'}
+                            {isPending ? t('MessagesPage.blocking') : t('MessagesPage.confirm_block')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -395,15 +400,15 @@ export default function ChatPage() {
             <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar historial del chat?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('MessagesPage.delete_history_title')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción eliminará permanentemente todos los mensajes de esta conversación para ambos participantes. Esta acción no se puede deshacer.
+                            {t('MessagesPage.delete_history_desc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDeleteHistory} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            {isPending ? 'Eliminando...' : 'Sí, eliminar'}
+                            {isPending ? t('MessagesPage.deleting') : t('MessagesPage.confirm_delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -412,15 +417,15 @@ export default function ChatPage() {
             <AlertDialog open={isRemoveFriendAlertOpen} onOpenChange={setIsRemoveFriendAlertOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar a {recipient?.name} de tus amigos?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('MessagesPage.remove_friend_title', { name: recipient?.name })}</AlertDialogTitle>
                         <AlertDialogDescription>
-                           Esta acción eliminará a este usuario de tu lista de amigos y el historial de chat se borrará permanentemente. Para volver a chatear, tendrás que enviar una nueva solicitud de amistad.
+                           {t('MessagesPage.remove_friend_desc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction onClick={handleRemoveFriend} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            {isPending ? 'Eliminando...' : 'Sí, eliminar amigo'}
+                            {isPending ? t('MessagesPage.removing') : t('MessagesPage.confirm_remove')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

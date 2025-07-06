@@ -24,7 +24,7 @@ const messages: Record<Locale, any> = {
 interface I18nContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, values?: { [key: string]: string | number }) => string;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
@@ -32,7 +32,7 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<Locale>('es');
 
-  const t = (key: string): string => {
+  const t = (key: string, values?: { [key: string]: string | number }): string => {
     const keys = key.split('.');
     let result: any = messages[locale];
     for (const k of keys) {
@@ -43,10 +43,20 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         for (const fk of keys) {
           fallbackResult = fallbackResult?.[fk];
         }
-        return fallbackResult || key;
+        result = fallbackResult || key;
+        break;
       }
     }
-    return result || key;
+
+    let str = result || key;
+
+    if (values) {
+      Object.keys(values).forEach(valueKey => {
+        str = str.replace(`{${valueKey}}`, String(values[valueKey]));
+      });
+    }
+
+    return str;
   };
 
   const value = {

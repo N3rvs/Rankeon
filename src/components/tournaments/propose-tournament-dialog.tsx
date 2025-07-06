@@ -17,6 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Textarea } from '../ui/textarea';
+import { useI18n } from '@/contexts/i18n-context';
 
 const tournamentFormats = [
     { value: 'single-elim', label: 'Single Elimination' },
@@ -26,6 +27,7 @@ const tournamentFormats = [
 ];
 
 export function ProposeTournamentDialog() {
+  const { t } = useI18n();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -65,14 +67,14 @@ export function ProposeTournamentDialog() {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Propose Tournament
+          {t('TournamentsPage.propose_tournament')}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Propose a New Tournament</DialogTitle>
+          <DialogTitle>{t('ProposeTournamentDialog.title')}</DialogTitle>
           <DialogDescription>
-            Fill out the details for your tournament idea. Our staff will review it for approval.
+            {t('ProposeTournamentDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -82,9 +84,9 @@ export function ProposeTournamentDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tournament Name</FormLabel>
+                  <FormLabel>{t('ProposeTournamentDialog.name')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., SquadUp Summer Skirmish" {...field} />
+                    <Input placeholder={t('ProposeTournamentDialog.name_placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -96,9 +98,9 @@ export function ProposeTournamentDialog() {
                 name="game"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Game</FormLabel>
+                    <FormLabel>{t('ProposeTournamentDialog.game')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Valorant" {...field} />
+                      <Input placeholder={t('ProposeTournamentDialog.game_placeholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -109,9 +111,9 @@ export function ProposeTournamentDialog() {
                 name="format"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Format</FormLabel>
+                    <FormLabel>{t('ProposeTournamentDialog.format')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Select a format..." /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger><SelectValue placeholder={t('ProposeTournamentDialog.select_format')} /></SelectTrigger></FormControl>
                         <SelectContent>
                             {tournamentFormats.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
                         </SelectContent>
@@ -126,7 +128,7 @@ export function ProposeTournamentDialog() {
               name="proposedDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Proposed Start Date</FormLabel>
+                  <FormLabel>{t('ProposeTournamentDialog.date')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -140,7 +142,7 @@ export function ProposeTournamentDialog() {
                           {field.value ? (
                             format(field.value, "PPP")
                           ) : (
-                            <span>Pick a date</span>
+                            <span>{t('ProposeTournamentDialog.pick_date')}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -165,16 +167,16 @@ export function ProposeTournamentDialog() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description & Rules</FormLabel>
+                  <FormLabel>{t('ProposeTournamentDialog.desc_rules')}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe your tournament, including rules, prize pools, stream links, etc." className="min-h-[100px]" {...field} />
+                    <Textarea placeholder={t('ProposeTournamentDialog.desc_rules_placeholder')} className="min-h-[100px]" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Submitting...' : 'Submit Proposal'}
+              {isPending ? t('ProposeTournamentDialog.submitting') : t('ProposeTournamentDialog.submit')}
             </Button>
           </form>
         </Form>

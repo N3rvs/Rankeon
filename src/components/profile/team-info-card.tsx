@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Swords } from 'lucide-react';
 import Link from 'next/link';
+import { useI18n } from '@/contexts/i18n-context';
 
 interface TeamInfoCardProps {
   teamId: string;
@@ -18,6 +19,7 @@ interface TeamInfoCardProps {
 export function TeamInfoCard({ teamId }: TeamInfoCardProps) {
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!teamId) {
@@ -67,7 +69,7 @@ export function TeamInfoCard({ teamId }: TeamInfoCardProps) {
         <CardHeader>
           <CardTitle className="font-headline flex items-center gap-2 text-lg">
             <Swords className="h-5 w-5 text-primary" />
-            Equipo Actual
+            {t('ProfilePage.current_team')}
           </CardTitle>
         </CardHeader>
         <CardContent>

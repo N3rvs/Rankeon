@@ -12,9 +12,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { useI18n } from '@/contexts/i18n-context';
 
 function ChatList() {
     const { user, loading: authLoading } = useAuth();
+    const { t } = useI18n();
     const [chats, setChats] = useState<Chat[]>([]);
     const [chatPartners, setChatPartners] = useState<Map<string, UserProfile>>(new Map());
     const [unreadChatIds, setUnreadChatIds] = useState<Set<string>>(new Set());
@@ -151,14 +153,14 @@ function ChatList() {
                                         "text-sm text-muted-foreground truncate",
                                         isUnread && !isLastMessageFromMe && "text-foreground font-medium"
                                     )}>
-                                        {isLastMessageFromMe && "Tú: "}{chat.lastMessage?.content || '...'}
+                                        {isLastMessageFromMe && t('MessagesPage.you_prefix')}{chat.lastMessage?.content || '...'}
                                     </p>
                                 </div>
                             </Link>
                         )
                     })
                 ) : (
-                    <p className="p-4 text-sm text-center text-muted-foreground">No tienes conversaciones. Añade amigos desde el mercado para empezar a chatear.</p>
+                    <p className="p-4 text-sm text-center text-muted-foreground">{t('MessagesPage.no_conversations')}</p>
                 )}
             </nav>
         </ScrollArea>
@@ -167,13 +169,14 @@ function ChatList() {
 
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
+    const { t } = useI18n();
     return (
         <div className="h-[calc(100vh-8rem)]">
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 h-full rounded-lg border bg-card">
                 <div className="col-span-1 flex flex-col border-r h-full">
                     <div className="p-4 border-b flex items-center h-16">
                          <h2 className="text-xl font-bold font-headline flex items-center gap-2">
-                            Mensajes Directos
+                            {t('MessagesPage.direct_messages')}
                         </h2>
                     </div>
                     <ChatList />

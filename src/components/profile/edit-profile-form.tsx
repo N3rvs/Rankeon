@@ -21,6 +21,7 @@ import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
 import { useAuth } from '@/contexts/auth-context';
+import { useI18n } from '@/contexts/i18n-context';
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
@@ -98,6 +99,7 @@ const europeanCountries = [
 
 export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
   const { userProfile: loggedInUserProfile, claims: editorClaims } = useAuth();
+  const { t } = useI18n();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -196,9 +198,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                 <AvatarFallback>{userProfile.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="grid w-full max-w-sm items-center gap-1.5">
-                <FormLabel htmlFor="avatar-upload">Update Avatar</FormLabel>
+                <FormLabel htmlFor="avatar-upload">{t('EditProfileDialog.update_avatar')}</FormLabel>
                 <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} disabled={!canEditPersonalInfo} />
-                {!canEditPersonalInfo && <FormDescription>Only the user or an admin can change the avatar.</FormDescription>}
+                {!canEditPersonalInfo && <FormDescription>{t('EditProfileDialog.avatar_admin_only')}</FormDescription>}
             </div>
         </div>
         
@@ -208,11 +210,11 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             name="name"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>{t('EditProfileDialog.name')}</FormLabel>
                 <FormControl>
-                    <Input placeholder="Display name" {...field} disabled={!canEditPersonalInfo} />
+                    <Input placeholder={t('EditProfileDialog.display_name_placeholder')} {...field} disabled={!canEditPersonalInfo} />
                 </FormControl>
-                 {!canEditPersonalInfo && <FormDescription>Only the user or an admin can change this.</FormDescription>}
+                 {!canEditPersonalInfo && <FormDescription>{t('EditProfileDialog.name_admin_only')}</FormDescription>}
                 <FormMessage />
                 </FormItem>
             )}
@@ -222,7 +224,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
               name="country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>{t('EditProfileDialog.country')}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -230,7 +232,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select your country..." />
+                        <SelectValue placeholder={t('EditProfileDialog.select_country')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -252,11 +254,11 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
           name="bio"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bio</FormLabel>
+              <FormLabel>{t('EditProfileDialog.bio')}</FormLabel>
               <FormControl>
-                <Textarea placeholder="Tell us a little about this user" className="resize-none" {...field} disabled={!canEditPersonalInfo} />
+                <Textarea placeholder={t('EditProfileDialog.bio_placeholder')} className="resize-none" {...field} disabled={!canEditPersonalInfo} />
               </FormControl>
-               {!canEditPersonalInfo && <FormDescription>Only the user or an admin can change this.</FormDescription>}
+               {!canEditPersonalInfo && <FormDescription>{t('EditProfileDialog.bio_admin_only')}</FormDescription>}
               <FormMessage />
             </FormItem>
           )}
@@ -265,9 +267,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
         {isGameFieldsLocked && (
             <Alert>
                 <Info className="h-4 w-4" />
-                <AlertTitle>Eres miembro de un equipo</AlertTitle>
+                <AlertTitle>{t('EditProfileDialog.team_member_alert_title')}</AlertTitle>
                 <AlertDescription>
-                   Tus habilidades son gestionadas por el líder de tu equipo. Para cambiarlas, sal de tu equipo actual.
+                   {t('EditProfileDialog.team_member_alert_desc')}
                 </AlertDescription>
             </Alert>
         )}
@@ -277,7 +279,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             name="primaryGame"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Juego Principal</FormLabel>
+                <FormLabel>{t('EditProfileDialog.primary_game')}</FormLabel>
                 <Select onValueChange={(value) => {
                     field.onChange(value);
                     form.setValue('skills', []); // Reset skills when game changes
@@ -287,7 +289,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                 >
                     <FormControl>
                     <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un juego..." />
+                        <SelectValue placeholder={t('EditProfileDialog.select_game')} />
                     </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -305,12 +307,12 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
               name="rank"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Rank</FormLabel>
+                  <FormLabel>{t('EditProfileDialog.rank')}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGameFieldsLocked}>
                     <FormControl>
                         <SelectTrigger>
                             <Shield className="mr-2 h-4 w-4" />
-                            <SelectValue placeholder="Select your rank" />
+                            <SelectValue placeholder={t('EditProfileDialog.select_rank')} />
                         </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -331,9 +333,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
-                        <FormLabel>Looking for a team?</FormLabel>
+                        <FormLabel>{t('EditProfileDialog.looking_for_team')}</FormLabel>
                         <FormDescription>
-                           This makes you visible in the player market.
+                           {t('EditProfileDialog.looking_for_team_desc')}
                         </FormDescription>
                     </div>
                     <FormControl>
@@ -352,9 +354,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             name="skills"
             render={() => (
                 <FormItem>
-                    <FormLabel>Roles / Habilidades</FormLabel>
+                    <FormLabel>{t('EditProfileDialog.skills_roles')}</FormLabel>
                     <FormDescription>
-                        Selecciona hasta 2 roles para tu juego principal.
+                        {t('EditProfileDialog.skills_roles_desc')}
                     </FormDescription>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         {(gameRoles[selectedGame] || []).map((role) => (
@@ -388,7 +390,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
         />
 
         <Button type="submit" className="w-full" disabled={isPending || form.formState.isSubmitting}>
-          {isPending ? 'Saving...' : 'Save Changes'}
+          {isPending ? t('EditProfileDialog.saving') : t('EditProfileDialog.save_changes')}
         </Button>
       </form>
     </Form>

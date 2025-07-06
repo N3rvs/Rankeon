@@ -9,9 +9,11 @@ import { EditProfileDialog } from './edit-profile-dialog';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { Twitch } from 'lucide-react';
+import { useI18n } from '@/contexts/i18n-context';
 
 export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const isOwnProfile = user?.uid === userProfile.id;
 
   const getRoleVariant = (role: string) => {
@@ -47,10 +49,10 @@ export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
             </div>
           </div>
         </div>
-        <p className="text-muted-foreground mt-4">{userProfile.bio || "I'm new to SquadUp! Ready to find a team and compete."}</p>
+        <p className="text-muted-foreground mt-4">{userProfile.bio || t('ProfilePage.bio_placeholder')}</p>
         {isOwnProfile && (
           <EditProfileDialog userProfile={userProfile}>
-             <Button className="w-full mt-4">Editar Perfil</Button>
+             <Button className="w-full mt-4">{t('ProfilePage.edit_profile')}</Button>
           </EditProfileDialog>
         )}
       </CardContent>

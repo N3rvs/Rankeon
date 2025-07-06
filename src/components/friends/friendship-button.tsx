@@ -34,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { useI18n } from '@/contexts/i18n-context';
 
 interface FriendshipButtonProps {
   targetUser: UserProfile;
@@ -51,6 +52,7 @@ type FriendshipStatus =
 export function FriendshipButton({ targetUser, variant = 'default' }: FriendshipButtonProps) {
   const { user, userProfile } = useAuth();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [status, setStatus] = useState<FriendshipStatus>('loading');
   const [requestId, setRequestId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -226,11 +228,11 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
                     disabled={isPending}
                   >
                     <UserPlus className="h-4 w-4" />
-                    <span className="sr-only">Añadir Amigo</span>
+                    <span className="sr-only">{t('FriendshipButton.add_friend')}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Añadir Amigo</p>
+                  <p>{t('FriendshipButton.add_friend')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -242,11 +244,11 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" disabled>
                     <Clock className="h-4 w-4" />
-                    <span className="sr-only">Solicitud Enviada</span>
+                    <span className="sr-only">{t('FriendshipButton.request_sent')}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Solicitud Enviada</p>
+                  <p>{t('FriendshipButton.request_sent')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -261,25 +263,25 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
                       <Button variant="ghost" size="icon" className="relative">
                         <UserPlus className="h-4 w-4 text-primary" />
                         <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-primary ring-1 ring-background" />
-                        <span className="sr-only">Responder a solicitud</span>
+                        <span className="sr-only">{t('FriendshipButton.respond_request')}</span>
                       </Button>
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Responder a solicitud</p>
+                    <p>{t('FriendshipButton.respond_request')}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onSelect={() => handleResponse(true)} disabled={isPending}>
-                  <Check className="mr-2 h-4 w-4" /> Aceptar
+                  <Check className="mr-2 h-4 w-4" /> {t('FriendshipButton.accept')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   onSelect={() => handleResponse(false)}
                   disabled={isPending}
                 >
-                  <XIcon className="mr-2 h-4 w-4" /> Rechazar
+                  <XIcon className="mr-2 h-4 w-4" /> {t('FriendshipButton.decline')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -293,12 +295,12 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
                         <Users className="h-4 w-4 text-primary" />
-                        <span className="sr-only">Amigos</span>
+                        <span className="sr-only">{t('FriendshipButton.friends')}</span>
                       </Button>
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Amigos</p>
+                    <p>{t('FriendshipButton.friends')}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -308,7 +310,7 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
                   onSelect={handleRemoveFriend}
                   disabled={isPending}
                 >
-                  <UserX className="mr-2 h-4 w-4" /> Eliminar Amigo
+                  <UserX className="mr-2 h-4 w-4" /> {t('FriendshipButton.remove_friend')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -322,21 +324,21 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
     
     switch (status) {
       case 'loading':
-        return <Button className="w-full" disabled><Clock className="mr-2 h-4 w-4" /> Loading...</Button>;
+        return <Button className="w-full" disabled><Clock className="mr-2 h-4 w-4" /> {t('FriendshipButton.loading')}</Button>;
       case 'self':
         return null;
       case 'not_friends':
         return (
           <Button onClick={handleSendRequest} disabled={isPending} className="w-full">
             <UserPlus className="mr-2 h-4 w-4" />
-            Añadir Amigo
+            {t('FriendshipButton.add_friend')}
           </Button>
         );
       case 'request_sent':
         return (
           <Button variant="outline" disabled className="w-full">
             <Clock className="mr-2 h-4 w-4" />
-            Solicitud Enviada
+            {t('FriendshipButton.request_sent')}
           </Button>
         );
       case 'request_received':
@@ -344,11 +346,11 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
             <div className="flex gap-2 w-full">
                 <Button onClick={() => handleResponse(true)} disabled={isPending} className="w-full">
                     <Check className="mr-2 h-4 w-4" />
-                    Aceptar
+                    {t('FriendshipButton.accept')}
                 </Button>
                  <Button onClick={() => handleResponse(false)} disabled={isPending} className="w-full" variant="secondary">
                     <XIcon className="mr-2 h-4 w-4" />
-                    Rechazar
+                    {t('FriendshipButton.decline')}
                 </Button>
             </div>
         );
@@ -358,12 +360,12 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" className="w-full">
                 <Users className="mr-2 h-4 w-4" />
-                Amigos
+                {t('FriendshipButton.friends')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={handleRemoveFriend} disabled={isPending}>
-                <UserX className="mr-2 h-4 w-4" /> Eliminar Amigo
+                <UserX className="mr-2 h-4 w-4" /> {t('FriendshipButton.remove_friend')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
