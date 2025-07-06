@@ -218,32 +218,35 @@ export default function TeamProfilePage() {
 
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" onClick={() => router.back()}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Volver
-      </Button>
-
-      <div className="relative -mx-4 md:-mx-6">
-        <div className="h-48 md:h-64 bg-muted overflow-hidden">
-             <Image
-              src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
-              alt={`${team.name} banner`}
-              fill
-              className="object-cover"
-              data-ai-hint="team banner"
-            />
+    <div>
+      <div className="-mx-4 md:-mx-6 mb-6">
+        <div className="px-4 md:px-6 pb-4">
+            <Button variant="ghost" onClick={() => router.back()}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Volver
+            </Button>
         </div>
-        
-        <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
-            <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-background bg-card">
-              <AvatarImage
-                  src={team.avatarUrl}
-                  alt={team.name}
-                  data-ai-hint="team logo"
-              />
-              <AvatarFallback>{team.name.slice(0, 2)}</AvatarFallback>
-            </Avatar>
+        <div className="relative">
+            <div className="h-48 md:h-64 bg-muted overflow-hidden">
+                <Image
+                    src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
+                    alt={`${team.name} banner`}
+                    fill
+                    className="object-cover"
+                    data-ai-hint="team banner"
+                />
+            </div>
+            
+            <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
+                <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-background bg-card">
+                <AvatarImage
+                    src={team.avatarUrl}
+                    alt={team.name}
+                    data-ai-hint="team logo"
+                />
+                <AvatarFallback>{team.name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+            </div>
         </div>
       </div>
       
