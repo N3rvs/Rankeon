@@ -112,7 +112,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
         <div className="h-[calc(100vh-8rem)]">
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 h-full rounded-lg border bg-card">
                 <div className="col-span-1 flex flex-col border-r h-full">
-                    <div className="p-4 border-b">
+                    <div className="p-4 border-b flex items-center h-16">
                          <h2 className="text-xl font-bold font-headline flex items-center gap-2">
                             Mensajes Directos
                         </h2>

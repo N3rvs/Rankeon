@@ -49,7 +49,7 @@ function ChatHeader({
 }) {
   if (!recipient) {
     return (
-      <div className="p-4 border-b flex items-center justify-between">
+      <div className="p-4 border-b flex items-center justify-between h-16">
         <div className="flex items-center gap-4">
           <Skeleton className="h-10 w-10 rounded-full" />
           <Skeleton className="h-6 w-32" />
@@ -59,7 +59,7 @@ function ChatHeader({
   }
 
   return (
-    <div className="p-4 border-b flex items-center justify-between gap-4">
+    <div className="p-4 border-b flex items-center justify-between gap-4 h-16">
         <div className="flex items-center gap-4 flex-1 overflow-hidden">
              <Button variant="ghost" size="icon" className="md:hidden flex-shrink-0" asChild>
                 <Link href="/messages">
