@@ -23,6 +23,7 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
     throw new HttpsError("invalid-argument", "El nombre del equipo y el juego son obligatorios.");
   }
 
+  const isPrivilegedUser = claims.role === 'admin' || claims.role === 'moderator';
   const userRef = db.collection("users").doc(uid);
   
   try {
@@ -33,8 +34,6 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
     if (userData?.teamId) {
         throw new HttpsError('failed-precondition', 'Ya perteneces a un equipo. No puedes crear más de uno.');
     }
-
-    const isPrivilegedUser = claims.role === 'admin' || claims.role === 'moderator';
 
     const teamRef = db.collection("teams").doc();
     
