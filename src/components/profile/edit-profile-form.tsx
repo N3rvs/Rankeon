@@ -115,21 +115,17 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       skills: userProfile.skills || [],
     },
   });
-  
-  const canEditAvatar = loggedInUserProfile?.id === userProfile.id || editorClaims?.role === 'admin';
-  
-  // Determine if the person editing the profile has management privileges.
-  // Platform roles (admin/mod) are checked via claims. Team roles (founder/coach) via Firestore role.
-  const editorIsManager =
-    editorClaims?.role === 'admin' ||
-    editorClaims?.role === 'moderator' ||
-    loggedInUserProfile?.role === 'founder' ||
-    loggedInUserProfile?.role === 'coach';
 
-  // Lock the game fields only if the user being edited is a regular 'player' on a team,
-  // AND the person editing lacks management privileges.
-  const isTeamPlayerProfile = !!userProfile.teamId && userProfile.role === 'player';
-  const isGameFieldsLocked = isTeamPlayerProfile && !editorIsManager;
+  const isEditingSelf = loggedInUserProfile?.id === userProfile.id;
+  const isAdminEditing = editorClaims?.role === 'admin';
+  const isManagerEditing = isAdminEditing || editorClaims?.role === 'moderator' || loggedInUserProfile?.role === 'founder' || loggedInUserProfile?.role === 'coach';
+
+  // Personal info (name, avatar, bio, country) can only be edited by the user themselves or a platform admin.
+  const canEditPersonalInfo = isEditingSelf || isAdminEditing;
+
+  // Game-related fields are locked if a player on a team is editing their own profile.
+  // A manager (founder/coach/admin) can always edit these fields for a team member.
+  const isGameFieldsLocked = isEditingSelf && !!userProfile.teamId && !isManagerEditing;
 
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
@@ -147,20 +143,37 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       try {
         let newAvatarUrl = userProfile.avatarUrl;
 
-        if (avatarFile && canEditAvatar) {
+        if (avatarFile && canEditPersonalInfo) {
           const storageRef = ref(storage, `avatars/${userProfile.id}/${avatarFile.name}`);
           const uploadResult = await uploadBytes(storageRef, avatarFile);
           newAvatarUrl = await getDownloadURL(uploadResult.ref);
         }
         
-        const profileData = data;
-        const userDocRef = doc(db, 'users', userProfile.id);
-        await updateDoc(userDocRef, { ...profileData, avatarUrl: newAvatarUrl });
-        
-        toast({
-            title: 'Profile Updated',
-            description: "The user's profile has been successfully updated.",
-        });
+        // We construct the update payload carefully to respect locked fields.
+        const updatePayload: Partial<ProfileFormValues> & { avatarUrl?: string } = {};
+
+        if (canEditPersonalInfo) {
+            updatePayload.name = data.name;
+            updatePayload.country = data.country;
+            updatePayload.bio = data.bio;
+            updatePayload.avatarUrl = newAvatarUrl;
+        }
+
+        if (!isGameFieldsLocked) {
+            updatePayload.primaryGame = data.primaryGame;
+            updatePayload.rank = data.rank;
+            updatePayload.lookingForTeam = data.lookingForTeam;
+            updatePayload.skills = data.skills;
+        }
+
+        if (Object.keys(updatePayload).length > 0) {
+            const userDocRef = doc(db, 'users', userProfile.id);
+            await updateDoc(userDocRef, updatePayload);
+            toast({
+                title: 'Profile Updated',
+                description: "The user's profile has been successfully updated.",
+            });
+        }
         
         onFinished();
       } catch (error: any) {
@@ -184,8 +197,8 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             </Avatar>
             <div className="grid w-full max-w-sm items-center gap-1.5">
                 <FormLabel htmlFor="avatar-upload">Update Avatar</FormLabel>
-                <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} disabled={!canEditAvatar} />
-                {!canEditAvatar && <FormDescription>Only the user or an admin can change the avatar.</FormDescription>}
+                <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} disabled={!canEditPersonalInfo} />
+                {!canEditPersonalInfo && <FormDescription>Only the user or an admin can change the avatar.</FormDescription>}
             </div>
         </div>
         
@@ -197,8 +210,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                 <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                    <Input placeholder="Display name" {...field} />
+                    <Input placeholder="Display name" {...field} disabled={!canEditPersonalInfo} />
                 </FormControl>
+                 {!canEditPersonalInfo && <FormDescription>Only the user or an admin can change this.</FormDescription>}
                 <FormMessage />
                 </FormItem>
             )}
@@ -212,6 +226,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    disabled={!canEditPersonalInfo}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -239,8 +254,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             <FormItem>
               <FormLabel>Bio</FormLabel>
               <FormControl>
-                <Textarea placeholder="Tell us a little about this user" className="resize-none" {...field} />
+                <Textarea placeholder="Tell us a little about this user" className="resize-none" {...field} disabled={!canEditPersonalInfo} />
               </FormControl>
+               {!canEditPersonalInfo && <FormDescription>Only the user or an admin can change this.</FormDescription>}
               <FormMessage />
             </FormItem>
           )}
@@ -324,6 +340,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                         <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled={isGameFieldsLocked}
                         />
                     </FormControl>
                 </FormItem>
