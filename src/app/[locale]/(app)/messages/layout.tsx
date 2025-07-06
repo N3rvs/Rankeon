@@ -56,10 +56,19 @@ function ChatList() {
         );
 
         const unsubscribe = onSnapshot(q, async (snapshot) => {
-            const chatDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
-            setChats(chatDocs);
+            // De-duplicate and sort chats manually to prevent race conditions or unexpected snapshot behavior.
+            const chatMap = new Map<string, Chat>();
+            snapshot.docs.forEach(doc => {
+                chatMap.set(doc.id, { id: doc.id, ...doc.data() } as Chat);
+            });
+            const sortedChats = Array.from(chatMap.values()).sort((a, b) => {
+                const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
+                const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
+                return timeB - timeA;
+            });
+            setChats(sortedChats);
 
-            const partnerIdsToFetch = chatDocs
+            const partnerIdsToFetch = sortedChats
                 .map(chat => chat.members.find(id => id !== user.uid))
                 .filter((id): id is string => !!id && !chatPartners.has(id));
             
