@@ -86,7 +86,9 @@ export type NotificationType =
   | 'new_message'
   | 'friend_request'
   | 'friend_accepted'
-  | 'friend_removed';
+  | 'friend_removed'
+  | 'team_invite_received'
+  | 'team_invite_accepted';
 
 export interface Notification {
   id: string;
@@ -96,6 +98,15 @@ export interface Notification {
   timestamp: Timestamp;
   content?: string; // For new_message, etc.
   extraData?: { [key: string]: any }; // For IDs like requestId, teamId, chatId
+}
+
+export interface TeamInvitation {
+  id: string;
+  fromTeamId: string;
+  fromTeamName: string;
+  toUserId: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+  createdAt: Timestamp;
 }
 
 export interface FriendRequest {

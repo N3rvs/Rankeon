@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useTransition } from 'react';
 import {
   collection,
   query,
@@ -34,6 +34,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { sendTeamInvite } from '@/lib/actions/teams';
 
 const valorantRanks = [
     { value: 'all', label: 'Todos los Rangos' },
@@ -109,13 +110,27 @@ function PlayerTable({
 }) {
   const { userProfile } = useAuth();
   const { toast } = useToast();
+  const [isInviting, startInviting] = useTransition();
 
   const canInvite = userProfile?.teamId && (userProfile.role === 'founder' || userProfile.role === 'coach');
 
-  const handleInvitePlayer = (playerName: string) => {
-    toast({
-        title: 'Función en desarrollo',
-        description: `La función para invitar a ${playerName} a tu equipo estará disponible pronto.`,
+  const handleInvitePlayer = (player: UserProfile) => {
+    if (!canInvite || !userProfile.teamId) return;
+
+    startInviting(async () => {
+        const result = await sendTeamInvite(player.id, userProfile.teamId!);
+        if (result.success) {
+            toast({
+                title: 'Invitación Enviada',
+                description: `Se ha enviado una invitación a ${player.name} para unirse a tu equipo.`,
+            });
+        } else {
+            toast({
+                title: 'Error al Invitar',
+                description: result.message,
+                variant: 'destructive',
+            });
+        }
     });
   };
 
@@ -216,12 +231,12 @@ function PlayerTable({
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <span> {/* Wrapper for disabled button */}
+                                        <span tabIndex={0}>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => handleInvitePlayer(player.name)}
-                                                disabled={!player.lookingForTeam || !!player.teamId}
+                                                onClick={() => handleInvitePlayer(player)}
+                                                disabled={!player.lookingForTeam || !!player.teamId || isInviting}
                                                 aria-label="Invitar al equipo"
                                             >
                                                 <MailPlus className="h-4 w-4" />

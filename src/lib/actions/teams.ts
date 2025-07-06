@@ -152,3 +152,25 @@ export async function setTeamIGL(teamId: string, memberId: string | null): Promi
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
+
+export async function sendTeamInvite(toUserId: string, teamId: string): Promise<ActionResponse> {
+  try {
+    const sendInviteFunc = httpsCallable(functions, 'sendTeamInvite');
+    const result = await sendInviteFunc({ toUserId, teamId });
+    return result.data as ActionResponse;
+  } catch (error: any) {
+    console.error('Error calling sendTeamInvite function:', error);
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+  }
+}
+
+export async function respondToTeamInvite(inviteId: string, accept: boolean): Promise<ActionResponse> {
+  try {
+    const respondFunc = httpsCallable(functions, 'respondToTeamInvite');
+    const result = await respondFunc({ inviteId, accept });
+    return result.data as ActionResponse;
+  } catch (error: any) {
+    console.error('Error calling respondToTeamInvite function:', error);
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+  }
+}

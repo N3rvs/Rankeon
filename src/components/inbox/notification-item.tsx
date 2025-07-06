@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { deleteNotifications } from '@/lib/actions/notifications';
+import { respondToTeamInvite } from '@/lib/actions/teams';
 
 export function NotificationItem({
   notification,
@@ -95,8 +96,30 @@ export function NotificationItem({
     }
     return null;
   }
+  
+  const findInviteId = async (): Promise<string | null> => {
+    if (notification.extraData?.inviteId) {
+        return notification.extraData.inviteId;
+    }
+    // Fallback query if inviteId is missing
+    if (notification.type === 'team_invite_received' && user) {
+        try {
+            const q = query(
+                collection(db, "teamInvitations"),
+                where("fromTeamId", "==", notification.extraData.teamId),
+                where("toUserId", "==", user.uid),
+                where("status", "==", "pending")
+            );
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) return querySnapshot.docs[0].id;
+        } catch (error) {
+            console.error('Error querying for team invite ID:', error);
+        }
+    }
+    return null;
+  }
 
-  const handleResponse = (accept: boolean) => {
+  const handleFriendRequestResponse = (accept: boolean) => {
     startResponding(async () => {
         const requestId = await findRequestId();
         if (!requestId) {
@@ -111,6 +134,25 @@ export function NotificationItem({
             // The notification is now handled, so we delete it.
             // The backend sends a new "friend_accepted" notification if accepted.
             await deleteNotifications([notification.id]);
+        } else {
+            toast({ title: 'Error', description: result.message, variant: 'destructive' });
+        }
+    });
+  };
+
+  const handleTeamInviteResponse = (accept: boolean) => {
+    startResponding(async () => {
+        const inviteId = await findInviteId();
+        if (!inviteId) {
+            toast({ title: 'Invite Unavailable', description: 'This team invitation may have been withdrawn or already handled.' });
+            await deleteNotifications([notification.id]);
+            return;
+        }
+        const result = await respondToTeamInvite(inviteId, accept);
+        if (result.success) {
+            setIsActionTaken(true);
+            toast({ title: 'Success', description: `Team invite ${accept ? 'accepted' : 'rejected'}.` });
+            await deleteNotifications([notification.id]); // The invite notification is now handled.
         } else {
             toast({ title: 'Error', description: result.message, variant: 'destructive' });
         }
@@ -132,11 +174,14 @@ export function NotificationItem({
   };
 
   const getNotificationDetails = () => {
-    const name = fromUser?.name || 'Someone';
+    const fromName = fromUser?.name || 'Someone';
+    const teamName = notification.extraData?.teamName || 'A team';
+
     switch (notification.type) {
-      case 'friend_request': return { icon: UserPlus, message: `${name} sent you a friend request.` };
-      case 'friend_accepted': return { icon: UserCheck, message: `You are now friends with ${name}.` };
-      case 'team_invite_received': return { icon: Users, message: `${name} invited you to a team.` };
+      case 'friend_request': return { icon: UserPlus, message: `${fromName} sent you a friend request.` };
+      case 'friend_accepted': return { icon: UserCheck, message: `You are now friends with ${fromName}.` };
+      case 'team_invite_received': return { icon: Users, message: `${teamName} has invited you to join them.` };
+      case 'team_invite_accepted': return { icon: UserCheck, message: `${fromName} has joined your team.` };
       default: return { icon: Bell, message: 'You have a new notification.' };
     }
   };
@@ -165,10 +210,10 @@ export function NotificationItem({
         {/* Action buttons */}
         {notification.type === 'friend_request' && !isActionTaken && (
           <div className="flex gap-2 pt-1">
-            <Button size="sm" className="h-7 px-2" onClick={() => handleResponse(true)} disabled={isResponding}>
+            <Button size="sm" className="h-7 px-2" onClick={() => handleFriendRequestResponse(true)} disabled={isResponding}>
               <Check className="h-4 w-4 mr-1" /> Accept
             </Button>
-            <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => handleResponse(false)} disabled={isResponding}>
+            <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => handleFriendRequestResponse(false)} disabled={isResponding}>
               <X className="h-4 w-4 mr-1" /> Decline
             </Button>
           </div>
@@ -181,6 +226,24 @@ export function NotificationItem({
               </Button>
                <Button size="sm" variant="ghost" className="h-7 px-2 text-muted-foreground" onClick={handleDismiss} disabled={isDismissing}>
                  {isDismissing ? "..." : "Dismiss"}
+              </Button>
+          </div>
+        )}
+         {notification.type === 'team_invite_received' && !isActionTaken && (
+          <div className="flex gap-2 pt-1">
+            <Button size="sm" className="h-7 px-2" onClick={() => handleTeamInviteResponse(true)} disabled={isResponding}>
+              <Check className="h-4 w-4 mr-1" /> Accept
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => handleTeamInviteResponse(false)} disabled={isResponding}>
+              <X className="h-4 w-4 mr-1" /> Decline
+            </Button>
+          </div>
+        )}
+        {notification.type === 'team_invite_accepted' && (
+           <div className="flex gap-2 pt-1">
+              <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/teams/${notification.extraData.teamId}`)} disabled={isDismissing}>
+                  <Users className="h-4 w-4 mr-1" />
+                  {isDismissing ? "Loading..." : "View Team"}
               </Button>
           </div>
         )}

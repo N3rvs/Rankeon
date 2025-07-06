@@ -398,3 +398,152 @@ export const setTeamIGL = onCall(async ({ auth: requestAuth, data }) => {
         return { success: true, message: "Rol de IGL actualizado."};
     });
 });
+
+
+interface SendTeamInviteData {
+  toUserId: string;
+  teamId: string;
+}
+
+export const sendTeamInvite = onCall(async ({ auth: requestAuth, data }) => {
+  if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+  
+  const callerUid = requestAuth.uid;
+  const { toUserId, teamId } = data as SendTeamInviteData;
+
+  if (!toUserId || !teamId) throw new HttpsError("invalid-argument", "Faltan datos.");
+
+  const teamRef = db.collection("teams").doc(teamId);
+  const memberRef = teamRef.collection("members").doc(callerUid);
+  const recipientRef = db.collection("users").doc(toUserId);
+
+  const [teamSnap, memberSnap, recipientSnap] = await Promise.all([
+    teamRef.get(),
+    memberRef.get(),
+    recipientRef.get(),
+  ]);
+
+  if (!teamSnap.exists) throw new HttpsError("not-found", "El equipo no existe.");
+  if (!recipientSnap.exists) throw new HttpsError("not-found", "El usuario invitado no existe.");
+  
+  const memberData = memberSnap.data();
+  if (!memberSnap.exists || (memberData?.role !== 'founder' && memberData?.role !== 'coach')) {
+    throw new HttpsError("permission-denied", "Solo el fundador o un coach pueden enviar invitaciones.");
+  }
+  
+  const recipientData = recipientSnap.data();
+  if (recipientData?.teamId) {
+    throw new HttpsError("failed-precondition", "Este jugador ya está en un equipo.");
+  }
+
+  const inviteQuery = db.collection("teamInvitations")
+    .where("fromTeamId", "==", teamId)
+    .where("toUserId", "==", toUserId)
+    .where("status", "==", "pending");
+  
+  const existingInvite = await inviteQuery.get();
+  if (!existingInvite.empty) {
+    throw new HttpsError("already-exists", "Ya se ha enviado una invitación a este jugador.");
+  }
+
+  const batch = db.batch();
+  const inviteRef = db.collection("teamInvitations").doc();
+
+  batch.set(inviteRef, {
+    fromTeamId: teamId,
+    fromTeamName: teamSnap.data()?.name,
+    toUserId,
+    status: "pending",
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  const notificationRef = db.collection(`inbox/${toUserId}/notifications`).doc();
+  batch.set(notificationRef, {
+    type: "team_invite_received",
+    from: callerUid, // The person who sent the invite
+    read: false,
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    extraData: { 
+        inviteId: inviteRef.id,
+        teamId: teamId,
+        teamName: teamSnap.data()?.name,
+     }
+  });
+  
+  await batch.commit();
+
+  return { success: true, message: "Invitación enviada." };
+});
+
+interface RespondToTeamInviteData {
+  inviteId: string;
+  accept: boolean;
+}
+
+export const respondToTeamInvite = onCall(async ({ auth: requestAuth, data }) => {
+    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+    const toUserId = requestAuth.uid;
+    const { inviteId, accept } = data as RespondToTeamInviteData;
+
+    if (!inviteId) throw new HttpsError("invalid-argument", "Falta el ID de la invitación.");
+
+    const inviteRef = db.collection("teamInvitations").doc(inviteId);
+
+    return db.runTransaction(async (transaction) => {
+        const inviteSnap = await transaction.get(inviteRef);
+
+        if (!inviteSnap.exists) throw new HttpsError("not-found", "Invitación no encontrada.");
+        const inviteData = inviteSnap.data()!;
+
+        if (inviteData.toUserId !== toUserId) throw new HttpsError("permission-denied", "No puedes responder a esta invitación.");
+        if (inviteData.status !== 'pending') throw new HttpsError("failed-precondition", "La invitación ya ha sido respondida.");
+
+        const teamRef = db.collection("teams").doc(inviteData.fromTeamId);
+        const userRef = db.collection("users").doc(toUserId);
+
+        const [teamSnap, userSnap] = await Promise.all([
+            transaction.get(teamRef),
+            transaction.get(userRef),
+        ]);
+
+        if (!teamSnap.exists) throw new HttpsError("not-found", "El equipo que te invitó ya no existe.");
+        if (userSnap.data()?.teamId) throw new HttpsError("failed-precondition", "Ya te has unido a otro equipo.");
+
+        if (accept) {
+            transaction.update(inviteRef, { status: "accepted" });
+
+            // Add user to team
+            const newMemberRef = teamRef.collection("members").doc(toUserId);
+            transaction.set(newMemberRef, {
+                role: "member",
+                joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            transaction.update(teamRef, {
+                memberIds: admin.firestore.FieldValue.arrayUnion(toUserId)
+            });
+
+            // Update user's profile
+            transaction.update(userRef, { teamId: inviteData.fromTeamId });
+
+            // Send notification to team founder
+            const founderId = teamSnap.data()?.founder;
+            if (founderId) {
+                const notificationRef = db.collection(`inbox/${founderId}/notifications`).doc();
+                transaction.set(notificationRef, {
+                    type: "team_invite_accepted",
+                    from: toUserId,
+                    read: false,
+                    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    extraData: { 
+                        teamId: inviteData.fromTeamId,
+                        newMemberName: userSnap.data()?.name || 'New Player',
+                    }
+                });
+            }
+        } else {
+            transaction.update(inviteRef, { status: "rejected" });
+        }
+
+        return { success: true };
+    });
+});
