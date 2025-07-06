@@ -1,8 +1,8 @@
 import { MarketTabs } from '@/components/market/market-tabs';
 import {getTranslations} from 'next-intl/server';
 
-export async function generateMetadata() {
-  const t = await getTranslations('DashboardPage');
+export async function generateMetadata({params: {locale}}: {params: {locale: string}}) {
+  const t = await getTranslations({locale, namespace: 'DashboardPage'});
   return {
     title: t('title')
   };
