@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { UserProfile } from '@/lib/types';
@@ -11,12 +12,12 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Frown, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { FriendshipButton } from '@/components/friends/friendship-button';
 import { SendMessageDialog } from '@/components/messages/send-message-dialog';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -55,12 +56,13 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-1 space-y-6">
           <Skeleton className="h-56 w-full" />
           <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-32 w-full" />
         </div>
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           <Skeleton className="h-48 w-full" />
         </div>
       </div>
@@ -122,6 +124,7 @@ export default function UserProfilePage() {
                     </CardContent>
                 </Card>
                 {userProfile.teamId && <TeamInfoCard teamId={userProfile.teamId} />}
+                <HonorsSection targetUser={userProfile} />
             </div>
 
             <div className="lg:col-span-2 space-y-6">
@@ -135,7 +138,6 @@ export default function UserProfilePage() {
                          {!userProfile.skills?.length && !userProfile.rank && <p className="text-sm text-muted-foreground">No skills or rank specified.</p>}
                     </CardContent>
                 </Card>
-                <HonorsSection targetUser={userProfile} />
             </div>
         </div>
     </>

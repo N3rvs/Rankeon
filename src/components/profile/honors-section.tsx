@@ -3,7 +3,7 @@
 
 import type { UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Shield, MessageCircle, Smile } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -74,16 +74,13 @@ export function HonorsSection({ targetUser }: HonorsSectionProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2 text-lg">
+      <CardHeader className="p-4">
+        <CardTitle className="font-headline flex items-center gap-2 text-base">
           <span className="text-primary">✩</span>
           Honors
         </CardTitle>
-        <CardDescription>
-          Recognize players for their positive contributions.
-        </CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <CardContent className="grid grid-cols-4 gap-3 p-4 pt-0">
         {honorsConfig.map(honor => {
           const anyHonorGiven = givenHonors.length > 0;
           const isThisHonorGiven = givenHonors.includes(honor.id);
@@ -94,20 +91,20 @@ export function HonorsSection({ targetUser }: HonorsSectionProps) {
              <TooltipProvider key={honor.id}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-col items-center gap-1">
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={() => handleGiveHonor(honor.id)}
                       disabled={isDisabled}
                       className={cn(
-                        "h-14 w-14 rounded-lg bg-primary/5 border-primary/10 text-primary hover:bg-primary/20 relative",
-                        isThisHonorGiven && "bg-primary/20 border-primary/30 ring-2 ring-primary/50"
+                        "relative h-12 w-12 rounded-lg border-primary/10 bg-primary/5 text-primary hover:bg-primary/20",
+                        isThisHonorGiven && "ring-2 ring-primary/50 border-primary/30 bg-primary/20"
                       )}
                     >
-                      <honor.icon className="h-6 w-6" />
+                      <honor.icon className="h-5 w-5" />
                     </Button>
-                    <span className="text-sm font-semibold text-center">{count}</span>
+                    <span className="text-center text-xs font-semibold">{count}</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
