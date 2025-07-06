@@ -99,5 +99,22 @@
     "ukraine": "Ukraine",
     "united_kingdom": "Vereinigtes Königreich",
     "vatican_city": "Vatikanstadt"
+  },
+  "Sidebar": {
+    "profile": "Profil",
+    "market": "Markt",
+    "rooms": "Spielräume",
+    "tournaments": "Turniere",
+    "my_team": "Mein Team",
+    "friends": "Freunde",
+    "admin_panel": "Admin-Panel",
+    "mod_panel": "Mod-Panel",
+    "logout": "Abmelden"
+  },
+  "RoomsPage": {
+    "title": "Spielräume",
+    "subtitle": "Finde eine Gruppe oder erstelle deine eigene, um jetzt zu spielen.",
+    "no_rooms_title": "Keine aktiven Spielräume",
+    "no_rooms_subtitle": "Sei der Erste, der einen erstellt, damit andere beitreten können."
   }
 }

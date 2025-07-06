@@ -99,5 +99,22 @@
     "ukraine": "Ukraine",
     "united_kingdom": "United Kingdom",
     "vatican_city": "Vatican City"
+  },
+  "Sidebar": {
+    "profile": "Profile",
+    "market": "Market",
+    "rooms": "Game Rooms",
+    "tournaments": "Tournaments",
+    "my_team": "My Team",
+    "friends": "Friends",
+    "admin_panel": "Admin Panel",
+    "mod_panel": "Mod Panel",
+    "logout": "Logout"
+  },
+  "RoomsPage": {
+    "title": "Game Rooms",
+    "subtitle": "Find a group or create your own to play now.",
+    "no_rooms_title": "No active game rooms",
+    "no_rooms_subtitle": "Be the first to create one for others to join."
   }
 }

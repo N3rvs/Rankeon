@@ -99,5 +99,22 @@
     "ukraine": "Ucraina",
     "united_kingdom": "Regno Unito",
     "vatican_city": "Città del Vaticano"
+  },
+  "Sidebar": {
+    "profile": "Profilo",
+    "market": "Mercato",
+    "rooms": "Stanze di gioco",
+    "tournaments": "Tornei",
+    "my_team": "La mia squadra",
+    "friends": "Amici",
+    "admin_panel": "Pannello Admin",
+    "mod_panel": "Pannello Mod",
+    "logout": "Esci"
+  },
+  "RoomsPage": {
+    "title": "Stanze di gioco",
+    "subtitle": "Trova un gruppo o creane uno tuo per giocare ora.",
+    "no_rooms_title": "Nessuna stanza di gioco attiva",
+    "no_rooms_subtitle": "Sii il primo a crearne una perché altri si uniscano."
   }
 }

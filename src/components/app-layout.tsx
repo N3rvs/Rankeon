@@ -34,11 +34,13 @@ import { Skeleton } from './ui/skeleton';
 import { InboxIcon } from './inbox/inbox-icon';
 import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/firestore';
 import { LanguageSwitcher } from './i18n/language-switcher';
+import { useI18n } from '@/contexts/i18n-context';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, userProfile, loading, claims } = useAuth();
   const [unreadFriendActivity, setUnreadFriendActivity] = useState(0);
+  const { t } = useI18n();
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -90,12 +92,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/profile')}
-                tooltip="Perfil"
+                tooltip={t('Sidebar.profile')}
                 size="lg"
               >
                 <Link href="/profile">
                   <UserCircle />
-                  <span>Perfil</span>
+                  <span>{t('Sidebar.profile')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -104,12 +106,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/dashboard')}
-                tooltip="Mercado"
+                tooltip={t('Sidebar.market')}
                 size="lg"
               >
                 <Link href="/dashboard">
                   <Store />
-                  <span>Mercado</span>
+                  <span>{t('Sidebar.market')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -118,12 +120,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/rooms')}
-                tooltip="Salas de Juego"
+                tooltip={t('Sidebar.rooms')}
                 size="lg"
               >
                 <Link href="/rooms">
                   <Dices />
-                  <span>Salas de Juego</span>
+                  <span>{t('Sidebar.rooms')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -132,12 +134,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/tournaments')}
-                tooltip="Torneos"
+                tooltip={t('Sidebar.tournaments')}
                 size="lg"
               >
                 <Link href="/tournaments">
                   <Trophy />
-                  <span>Torneos</span>
+                  <span>{t('Sidebar.tournaments')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -146,12 +148,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/teams')}
-                tooltip="Mi Equipo"
+                tooltip={t('Sidebar.my_team')}
                 size="lg"
               >
                 <Link href="/teams">
                   <Swords />
-                  <span>Mi Equipo</span>
+                  <span>{t('Sidebar.my_team')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -160,12 +162,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive('/messages')}
-                tooltip="Amigos"
+                tooltip={t('Sidebar.friends')}
                  size="lg"
               >
                 <Link href="/messages">
                   <Users />
-                  <span>Amigos</span>
+                  <span>{t('Sidebar.friends')}</span>
                 </Link>
               </SidebarMenuButton>
               {unreadFriendActivity > 0 && (
@@ -178,12 +180,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton
                   asChild
                   isActive={isActive('/admin')}
-                  tooltip="Panel Admin"
+                  tooltip={t('Sidebar.admin_panel')}
                    size="lg"
                 >
                   <Link href="/admin">
                     <Shield />
-                    <span>Panel Admin</span>
+                    <span>{t('Sidebar.admin_panel')}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -194,12 +196,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton
                   asChild
                   isActive={isActive('/moderator')}
-                  tooltip="Panel Mod"
+                  tooltip={t('Sidebar.mod_panel')}
                    size="lg"
                 >
                   <Link href="/moderator">
                     <Gavel />
-                    <span>Panel Mod</span>
+                    <span>{t('Sidebar.mod_panel')}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -210,9 +212,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
           <SidebarMenu className="gap-2">
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión" size="lg">
+              <SidebarMenuButton onClick={handleLogout} tooltip={t('Sidebar.logout')} size="lg">
                 <LogOut />
-                <span>Cerrar Sesión</span>
+                <span>{t('Sidebar.logout')}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
