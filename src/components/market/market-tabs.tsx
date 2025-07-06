@@ -216,7 +216,7 @@ function PlayerTable({
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div> {/* Wrapper for disabled button */}
+                                        <span> {/* Wrapper for disabled button */}
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -226,7 +226,7 @@ function PlayerTable({
                                             >
                                                 <MailPlus className="h-4 w-4" />
                                             </Button>
-                                        </div>
+                                        </span>
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         {!player.lookingForTeam ? (
