@@ -33,6 +33,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from './ui/skeleton';
 import { InboxIcon } from './inbox/inbox-icon';
+import { LanguageSwitcher } from './ui/language-switcher';
 import { collection, onSnapshot, query, where, Unsubscribe } from 'firebase/firestore';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -228,7 +229,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <SidebarTrigger className="md:hidden" />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <InboxIcon />
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />

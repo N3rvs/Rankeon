@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 function HomePageContent() {
   const [currentYear, setCurrentYear] = useState<number | null>(null);
@@ -24,7 +25,8 @@ function HomePageContent() {
           <Gamepad2 className="h-8 w-8 text-primary" />
           <h1 className="text-2xl font-bold font-headline">SquadUp</h1>
         </div>
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-2">
+          <LanguageSwitcher />
           <Button variant="ghost" asChild>
             <Link href="/login">Login</Link>
           </Button>
