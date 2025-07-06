@@ -221,7 +221,7 @@ export default function TeamProfilePage() {
     <div className="space-y-6">
       <Button variant="ghost" onClick={() => router.back()}>
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Volver al Mercado
+        Volver
       </Button>
 
       <div className="relative -mx-4 md:-mx-6">

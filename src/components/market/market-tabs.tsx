@@ -108,11 +108,11 @@ function PlayerTable({
   players: UserProfile[];
   loading: boolean;
 }) {
-  const { userProfile } = useAuth();
+  const { userProfile, claims } = useAuth();
   const { toast } = useToast();
   const [isInviting, startInviting] = useTransition();
 
-  const canInvite = userProfile?.teamId && (userProfile.role === 'founder' || userProfile.role === 'coach');
+  const canInvite = userProfile?.teamId && (userProfile.role === 'founder' || userProfile.role === 'coach' || claims?.role === 'admin');
 
   const handleInvitePlayer = (player: UserProfile) => {
     if (!canInvite || !userProfile.teamId) return;
