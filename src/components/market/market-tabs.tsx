@@ -126,7 +126,7 @@ function PlayerTable() {
                       <AvatarFallback>{player.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold">{player.name}</p>
+                      <h3 className="font-semibold">{player.name}</h3>
                       <p className="text-sm text-muted-foreground">
                         {player.country || 'Location not set'}
                       </p>
@@ -197,9 +197,7 @@ function TeamTable() {
           const teamsData = snapshot.docs.map(
             (doc) => ({ id: doc.id, ...doc.data() } as Team)
           );
-          const filteredTeams = teamsData.filter((t) => t.founder !== user.uid);
-
-          setTeams(filteredTeams);
+          setTeams(teamsData);
           setLoading(false);
         },
         (error) => {
@@ -267,7 +265,7 @@ function TeamTable() {
                       <AvatarFallback>{team.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold">{team.name}</p>
+                      <h3 className="font-semibold">{team.name}</h3>
                     </div>
                   </div>
                 </TableCell>
