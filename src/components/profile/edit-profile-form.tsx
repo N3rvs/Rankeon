@@ -118,7 +118,11 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   
   const canEditAvatar = loggedInUserProfile?.id === userProfile.id || loggedInUserProfile?.role === 'admin';
   const isMemberOfTeam = !!userProfile.teamId;
-  const isGameFieldsLocked = (userProfile.role === 'player') ? isMemberOfTeam : false;
+  
+  // Founders and coaches should always be able to edit their own roles.
+  // A regular player ('player' role) on a team has their fields locked
+  // because they are managed by the team leadership.
+  const isGameFieldsLocked = userProfile.role === 'player' && isMemberOfTeam;
 
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
@@ -279,7 +283,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rank</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGameFieldsLocked}>
                     <FormControl>
                         <SelectTrigger>
                             <Shield className="mr-2 h-4 w-4" />
