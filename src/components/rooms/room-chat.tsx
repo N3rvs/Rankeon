@@ -90,7 +90,7 @@ export function RoomChat({ roomId, participants }: RoomChatProps) {
   return (
     <Card className="flex flex-col h-[calc(100vh-theme(spacing.48))]">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-headline">
+        <CardTitle className="font-headline flex items-center gap-2">
           <MessageSquare className="h-6 w-6" /> Sala de Chat
         </CardTitle>
       </CardHeader>
