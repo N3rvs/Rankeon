@@ -18,16 +18,17 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function TournamentDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { userProfile, loading: authLoading } = useAuth();
     const { toast } = useToast();
     const [tournament, setTournament] = useState<Tournament | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (params.id) {
+        if (id) {
             const fetchTournament = async () => {
                 setLoading(true);
-                const docRef = doc(db, 'tournaments', params.id);
+                const docRef = doc(db, 'tournaments', id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     setTournament({ id: docSnap.id, ...docSnap.data({ serverTimestamps: 'estimate' }) } as Tournament);
@@ -36,7 +37,7 @@ export default function TournamentDetailPage({ params }: { params: { id: string 
             };
             fetchTournament();
         }
-    }, [params.id]);
+    }, [id]);
     
     const handleRegister = async () => {
         if (!userProfile?.teamId || !tournament) return;
