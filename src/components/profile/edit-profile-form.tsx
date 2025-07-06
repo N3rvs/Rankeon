@@ -57,6 +57,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   });
 
   const isMemberOfTeam = !!userProfile.teamId;
+  const isGameChangeLocked = userProfile.role === 'admin' || userProfile.role === 'founder' || userProfile.role === 'coach';
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
 
@@ -157,7 +158,15 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
           )}
         />
         
-        {isMemberOfTeam && (
+        {isGameChangeLocked ? (
+             <Alert>
+                <Info className="h-4 w-4" />
+                <AlertTitle>Campos de Juego Bloqueados</AlertTitle>
+                <AlertDescription>
+                  El juego principal y los roles no se pueden cambiar para fundadores, coaches o administradores.
+                </AlertDescription>
+            </Alert>
+        ) : isMemberOfTeam ? (
             <Alert>
                 <Info className="h-4 w-4" />
                 <AlertTitle>Eres miembro de un equipo</AlertTitle>
@@ -165,7 +174,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                    Tu estado de "buscando equipo" y tus habilidades son gestionados por el líder de tu equipo. Para cambiarlos, sal de tu equipo actual.
                 </AlertDescription>
             </Alert>
-        )}
+        ) : null}
 
         <FormField
           control={form.control}
@@ -176,7 +185,10 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
               <Select onValueChange={(value) => {
                   field.onChange(value);
                   form.setValue('skills', []); // Reset skills when game changes
-                }} defaultValue={field.value}>
+                }} 
+                defaultValue={field.value}
+                disabled={isGameChangeLocked}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un juego..." />
@@ -205,7 +217,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                         <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        disabled={isMemberOfTeam}
+                        disabled={isMemberOfTeam || isGameChangeLocked}
                         />
                     </FormControl>
                 </FormItem>
@@ -232,7 +244,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                                 <FormControl>
                                 <Checkbox
                                     checked={field.value?.includes(role)}
-                                    disabled={isMemberOfTeam || (!field.value?.includes(role) && selectedSkills.length >= 2)}
+                                    disabled={isMemberOfTeam || isGameChangeLocked || (!field.value?.includes(role) && selectedSkills.length >= 2)}
                                     onCheckedChange={(checked) => {
                                         const currentSkills = field.value || [];
                                         return checked
