@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -51,6 +52,14 @@ export default {
         moderator: {
           DEFAULT: 'hsl(var(--moderator))',
           foreground: 'hsl(var(--moderator-foreground))',
+        },
+        founder: {
+          DEFAULT: 'hsl(var(--founder))',
+          foreground: 'hsl(var(--founder-foreground))',
+        },
+        coach: {
+          DEFAULT: 'hsl(var(--coach))',
+          foreground: 'hsl(var(--coach-foreground))',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

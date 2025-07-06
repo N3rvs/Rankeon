@@ -20,7 +20,6 @@ import {
     ArrowLeft,
     BarChart2,
     Gamepad2,
-    Globe,
     Swords,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,6 +32,7 @@ import React from 'react';
 import { HonorsSection } from '@/components/profile/honors-section';
 import { TeamInfoCard } from '@/components/profile/team-info-card';
 import Link from 'next/link';
+import { getFlagEmoji } from '@/lib/utils';
 
 // Mock data as this is not in the DB
 const performanceData = {
@@ -71,14 +71,19 @@ const recentMatches = [
   },
 ];
 
-const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderator' => {
-  if (role === 'admin') {
-    return 'premium';
+const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderator' | 'founder' | 'coach' => {
+  switch (role) {
+    case 'admin':
+      return 'premium';
+    case 'moderator':
+      return 'moderator';
+    case 'founder':
+      return 'founder';
+    case 'coach':
+      return 'coach';
+    default:
+      return 'secondary';
   }
-  if (role === 'moderator') {
-    return 'moderator';
-  }
-  return 'secondary';
 };
 
 
@@ -163,7 +168,7 @@ export default function UserProfilePage() {
                         <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                              <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">{user.role}</Badge>
                              <Badge variant="outline" className="flex items-center gap-1.5"><Gamepad2 className="h-3 w-3" />{user.primaryGame}</Badge>
-                             {user.country && <Badge variant="secondary" className="flex items-center gap-1.5"><Globe className="h-3 w-3" />{user.country}</Badge>}
+                             {user.country && <Badge variant="secondary">{getFlagEmoji(user.country)} {user.country}</Badge>}
                         </div>
                         {user.skills && user.skills.length > 0 && (
                             <div className="flex flex-wrap items-center justify-center gap-2 mt-2">

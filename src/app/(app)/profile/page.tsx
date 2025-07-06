@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,12 +15,12 @@ import {
   Swords,
   Edit,
   Gamepad2,
-  Globe,
 } from 'lucide-react';
 import React from "react";
 import type { UserRole } from "@/lib/types";
 import { HonorsSection } from '@/components/profile/honors-section';
 import { TeamInfoCard } from "@/components/profile/team-info-card";
+import { getFlagEmoji } from '@/lib/utils';
 
 // Mock data since this is not in the DB
 const performanceData = {
@@ -58,15 +59,21 @@ const recentMatches = [
   },
 ];
 
-const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderator' => {
-  if (role === 'admin') {
-    return 'premium';
+const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderator' | 'founder' | 'coach' => {
+  switch (role) {
+    case 'admin':
+      return 'premium';
+    case 'moderator':
+      return 'moderator';
+    case 'founder':
+      return 'founder';
+    case 'coach':
+      return 'coach';
+    default:
+      return 'secondary';
   }
-  if (role === 'moderator') {
-    return 'moderator';
-  }
-  return 'secondary';
 };
+
 
 export default function ProfilePage() {
     const { userProfile, loading } = useAuth();
@@ -89,8 +96,6 @@ export default function ProfilePage() {
     }
 
     const user = userProfile;
-    // Assuming a user might have a primary skill or role to display
-    const primarySkill = user.skills && user.skills.length > 0 ? user.skills[0] : 'Iniciador';
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -106,7 +111,7 @@ export default function ProfilePage() {
                         <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                              <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">{user.role}</Badge>
                              <Badge variant="outline" className="flex items-center gap-1.5"><Gamepad2 className="h-3 w-3" />{user.primaryGame}</Badge>
-                             {user.country && <Badge variant="secondary" className="flex items-center gap-1.5"><Globe className="h-3 w-3"/>{user.country}</Badge>}
+                             {user.country && <Badge variant="secondary">{getFlagEmoji(user.country)} {user.country}</Badge>}
                         </div>
                         {user.skills && user.skills.length > 0 && (
                             <div className="flex flex-wrap items-center justify-center gap-2 mt-2">

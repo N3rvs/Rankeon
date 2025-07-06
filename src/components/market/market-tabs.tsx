@@ -490,7 +490,7 @@ export function MarketTabs() {
                         <SelectValue placeholder="Filtrar por país" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">{getFlagEmoji('all')} Todos los Países</SelectItem>
+                        <SelectItem value="all">🏳️ Todos los Países</SelectItem>
                         {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{getFlagEmoji(c.value)} {c.label}</SelectItem>)}
                     </SelectContent>
                 </Select>
