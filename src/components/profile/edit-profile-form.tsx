@@ -97,7 +97,7 @@ const europeanCountries = [
 ];
 
 export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
-  const { userProfile: loggedInUserProfile } = useAuth();
+  const { userProfile: loggedInUserProfile, claims: editorClaims } = useAuth();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -116,24 +116,20 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
     },
   });
   
-  const canEditAvatar = loggedInUserProfile?.id === userProfile.id || loggedInUserProfile?.role === 'admin';
+  const canEditAvatar = loggedInUserProfile?.id === userProfile.id || editorClaims?.role === 'admin';
   
-  // New simplified permission logic
-  // Check if the profile being edited is for a regular player who is on a team.
-  const isTeamPlayer = !!userProfile.teamId && userProfile.role === 'player';
-  
-  // Check if the person editing has rights to manage profiles.
-  const editorCanManageProfiles =
-    loggedInUserProfile?.role === 'admin' ||
-    loggedInUserProfile?.role === 'moderator' ||
+  // Determine if the person editing the profile has management privileges.
+  // Platform roles (admin/mod) are checked via claims. Team roles (founder/coach) via Firestore role.
+  const editorIsManager =
+    editorClaims?.role === 'admin' ||
+    editorClaims?.role === 'moderator' ||
     loggedInUserProfile?.role === 'founder' ||
     loggedInUserProfile?.role === 'coach';
 
-  // Lock game fields if the user being edited is a regular team player,
-  // AND the person editing does NOT have management rights.
-  // This correctly allows a founder to edit their own profile,
-  // and allows admins/mods/coaches to edit player profiles.
-  const isGameFieldsLocked = isTeamPlayer && !editorCanManageProfiles;
+  // Lock the game fields only if the user being edited is a regular 'player' on a team,
+  // AND the person editing lacks management privileges.
+  const isTeamPlayerProfile = !!userProfile.teamId && userProfile.role === 'player';
+  const isGameFieldsLocked = isTeamPlayerProfile && !editorIsManager;
 
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
