@@ -26,7 +26,8 @@ import {
   Shield,
   Gavel,
 } from 'lucide-react';
-import { usePathname, Link } from '@/navigation';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { auth, db } from '@/lib/firebase/client';

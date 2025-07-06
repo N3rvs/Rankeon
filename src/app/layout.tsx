@@ -1,7 +1,40 @@
-import { ReactNode } from "react";
+import type {Metadata} from 'next';
+import './globals.css';
+import { Toaster } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
+import { AuthProvider } from '@/contexts/auth-context';
+import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
 
-// The root layout applies to all routes and is used to configure the HTML document.
-// This is a pass-through component, as the main layout is now in `src/app/[locale]/layout.tsx`.
-export default function RootLayout({children}: {children: ReactNode}) {
-  return children;
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
+const spaceGrotesk = SpaceGrotesk({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-space-grotesk',
+});
+
+export const metadata: Metadata = {
+  title: 'SquadUp MVP',
+  description: 'Find your squad, conquer the game.',
+};
+ 
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="es" className={cn("dark", inter.variable, spaceGrotesk.variable)}>
+      <body className={cn("font-body antialiased")}>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+      </body>
+    </html>
+  );
 }
