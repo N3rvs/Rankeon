@@ -4,8 +4,8 @@
 import { useState, useEffect, useTransition } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase/client';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
-import type { Team, UserProfile } from '@/lib/types';
+import { doc, onSnapshot, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import type { Team, UserProfile, Tournament } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -27,7 +27,9 @@ import {
   Info,
   Target,
   UserPlus,
-  Crown
+  Crown,
+  Trophy,
+  Swords,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -76,6 +78,7 @@ export default function TeamProfilePage() {
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -102,6 +105,26 @@ export default function TeamProfilePage() {
           } else {
             setMembers([]);
           }
+
+          const tournamentsRef = collection(db, 'tournaments');
+          const q = query(tournamentsRef, where('status', '==', 'ongoing'));
+          const tournamentsSnap = await getDocs(q);
+          
+          let participatingTournament: Tournament | null = null;
+          for (const tournamentDoc of tournamentsSnap.docs) {
+              const tournamentData = { id: tournamentDoc.id, ...tournamentDoc.data() } as Tournament;
+              const isParticipating = tournamentData.bracket?.rounds.some(round => 
+                  round.matches.some(match => 
+                      match.team1?.id === teamId || match.team2?.id === teamId
+                  )
+              );
+              if (isParticipating) {
+                  participatingTournament = tournamentData;
+                  break;
+              }
+          }
+          setCurrentTournament(participatingTournament);
+
         } else {
           setTeam(null);
           toast({
@@ -282,6 +305,27 @@ export default function TeamProfilePage() {
                         </div>
                     </CardContent>
                 </Card>
+                {currentTournament && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline flex items-center gap-2">
+                                <Trophy className="h-5 w-5 text-amber-500" />
+                                En Torneo
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground mb-2">
+                                Este equipo está compitiendo actualmente en:
+                            </p>
+                            <Button variant="outline" asChild className="w-full justify-start">
+                                <Link href={`/tournaments/${currentTournament.id}`}>
+                                    <Swords className="h-4 w-4 mr-2" />
+                                    {currentTournament.name}
+                                </Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline">Conecta</CardTitle>
