@@ -52,7 +52,6 @@ const valorantRoles = [
 ];
 
 const europeanCountries = [
-    { value: 'all', label: 'Todos los Países' },
     { value: 'Albania', label: 'Albania' },
     { value: 'Andorra', label: 'Andorra' },
     { value: 'Austria', label: 'Austria' },
@@ -452,7 +451,7 @@ export function MarketTabs() {
                         <SelectValue placeholder="Filtrar por país" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">Todos los Países</SelectItem>
+                        <SelectItem value="all">{getFlagEmoji('all')} Todos los Países</SelectItem>
                         {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{getFlagEmoji(c.value)} {c.label}</SelectItem>)}
                     </SelectContent>
                 </Select>

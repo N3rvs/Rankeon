@@ -39,6 +39,8 @@
     --sidebar-ring: 180 100% 25%;
 
     --premium: 45 93% 47%;
+    --moderator: 262 80% 58%;
+    --moderator-foreground: 0 0% 98%;
   }
   .dark {
     --background: 220 13% 11%;
@@ -74,6 +76,8 @@
     --sidebar-border: 217 33% 25%;
     --sidebar-ring: 180 80% 50%;
     --premium: 45 93% 47%;
+    --moderator: 262 80% 68%;
+    --moderator-foreground: 0 0% 98%;
   }
 }
 

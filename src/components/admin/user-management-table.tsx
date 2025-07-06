@@ -52,9 +52,12 @@ const getStatusBadge = (user: UserProfile) => {
     return <Badge variant="destructive">Banned</Badge>;
 };
 
-const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' => {
-  if (role === 'admin' || role === 'moderator') {
+const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderator' => {
+  if (role === 'admin') {
     return 'premium';
+  }
+  if (role === 'moderator') {
+    return 'moderator';
   }
   return 'secondary';
 };

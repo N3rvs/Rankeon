@@ -17,6 +17,8 @@ const badgeVariants = cva(
         outline: "text-foreground",
         premium:
           "border-transparent bg-premium text-premium-foreground hover:bg-premium/80",
+        moderator:
+          "border-transparent bg-moderator text-moderator-foreground hover:bg-moderator/80",
       },
     },
     defaultVariants: {

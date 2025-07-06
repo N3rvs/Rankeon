@@ -48,6 +48,10 @@ export default {
           DEFAULT: 'hsl(var(--premium))',
           foreground: 'hsl(var(--premium-foreground))',
         },
+        moderator: {
+          DEFAULT: 'hsl(var(--moderator))',
+          foreground: 'hsl(var(--moderator-foreground))',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
