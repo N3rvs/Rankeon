@@ -312,5 +312,50 @@
     "friends": "Friends",
     "remove_friend": "Remove Friend",
     "loading": "Loading..."
+  },
+  "AdminPanel": {
+    "title": "Admin Dashboard",
+    "subtitle": "Global control panel for SquadUp platform management.",
+    "user_management_title": "User Management",
+    "user_management_desc": "View, edit, ban, and manage all users.",
+    "team_management_title": "Team Management",
+    "team_management_desc": "Oversee and delete teams if necessary.",
+    "analytics_dashboard_title": "Analytics Dashboard",
+    "analytics_dashboard_desc": "View sign-ups, revenue, and platform metrics.",
+    "platform_settings_title": "Platform Settings",
+    "platform_settings_desc": "Manage global settings and features.",
+    "go_to_button": "Go to {title}",
+    "back_button": "Back to Admin Dashboard",
+    "user_management_page_title": "User Management",
+    "user_management_page_desc": "Oversee all registered users in the platform.",
+    "team_management_page_title": "Team Management",
+    "analytics_dashboard_page_title": "Analytics Dashboard",
+    "platform_settings_page_title": "Platform Settings",
+    "under_construction": "This page is under construction."
+  },
+  "ModPanel": {
+    "title": "Moderator Panel",
+    "subtitle": "Platform moderation tools.",
+    "admin_access_title": "Admin Access",
+    "admin_access_desc": "You are viewing this panel as an Admin. You have access to all moderation tools.",
+    "go_to_admin_dashboard": "Go to Admin Dashboard &rarr;",
+    "user_management_title": "User Management",
+    "user_management_desc": "View, ban, and manage all users.",
+    "tournament_proposals_title": "Tournament Proposals",
+    "tournament_proposals_desc": "Approve or reject community tournaments.",
+    "support_tickets_title": "Support Tickets",
+    "support_tickets_desc": "View and respond to user support requests.",
+    "chat_moderation_title": "Chat Moderation",
+    "chat_moderation_desc": "Review chat logs for rule violations.",
+    "go_to_button": "Go to {title}",
+    "back_button": "Back to Moderator Panel",
+    "user_management_page_title": "User Management",
+    "user_management_page_desc": "Oversee all registered users in the platform.",
+    "tournament_proposals_page_title": "Tournament Proposals",
+    "tournament_proposals_page_desc": "Approve or reject community-submitted tournaments.",
+    "support_tickets_page_title": "Support Tickets",
+    "chat_moderation_page_title": "Chat Moderation"
   }
 }
+
+    

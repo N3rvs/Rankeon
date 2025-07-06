@@ -312,5 +312,50 @@
     "friends": "Amigos",
     "remove_friend": "Eliminar Amigo",
     "loading": "Cargando..."
+  },
+  "AdminPanel": {
+    "title": "Panel de Administrador",
+    "subtitle": "Panel de control global para la gestión de la plataforma SquadUp.",
+    "user_management_title": "Gestión de Usuarios",
+    "user_management_desc": "Ver, editar, banear y gestionar todos los usuarios.",
+    "team_management_title": "Gestión de Equipos",
+    "team_management_desc": "Supervisar y eliminar equipos si es necesario.",
+    "analytics_dashboard_title": "Panel de Analíticas",
+    "analytics_dashboard_desc": "Ver registros, ingresos y métricas de la plataforma.",
+    "platform_settings_title": "Ajustes de la Plataforma",
+    "platform_settings_desc": "Gestionar ajustes y características globales.",
+    "go_to_button": "Ir a {title}",
+    "back_button": "Volver al Panel de Administrador",
+    "user_management_page_title": "Gestión de Usuarios",
+    "user_management_page_desc": "Supervisar a todos los usuarios registrados en la plataforma.",
+    "team_management_page_title": "Gestión de Equipos",
+    "analytics_dashboard_page_title": "Panel de Analíticas",
+    "platform_settings_page_title": "Ajustes de la Plataforma",
+    "under_construction": "Esta página está en construcción."
+  },
+  "ModPanel": {
+    "title": "Panel de Moderador",
+    "subtitle": "Herramientas de moderación de la plataforma.",
+    "admin_access_title": "Acceso de Administrador",
+    "admin_access_desc": "Estás viendo este panel como Administrador. Tienes acceso a todas las herramientas de moderación.",
+    "go_to_admin_dashboard": "Ir al Panel de Administrador &rarr;",
+    "user_management_title": "Gestión de Usuarios",
+    "user_management_desc": "Ver, banear y gestionar todos los usuarios.",
+    "tournament_proposals_title": "Propuestas de Torneos",
+    "tournament_proposals_desc": "Aprobar o rechazar torneos de la comunidad.",
+    "support_tickets_title": "Tickets de Soporte",
+    "support_tickets_desc": "Ver y responder a solicitudes de soporte de usuarios.",
+    "chat_moderation_title": "Moderación de Chat",
+    "chat_moderation_desc": "Revisar registros de chat por violaciones de reglas.",
+    "go_to_button": "Ir a {title}",
+    "back_button": "Volver al Panel de Moderador",
+    "user_management_page_title": "Gestión de Usuarios",
+    "user_management_page_desc": "Supervisar a todos los usuarios registrados en la plataforma.",
+    "tournament_proposals_page_title": "Propuestas de Torneos",
+    "tournament_proposals_page_desc": "Aprobar o rechazar torneos enviados por la comunidad.",
+    "support_tickets_page_title": "Tickets de Soporte",
+    "chat_moderation_page_title": "Moderación de Chat"
   }
 }
+
+    

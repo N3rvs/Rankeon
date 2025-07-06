@@ -5,33 +5,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowRight, Gavel, Users, Ticket, MessageSquare, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
+import { useI18n } from '@/contexts/i18n-context';
 
 export default function ModeratorPage() {
     const { claims } = useAuth();
+    const { t } = useI18n();
     const isAlsoAdmin = claims?.role === 'admin';
 
     const managementCards = [
         {
-            title: "User Management",
-            description: "View, ban, and manage all users.",
+            title: t('ModPanel.user_management_title'),
+            description: t('ModPanel.user_management_desc'),
             icon: Users,
             href: "/moderator/users",
         },
         {
-            title: "Tournament Proposals",
-            description: "Approve or reject community tournaments.",
+            title: t('ModPanel.tournament_proposals_title'),
+            description: t('ModPanel.tournament_proposals_desc'),
             icon: Gavel,
             href: "/moderator/tournaments",
         },
         {
-            title: "Support Tickets",
-            description: "View and respond to user support requests.",
+            title: t('ModPanel.support_tickets_title'),
+            description: t('ModPanel.support_tickets_desc'),
             icon: Ticket,
             href: "/moderator/tickets",
         },
          {
-            title: "Chat Moderation",
-            description: "Review chat logs for rule violations.",
+            title: t('ModPanel.chat_moderation_title'),
+            description: t('ModPanel.chat_moderation_desc'),
             icon: MessageSquare,
             href: "/moderator/chats",
         }
@@ -42,8 +44,8 @@ export default function ModeratorPage() {
              <div className="flex items-center gap-4">
                 <Gavel className="h-10 w-10 text-primary" />
                 <div>
-                    <h1 className="font-headline text-3xl font-bold">Moderator Panel</h1>
-                    <p className="text-muted-foreground">Platform moderation tools.</p>
+                    <h1 className="font-headline text-3xl font-bold">{t('ModPanel.title')}</h1>
+                    <p className="text-muted-foreground">{t('ModPanel.subtitle')}</p>
                 </div>
             </div>
             
@@ -52,10 +54,10 @@ export default function ModeratorPage() {
                      <CardHeader className="flex-row items-center gap-4">
                         <ShieldCheck className="h-6 w-6 text-primary" />
                          <div>
-                            <CardTitle>Admin Access</CardTitle>
+                            <CardTitle>{t('ModPanel.admin_access_title')}</CardTitle>
                             <CardDescription className="text-muted-foreground">
-                               You are viewing this panel as an Admin. You have access to all moderation tools.
-                                <Button variant="link" asChild className="p-0 h-auto ml-2"><Link href="/admin">Go to Admin Dashboard &rarr;</Link></Button>
+                               {t('ModPanel.admin_access_desc')}
+                                <Button variant="link" asChild className="p-0 h-auto ml-2"><Link href="/admin">{t('ModPanel.go_to_admin_dashboard')}</Link></Button>
                             </CardDescription>
                         </div>
                     </CardHeader>
@@ -76,7 +78,7 @@ export default function ModeratorPage() {
                         <div className="p-6 pt-0">
                              <Button variant="outline" className="w-full" asChild>
                                 <Link href={card.href}>
-                                    Go to {card.title} <ArrowRight className="ml-2 h-4 w-4" />
+                                    {t('ModPanel.go_to_button', { title: card.title })} <ArrowRight className="ml-2 h-4 w-4" />
                                 </Link>
                             </Button>
                         </div>
@@ -86,3 +88,5 @@ export default function ModeratorPage() {
         </div>
     )
 }
+
+    

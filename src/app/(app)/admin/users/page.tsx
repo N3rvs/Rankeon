@@ -9,10 +9,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useI18n } from '@/contexts/i18n-context';
 
 export default function AdminUsersPage() {
     const { claims, loading } = useAuth();
     const router = useRouter();
+    const { t } = useI18n();
 
     const isAdmin = claims?.role === 'admin';
 
@@ -44,7 +46,7 @@ export default function AdminUsersPage() {
             <Button variant="ghost" asChild>
                 <Link href="/admin">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Admin Dashboard
+                    {t('AdminPanel.back_button')}
                 </Link>
             </Button>
              <Card>
@@ -52,8 +54,8 @@ export default function AdminUsersPage() {
                     <div className="flex items-center gap-4">
                         <Users className="h-6 w-6 text-primary" />
                          <div>
-                            <CardTitle className="font-headline text-2xl">User Management</CardTitle>
-                            <CardDescription>Oversee all registered users in the platform.</CardDescription>
+                            <CardTitle className="font-headline text-2xl">{t('AdminPanel.user_management_page_title')}</CardTitle>
+                            <CardDescription>{t('AdminPanel.user_management_page_desc')}</CardDescription>
                         </div>
                     </div>
                 </CardHeader>
@@ -64,3 +66,5 @@ export default function AdminUsersPage() {
         </div>
     )
 }
+
+    
