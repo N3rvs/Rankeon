@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Globe } from "lucide-react"
 import {useLocale, useTranslations} from 'next-intl';
-import {useRouter, usePathname} from 'next-intl/client';
+import {useRouter, usePathname} from 'next-intl/navigation';
 import {useTransition} from 'react';
 
 import { Button } from "@/components/ui/button"

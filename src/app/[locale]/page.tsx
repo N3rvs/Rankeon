@@ -1,16 +1,17 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Gamepad2, Rocket, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next-intl/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useTranslations } from 'next-intl';
-import { Link } from 'next-intl/client';
+import { Link } from 'next-intl/link';
 
 function HomePageContent() {
   const t = useTranslations('HomePage');

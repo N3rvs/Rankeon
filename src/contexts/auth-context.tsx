@@ -1,3 +1,4 @@
+
 // src/contexts/auth-context.tsx
 'use client';
 
@@ -18,7 +19,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next-intl/client';
+import { useRouter } from 'next-intl/navigation';
 import { UserProfile } from '@/lib/types';
 
 interface AuthContextType {

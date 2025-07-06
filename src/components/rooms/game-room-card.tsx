@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,7 +13,7 @@ import { Skeleton } from '../ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import Link from 'next/link';
+import { Link } from 'next-intl/link';
 
 interface GameRoomCardProps {
   room: GameRoom;
