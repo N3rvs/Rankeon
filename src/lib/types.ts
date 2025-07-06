@@ -30,6 +30,9 @@ export interface Team {
   avatarUrl: string;
   bannerUrl: string;
   videoUrl?: string;
+  discordUrl?: string;
+  twitchUrl?: string;
+  twitterUrl?: string;
   founder: string; // UID of the founder
   memberIds: string[]; // UIDs of all members
   lookingForPlayers: boolean;

@@ -50,6 +50,10 @@ export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
         recruitingRoles: [],
         lookingForPlayers: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        videoUrl: '',
+        discordUrl: '',
+        twitchUrl: '',
+        twitterUrl: '',
     });
 
     const memberRef = teamRef.collection("members").doc(uid);
@@ -92,6 +96,11 @@ interface UpdateTeamData {
   lookingForPlayers: boolean;
   recruitingRoles: string[];
   videoUrl?: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  discordUrl?: string;
+  twitchUrl?: string;
+  twitterUrl?: string;
 }
 
 export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
@@ -116,13 +125,7 @@ export const updateTeam = onCall(async ({ auth: requestAuth, data }) => {
             throw new HttpsError("permission-denied", "Solo el fundador o un administrador pueden editar este equipo.");
         }
         
-        await teamRef.update({
-            name: updateData.name,
-            description: updateData.description || '',
-            lookingForPlayers: typeof updateData.lookingForPlayers === 'boolean' ? updateData.lookingForPlayers : false,
-            recruitingRoles: Array.isArray(updateData.recruitingRoles) ? updateData.recruitingRoles : [],
-            videoUrl: updateData.videoUrl || '',
-        });
+        await teamRef.update(updateData);
 
         return { success: true, message: "Equipo actualizado con éxito." };
     } catch (error: any) {

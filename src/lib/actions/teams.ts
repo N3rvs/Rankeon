@@ -23,6 +23,11 @@ export const UpdateTeamSchema = z.object({
   lookingForPlayers: z.boolean(),
   recruitingRoles: z.array(z.string()).optional(),
   videoUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
+  avatarUrl: z.string().url().optional(),
+  bannerUrl: z.string().url().optional(),
+  discordUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
+  twitchUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
+  twitterUrl: z.string().url("Debe ser una URL válida.").or(z.literal("")).optional(),
 });
 export type UpdateTeamData = z.infer<typeof UpdateTeamSchema>;
 
