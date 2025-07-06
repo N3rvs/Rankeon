@@ -254,7 +254,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                             <CardHeader>
                                 <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
                             </CardHeader>
-                            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <CardContent className="grid grid-cols-1 gap-3">
                                 {members.map(member => (
                                     <Card key={member.id} className="p-2 flex items-center justify-between">
                                         <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">

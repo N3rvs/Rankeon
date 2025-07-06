@@ -61,7 +61,14 @@ function MemberCard({
                     </Avatar>
                     <div className="flex flex-col items-start">
                         <span className="font-semibold text-sm group-hover:underline">{profile.name}</span>
-                        <span className="text-xs text-muted-foreground">{profile.role === 'founder' ? 'Founder' : 'Member'}</span>
+                        <span className="text-xs text-muted-foreground capitalize">{isFounder ? 'Founder' : 'Member'}</span>
+                        {profile.skills && profile.skills.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                                {profile.skills.slice(0, 2).map(skill => (
+                                    <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
                 {isFounder && <Crown className="h-4 w-4 text-amber-400" />}
@@ -286,7 +293,7 @@ export default function TeamProfilePage() {
                             )
                         )}
                     </CardHeader>
-                    <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <CardContent className="p-4 grid grid-cols-1 gap-3">
                         {members.map((member) => (
                             <MemberCard
                             key={member.id}
