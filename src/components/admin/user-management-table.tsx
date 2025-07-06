@@ -21,7 +21,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { UserActions } from './user-actions';
 import { useAuth } from '@/contexts/auth-context';
 import { Twitch } from 'lucide-react';
-import { Link } from 'next-intl/navigation';
+import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface UserManagementTableProps {

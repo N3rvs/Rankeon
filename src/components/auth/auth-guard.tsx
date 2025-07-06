@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { useRouter } from 'next-intl/navigation';
+import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function AuthGuard({ children }: { children: ReactNode }) {

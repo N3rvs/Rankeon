@@ -1,10 +1,8 @@
 import { MarketTabs } from '@/components/market/market-tabs';
-import {getTranslations} from 'next-intl/server';
 
-export async function generateMetadata({params: {locale}}: {params: {locale: string}}) {
-  const t = await getTranslations({locale, namespace: 'DashboardPage'});
+export async function generateMetadata() {
   return {
-    title: t('title')
+    title: "Mercado de Equipos y Jugadores (UE)"
   };
 }
 

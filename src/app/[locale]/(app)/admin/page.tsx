@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next-intl/navigation';
-import { Link } from 'next-intl/navigation';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';

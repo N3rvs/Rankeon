@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Link } from 'next-intl/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Gavel, Users, Ticket, MessageSquare, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { sendMessageToFriend } from '@/lib/actions/messages';
-import { useRouter } from 'next-intl/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 
 const messageSchema = z.object({
