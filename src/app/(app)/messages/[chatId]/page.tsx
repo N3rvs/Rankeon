@@ -12,11 +12,11 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { sendMessageToFriend, deleteChatHistory } from '@/lib/actions/messages';
-import { blockUser } from '@/lib/actions/friends';
+import { blockUser, removeFriend } from '@/lib/actions/friends';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, ArrowLeft, MoreVertical, UserCircle, ShieldBan, Trash2 } from 'lucide-react';
+import { Send, ArrowLeft, MoreVertical, UserCircle, ShieldBan, Trash2, UserX } from 'lucide-react';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -40,10 +40,12 @@ function ChatHeader({
   recipient,
   onBlock,
   onDeleteHistory,
+  onRemoveFriend,
 }: {
   recipient: UserProfile | null;
   onBlock: () => void;
   onDeleteHistory: () => void;
+  onRemoveFriend: () => void;
 }) {
   if (!recipient) {
     return (
@@ -85,10 +87,15 @@ function ChatHeader({
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={onRemoveFriend} className="text-destructive focus:text-destructive">
+            <UserX className="mr-2 h-4 w-4" />
+            Eliminar Amigo
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={onBlock} className="text-destructive focus:text-destructive">
             <ShieldBan className="mr-2 h-4 w-4" />
             Bloquear Usuario
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={onDeleteHistory} className="text-destructive focus:text-destructive">
             <Trash2 className="mr-2 h-4 w-4" />
             Eliminar Historial
@@ -199,6 +206,7 @@ export default function ChatPage() {
 
     const [isBlockAlertOpen, setIsBlockAlertOpen] = useState(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+    const [isRemoveFriendAlertOpen, setIsRemoveFriendAlertOpen] = useState(false);
 
     useEffect(() => {
         if (!chatId || !user) {
@@ -261,12 +269,26 @@ export default function ChatPage() {
         });
     }
 
+    const handleRemoveFriend = () => {
+        if (!recipient) return;
+        startTransition(async () => {
+            const result = await removeFriend(recipient.id);
+            if (result.success) {
+                toast({ title: 'Amigo Eliminado', description: `${recipient.name} ya no es tu amigo.` });
+                router.push('/messages');
+            } else {
+                toast({ title: 'Error', description: result.message, variant: 'destructive' });
+            }
+            setIsRemoveFriendAlertOpen(false);
+        });
+    }
+
     const handleDeleteHistory = () => {
         if (!chatId) return;
         startTransition(async () => {
             const result = await deleteChatHistory({ chatId });
             if (result.success) {
-                toast({ title: 'Historial Eliminado', description: 'El historial de este chat ha sido eliminado.' });
+                toast({ title: 'Historial Eliminado', description: 'El historial de este chat ha sido eliminado para ambos.' });
             } else {
                 toast({ title: 'Error', description: result.message, variant: 'destructive' });
             }
@@ -328,12 +350,30 @@ export default function ChatPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            
+            <AlertDialog open={isRemoveFriendAlertOpen} onOpenChange={setIsRemoveFriendAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar a {recipient?.name} de tus amigos?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                           Esta acción eliminará a este usuario de tu lista de amigos. Para volver a chatear, tendrás que enviar una nueva solicitud de amistad.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleRemoveFriend} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            {isPending ? 'Eliminando...' : 'Sí, eliminar amigo'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <div className="flex flex-col h-full">
                 <ChatHeader 
                     recipient={recipient} 
                     onBlock={() => setIsBlockAlertOpen(true)}
                     onDeleteHistory={() => setIsDeleteAlertOpen(true)}
+                    onRemoveFriend={() => setIsRemoveFriendAlertOpen(true)}
                 />
                 <ChatMessages messages={messages} recipient={recipient} currentUserProfile={userProfile} />
                 {recipient && <ChatInput recipientId={recipient.id} onSend={handleSendMessage} />}
@@ -341,5 +381,3 @@ export default function ChatPage() {
         </>
     );
 }
-
-    
