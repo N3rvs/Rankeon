@@ -1,4 +1,3 @@
-
 // src/components/teams/team-applications.tsx
 'use client';
 

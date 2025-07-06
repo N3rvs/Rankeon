@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import type { Team, TeamMember, UserProfile, UserRole } from '@/lib/types';
+import type { Team, TeamMember, UserProfile } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { deleteTeam, kickTeamMember, updateTeamMemberRole, setTeamIGL } from '@/lib/actions/teams';
