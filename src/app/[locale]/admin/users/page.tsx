@@ -1,6 +1,3 @@
-// This file is obsolete. The active admin user management page is now located at:
-// /src/app/[locale]/(app)/admin/users/page.tsx
-// This file is kept to avoid deletion but is intentionally left without a default export
-// to prevent it from being treated as a page by Next.js, which resolves the parallel route conflict.
-
+// This file is intentionally left almost empty to resolve a parallel route conflict.
+// The active admin user management page is located at /src/app/[locale]/(app)/admin/users/page.tsx
 export {};
