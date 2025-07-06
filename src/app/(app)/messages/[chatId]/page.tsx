@@ -16,7 +16,7 @@ import { blockUser, removeFriend } from '@/lib/actions/friends';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, ArrowLeft, UserCircle, ShieldBan, Trash2, UserX } from 'lucide-react';
+import { Send, ArrowLeft, UserCircle, ShieldBan, Trash2, UserX, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -59,22 +59,29 @@ function ChatHeader({
   }
 
   return (
-    <div className="p-4 border-b flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="md:hidden flex-shrink-0" asChild>
-            <Link href="/messages">
-                <ArrowLeft className="h-4 w-4" />
+    <div className="p-4 border-b flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4 flex-1 overflow-hidden">
+             <Button variant="ghost" size="icon" className="md:hidden flex-shrink-0" asChild>
+                <Link href="/messages">
+                    <ArrowLeft className="h-4 w-4" />
+                </Link>
+            </Button>
+            
+            <Link href={`/users/${recipient.id}`} className="flex-1 flex items-center gap-4 overflow-hidden rounded-md p-2 -m-2 hover:bg-muted">
+                <Avatar className="flex-shrink-0">
+                    <AvatarImage src={recipient.avatarUrl} data-ai-hint="person avatar" />
+                    <AvatarFallback>{recipient.name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <h2 className="text-lg font-semibold truncate">{recipient.name}</h2>
             </Link>
-        </Button>
+        </div>
         
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <div className="flex-1 flex items-center gap-4 overflow-hidden cursor-pointer rounded-md p-2 -m-2 hover:bg-muted">
-                    <Avatar className="flex-shrink-0">
-                        <AvatarImage src={recipient.avatarUrl} data-ai-hint="person avatar" />
-                        <AvatarFallback>{recipient.name.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <h2 className="text-lg font-semibold truncate">{recipient.name}</h2>
-                </div>
+                <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                    <span className="sr-only">Chat Actions</span>
+                </Button>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
@@ -354,7 +361,7 @@ export default function ChatPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>¿Eliminar a {recipient?.name} de tus amigos?</AlertDialogTitle>
                         <AlertDialogDescription>
-                           Esta acción eliminará a este usuario de tu lista de amigos. Para volver a chatear, tendrás que enviar una nueva solicitud de amistad.
+                           Esta acción eliminará a este usuario de tu lista de amigos y el historial de chat se borrará permanentemente. Para volver a chatear, tendrás que enviar una nueva solicitud de amistad.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
