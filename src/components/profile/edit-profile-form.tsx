@@ -115,9 +115,9 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
   });
 
   const isMemberOfTeam = !!userProfile.teamId;
-  const canEditGameFields = userProfile.role === 'admin' || userProfile.role === 'founder' || userProfile.role === 'coach';
-  const isGameFieldsLocked = !canEditGameFields;
-  const isRegularMemberOfTeam = isMemberOfTeam && !canEditGameFields;
+  // Game fields are locked only for regular players who are part of a team.
+  // Founders, coaches, admins, and unassigned players can edit these fields.
+  const isGameFieldsLocked = userProfile.role === 'player' && isMemberOfTeam;
 
 
   const selectedGame = form.watch('primaryGame');
@@ -236,16 +236,6 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
         
         {isGameFieldsLocked && (
             <Alert>
-                <Globe className="h-4 w-4" />
-                <AlertTitle>Campos de Juego Bloqueados</AlertTitle>
-                <AlertDescription>
-                  Solo los fundadores, coaches o administradores pueden cambiar el juego principal y los roles.
-                </AlertDescription>
-            </Alert>
-        )}
-
-        {isRegularMemberOfTeam && (
-            <Alert>
                 <Info className="h-4 w-4" />
                 <AlertTitle>Eres miembro de un equipo</AlertTitle>
                 <AlertDescription>
@@ -348,7 +338,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                                 <FormControl>
                                 <Checkbox
                                     checked={field.value?.includes(role)}
-                                    disabled={isGameFieldsLocked || isRegularMemberOfTeam || (!field.value?.includes(role) && selectedSkills.length >= 2)}
+                                    disabled={isGameFieldsLocked || (!field.value?.includes(role) && selectedSkills.length >= 2)}
                                     onCheckedChange={(checked) => {
                                         const currentSkills = field.value || [];
                                         return checked
