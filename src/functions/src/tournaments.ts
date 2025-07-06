@@ -145,7 +145,7 @@ export const registerTeamForTournament = onCall(async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
-    const { uid } = request.auth;
+    const { uid, token } = request.auth;
     const { tournamentId, teamId } = request.data as { tournamentId: string, teamId: string };
 
     if (!tournamentId || !teamId) {
@@ -181,9 +181,14 @@ export const registerTeamForTournament = onCall(async (request) => {
             const teamData = teamSnap.data()!;
             const memberData = memberSnap.data()!;
             const memberRole = memberData.role;
+            const platformRole = token.role;
 
-            if (memberRole !== 'founder' && memberRole !== 'coach') {
-                throw new HttpsError("permission-denied", "Only the team founder or coach can register for a tournament.");
+            const isTeamManager = memberRole === 'founder' || memberRole === 'coach';
+            const isPlatformStaff = platformRole === 'admin' || platformRole === 'moderator';
+
+            // User must be part of the team they are registering, and either a manager or staff.
+            if (!isTeamManager && !isPlatformStaff) {
+                throw new HttpsError("permission-denied", "Only team managers or platform staff can register for a tournament.");
             }
             
             if (tournamentData.status !== 'upcoming') {

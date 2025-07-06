@@ -72,7 +72,7 @@ export default function TournamentDetailPage() {
   const { tournamentId } = useParams() as { tournamentId: string };
   const router = useRouter();
   const { toast } = useToast();
-  const { userProfile } = useAuth();
+  const { userProfile, claims } = useAuth();
 
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [organizer, setOrganizer] = useState<UserProfile | null>(null);
@@ -116,11 +116,6 @@ export default function TournamentDetailPage() {
         toast({ title: "No Team", description: "You must be on a team to register." });
         return;
     }
-    if (userProfile.role !== 'founder' && userProfile.role !== 'coach') {
-        toast({ title: "Permission Denied", description: "Only the team founder or a coach can register the team." });
-        return;
-    }
-
     startRegistering(async () => {
         const result = await registerTeamForTournament({ tournamentId, teamId: userProfile.teamId! });
         if (result.success) {
@@ -131,7 +126,12 @@ export default function TournamentDetailPage() {
     });
   };
   
-  const canRegister = userProfile?.teamId && (userProfile.role === 'founder' || userProfile.role === 'coach');
+  const canRegister = userProfile?.teamId && (
+    userProfile.role === 'founder' 
+    || userProfile.role === 'coach'
+    || claims?.role === 'admin'
+    || claims?.role === 'moderator'
+  );
   const isRegistered = tournament?.participants?.some(p => p.id === userProfile?.teamId);
 
 
@@ -251,7 +251,7 @@ export default function TournamentDetailPage() {
                   </Button>
                 ) : (
                   <Button className="w-full" size="lg" disabled>
-                    {userProfile?.teamId ? "Only Founder/Coach can register" : "You must be on a team to register"}
+                    {userProfile?.teamId ? "Only Founder, Coach or Staff can register" : "You must be on a team to register"}
                   </Button>
                 )
               ) : (
