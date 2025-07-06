@@ -53,7 +53,7 @@ function MemberCard({
   return (
     <Button variant="ghost" asChild className="h-auto w-full p-0">
         <Link href={`/users/${profile.id}`} className="group w-full">
-            <Card className="p-2 w-full flex items-center justify-between transition-colors hover:bg-muted/50">
+            <div className="p-2 w-full flex items-center justify-between transition-colors hover:bg-muted/50 rounded-lg border">
                 <div className="flex items-center gap-3">
                     <Avatar>
                     <AvatarImage src={profile.avatarUrl} data-ai-hint="person avatar" />
@@ -72,7 +72,7 @@ function MemberCard({
                     </div>
                 </div>
                 {isFounder && <Crown className="h-4 w-4 text-amber-400" />}
-            </Card>
+            </div>
         </Link>
     </Button>
   );
@@ -226,32 +226,30 @@ export default function TeamProfilePage() {
 
   return (
     <div>
-      <div className="-mx-4 md:-mx-6 mb-6">
-        <div className="relative">
-            <Button variant="ghost" onClick={() => router.back()} className="absolute top-4 left-4 md:left-6 z-20 bg-black/50 text-white hover:bg-black/70 hover:text-white">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Volver
-            </Button>
-            <div className="h-48 md:h-64 bg-muted overflow-hidden">
-                <Image
-                    src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
-                    alt={`${team.name} banner`}
-                    fill
-                    className="object-cover"
-                    data-ai-hint="team banner"
-                />
-            </div>
-            
-            <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
-                <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-background bg-card">
-                <AvatarImage
-                    src={team.avatarUrl}
-                    alt={team.name}
-                    data-ai-hint="team logo"
-                />
-                <AvatarFallback>{team.name.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-            </div>
+      <div className="relative -mx-4 md:-mx-6 mb-6">
+        <Button variant="ghost" onClick={() => router.back()} className="absolute top-4 left-4 md:left-6 z-20 bg-black/50 text-white hover:bg-black/70 hover:text-white">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver
+        </Button>
+        <div className="h-48 md:h-64 bg-muted overflow-hidden">
+            <Image
+                src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
+                alt={`${team.name} banner`}
+                fill
+                className="object-cover"
+                data-ai-hint="team banner"
+            />
+        </div>
+        
+        <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
+            <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-background bg-card">
+            <AvatarImage
+                src={team.avatarUrl}
+                alt={team.name}
+                data-ai-hint="team logo"
+            />
+            <AvatarFallback>{team.name.slice(0, 2)}</AvatarFallback>
+            </Avatar>
         </div>
       </div>
       
@@ -293,7 +291,7 @@ export default function TeamProfilePage() {
                             )
                         )}
                     </CardHeader>
-                    <CardContent className="p-4 grid grid-cols-1 gap-3">
+                    <CardContent className="p-4 flex flex-col gap-3">
                         {members.map((member) => (
                             <MemberCard
                             key={member.id}
