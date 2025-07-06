@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe } from 'lucide-react';
+import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, getDocs, doc, getDoc } from 'firebase/firestore';
@@ -128,7 +128,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                             <Edit className="mr-2 h-4 w-4" /> Editar Perfil
                         </DropdownMenuItem>
                     )}
-                    {(canEditProfile && (canManageRoles || canSetIGL)) && <DropdownMenuSeparator />}
+                    {(canEditProfile || canManageRoles || canSetIGL) && <DropdownMenuSeparator />}
                     {canManageRoles && (
                         <>
                             {member.role === 'member' && (
