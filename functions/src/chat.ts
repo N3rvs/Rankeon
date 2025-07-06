@@ -37,12 +37,13 @@ export const deleteChatHistory = onCall(async (request) => {
       lastDoc = snapshot.docs[snapshot.docs.length - 1];
     }
 
-    await chatRef.update({
-      lastMessage: admin.firestore.FieldValue.delete(),
-      lastMessageAt: admin.firestore.FieldValue.delete(),
-    });
+    if (chatData?.lastMessage) {
+        await chatRef.update({
+          'lastMessage.content': 'Historial de chat borrado.',
+        });
+    }
 
-    return { success: true, message: "Chat history deleted." };
+    return { success: true, message: "Chat history cleared." };
   } catch (error) {
     console.error("Error deleting chat history:", error);
     throw new HttpsError("internal", "Failed to delete chat history.");
