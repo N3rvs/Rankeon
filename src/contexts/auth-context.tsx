@@ -12,7 +12,6 @@ import { onIdTokenChanged, User as FirebaseUser } from 'firebase/auth';
 import {
   doc,
   onSnapshot,
-  getDoc,
   setDoc,
   serverTimestamp,
   Unsubscribe,
@@ -56,65 +55,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (authUser) {
-        // We get the token result without forcing a refresh.
-        // onIdTokenChanged provides the latest user object.
         const tokenResult = await authUser.getIdTokenResult();
-        
         setUser(authUser);
         setToken(tokenResult.token);
         setClaims(tokenResult.claims);
 
         const userDocRef = doc(db, 'users', authUser.uid);
         
-        const userSnap = await getDoc(userDocRef);
-        if (!userSnap.exists()) {
-          try {
-            await setDoc(userDocRef, {
-              id: authUser.uid,
-              email: authUser.email,
-              role: 'player', // Default role
-              name: authUser.displayName || authUser.email?.split('@')[0] || 'New Player',
-              avatarUrl: authUser.photoURL || `https://placehold.co/100x100.png`,
-              bio: '',
-              primaryGame: "Valorant",
-              skills: [],
-              rank: '',
-              friends: [],
-              blocked: [],
-              lookingForTeam: false,
-              country: '',
-              disabled: false,
-              isCertifiedStreamer: false,
-              createdAt: serverTimestamp(),
-            });
-          } catch (error) {
-            console.error("Error creating user document in AuthProvider:", error);
-          }
-        }
-        
-        unsubscribeProfile = onSnapshot(
-          userDocRef,
-          async (docSnap) => {
+        unsubscribeProfile = onSnapshot(userDocRef, async (docSnap) => {
             if (docSnap.exists()) {
               const newProfileData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
-              // Get the latest token claims to ensure our check is up-to-date
-              const currentTokenResult = await authUser.getIdTokenResult();
-
-              const claimsRefreshedAt = newProfileData._claimsRefreshedAt?.toMillis();
-              const tokenAuthTime = currentTokenResult.claims.auth_time * 1000;
               
-              if (claimsRefreshedAt && claimsRefreshedAt > tokenAuthTime) {
-                // A role change has happened on the backend. Force a token refresh.
-                // This will re-trigger the onIdTokenChanged listener with the new claims.
+              const claimsRefreshedAt = newProfileData._claimsRefreshedAt?.toMillis();
+              const tokenIssuedAt = tokenResult.claims.iat * 1000;
+
+              if (claimsRefreshedAt && claimsRefreshedAt > tokenIssuedAt) {
+                // Role changed, force token refresh.
+                // This triggers `onIdTokenChanged` again with new claims.
                 await authUser.getIdToken(true);
-                return; // Exit early, the listener will re-run with the fresh data.
+                return; // Exit, listener will re-run.
               }
               
               setUserProfile(newProfileData);
+              setLoading(false);
             } else {
-              setUserProfile(null);
+              // User exists in Auth but not Firestore. Create the document.
+              // This is mainly for the first sign-up.
+              try {
+                await setDoc(userDocRef, {
+                  id: authUser.uid,
+                  email: authUser.email,
+                  role: 'player', // Default role
+                  name: authUser.displayName || authUser.email?.split('@')[0] || 'New Player',
+                  avatarUrl: authUser.photoURL || `https://placehold.co/100x100.png`,
+                  bio: '',
+                  primaryGame: "Valorant",
+                  skills: [],
+                  rank: '',
+                  friends: [],
+                  blocked: [],
+                  lookingForTeam: false,
+                  country: '',
+                  disabled: false,
+                  isCertifiedStreamer: false,
+                  createdAt: serverTimestamp(),
+                });
+                // The onSnapshot will automatically re-trigger with the newly created data.
+              } catch (error) {
+                console.error("Error creating user document in onSnapshot:", error);
+                setUserProfile(null);
+                setLoading(false);
+              }
             }
-            setLoading(false);
           },
           (error) => {
             console.error('Auth context profile listener error:', error);
@@ -123,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         );
       } else {
+        // User logged out
         setUser(null);
         setUserProfile(null);
         setToken(null);
@@ -137,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         unsubscribeProfile();
       }
     };
-  }, []); // The effect runs only once on mount to set up the listeners.
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, userProfile, token, claims, loading, setToken }}>
