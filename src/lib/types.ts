@@ -23,6 +23,7 @@ export interface UserProfile {
   teamId?: string | null;
   banUntil?: Timestamp;
   honorCounts?: { [key: string]: number };
+  _claimsRefreshedAt?: Timestamp;
 }
 
 export interface HonorsGiven {

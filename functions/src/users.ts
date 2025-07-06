@@ -2,6 +2,7 @@
 
 
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -37,8 +38,8 @@ export const updateUserRole = onCall(async ({ auth: callerAuth, data }: { auth?:
 
         // Step 1: Set the secure custom claim. This is the source of truth.
         await auth.setCustomUserClaims(uid, { ...existingClaims, role });
-        // Step 2: Update the denormalized role in Firestore for client display.
-        await db.collection('users').doc(uid).set({ role }, { merge: true });
+        // Step 2: Update the denormalized role in Firestore for client display and add refresh timestamp.
+        await db.collection('users').doc(uid).set({ role, _claimsRefreshedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
 
         return { success: true, message: `Role "${role}" assigned to user ${uid}` };
     } catch (error: any) {
@@ -82,6 +83,7 @@ export const updateUserStatus = onCall(async ({ auth: callerAuth, data }: { auth
 
         const userDocRef = db.collection('users').doc(uid);
         let banUntil: admin.firestore.Timestamp | null = null;
+        const claimsRefreshTime = admin.firestore.FieldValue.serverTimestamp();
 
         if (disabled && duration) {
             // Temporary ban
@@ -96,12 +98,14 @@ export const updateUserStatus = onCall(async ({ auth: callerAuth, data }: { auth
         if (disabled) { // Banning
              await userDocRef.update({ 
                 disabled, 
-                banUntil: banUntil // Will be null for permanent, or a timestamp for temporary
+                banUntil: banUntil, // Will be null for permanent, or a timestamp for temporary
+                _claimsRefreshedAt: claimsRefreshTime
             });
         } else { // Unbanning
             await userDocRef.update({ 
                 disabled, 
-                banUntil: admin.firestore.FieldValue.delete() 
+                banUntil: admin.firestore.FieldValue.delete(),
+                _claimsRefreshedAt: claimsRefreshTime 
             });
         }
         
@@ -131,13 +135,17 @@ export const updateUserCertification = onCall(async ({ auth: callerAuth, data }:
         const existingClaims = userToUpdate.customClaims || {};
         // Step 1: Set the secure custom claim.
         await auth.setCustomUserClaims(uid, { ...existingClaims, isCertifiedStreamer: isCertified });
-        // Step 2: Update the denormalized field in Firestore for client display.
-        await db.collection('users').doc(uid).update({ isCertifiedStreamer: isCertified });
+        // Step 2: Update the denormalized field in Firestore for client display and add refresh timestamp.
+        await db.collection('users').doc(uid).update({ 
+            isCertifiedStreamer: isCertified,
+            _claimsRefreshedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
         return { success: true, message: `User certification status updated successfully.` };
     } catch (error: any) {
         console.error('Error updating user certification:', error);
         throw new HttpsError('internal', `Failed to update certification: ${error.message}`);
     }
 });
+
 
 

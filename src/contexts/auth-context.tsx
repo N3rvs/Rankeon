@@ -98,7 +98,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           userDocRef,
           (docSnap) => {
             if (docSnap.exists()) {
-              setUserProfile({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+              const newProfileData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
+
+              // Force a token refresh if custom claims have been updated on the backend.
+              // This is crucial for role changes to take effect immediately.
+              const claimsRefreshedAt = newProfileData._claimsRefreshedAt?.toMillis();
+              // claims.auth_time is in seconds, so multiply by 1000 for milliseconds
+              const tokenAuthTime = claims ? claims.auth_time * 1000 : 0;
+              
+              if (user && claimsRefreshedAt && claimsRefreshedAt > tokenAuthTime) {
+                // This will trigger onIdTokenChanged, which will re-fetch the token
+                // with the new claims and update the state.
+                user.getIdToken(true);
+              }
+              
+              setUserProfile(newProfileData);
             } else {
               setUserProfile(null);
             }
@@ -125,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         unsubscribeProfile();
       }
     };
-  }, []);
+  }, [claims, user]);
 
   return (
     <AuthContext.Provider value={{ user, userProfile, token, claims, loading, setToken }}>
