@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,9 +6,8 @@ import { db } from '@/lib/firebase/client';
 import type { Team } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Eye, Swords } from 'lucide-react';
+import { Swords } from 'lucide-react';
 import Link from 'next/link';
 
 interface TeamInfoCardProps {
@@ -63,15 +61,15 @@ export function TeamInfoCard({ teamId }: TeamInfoCardProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2 text-lg">
-          <Swords className="h-5 w-5 text-primary" />
-          Equipo Actual
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
+    <Card className="transition-colors hover:bg-muted/50">
+      <Link href={`/teams/${team.id}`} className="block">
+        <CardHeader>
+          <CardTitle className="font-headline flex items-center gap-2 text-lg">
+            <Swords className="h-5 w-5 text-primary" />
+            Equipo Actual
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12 rounded-lg">
               <AvatarImage src={team.avatarUrl} alt={team.name} data-ai-hint="team logo" />
@@ -82,14 +80,8 @@ export function TeamInfoCard({ teamId }: TeamInfoCardProps) {
               <p className="text-sm text-muted-foreground">{team.game}</p>
             </div>
           </div>
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/teams/${team.id}`}>
-              <Eye className="mr-2 h-4 w-4" />
-              Ver Equipo
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
+        </CardContent>
+      </Link>
     </Card>
   );
 }

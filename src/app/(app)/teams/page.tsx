@@ -271,6 +271,13 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                                         </>
                                                      )}
                                                 </div>
+                                                {member.skills && member.skills.length > 0 && (
+                                                    <div className="flex items-center gap-1 mt-1">
+                                                        {member.skills.map(skill => (
+                                                            <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         <MemberManager team={team} member={member} currentUserRole={currentUserRole} />
@@ -357,6 +364,7 @@ export default function TeamsPage() {
                               isIGL: memberData.isIGL || false,
                               name: userData.name,
                               avatarUrl: userData.avatarUrl,
+                              skills: userData.skills || [],
                           } as TeamMember
                       }
                       return null;
