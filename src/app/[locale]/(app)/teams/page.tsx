@@ -1,3 +1,4 @@
+
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -423,8 +424,8 @@ export default function TeamsPage() {
     const currentUserMembership = members.find(m => m.id === userProfile?.id);
 
     return (
-        <div className="space-y-6">
-            <div className="relative -mx-4 md:-mx-6">
+        <div>
+            <div className="relative -mx-4 md:-mx-6 -mt-4 md:-mt-6">
                 <div className="h-48 md:h-64 bg-muted overflow-hidden">
                     {team && (
                         <Image

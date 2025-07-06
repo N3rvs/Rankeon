@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
@@ -125,12 +126,8 @@ export default function TeamProfilePage() {
     const isMyTeam = userProfile?.teamId === team.id;
 
     return (
-        <div className="space-y-6">
-            <Button variant="ghost" asChild>
-                <Link href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4"/> Volver al Mercado</Link>
-            </Button>
-            
-            <div className="relative -mx-4 md:-mx-6">
+        <div>
+            <div className="relative -mx-4 md:-mx-6 -mt-4 md:-mt-6">
                 <div className="h-48 md:h-64 bg-muted overflow-hidden">
                     <Image
                         src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
@@ -139,6 +136,12 @@ export default function TeamProfilePage() {
                         className="object-cover"
                         data-ai-hint="team banner"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
+                </div>
+                 <div className="absolute top-6 left-6 z-10">
+                    <Button variant="ghost" asChild className="bg-black/20 hover:bg-black/40 text-white hover:text-white">
+                        <Link href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4"/> Volver al Mercado</Link>
+                    </Button>
                 </div>
                 <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
                     <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-background bg-card">
@@ -150,7 +153,7 @@ export default function TeamProfilePage() {
 
             <div className="pt-14 md:pt-8" />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mt-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                          <CardHeader>
@@ -187,23 +190,25 @@ export default function TeamProfilePage() {
                         <CardHeader><CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             {members.map(member => (
-                                <Link href={`/users/${member.id}`} key={member.id} className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-muted/50">
-                                    <Avatar>
-                                        <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
-                                        <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="font-semibold text-sm">{member.name}</p>
-                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                             {roleIcons[member.role] || null}
-                                             <span className="capitalize">{member.role}</span>
-                                             {member.isIGL && (
-                                                <>
-                                                    <span className="mx-1">·</span>
-                                                    <BrainCircuit className="h-4 w-4 text-sky-400" />
-                                                    <span>IGL</span>
-                                                </>
-                                             )}
+                                <Link href={`/users/${member.id}`} key={member.id} className="flex items-center justify-between p-3 rounded-lg border bg-background hover:bg-muted/50">
+                                    <div className="flex items-center gap-3 group flex-1">
+                                        <Avatar>
+                                            <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
+                                            <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-semibold text-sm group-hover:underline">{member.name}</p>
+                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                 {roleIcons[member.role] || null}
+                                                 <span className="capitalize">{member.role}</span>
+                                                 {member.isIGL && (
+                                                    <>
+                                                        <span className="mx-1">·</span>
+                                                        <BrainCircuit className="h-4 w-4 text-sky-400" />
+                                                        <span>IGL</span>
+                                                    </>
+                                                 )}
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>
