@@ -52,7 +52,6 @@ import { cn } from '@/lib/utils';
 import type { UserStatus } from '@/lib/types';
 import { updateUserPresence } from '@/lib/actions/users';
 import Image from 'next/image';
-import ScrimlyLogo from '@/assets/logo.png';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -107,7 +106,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader className="p-4 pt-6 mb-4">
           <Link href="/" className="flex justify-center">
-            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
+            <Image src="/logo.png" alt="Scrimly Logo" width={100} height={100} />
           </Link>
         </SidebarHeader>
         <SidebarContent>
