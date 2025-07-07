@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import type { Bracket, Match, MatchTeam, Tournament } from '@/lib/types';
+import React, { useState, useTransition } from 'react';
+import type { Match, MatchTeam, Tournament } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -10,8 +10,6 @@ import { useI18n } from '@/contexts/i18n-context';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-// import { updateTournamentMatch } from '@/lib/actions/tournaments'; 
-import { useTransition } from 'react';
 
 // Sub-component for a single match
 const MatchCard = ({
@@ -26,37 +24,34 @@ const MatchCard = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [scores, setScores] = useState({
-    team1: match.team1?.score ?? 0,
-    team2: match.team2?.score ?? 0
+    team1: match.team1?.score ?? '',
+    team2: match.team2?.score ?? ''
   });
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const handleScoreChange = (team: 'team1' | 'team2', value: string) => {
-    const newScore = parseInt(value, 10);
-    if (!isNaN(newScore)) {
+    // Allow empty string to clear the input, but parse as number
+    const newScore = value === '' ? '' : parseInt(value, 10);
+    if (value === '' || (!isNaN(newScore as number) && newScore >= 0)) {
       setScores(prev => ({...prev, [team]: newScore}));
     }
   };
 
   const handleSaveScores = () => {
-    // NOTE: Backend function call is commented out as it's not implemented yet.
-    // This demonstrates the UI for editing.
     console.log("Saving scores:", { tournamentId, matchId: match.id, scores });
     toast({ title: "Edit Mode", description: "Saving functionality is under development." });
     setIsEditing(false);
+    // When backend is ready, this would be:
     /*
     startTransition(async () => {
       const result = await updateTournamentMatch({
         tournamentId,
         matchId: match.id,
-        scores: {
-          team1Score: scores.team1,
-          team2Score: scores.team2,
-        },
+        scores: { team1Score: scores.team1, team2Score: scores.team2 },
       });
-
       if (result.success) {
-        toast({ title: "Match Updated", description: "Scores have been saved." });
+        toast({ title: "Match Updated" });
         setIsEditing(false);
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
@@ -65,13 +60,19 @@ const MatchCard = ({
     */
   }
 
-  const TeamDisplay = ({ team, score, isWinner, isEditing, onScoreChange }: { team?: MatchTeam, score?: number, isWinner: boolean, isEditing: boolean, onScoreChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
-    const { t } = useI18n();
+  const TeamDisplay = ({ team, score, isWinner }: { team?: MatchTeam, score?: number | '', isWinner: boolean }) => {
     if (!team || !team.id) {
-      return <div className="flex items-center h-8 p-2 text-sm text-muted-foreground italic">{t('StandingsTable.tbd')}</div>;
+      return (
+        <div className="flex items-center p-2 text-sm text-muted-foreground italic h-12">
+            {t('StandingsTable.tbd')}
+        </div>
+      );
     }
     return (
-      <div className={cn('flex items-center justify-between p-1', isWinner ? 'font-bold text-foreground' : 'text-muted-foreground')}>
+      <div className={cn(
+        'flex items-center justify-between p-2 h-12',
+        isWinner ? 'font-bold text-foreground' : 'text-muted-foreground',
+      )}>
         <div className="flex items-center gap-2 overflow-hidden">
           <Avatar className="h-6 w-6">
             <AvatarImage src={team.avatarUrl} data-ai-hint="team logo" />
@@ -79,11 +80,7 @@ const MatchCard = ({
           </Avatar>
           <span className="truncate">{team.name}</span>
         </div>
-        {isEditing ? (
-          <Input type="number" className="w-12 h-6 text-center" value={score} onChange={onScoreChange}/>
-        ) : (
-          <span className="font-bold text-sm">{score ?? ''}</span>
-        )}
+        <span className="font-bold text-lg">{score}</span>
       </div>
     );
   };
@@ -93,22 +90,54 @@ const MatchCard = ({
   }
 
   return (
-    <Card className="w-56 bg-background/50 relative">
-      <CardContent className="p-1 space-y-1">
-        <TeamDisplay team={match.team1} score={isEditing ? scores.team1 : match.team1?.score} isWinner={match.winnerId === match.team1?.id} isEditing={isEditing} onScoreChange={(e) => handleScoreChange('team1', e.target.value)} />
-        <TeamDisplay team={match.team2} score={isEditing ? scores.team2 : match.team2?.score} isWinner={match.winnerId === match.team2?.id} isEditing={isEditing} onScoreChange={(e) => handleScoreChange('team2', e.target.value)}/>
-      </CardContent>
+    <Card className="w-64 bg-background/50 shadow-md">
       {isEditable && (
-        <div className="absolute top-1 right-1">
+        <div className="flex justify-end pt-1 pr-1">
           {isEditing ? (
-            <Button size="sm" variant="secondary" className="h-6 px-2" onClick={handleSaveScores} disabled={isPending}>Save</Button>
+            <Button size="sm" variant="secondary" className="h-7 px-3" onClick={handleSaveScores} disabled={isPending}>Save</Button>
           ) : (
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setIsEditing(true)}>
-              <Edit className="h-3 w-3" />
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setIsEditing(true)}>
+              <Edit className="h-4 w-4" />
             </Button>
           )}
         </div>
       )}
+      <CardContent className="p-1">
+        {isEditing ? (
+          <div className="space-y-1">
+             <div className="flex items-center justify-between p-1.5 h-12">
+                <div className="flex items-center gap-2 overflow-hidden text-sm">
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={match.team1?.avatarUrl} data-ai-hint="team logo" />
+                        <AvatarFallback>{match.team1?.name?.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <span className="truncate">{match.team1?.name || t('StandingsTable.tbd')}</span>
+                </div>
+                <Input type="number" className="w-16 h-8 text-center" value={scores.team1} onChange={(e) => handleScoreChange('team1', e.target.value)}/>
+            </div>
+             <div className="flex items-center justify-between p-1.5 h-12">
+                <div className="flex items-center gap-2 overflow-hidden text-sm">
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={match.team2?.avatarUrl} data-ai-hint="team logo" />
+                        <AvatarFallback>{match.team2?.name?.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <span className="truncate">{match.team2?.name || t('StandingsTable.tbd')}</span>
+                </div>
+                <Input type="number" className="w-16 h-8 text-center" value={scores.team2} onChange={(e) => handleScoreChange('team2', e.target.value)}/>
+            </div>
+          </div>
+        ) : (
+            <>
+                <TeamDisplay team={match.team1} score={match.team1?.score} isWinner={match.winnerId === match.team1?.id} />
+                <div className="flex items-center gap-2 px-2">
+                    <div className="flex-1 h-px bg-border/50"></div>
+                    <span className="text-xs font-bold text-muted-foreground">VS</span>
+                    <div className="flex-1 h-px bg-border/50"></div>
+                </div>
+                <TeamDisplay team={match.team2} score={match.team2?.score} isWinner={match.winnerId === match.team2?.id} />
+            </>
+        )}
+      </CardContent>
     </Card>
   );
 };
@@ -118,6 +147,7 @@ const MatchCard = ({
 export const TournamentBracket = ({ tournament, isEditable }: { tournament: Tournament; isEditable: boolean }) => {
   const { t } = useI18n();
   const { bracket } = tournament;
+  const participants = tournament.participants || [];
   
   if (!bracket || bracket.rounds.length === 0) {
     return (
@@ -136,12 +166,11 @@ export const TournamentBracket = ({ tournament, isEditable }: { tournament: Tour
   }
 
   const finalRoundIndex = bracket.rounds.length - 1;
-  const participants = tournament.participants || [];
   const winnerTeam = tournament.winnerId ? participants.find(p => p.id === tournament.winnerId) : null;
 
   return (
     <Card className="p-4 overflow-x-auto bg-card">
-        <div className="inline-flex items-start space-x-8 min-h-[400px]">
+        <div className="inline-flex items-start space-x-12 min-h-[400px]">
             {bracket.rounds.map((round, roundIndex) => (
                 <div key={round.id} className="flex flex-col h-full justify-around space-y-4 pt-10">
                     <h4 className="text-center font-bold text-muted-foreground uppercase tracking-wider text-sm absolute top-2">{round.name}</h4>
@@ -151,23 +180,23 @@ export const TournamentBracket = ({ tournament, isEditable }: { tournament: Tour
                             {/* Draw connectors to next round */}
                             {roundIndex < finalRoundIndex && (
                                 <>
-                                  <div className="absolute top-1/2 -translate-y-px right-[-2.25rem] w-4 h-px bg-border" />
+                                  <div className="absolute top-1/2 -translate-y-px right-[-3.25rem] w-6 h-px bg-border" />
                                   {matchIndex % 2 === 0 && (
                                       <div 
                                           className="absolute bg-border w-px"
-                                          style={{ right: '-2.25rem', top: '50%', height: 'calc(50% + 2rem)' }}
+                                          style={{ right: '-3.25rem', top: '50%', height: 'calc(50% + 2rem)' }}
                                       />
                                   )}
                                   {matchIndex % 2 !== 0 && (
                                     <>
                                       <div 
                                           className="absolute bg-border w-px"
-                                          style={{ right: '-2.25rem', bottom: '50%', height: 'calc(50% + 2rem)' }}
+                                          style={{ right: '-3.25rem', bottom: '50%', height: 'calc(50% + 2rem)' }}
                                       />
                                       {/* Horizontal connector between pairs */}
                                       <div 
-                                          className="absolute h-px w-8 bg-border"
-                                          style={{ right: '-4.25rem', top: 'calc(50% - 1px)'}}
+                                          className="absolute h-px w-6 bg-border"
+                                          style={{ right: '-4.75rem', top: 'calc(50% - 1px)'}}
                                       />
                                     </>
                                   )}
