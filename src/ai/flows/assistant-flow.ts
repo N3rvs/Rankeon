@@ -25,18 +25,7 @@ export async function askAssistant(input: AssistantInput): Promise<AssistantOutp
   return assistantFlow(input);
 }
 
-// New schema for the prompt itself, where history is a simple string.
-const PromptInputSchema = z.object({
-  query: z.string(),
-  history: z.string().optional(),
-});
-
-
-const prompt = ai.definePrompt({
-  name: 'squadUpAssistantPrompt',
-  input: {schema: PromptInputSchema},
-  output: {schema: AssistantOutputSchema},
-  prompt: `You are "SquadUp Assistant", a friendly and helpful AI designed to assist users of the SquadUp application. Your goal is to provide clear, concise, and accurate answers about how to use the platform.
+const systemPrompt = `You are "SquadUp Assistant", a friendly and helpful AI designed to assist users of the SquadUp application. Your goal is to provide clear, concise, and accurate answers about how to use the platform.
 
 **SquadUp Platform Overview:**
 
@@ -76,15 +65,7 @@ Based on the information above, answer the user's question.
 *   Be friendly and conversational.
 *   Keep your answers short and to the point.
 *   If you don't know the answer or the user's question is about a specific account issue, a bug, or something that requires human intervention, politely guide them to use the "Support" option in their user profile menu to create a support ticket. DO NOT make up answers.
-
-{{#if history}}
-**Conversation History:**
-{{{history}}}
-{{/if}}
-
-User's Question: {{{query}}}
-`,
-});
+`;
 
 const assistantFlow = ai.defineFlow(
   {
@@ -93,19 +74,26 @@ const assistantFlow = ai.defineFlow(
     outputSchema: AssistantOutputSchema,
   },
   async (input) => {
-    // Transform the history array into a simple string for the prompt
-    const historyString = input.history?.map(h => {
-        const prefix = h.role === 'user' ? 'User:' : 'Assistant:';
-        const content = h.content[0]?.text || '';
-        return `${prefix} ${content}`;
-    }).join('\n');
+    const history = input.history || [];
+    const messages = [
+        ...history,
+        { role: 'user' as const, content: [{ text: input.query }] },
+    ];
 
-    const promptInput = {
-        query: input.query,
-        history: historyString,
-    };
+    const result = await ai.generate({
+      system: systemPrompt,
+      messages: messages,
+      output: {
+        schema: AssistantOutputSchema,
+      },
+    });
 
-    const {output} = await prompt(promptInput);
-    return output!;
+    const outputData = result.output;
+    
+    if (!outputData) {
+        return { response: "I'm sorry, I could not generate a response at this time." };
+    }
+    
+    return outputData;
   }
 );
