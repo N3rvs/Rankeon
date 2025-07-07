@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -59,15 +58,39 @@ function ChatList() {
         const unsubscribe = onSnapshot(q, async (snapshot) => {
             const chatsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
 
+            // Create a map to ensure we only have one entry per partner, preventing duplicates.
+            const partnerChatMap = new Map<string, Chat>();
+            chatsData.forEach(chat => {
+                const partnerId = chat.members.find(id => id !== user.uid);
+                if (partnerId) {
+                    const deterministicChatId = [user.uid, partnerId].sort().join('_');
+                    const existingChat = partnerChatMap.get(deterministicChatId);
+                    
+                    if (existingChat) {
+                        const existingTime = existingChat.lastMessageAt?.toMillis() || existingChat.createdAt?.toMillis() || 0;
+                        const newTime = chat.lastMessageAt?.toMillis() || chat.createdAt?.toMillis() || 0;
+                        if (newTime > existingTime) {
+                            partnerChatMap.set(deterministicChatId, chat);
+                        }
+                    } else {
+                        partnerChatMap.set(deterministicChatId, chat);
+                    }
+                }
+            });
+    
+            const uniqueChats = Array.from(partnerChatMap.values());
+
             const enrichedChatsData: EnrichedChat[] = await Promise.all(
-                chatsData.map(async (chat) => {
+                uniqueChats.map(async (chat) => {
                     const partnerId = chat.members.find(id => id !== user.uid);
                     let partner: UserProfile | null = null;
                     if (partnerId) {
-                        const userDoc = await getDoc(doc(db, 'users', partnerId));
-                        if (userDoc.exists()) {
-                            partner = { id: userDoc.id, ...userDoc.data() } as UserProfile;
-                        }
+                        try {
+                            const userDoc = await getDoc(doc(db, 'users', partnerId));
+                            if (userDoc.exists()) {
+                                partner = { id: userDoc.id, ...userDoc.data() } as UserProfile;
+                            }
+                        } catch (e) { console.error("Error fetching partner", e); }
                     }
                     return { ...chat, partner };
                 })
