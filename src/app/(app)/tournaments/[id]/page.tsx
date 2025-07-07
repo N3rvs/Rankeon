@@ -1,2 +1,2 @@
-// This file is intentionally left empty to resolve a route conflict.
-// The public version of this page is handled by the (public) route group.
+// This file is disabled to prevent a route conflict with its public version.
+export {};
