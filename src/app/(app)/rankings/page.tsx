@@ -1,3 +1,5 @@
-// This file is intentionally modified to resolve a Next.js routing conflict.
-// The canonical page is located in the (public) route group.
-export {};
+// This page is handled by the (public) route group.
+// This file exists to prevent a 404 in the authenticated layout, but renders nothing.
+export default function RankingsPage() {
+  return null;
+}
