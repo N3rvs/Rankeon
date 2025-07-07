@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useI18n } from '@/contexts/i18n-context';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/i18n/language-switcher';
+import ScrimlyLogo from '@/assets/logo.png';
 
 function Header() {
   const { user, loading } = useAuth();
@@ -17,7 +18,7 @@ function Header() {
     <header className="h-28 w-full z-10 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
             <Link href="/">
-                <Image src="/logo.png" alt="Scrimly Logo" width={100} height={100} />
+                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={100} height={100} />
             </Link>
             <nav className="hidden md:flex items-center gap-6">
                 <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.news')}</Link>
