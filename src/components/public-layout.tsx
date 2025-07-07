@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
@@ -14,9 +15,9 @@ function Header() {
   const { t } = useI18n();
 
   return (
-    <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between z-10 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
+    <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between z-10 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
       <Link href="/">
-        <Image src={ScrimlyLogo} alt="Scrimly Logo" width={40} height={40} />
+        <Image src={ScrimlyLogo} alt="Scrimly Logo" width={64} height={64} />
       </Link>
       <nav className="hidden md:flex items-center gap-6">
         <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.news')}</Link>
