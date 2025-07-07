@@ -1,19 +1,109 @@
 
 {
-  "HomePage": {
-    "title": "Assembla la tua squadra d'élite",
-    "subtitle": "La piattaforma LFG definitiva per Valorant. Smetti di giocare da solo e inizia a dominare con la squadra perfetta.",
-    "get_started": "Inizia",
-    "find_squad": "Trova la tua squadra",
-    "register_player": "Registrati come giocatore",
-    "built_for_champions": "Costruito per i campioni",
-    "champions_subtitle": "Tutto ciò di cui hai bisogno per conquistare la competizione.",
-    "find_players_title": "Trova giocatori",
-    "find_players_desc": "Sfoglia profili dettagliati dei giocatori, filtra per ruolo e grado e trova la soluzione perfetta per il tuo roster.",
-    "ai_tools_title": "Strumenti basati sull'IA",
-    "ai_tools_desc": "Usa la nostra intelligenza artificiale per creare la biografia del giocatore perfetta per farti notare dagli altri giocatori.",
-    "footer_text": "© {year} Scrimly. Tutti i diritti riservati. Costruito per il futuro degli eSport."
-  },
+    "LandingPage": {
+        "about_us": "Chi Siamo",
+        "tournaments": "Tornei",
+        "rankings": "Classifiche",
+        "login": "Accedi",
+        "register": "Registrati",
+        "go_to_app": "Vai all'App",
+        "title": "Assembla la tua squadra d'élite",
+        "subtitle": "La piattaforma LFG definitiva per Valorant. Smetti di giocare da solo e inizia a dominare con la squadra perfetta.",
+        "get_started": "Inizia",
+        "features_title": "Gioca come un Professionista",
+        "features_subtitle": "Tutti gli strumenti di cui hai bisogno per goderti il gioco al massimo livello.",
+        "find_players_title": "Trova giocatori",
+        "find_players_desc": "Sfoglia profili dettagliati dei giocatori, filtra per ruolo e grado e trova la soluzione perfetta per il tuo roster.",
+        "scrims_title": "Competi in Scrim",
+        "scrims_desc": "Pubblica e trova partite di allenamento per portare la tua squadra al livello successivo.",
+        "tournaments_title": "Vinci Tornei",
+        "tournaments_desc": "Iscriviti ai tornei gestiti dalla community e competi per la gloria e i premi.",
+        "footer_rights": "Tutti i diritti riservati. Costruito per il futuro degli eSport.",
+        "terms": "Termini di servizio",
+        "privacy": "Politica sulla privacy"
+    },
+     "AboutPage": {
+        "title": "Riguardo a Scrimly",
+        "subtitle": "Connettere i giocatori, forgiare campioni.",
+        "community_title": "La nostra comunità",
+        "community_desc": "Siamo un hub per giocatori appassionati che desiderano portare il loro gioco al livello successivo. Crediamo nel potere del lavoro di squadra e della sana competizione.",
+        "mission_title": "La nostra missione",
+        "mission_desc": "La nostra missione è semplice: fornire la migliore piattaforma per i giocatori per trovare compagni di squadra, competere in scrim e tornei, e crescere come competitori.",
+        "values_title": "I nostri valori",
+        "values_desc": "Integrità, sportività e una dedizione incessante al miglioramento sono al centro di tutto ciò che facciamo a Scrimly.",
+        "join_us_title": "Unisciti all'Arena",
+        "join_us_desc": "Che tu stia cercando la tua prima squadra o sia un veterano esperto, Scrimly è il tuo campo di prova. Iscriviti oggi e scatena il tuo potenziale."
+    },
+    "PrivacyPage": {
+        "title": "Politica sulla privacy",
+        "last_updated": "Ultimo aggiornamento: 24 luglio 2024",
+        "introduction_title": "Introduzione",
+        "introduction_text": "Benvenuto in Scrimly. La tua privacy è importante per noi. Questa Informativa sulla privacy spiega come raccogliamo, utilizziamo, divulghiamo e proteggiamo le tue informazioni quando utilizzi la nostra applicazione web.",
+        "data_collected_title": "Quali dati raccogliamo",
+        "data_collected_list": "Informazioni sull'account: Quando ti registri, raccogliamo il tuo indirizzo email e nome utente.|Dati di Riot Games: Con il tuo consenso, accediamo ai dati del tuo account Riot Games, inclusi il tuo Riot ID, nome dell'evocatore, cronologia delle partite, statistiche di gioco e grado. **Non memorizziamo la tua password di Riot Games.**|Dati di utilizzo: Raccogliamo informazioni su come interagisci con la nostra applicazione, come le pagine visitate e le azioni intraprese.|Cookie e tracciamento: Utilizziamo i cookie per mantenere la tua sessione e comprendere l'utilizzo del sito. Potremmo utilizzare servizi di analisi come Google Analytics per aiutarci a migliorare.",
+        "how_data_is_used_title": "Come utilizziamo i tuoi dati",
+        "how_data_is_used_list": "Per fornire e migliorare i nostri servizi: Visualizzare il tuo profilo, la cronologia delle partite e le statistiche.|Per personalizzare la tua esperienza: Connetterti con altri giocatori e squadre.|Per comunicare con te: Inviarti notifiche sull'applicazione.|Per analisi: Comprendere come viene utilizzato il nostro servizio per poterlo migliorare.",
+        "data_sharing_title": "Condivisione dei tuoi dati",
+        "data_sharing_text": "Non vendiamo i tuoi dati personali. Possiamo condividere le tue informazioni come segue: Con altri utenti: Il tuo profilo di gioco (nome dell'evocatore, grado, statistiche) è visibile agli altri utenti di Scrimly. Con i fornitori di servizi: Utilizziamo servizi di terze parti (come Firebase per l'hosting e il database) che elaborano i dati per nostro conto. Con requisiti legali: Se richiesto dalla legge.",
+        "data_security_title": "Sicurezza dei dati",
+        "data_security_text": "Adottiamo misure ragionevoli per proteggere le tue informazioni, ma nessun sistema di sicurezza è impenetrabile. Non possiamo garantire la sicurezza assoluta dei tuoi dati.",
+        "your_rights_title": "I tuoi diritti",
+        "your_rights_text": "Hai il diritto di accedere, correggere o eliminare le tue informazioni personali. Puoi aggiornare le informazioni del tuo profilo direttamente nell'applicazione. Per altre richieste, contattaci.",
+        "cookies_title": "Cookie e Tecnologie di Tracciamento",
+        "cookies_text_intro": "Scrimly utilizza cookie e tecnologie simili per migliorare la tua esperienza sulla piattaforma. Un cookie è un piccolo file di dati memorizzato sul tuo dispositivo. Di seguito sono riportati i tipi di cookie che utilizziamo:",
+        "cookies_list": "Cookie Essenziali: Fondamentali per il funzionamento della piattaforma. Vengono utilizzati per mantenere la sessione connessa, gestire la sicurezza e ricordare il tuo consenso ai cookie. Non possono essere disabilitati.|Cookie di Analisi: Utilizziamo strumenti come Google Analytics per raccogliere dati anonimi su come gli utenti interagiscono con Scrimly. Questo ci aiuta a identificare problemi, comprendere i modelli di utilizzo e migliorare l'applicazione. Puoi disattivarli tramite le impostazioni del tuo browser.|Cookie di Preferenza: Utilizzati per ricordare le tue scelte, come la lingua o il tema (chiaro/scuro), in modo da non doverli impostare ogni volta che visiti.|Gestione dei Cookie: La maggior parte dei browser ti consente di controllare i cookie tramite le loro impostazioni. Tuttavia, la restrizione dei cookie potrebbe influire sulla funzionalità del nostro sito web.",
+        "contact_title": "Contatto",
+        "contact_text": "Se hai domande su questa Informativa sulla privacy, contattaci a: support@scrimly.app"
+    },
+    "TermsPage": {
+        "title": "Termini di servizio",
+        "last_updated": "Ultimo aggiornamento: 24 luglio 2024",
+        "agreement_title": "Accettazione dei Termini",
+        "agreement_text": "Utilizzando l'applicazione Scrimly ('Servizio'), accetti di essere vincolato da questi Termini di servizio. Se non sei d'accordo con qualsiasi parte dei termini, non puoi accedere al Servizio.",
+        "service_desc_title": "Descrizione del servizio",
+        "service_desc_text": "Scrimly è una piattaforma per aiutare i giocatori a trovare squadre e competere. Utilizziamo l'API di Riot Games per fornire dati relativi al gioco ma non siamo affiliati o approvati da Riot Games.",
+        "user_responsibilities_title": "Responsabilità dell'utente",
+        "user_responsibilities_list": "Devi avere almeno 13 anni per utilizzare il Servizio.|Sei responsabile del mantenimento della sicurezza del tuo account.|Non devi utilizzare il Servizio per scopi illegali o non autorizzati.|Accetti di rispettare i Termini di servizio di Riot Games in ogni momento.",
+        "disclaimer_title": "Esclusione di garanzia",
+        "disclaimer_text": "Il Servizio è fornito 'così com'è'. Non garantiamo che il servizio sarà ininterrotto, sicuro o privo di errori. I dati forniti tramite l'API di Riot Games sono solo a scopo informativo.",
+        "limitation_liability_title": "Limitazione di responsabilità",
+        "limitation_liability_text": "In nessun caso Scrimly sarà responsabile per eventuali danni indiretti, incidentali, speciali, consequenziali o punitivi derivanti dal tuo utilizzo del Servizio.",
+        "changes_terms_title": "Modifiche ai Termini",
+        "changes_terms_text": "Ci riserviamo il diritto di modificare questi termini in qualsiasi momento. Ti informeremo di eventuali modifiche pubblicando i nuovi termini su questa pagina.",
+        "contact_title": "Contatto",
+        "contact_text": "Se hai domande su questi Termini di servizio, contattaci a: support@scrimly.app"
+    },
+    "Pricing": {
+        "title": "Scegli il tuo percorso verso la gloria",
+        "subtitle": "Piani flessibili progettati per giocatori seri e leader di squadra.",
+        "most_popular": "Più Popolare",
+        "monthly": "/mese",
+        "player_title": "Piano Giocatore",
+        "player_price": "Gratis",
+        "player_desc": "Per ogni giocatore che vuole unirsi a una squadra e competere. Trova la tua squadra e inizia a giocare.",
+        "player_features": "Crea il tuo profilo giocatore|Cerca squadre nel mercato|Ricevi inviti dai capisquadra|Chatta con gli amici|Onora i tuoi compagni di squadra",
+        "player_cta": "Registrati Gratis",
+        "founder_title": "Piano Fondatore",
+        "founder_desc": "Per i leader pronti a costruire un'eredità. Tutti gli strumenti per creare e gestire una squadra d'élite.",
+        "founder_features": "Crea e personalizza la tua squadra|Recluta giocatori dal mercato|Gestisci membri e ruoli|Pubblica e accetta scrim|Registrati ai tornei|Accesso al pannello di gestione avanzato",
+        "founder_cta": "Diventa un Fondatore",
+        "coach_title": "Piano Allenatore",
+        "coach_desc": "Per gli strateghi che guidano le squadre alla vittoria. Analizza, gestisci e guida.",
+        "coach_features": "Unisciti a una squadra come Allenatore|Gestisci membri e ruoli della squadra|Accesso alle analisi della squadra (presto)|Assegna ruoli IGL|Partecipa alla pianificazione degli scrim",
+        "coach_cta": "Inizia come Allenatore"
+    },
+    "RegisterPage": {
+        "i_accept": "Accetto i",
+        "terms_of_service": "Termini di servizio",
+        "and_the": "e la",
+        "privacy_policy": "Politica sulla privacy",
+        "accept_error": "Devi accettare i Termini e l'Informativa sulla privacy per continuare."
+    },
+    "CookieBanner": {
+        "message": "Utilizziamo i cookie per migliorare la tua esperienza. Continuando, accetti il nostro uso dei cookie.",
+        "accept": "Accetta",
+        "decline": "Rifiuta"
+    },
   "LanguageSwitcher": {
     "change_language": "Cambia lingua"
   },
@@ -473,7 +563,11 @@
     "types": {
       "scrim": "Scrim (Allenamento vs Squadra)",
       "tryout": "Tryout (Prova Giocatori)"
-    }
+    },
+    "status_pending": "In attesa",
+    "status_confirmed": "Confermata",
+    "status_cancelled": "Annullata",
+    "status_completed": "Completata"
   },
   "RankingsPage": {
     "title": "Classifiche della Piattaforma",

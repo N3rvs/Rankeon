@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useTransition } from 'react';
+import { useTransition, useState } from 'react';
 import type { Scrim } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
   const { t } = useI18n();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [isLocallyCancelled, setIsLocallyCancelled] = useState(false);
 
   const isMyTeamScrim = userProfile?.teamId === scrim.teamAId || userProfile?.teamId === scrim.teamBId;
   const canAccept = userProfile?.teamId && scrim.status === 'pending' && userProfile.teamId !== scrim.teamAId;
@@ -26,6 +28,14 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
 
   const isCompleted = scrim.status === 'completed';
   const isCancelled = scrim.status === 'cancelled';
+
+  const statusTextMap: Record<Scrim['status'], string> = {
+    pending: t('ScrimsPage.status_pending'),
+    confirmed: t('ScrimsPage.status_confirmed'),
+    cancelled: t('ScrimsPage.status_cancelled'),
+    completed: t('ScrimsPage.status_completed'),
+  };
+  const statusText = statusTextMap[scrim.status];
 
   const handleAccept = () => {
     if (!canAccept || !userProfile?.teamId) return;
@@ -46,6 +56,7 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
       const result = await cancelScrimAction(scrim.id);
       if (result.success) {
         toast({ title: t('ScrimsPage.scrim_cancelled_title'), description: t('ScrimsPage.scrim_cancelled_desc') });
+        setIsLocallyCancelled(true);
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -64,6 +75,10 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
         </div>
     </div>
   );
+  
+  if (isLocallyCancelled) {
+    return null;
+  }
 
   return (
     <Card className="flex flex-col">
@@ -114,11 +129,11 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
               <X className="mr-2" /> {t('ScrimsPage.cancel')}
             </Button>
           ) : (
-            <Badge variant="default" className="w-full justify-center capitalize py-2">{scrim.status}</Badge>
+            <Badge variant="default" className="w-full justify-center capitalize py-2">{statusText}</Badge>
           ))}
         {(isCancelled || isCompleted) && (
           <Badge variant={isCancelled ? 'destructive' : 'outline'} className="w-full justify-center capitalize py-2">
-            {scrim.status}
+            {statusText}
           </Badge>
         )}
       </CardFooter>
