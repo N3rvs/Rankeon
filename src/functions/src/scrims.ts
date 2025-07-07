@@ -94,6 +94,13 @@ export const challengeScrim = onCall(async ({ auth, data }: { auth?: any, data: 
         if (scrimData.teamAId === challengingTeamId) {
             throw new HttpsError("invalid-argument", "You cannot challenge your own scrim.");
         }
+        
+        // Explicitly check for creator team's existence
+        const creatorTeamSnap = await transaction.get(db.collection("teams").doc(scrimData.teamAId));
+        if (!creatorTeamSnap.exists()) {
+            throw new HttpsError("not-found", "The team that created this scrim could not be found.");
+        }
+        const creatorTeamData = creatorTeamSnap.data()!;
 
         const challengerTeamData = teamSnap.data()!;
         transaction.update(scrimRef, {
@@ -103,8 +110,7 @@ export const challengeScrim = onCall(async ({ auth, data }: { auth?: any, data: 
             status: "challenged",
         });
         
-        const creatorTeam = (await transaction.get(db.collection("teams").doc(scrimData.teamAId))).data()
-        const creatorTeamFounder = creatorTeam?.founder;
+        const creatorTeamFounder = creatorTeamData.founder;
         if(creatorTeamFounder) {
              const notificationRef = db.collection(`inbox/${creatorTeamFounder}/notifications`).doc();
              transaction.set(notificationRef, {
@@ -156,11 +162,12 @@ export const respondToScrimChallenge = onCall(async ({ auth, data }: { auth?: an
             throw new HttpsError("permission-denied", "You must be staff of the creator team to respond.");
         }
 
-        const challengerTeam = (await transaction.get(db.collection("teams").doc(challengerTeamId))).data();
-        if (!challengerTeam) {
+        const challengerTeamSnap = await transaction.get(db.collection("teams").doc(challengerTeamId));
+        if (!challengerTeamSnap.exists()) {
              throw new HttpsError("not-found", "Challenger team could not be found.");
         }
-        const challengerFounderId = challengerTeam.founder;
+        const challengerTeamData = challengerTeamSnap.data()!;
+        const challengerFounderId = challengerTeamData.founder;
 
         if (accept) {
             transaction.update(scrimRef, {
