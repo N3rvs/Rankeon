@@ -1,5 +1,3 @@
-// This page is handled by the (public) route group.
-// This file exists to prevent a 404 in the authenticated layout, but renders nothing.
-export default function RankingsPage() {
-  return null;
-}
+// This file is deactivated to resolve a route conflict. The public route is authoritative.
+const DEACTIVATED_ROUTE = "This route is now handled by the public directory to allow unauthenticated access.";
+export default DEACTIVATED_ROUTE;
