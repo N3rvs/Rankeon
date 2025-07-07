@@ -75,6 +75,11 @@ export function ScrimCard({ scrim, onScrimAccepted }: { scrim: Scrim, onScrimAcc
     </div>
   );
   
+  const rankDisplay = [scrim.rankMin, scrim.rankMax]
+    .filter(Boolean)
+    .filter((value, index, self) => self.indexOf(value) === index)
+    .join(' - ');
+
   return (
     <Card className="flex flex-col">
       <CardHeader>
@@ -98,10 +103,10 @@ export function ScrimCard({ scrim, onScrimAccepted }: { scrim: Scrim, onScrimAcc
         <div className="flex flex-wrap gap-2 justify-center">
           <Badge variant="secondary">{scrim.format.toUpperCase()}</Badge>
           <Badge variant="outline" className="capitalize">{scrim.type}</Badge>
-          {(scrim.rankMin || scrim.rankMax) && (
+          {rankDisplay && (
             <Badge variant="outline" className="capitalize">
               <Shield className="h-3 w-3 mr-1.5" />
-              {scrim.rankMin}{scrim.rankMin && scrim.rankMax && scrim.rankMin !== scrim.rankMax ? ` - ${scrim.rankMax}` : ''}
+              {rankDisplay}
             </Badge>
           )}
         </div>
