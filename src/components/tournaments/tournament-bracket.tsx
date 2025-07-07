@@ -118,7 +118,6 @@ const MatchCard = ({
 export const TournamentBracket = ({ tournament, isEditable }: { tournament: Tournament; isEditable: boolean }) => {
   const { t } = useI18n();
   const { bracket } = tournament;
-  const finalRoundIndex = bracket ? bracket.rounds.length - 1 : 0;
   
   if (!bracket || bracket.rounds.length === 0) {
     return (
@@ -136,10 +135,7 @@ export const TournamentBracket = ({ tournament, isEditable }: { tournament: Tour
     );
   }
 
-  const finalWinner = bracket.rounds[finalRoundIndex]?.matches[0]?.winnerId
-    ? participants.find(p => p.id === bracket.rounds[finalRoundIndex].matches[0].winnerId)
-    : null;
-
+  const finalRoundIndex = bracket.rounds.length - 1;
   const participants = tournament.participants || [];
   const winnerTeam = tournament.winnerId ? participants.find(p => p.id === tournament.winnerId) : null;
 
