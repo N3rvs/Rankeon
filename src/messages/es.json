@@ -1,3 +1,4 @@
+
 {
   "HomePage": {
     "title": "Reúne a tu Escuadrón de Élite",
@@ -116,6 +117,7 @@
     "profile": "Perfil",
     "market": "Mercado",
     "rooms": "Salas de Juego",
+    "scrims": "Partidas de Práctica",
     "tournaments": "Torneos",
     "my_team": "Mi Equipo",
     "friends": "Amigos",
@@ -426,5 +428,28 @@
     "status_header": "Estado",
     "status_champion": "Campeón",
     "tbd": "PDD"
+  },
+  "ScrimsPage": {
+    "title": "Buscador de Scrims",
+    "subtitle": "Encuentra una partida de práctica o publica una para tu equipo.",
+    "no_scrims_title": "No hay Scrims Disponibles",
+    "no_scrims_subtitle": "Sé el primero en publicar una scrim para que otros la acepten.",
+    "create_scrim": "Publicar Scrim",
+    "create_scrim_desc": "Completa los detalles para listar una partida de práctica para tu equipo.",
+    "date_label": "Fecha y Hora",
+    "format_label": "Formato",
+    "type_label": "Tipo",
+    "notes_label": "Notas (Opcional)",
+    "notes_placeholder": "Ej: Solo Diamante+, buscando IGL...",
+    "posting": "Publicando...",
+    "looking_for_match": "Busca partida",
+    "cancel": "Cancelar",
+    "accept": "Aceptar",
+    "scrim_posted_title": "¡Scrim Publicada!",
+    "scrim_posted_desc": "Tu scrim está ahora listada para que otros equipos la acepten.",
+    "scrim_accepted_title": "¡Scrim Aceptada!",
+    "scrim_accepted_desc": "Has aceptado la scrim. Aparecerá en el calendario de tu equipo.",
+    "scrim_cancelled_title": "Scrim Cancelada",
+    "scrim_cancelled_desc": "La scrim ha sido eliminada de la lista."
   }
 }

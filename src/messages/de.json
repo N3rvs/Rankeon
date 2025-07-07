@@ -1,3 +1,4 @@
+
 {
   "HomePage": {
     "title": "Stellen Sie Ihr Elite-Team zusammen",
@@ -116,6 +117,7 @@
     "profile": "Profil",
     "market": "Markt",
     "rooms": "Spielräume",
+    "scrims": "Trainingsspiele",
     "tournaments": "Turniere",
     "my_team": "Mein Team",
     "friends": "Freunde",
@@ -426,5 +428,28 @@
     "status_header": "Status",
     "status_champion": "Meister",
     "tbd": "TBD"
+  },
+  "ScrimsPage": {
+    "title": "Scrim-Finder",
+    "subtitle": "Finde ein Trainingsspiel oder poste eines für dein Team.",
+    "no_scrims_title": "Keine verfügbaren Scrims",
+    "no_scrims_subtitle": "Sei der Erste, der einen Scrim postet, damit andere ihn annehmen können.",
+    "create_scrim": "Scrim posten",
+    "create_scrim_desc": "Fülle die Details aus, um ein Trainingsspiel für dein Team aufzulisten.",
+    "date_label": "Datum & Uhrzeit",
+    "format_label": "Format",
+    "type_label": "Typ",
+    "notes_label": "Notizen (Optional)",
+    "notes_placeholder": "z.B. Nur Diamant+, suche IGL...",
+    "posting": "Wird gepostet...",
+    "looking_for_match": "Sucht Spiel",
+    "cancel": "Abbrechen",
+    "accept": "Annehmen",
+    "scrim_posted_title": "Scrim gepostet!",
+    "scrim_posted_desc": "Dein Scrim ist jetzt für andere Teams zur Annahme gelistet.",
+    "scrim_accepted_title": "Scrim angenommen!",
+    "scrim_accepted_desc": "Du hast den Scrim angenommen. Er wird nun in deinem Teamkalender angezeigt.",
+    "scrim_cancelled_title": "Scrim abgebrochen",
+    "scrim_cancelled_desc": "Der Scrim wurde aus der Liste entfernt."
   }
 }

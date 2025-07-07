@@ -1,3 +1,4 @@
+
 {
   "HomePage": {
     "title": "Assemble Your Elite Squad",
@@ -116,6 +117,7 @@
     "profile": "Profile",
     "market": "Market",
     "rooms": "Game Rooms",
+    "scrims": "Scrims",
     "tournaments": "Tournaments",
     "my_team": "My Team",
     "friends": "Friends",
@@ -426,5 +428,28 @@
     "status_header": "Status",
     "status_champion": "Champion",
     "tbd": "TBD"
+  },
+  "ScrimsPage": {
+    "title": "Scrim Finder",
+    "subtitle": "Find a practice match or post one for your team.",
+    "no_scrims_title": "No Available Scrims",
+    "no_scrims_subtitle": "Be the first to post a scrim for others to accept.",
+    "create_scrim": "Post Scrim",
+    "create_scrim_desc": "Fill out the details to list a practice match for your team.",
+    "date_label": "Date & Time",
+    "format_label": "Format",
+    "type_label": "Type",
+    "notes_label": "Notes (Optional)",
+    "notes_placeholder": "e.g., Diamond+ only, looking for IGL...",
+    "posting": "Posting...",
+    "looking_for_match": "Looking for match",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "scrim_posted_title": "Scrim Posted!",
+    "scrim_posted_desc": "Your scrim is now listed for other teams to accept.",
+    "scrim_accepted_title": "Scrim Accepted!",
+    "scrim_accepted_desc": "You have accepted the scrim. It will now appear on your team calendar.",
+    "scrim_cancelled_title": "Scrim Cancelled",
+    "scrim_cancelled_desc": "The scrim has been removed from the listing."
   }
 }

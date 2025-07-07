@@ -1,3 +1,4 @@
+
 // src/functions/index.ts
 import * as admin from 'firebase-admin';
 
@@ -14,6 +15,7 @@ import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } fro
 import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL, sendTeamInvite, respondToTeamInvite, applyToTeam, respondToTeamApplication } from './teams';
 import { proposeTournament, reviewTournamentProposal, editTournament, registerTeamForTournament, deleteTournament } from './tournaments';
 import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence } from './users';
+import { createScrim, acceptScrim, cancelScrim } from './scrims';
 
 export {
   deleteChatHistory,
@@ -51,5 +53,8 @@ export {
   updateUserRole,
   updateUserStatus,
   updateUserCertification,
-  updateUserPresence
+  updateUserPresence,
+  createScrim,
+  acceptScrim,
+  cancelScrim
 };

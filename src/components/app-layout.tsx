@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -25,6 +26,7 @@ import {
   Shield,
   Gavel,
   Circle,
+  Flame,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -175,6 +177,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/teams">
                   <Swords />
                   <span>{t('Sidebar.my_team')}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/scrims')}
+                tooltip={t('Sidebar.scrims')}
+                size="lg"
+              >
+                <Link href="/scrims">
+                  <Flame />
+                  <span>{t('Sidebar.scrims')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

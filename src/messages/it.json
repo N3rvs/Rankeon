@@ -1,3 +1,4 @@
+
 {
   "HomePage": {
     "title": "Assembla la tua squadra d'élite",
@@ -116,6 +117,7 @@
     "profile": "Profilo",
     "market": "Mercato",
     "rooms": "Stanze di gioco",
+    "scrims": "Partite di Allenamento",
     "tournaments": "Tornei",
     "my_team": "La mia squadra",
     "friends": "Amici",
@@ -426,5 +428,28 @@
     "status_header": "Stato",
     "status_champion": "Campione",
     "tbd": "Da definire"
+  },
+  "ScrimsPage": {
+    "title": "Cerca Scrim",
+    "subtitle": "Trova una partita di allenamento o pubblicane una per la tua squadra.",
+    "no_scrims_title": "Nessuna Scrim Disponibile",
+    "no_scrims_subtitle": "Sii il primo a pubblicare una scrim perché altri la accettino.",
+    "create_scrim": "Pubblica Scrim",
+    "create_scrim_desc": "Compila i dettagli per elencare una partita di allenamento per la tua squadra.",
+    "date_label": "Data e Ora",
+    "format_label": "Formato",
+    "type_label": "Tipo",
+    "notes_label": "Note (Opzionale)",
+    "notes_placeholder": "es. Solo Diamante+, cerco IGL...",
+    "posting": "Pubblicazione...",
+    "looking_for_match": "Cerca partita",
+    "cancel": "Annulla",
+    "accept": "Accetta",
+    "scrim_posted_title": "Scrim Pubblicata!",
+    "scrim_posted_desc": "La tua scrim è ora elencata per essere accettata da altre squadre.",
+    "scrim_accepted_title": "Scrim Accettata!",
+    "scrim_accepted_desc": "Hai accettato la scrim. Apparirà ora nel calendario della tua squadra.",
+    "scrim_cancelled_title": "Scrim Annullata",
+    "scrim_cancelled_desc": "La scrim è stata rimossa dall'elenco."
   }
 }
