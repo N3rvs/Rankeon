@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Rocket, Users, Sparkles } from 'lucide-react';
+import { Rocket, Users, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/contexts/i18n-context';
 import { LanguageSwitcher } from '@/components/i18n/language-switcher';
+import ScrimlyLogo from '@/assets/logo.png';
 
 function HomePageContent() {
   const { t } = useI18n();
@@ -25,7 +26,7 @@ function HomePageContent() {
     <div className="flex flex-col min-h-dvh bg-background text-foreground">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between z-10">
         <div className="flex items-center gap-2">
-          <Gamepad2 className="h-8 w-8 text-primary" />
+          <Image src={ScrimlyLogo} alt="Scrimly Logo" width={32} height={32} />
           <h1 className="text-2xl font-bold font-headline">Scrimly</h1>
         </div>
         <nav className="flex items-center gap-2">

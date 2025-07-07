@@ -15,7 +15,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {
-  Gamepad2,
   UserCircle,
   LogOut,
   Dices,
@@ -52,6 +51,8 @@ import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { UserStatus } from '@/lib/types';
 import { updateUserPresence } from '@/lib/actions/users';
+import Image from 'next/image';
+import ScrimlyLogo from '@/assets/logo.png';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -106,7 +107,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader className="p-4 pt-6 mb-4">
           <div className="flex items-center gap-2">
-            <Gamepad2 className="h-8 w-8 text-primary" />
+            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={32} height={32} />
             <h1 className="text-2xl font-bold font-headline">Scrimly</h1>
           </div>
         </SidebarHeader>
