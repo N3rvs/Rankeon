@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import type { Tournament } from '@/lib/types';
 import { EditTournamentSchema, EditTournamentData, editTournament } from '@/lib/actions/tournaments';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { useI18n } from '@/contexts/i18n-context';
 
 interface EditTournamentDialogProps {
   tournament: Tournament;
@@ -18,7 +20,14 @@ interface EditTournamentDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const currencies = [
+    { value: 'USD', label: 'USD ($)' },
+    { value: 'EUR', label: 'EUR (€)' },
+    { value: 'GBP', label: 'GBP (£)' },
+];
+
 export function EditTournamentDialog({ tournament, open, onOpenChange }: EditTournamentDialogProps) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
@@ -28,7 +37,8 @@ export function EditTournamentDialog({ tournament, open, onOpenChange }: EditTou
       tournamentId: tournament.id,
       name: tournament.name || '',
       description: tournament.description || '',
-      prize: tournament.prize || '',
+      prize: tournament.prize || undefined,
+      currency: tournament.currency || '',
     },
   });
 
@@ -84,17 +94,37 @@ export function EditTournamentDialog({ tournament, open, onOpenChange }: EditTou
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="prize"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prize (Optional)</FormLabel>
-                  <FormControl><Input placeholder="e.g., $100 USD, Skins, etc." {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="prize"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>{t('ProposeTournamentDialog.prize_amount')}</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="e.g., 100" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>{t('ProposeTournamentDialog.currency')}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder={t('ProposeTournamentDialog.select_currency')} /></SelectTrigger></FormControl>
+                            <SelectContent>
+                                {currencies.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </div>
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? 'Saving...' : 'Save Changes'}
             </Button>

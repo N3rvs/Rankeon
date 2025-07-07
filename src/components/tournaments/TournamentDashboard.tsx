@@ -5,7 +5,7 @@ import type { Tournament } from '@/lib/types';
 import { TournamentBracket } from './tournament-bracket';
 import { StandingsTable } from './StandingsTable';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
-import { Gamepad2, Edit } from 'lucide-react';
+import { Gamepad2, Edit, Trophy } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { EditTournamentDialog } from './edit-tournament-dialog';
 import { Button } from '../ui/button';
@@ -20,6 +20,10 @@ export function TournamentDashboard({ tournament }: { tournament: Tournament }) 
   const isOwner = tournament.organizer.uid === userProfile?.id;
   const isEditable = isMod || isOwner;
 
+  const prizeText = tournament.prize && tournament.currency 
+    ? `${tournament.currency} ${tournament.prize}` 
+    : t('TournamentDetailsPage.no_prize');
+
   return (
     <div className="space-y-6">
       <EditTournamentDialog tournament={tournament} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
@@ -28,8 +32,10 @@ export function TournamentDashboard({ tournament }: { tournament: Tournament }) 
            <div className="flex justify-between items-start gap-4">
             <div>
               <CardTitle className="font-headline text-3xl">{tournament.name}</CardTitle>
-              <CardDescription className="flex items-center gap-2 pt-1">
-                <Gamepad2 className="h-4 w-4" /> {tournament.game}
+              <CardDescription className="flex items-center gap-4 pt-1">
+                <span className="flex items-center gap-2"><Gamepad2 className="h-4 w-4" /> {tournament.game}</span>
+                <span className="text-muted-foreground/50">|</span>
+                <span className="flex items-center gap-2"><Trophy className="h-4 w-4" /> {prizeText}</span>
               </CardDescription>
             </div>
             {isEditable && (

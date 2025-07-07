@@ -1,4 +1,3 @@
-
 {
   "HomePage": {
     "title": "Assemble Your Elite Squad",
@@ -299,8 +298,9 @@
     "name_placeholder": "e.g., SquadUp Summer Skirmish",
     "game": "Game",
     "game_placeholder": "e.g., Valorant",
-    "prize": "Prize (Optional)",
-    "prize_placeholder": "e.g., $100 USD, Skins, etc.",
+    "prize_amount": "Prize Amount",
+    "currency": "Currency",
+    "select_currency": "Select currency...",
     "min_rank": "Minimum Rank",
     "max_rank": "Maximum Rank",
     "no_restriction": "No restriction",

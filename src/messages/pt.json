@@ -1,4 +1,3 @@
-
 {
   "HomePage": {
     "title": "Monte seu Esquadrão de Elite",
@@ -299,8 +298,9 @@
     "name_placeholder": "ex: SquadUp Summer Skirmish",
     "game": "Jogo",
     "game_placeholder": "ex: Valorant",
-    "prize": "Prêmio (Opcional)",
-    "prize_placeholder": "ex: 100 USD, Skins, etc.",
+    "prize_amount": "Valor do Prêmio",
+    "currency": "Moeda",
+    "select_currency": "Selecione a moeda...",
     "min_rank": "Classificação Mínima",
     "max_rank": "Classificação Máxima",
     "no_restriction": "Nenhuma restrição",

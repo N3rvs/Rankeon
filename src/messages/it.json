@@ -1,4 +1,3 @@
-
 {
   "HomePage": {
     "title": "Assembla la tua squadra d'élite",
@@ -299,8 +298,9 @@
     "name_placeholder": "es. SquadUp Summer Skirmish",
     "game": "Gioco",
     "game_placeholder": "es. Valorant",
-    "prize": "Premio (facoltativo)",
-    "prize_placeholder": "es. 100 USD, Skin, ecc.",
+    "prize_amount": "Importo del premio",
+    "currency": "Valuta",
+    "select_currency": "Seleziona valuta...",
     "min_rank": "Grado minimo",
     "max_rank": "Grado massimo",
     "no_restriction": "Nessuna restrizione",

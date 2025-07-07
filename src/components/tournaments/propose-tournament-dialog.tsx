@@ -38,6 +38,12 @@ const valorantRanks = [
     { value: 'Inmortal', label: 'Inmortal' },
 ];
 
+const currencies = [
+    { value: 'USD', label: 'USD ($)' },
+    { value: 'EUR', label: 'EUR (€)' },
+    { value: 'GBP', label: 'GBP (£)' },
+];
+
 export function ProposeTournamentDialog() {
   const { t } = useI18n();
   const { toast } = useToast();
@@ -52,7 +58,6 @@ export function ProposeTournamentDialog() {
       description: '',
       format: '',
       maxTeams: 8,
-      prize: '',
       rankMin: '',
       rankMax: '',
     },
@@ -86,7 +91,7 @@ export function ProposeTournamentDialog() {
           {t('TournamentsPage.propose_tournament')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('ProposeTournamentDialog.title')}</DialogTitle>
           <DialogDescription>
@@ -108,20 +113,38 @@ export function ProposeTournamentDialog() {
                 </FormItem>
               )}
             />
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="prize"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>{t('ProposeTournamentDialog.prize_amount')}</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="e.g., 100" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>{t('ProposeTournamentDialog.currency')}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder={t('ProposeTournamentDialog.select_currency')} /></SelectTrigger></FormControl>
+                            <SelectContent>
+                                {currencies.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </div>
              <FormField
-              control={form.control}
-              name="prize"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('ProposeTournamentDialog.prize')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('ProposeTournamentDialog.prize_placeholder')} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
               control={form.control}
               name="game"
               render={({ field }) => (

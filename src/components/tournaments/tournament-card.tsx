@@ -42,6 +42,9 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
   
   const FormatIcon = formatDetails[tournament.format]?.icon || Trophy;
   const formatName = t(formatDetails[tournament.format]?.nameKey || 'TournamentDetailsPage.format_label');
+  const prizeText = tournament.prize && tournament.currency 
+    ? `${tournament.currency} ${tournament.prize}` 
+    : t('TournamentDetailsPage.no_prize');
 
   return (
     <Card className="flex flex-col transition-all hover:shadow-lg hover:-translate-y-1">
@@ -73,7 +76,7 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
             </div>
             <div className="flex items-center gap-2">
                 <Trophy className="h-5 w-5" />
-                <span className="truncate">{tournament.prize || t('TournamentDetailsPage.no_prize')}</span>
+                <span className="truncate">{prizeText}</span>
             </div>
         </div>
 

@@ -26,7 +26,8 @@ export const ProposeTournamentSchema = z.object({
   maxTeams: z.coerce.number().int().min(2, "Must have at least 2 teams.").max(64, "Cannot exceed 64 teams."),
   rankMin: z.string().optional(),
   rankMax: z.string().optional(),
-  prize: z.string().max(100, "Prize description is too long.").optional(),
+  prize: z.coerce.number().positive().optional(),
+  currency: z.string().optional(),
 }).refine((data) => {
     if (data.rankMin && !data.rankMax) {
         data.rankMax = data.rankMin;
@@ -43,6 +44,13 @@ export const ProposeTournamentSchema = z.object({
 }, {
     message: "Minimum rank cannot be higher than maximum rank.",
     path: ["rankMin"],
+}).refine(data => {
+    if (data.prize && !data.currency) return false;
+    if (!data.prize && data.currency) return false;
+    return true;
+}, {
+    message: "Currency is required if a prize amount is set.",
+    path: ["currency"],
 });
 
 export type ProposeTournamentData = z.infer<typeof ProposeTournamentSchema>;
@@ -57,7 +65,15 @@ export const EditTournamentSchema = z.object({
     tournamentId: z.string().min(1),
     name: z.string().min(5, 'Tournament name must be at least 5 characters.').max(100),
     description: z.string().min(20, 'Please provide a detailed description.').max(1000),
-    prize: z.string().max(100, "Prize description is too long.").optional(),
+    prize: z.coerce.number().positive().optional(),
+    currency: z.string().optional(),
+}).refine(data => {
+    if (data.prize && !data.currency) return false;
+    if (!data.prize && data.currency) return false;
+    return true;
+}, {
+    message: "Currency is required if a prize amount is set.",
+    path: ["currency"],
 });
 export type EditTournamentData = z.infer<typeof EditTournamentSchema>;
 

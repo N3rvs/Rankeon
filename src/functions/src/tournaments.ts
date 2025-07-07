@@ -1,4 +1,4 @@
-// src/functions/tournaments.ts
+// src/functions/src/tournaments.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -31,7 +31,7 @@ export const proposeTournament = onCall(async (request) => {
     throw new HttpsError("permission-denied", "Only certified streamers, moderators, or admins can propose tournaments.");
   }
   
-  const { name, game, description, proposedDate, format, maxTeams, rankMin, rankMax, prize } = request.data as ProposeTournamentData & { maxTeams: number, rankMin?: string, rankMax?: string, prize?: string };
+  const { name, game, description, proposedDate, format, maxTeams, rankMin, rankMax, prize, currency } = request.data as ProposeTournamentData & { maxTeams: number, rankMin?: string, rankMax?: string, prize?: number, currency?: string };
   
   if (!name || !game || !description || !proposedDate || !format || !maxTeams) {
     throw new HttpsError("invalid-argument", "Missing required tournament proposal details.");
@@ -56,7 +56,8 @@ export const proposeTournament = onCall(async (request) => {
     maxTeams,
     rankMin: rankMin || '',
     rankMax: rankMax || '',
-    prize: prize || '',
+    prize: prize || null,
+    currency: currency || '',
     status: 'pending',
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
@@ -107,7 +108,7 @@ export const reviewTournamentProposal = onCall(async (request) => {
 
             // Step 2: If approved, create the new tournament document
             if (status === 'approved') {
-                const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName, maxTeams, rankMin, rankMax, prize } = proposalData;
+                const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName, maxTeams, rankMin, rankMax, prize, currency } = proposalData;
                 
                 // Rigorous validation. If any of these fail, the transaction will roll back.
                 if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName || !maxTeams) {
@@ -125,7 +126,8 @@ export const reviewTournamentProposal = onCall(async (request) => {
                     maxTeams: maxTeams,
                     rankMin: rankMin || '',
                     rankMax: rankMax || '',
-                    prize: prize || '',
+                    prize: prize || null,
+                    currency: currency || '',
                     status: 'upcoming',
                     organizer: { uid: proposerUid, name: proposerName },
                     createdAt: reviewTimestamp,
@@ -154,7 +156,7 @@ export const editTournament = onCall(async (request) => {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
     const { uid, token } = request.auth;
-    const { tournamentId, name, description, prize } = request.data as { tournamentId: string, name: string, description: string, prize?: string };
+    const { tournamentId, name, description, prize, currency } = request.data as { tournamentId: string, name: string, description: string, prize?: number, currency?: string };
 
     if (!tournamentId || !name || !description) {
         throw new HttpsError("invalid-argument", "Missing required tournament data.");
@@ -179,7 +181,8 @@ export const editTournament = onCall(async (request) => {
         await tournamentRef.update({
             name,
             description,
-            prize: prize || '',
+            prize: prize || null,
+            currency: currency || '',
         });
 
         return { success: true, message: "Tournament updated successfully." };

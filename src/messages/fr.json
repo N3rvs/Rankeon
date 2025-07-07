@@ -1,4 +1,3 @@
-
 {
   "HomePage": {
     "title": "Assemblez votre escouade d'élite",
@@ -299,8 +298,9 @@
     "name_placeholder": "ex: SquadUp Summer Skirmish",
     "game": "Jeu",
     "game_placeholder": "ex: Valorant",
-    "prize": "Prix (facultatif)",
-    "prize_placeholder": "ex: 100 USD, Skins, etc.",
+    "prize_amount": "Montant du prix",
+    "currency": "Devise",
+    "select_currency": "Sélectionnez une devise...",
     "min_rank": "Rang minimum",
     "max_rank": "Rang maximum",
     "no_restriction": "Aucune restriction",
@@ -416,7 +416,7 @@
     "status_ongoing": "En cours",
     "status_completed": "Terminé",
     "no_tournaments_title": "Aucun tournoi actif",
-    "no_tournaments_desc": "Il n'y a actuellement aucun tournoi approuvé à gérer."
+    "no_tournaments_desc": "Il n'y a currently aucun tournoi approuvé à gérer."
   },
   "StandingsTable": {
     "title": "Classement",

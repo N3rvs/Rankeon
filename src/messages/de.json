@@ -1,4 +1,3 @@
-
 {
   "HomePage": {
     "title": "Stellen Sie Ihr Elite-Team zusammen",
@@ -299,8 +298,9 @@
     "name_placeholder": "z.B., SquadUp Summer Skirmish",
     "game": "Spiel",
     "game_placeholder": "z.B., Valorant",
-    "prize": "Preis (Optional)",
-    "prize_placeholder": "z.B., 100 USD, Skins, etc.",
+    "prize_amount": "Preisbetrag",
+    "currency": "Währung",
+    "select_currency": "Währung auswählen...",
     "min_rank": "Mindestrang",
     "max_rank": "Höchstrang",
     "no_restriction": "Keine Einschränkung",

@@ -1,4 +1,3 @@
-
 {
   "HomePage": {
     "title": "Reúne a tu Escuadrón de Élite",
@@ -299,8 +298,9 @@
     "name_placeholder": "e.g., SquadUp Summer Skirmish",
     "game": "Juego",
     "game_placeholder": "e.g., Valorant",
-    "prize": "Premio (Opcional)",
-    "prize_placeholder": "ej: $100 USD, Skins, etc.",
+    "prize_amount": "Cantidad del Premio",
+    "currency": "Moneda",
+    "select_currency": "Selecciona moneda...",
     "min_rank": "Rango Mínimo",
     "max_rank": "Rango Máximo",
     "no_restriction": "Sin restricción",

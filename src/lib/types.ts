@@ -159,7 +159,8 @@ export interface TournamentProposal {
   maxTeams: number;
   rankMin?: string;
   rankMax?: string;
-  prize?: string;
+  prize?: number;
+  currency?: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Timestamp;
   reviewedBy?: string; // UID of admin/mod who reviewed
@@ -176,7 +177,8 @@ export interface Tournament {
   maxTeams: number;
   rankMin?: string;
   rankMax?: string;
-  prize?: string;
+  prize?: number;
+  currency?: string;
   status: 'upcoming' | 'ongoing' | 'completed';
   organizer: {
     uid: string;
@@ -186,6 +188,7 @@ export interface Tournament {
   proposalId: string;
   bracket?: Bracket | null;
   participants?: MatchTeam[];
+  winnerId?: string;
 }
 
 // Types for Tournament Bracket
@@ -198,8 +201,8 @@ export interface MatchTeam {
 
 export interface Match {
   id: string;
-  team1: MatchTeam;
-  team2: MatchTeam;
+  team1?: MatchTeam;
+  team2?: MatchTeam;
   winnerId?: string | null;
 }
 
