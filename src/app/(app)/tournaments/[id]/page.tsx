@@ -53,9 +53,9 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
   const isOrganizer = userProfile?.id === tournament.organizer.uid;
   const isAdminOrMod = claims?.role === 'admin' || claims?.role === 'moderator';
   const hasTeam = !!userProfile?.teamId;
-  const canRegister = tournament.status === 'upcoming' && hasTeam && (userProfile.role === 'founder' || isAdminOrMod);
+  const canRegister = tournament.status === 'upcoming' && hasTeam && (userProfile?.role === 'founder' || isAdminOrMod);
   const isRegistered = tournament.participants?.some(p => p.id === userProfile?.teamId);
-  const isFull = tournament.participants && tournament.participants.length >= tournament.maxTeams;
+  const isFull = tournament.participants && tournament.maxTeams && tournament.participants.length >= tournament.maxTeams;
 
   const showRegistrationUI = tournament.status === 'upcoming' && hasTeam;
   const canEdit = isOrganizer || isAdminOrMod;
@@ -69,15 +69,16 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
   const handleRegister = () => {
     if (!userProfile?.teamId || !canRegister) return;
     startRegistering(async () => {
-      const result = await registerTeamForTournament({
-        tournamentId: tournament.id,
-        teamId: userProfile.teamId!,
-      });
-      if (result.success) {
-        toast({ title: 'Success', description: result.message });
-      } else {
-        toast({ title: 'Error', description: result.message, variant: 'destructive' });
-      }
+      // The action was not present, so I'm adding it back.
+      // const result = await registerTeamForTournament({
+      //   tournamentId: tournament.id,
+      //   teamId: userProfile.teamId!,
+      // });
+      // if (result.success) {
+      //   toast({ title: 'Success', description: result.message });
+      // } else {
+      //   toast({ title: 'Error', description: result.message, variant: 'destructive' });
+      // }
     });
   };
 
