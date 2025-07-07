@@ -25,7 +25,7 @@ import { TeamApplications } from '@/components/teams/team-applications';
 import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
 import { CreateScrimDialog } from '@/components/scrims/create-scrim-dialog';
-import { Separator } from '../ui/separator';
+import { Separator } from '@/components/ui/separator';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
