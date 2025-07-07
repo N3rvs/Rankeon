@@ -197,20 +197,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/rankings')}
-                tooltip={t('Sidebar.rankings')}
-                size="lg"
-              >
-                <Link href="/rankings">
-                  <Medal />
-                  <span>{t('Sidebar.rankings')}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -275,18 +261,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-16 items-center justify-between border-b bg-background/50 backdrop-blur-sm px-4 md:px-6">
+        <header className="relative flex h-16 items-center justify-between border-b bg-background/50 backdrop-blur-sm px-4 md:px-6">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="md:hidden" />
           </div>
+
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Button variant="secondary" asChild>
+                <Link href="/rankings">
+                    <Medal className="mr-2 h-4 w-4" />
+                    {t('Sidebar.rankings')}
+                </Link>
+            </Button>
+          </div>
+          
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/rankings">
-                <Medal className="h-5 w-5" />
-                <span className="sr-only">Rankings</span>
-              </Link>
-            </Button>
             <InboxIcon />
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />
