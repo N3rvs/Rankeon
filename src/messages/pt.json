@@ -326,7 +326,7 @@
     "round_robin_title": "Round Robin (Todos contra todos)",
     "round_robin_desc": "O teste de habilidade mais completo. Cada equipa joga contra todas as outras equipas do seu grupo pelo menos uma vez. A classificação é determinada pelo número total de vitórias, tornando-se uma verdadeira medida de consistência. Ideal para grupos pequenos para encontrar uma equipa de topo clara.",
     "swiss_system_title": "Sistema Suíço",
-    "swiss_system_desc": "Um formato equilibrado e sem eliminação, perfeito para grandes campos de competidores. Em cada ronda, é emparelhado contra um adversário com um registo de vitórias-derrotas igual ou muito semelhante. Isto garante jogos competitivos ao longo do evento sem a necessidade de jogar contra todos.",
+    "swiss_system_desc": "Um formato sem eliminação onde os jogadores são emparelhados contra adversários com uma pontuação semelhante. É projetado para determinar um vencedor claro sem que cada jogador tenha que jogar contra todos os outros, tornando-o ideal para grandes campos de competidores.",
     "close_button": "Fechar"
   },
   "MessagesPage": {
