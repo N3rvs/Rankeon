@@ -96,6 +96,11 @@
     "privacy_policy": "Privacy Policy",
     "accept_error": "You must accept the Terms and Privacy Policy to continue."
   },
+  "CookieBanner": {
+    "message": "We use cookies to enhance your experience. By continuing, you agree to our use of cookies.",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
   "LanguageSwitcher": {
     "change_language": "Change language"
   },

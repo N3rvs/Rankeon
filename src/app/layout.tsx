@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { I18nProvider } from '@/contexts/i18n-context';
 import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
 import type { Metadata } from 'next';
+import { CookieConsentBanner } from '@/components/cookies/cookie-consent-banner';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -35,6 +36,7 @@ export default function RootLayout({
             <AuthProvider>
               {children}
               <Toaster />
+              <CookieConsentBanner />
             </AuthProvider>
           </I18nProvider>
       </body>

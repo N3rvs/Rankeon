@@ -96,6 +96,11 @@
         "privacy_policy": "Datenschutz-Bestimmungen",
         "accept_error": "Sie müssen die Nutzungsbedingungen und die Datenschutzrichtlinie akzeptieren, um fortzufahren."
     },
+    "CookieBanner": {
+        "message": "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern. Indem Sie fortfahren, stimmen Sie unserer Verwendung von Cookies zu.",
+        "accept": "Akzeptieren",
+        "decline": "Ablehnen"
+    },
   "LanguageSwitcher": {
     "change_language": "Sprache ändern"
   },

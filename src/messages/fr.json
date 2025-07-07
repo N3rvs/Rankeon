@@ -96,6 +96,11 @@
         "privacy_policy": "Politique de confidentialité",
         "accept_error": "Vous devez accepter les conditions et la politique de confidentialité pour continuer."
     },
+    "CookieBanner": {
+        "message": "Nous utilisons des cookies pour améliorer votre expérience. En continuant, vous acceptez notre utilisation des cookies.",
+        "accept": "Accepter",
+        "decline": "Refuser"
+    },
   "LanguageSwitcher": {
     "change_language": "Changer de langue"
   },
@@ -505,7 +510,7 @@
   },
   "TournamentManagement": {
     "delete_button": "Supprimer",
-    "delete_confirm_title": "Êtes-vous absolument sûr ?",
+    "delete_confirm_title": "Êtes-vous absolutely sûr ?",
     "delete_confirm_desc": "Cette action est irréversible. Cela supprimera définitivement le tournoi \"{name}\".",
     "cancel": "Annuler",
     "confirm_delete": "Oui, supprimer le tournoi",
