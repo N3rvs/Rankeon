@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { format } from 'date-fns';
 import { Button } from '../ui/button';
-import { Trash2, Trophy as TrophyIcon } from 'lucide-react';
+import { Trash2, Trophy as TrophyIcon, Edit } from 'lucide-react';
 import { deleteTournament } from '@/lib/actions/tournaments';
 import {
   AlertDialog,
@@ -31,6 +31,8 @@ import {
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
+import { EditTournamentDialog } from '@/components/tournaments/edit-tournament-dialog';
+
 
 function getStatusBadgeVariant(status: Tournament['status']) {
   switch (status) {
@@ -45,6 +47,7 @@ function TournamentManagementCard({ tournament }: { tournament: Tournament }) {
     const { t } = useI18n();
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const handleDelete = () => {
         startTransition(async () => {
@@ -71,51 +74,58 @@ function TournamentManagementCard({ tournament }: { tournament: Tournament }) {
     };
 
     return (
-        <Card className="flex flex-col">
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <Link href={`/tournaments/${tournament.id}`} className="hover:underline">
-                        <CardTitle className="font-headline text-lg">{tournament.name}</CardTitle>
-                    </Link>
-                    <Badge variant={getStatusBadgeVariant(tournament.status)} className="capitalize">{statusText[tournament.status]}</Badge>
-                </div>
-                <CardDescription>
-                    Organized by {tournament.organizer.name} for {tournament.game}
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
-                    Starts on {format(tournament.startDate.toDate(), "PPP")}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                    Participants: {tournament.participants?.length || 0} / {tournament.maxTeams}
-                </p>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="destructive" disabled={isPending}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            {t('TournamentManagement.delete_button')}
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>{t('TournamentManagement.delete_confirm_title')}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                {t('TournamentManagement.delete_confirm_desc', { name: tournament.name })}
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>{t('TournamentManagement.cancel')}</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDelete} disabled={isPending}>
-                                {isPending ? t('TournamentManagement.deleting') : t('TournamentManagement.confirm_delete')}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </CardFooter>
-        </Card>
+        <>
+            <EditTournamentDialog tournament={tournament} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
+            <Card className="flex flex-col">
+                <CardHeader>
+                    <div className="flex justify-between items-start">
+                        <Link href={`/tournaments/${tournament.id}`} className="hover:underline">
+                            <CardTitle className="font-headline text-lg">{tournament.name}</CardTitle>
+                        </Link>
+                        <Badge variant={getStatusBadgeVariant(tournament.status)} className="capitalize">{statusText[tournament.status]}</Badge>
+                    </div>
+                    <CardDescription>
+                        Organized by {tournament.organizer.name} for {tournament.game}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                    <p className="text-sm text-muted-foreground">
+                        Starts on {format(tournament.startDate.toDate(), "PPP")}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                        Participants: {tournament.participants?.length || 0} / {tournament.maxTeams}
+                    </p>
+                </CardContent>
+                <CardFooter className="flex justify-end gap-2">
+                     <Button size="sm" variant="secondary" onClick={() => setIsEditDialogOpen(true)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" disabled={isPending}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t('TournamentManagement.delete_button')}
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>{t('TournamentManagement.delete_confirm_title')}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    {t('TournamentManagement.delete_confirm_desc', { name: tournament.name })}
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>{t('TournamentManagement.cancel')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} disabled={isPending}>
+                                    {isPending ? t('TournamentManagement.deleting') : t('TournamentManagement.confirm_delete')}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </CardFooter>
+            </Card>
+        </>
     );
 }
 

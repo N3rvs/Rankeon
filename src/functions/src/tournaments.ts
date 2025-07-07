@@ -11,6 +11,9 @@ interface ProposeTournamentData {
   proposedDate: string; // ISO String from client
   format: string;
   maxTeams: number;
+  rankMin?: string;
+  rankMax?: string;
+  prize?: string;
 }
 
 interface ReviewTournamentData {
@@ -32,7 +35,7 @@ export const proposeTournament = onCall(async (request) => {
     throw new HttpsError("permission-denied", "Only certified streamers, moderators, or admins can propose tournaments.");
   }
   
-  const { name, game, description, proposedDate, format, maxTeams } = request.data as ProposeTournamentData;
+  const { name, game, description, proposedDate, format, maxTeams, rankMin, rankMax, prize } = request.data as ProposeTournamentData;
   
   if (!name || !game || !description || !proposedDate || !format || !maxTeams) {
     throw new HttpsError("invalid-argument", "Missing required tournament proposal details.");
@@ -55,6 +58,9 @@ export const proposeTournament = onCall(async (request) => {
     proposedDate: admin.firestore.Timestamp.fromDate(new Date(proposedDate)),
     format,
     maxTeams,
+    rankMin: rankMin || '',
+    rankMax: rankMax || '',
+    prize: prize || '',
     status: 'pending',
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
@@ -105,7 +111,7 @@ export const reviewTournamentProposal = onCall(async (request) => {
 
             // Step 2: If approved, create the new tournament document
             if (status === 'approved') {
-                const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName, maxTeams } = proposalData;
+                const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName, maxTeams, rankMin, rankMax, prize } = proposalData;
                 
                 // Rigorous validation. If any of these fail, the transaction will roll back.
                 if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName || !maxTeams) {
@@ -121,6 +127,9 @@ export const reviewTournamentProposal = onCall(async (request) => {
                     startDate: proposedDate, // This is a valid Firestore Timestamp
                     format: format,
                     maxTeams: maxTeams,
+                    rankMin: rankMin || '',
+                    rankMax: rankMax || '',
+                    prize: prize || '',
                     status: 'upcoming',
                     organizer: { uid: proposerUid, name: proposerName },
                     createdAt: reviewTimestamp,
@@ -248,5 +257,48 @@ export const deleteTournament = onCall(async (request) => {
     } catch (error: any) {
         console.error("Error deleting tournament:", error);
         throw new HttpsError('internal', 'A server error occurred while deleting the tournament.');
+    }
+});
+
+
+export const editTournament = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+    const { uid, token } = request.auth;
+    const { tournamentId, name, description, prize } = request.data as { tournamentId: string, name: string, description: string, prize?: string };
+
+    if (!tournamentId || !name || !description) {
+        throw new HttpsError("invalid-argument", "Missing required tournament data.");
+    }
+
+    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+
+    try {
+        const tournamentSnap = await tournamentRef.get();
+        if (!tournamentSnap.exists) {
+            throw new HttpsError("not-found", "Tournament not found.");
+        }
+        const tournamentData = tournamentSnap.data()!;
+
+        const isOrganizer = tournamentData.organizer.uid === uid;
+        const isAdminOrMod = token.role === 'admin' || token.role === 'moderator';
+
+        if (!isOrganizer && !isAdminOrMod) {
+            throw new HttpsError("permission-denied", "You are not authorized to edit this tournament.");
+        }
+
+        await tournamentRef.update({
+            name,
+            description,
+            prize: prize || '',
+        });
+
+        return { success: true, message: "Tournament updated successfully." };
+
+    } catch (error: any) {
+        console.error("Error editing tournament:", error);
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError('internal', 'A server error occurred while editing the tournament.');
     }
 });

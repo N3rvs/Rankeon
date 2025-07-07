@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarIcon, PlusCircle } from 'lucide-react';
+import { CalendarIcon, PlusCircle, Shield, Star } from 'lucide-react';
 import { ProposeTournamentSchema, ProposeTournamentData, proposeTournament } from '@/lib/actions/tournaments';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -28,6 +28,14 @@ const tournamentFormats = [
 
 const teamCountOptions = [4, 8, 16, 32, 64];
 
+const valorantRanks = [
+    { value: 'Plata', label: 'Plata' },
+    { value: 'Oro', label: 'Oro' },
+    { value: 'Platino', label: 'Platino' },
+    { value: 'Ascendente', label: 'Ascendente' },
+    { value: 'Inmortal', label: 'Inmortal' },
+];
+
 export function ProposeTournamentDialog() {
   const { t } = useI18n();
   const { toast } = useToast();
@@ -42,6 +50,9 @@ export function ProposeTournamentDialog() {
       description: '',
       format: '',
       maxTeams: 8,
+      prize: '',
+      rankMin: '',
+      rankMax: '',
     },
   });
 
@@ -95,6 +106,19 @@ export function ProposeTournamentDialog() {
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="prize"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('ProposeTournamentDialog.prize')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('ProposeTournamentDialog.prize_placeholder')} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="game"
@@ -135,6 +159,40 @@ export function ProposeTournamentDialog() {
                         <FormControl><SelectTrigger><SelectValue placeholder="Select max teams..." /></SelectTrigger></FormControl>
                         <SelectContent>
                             {teamCountOptions.map(count => <SelectItem key={count} value={String(count)}>{count} Teams</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+               <FormField
+                control={form.control}
+                name="rankMin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('ProposeTournamentDialog.min_rank')}</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder={t('ProposeTournamentDialog.no_restriction')} /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            {valorantRanks.map(rank => <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="rankMax"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('ProposeTournamentDialog.max_rank')}</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder={t('ProposeTournamentDialog.no_restriction')} /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            {valorantRanks.map(rank => <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <FormMessage />
