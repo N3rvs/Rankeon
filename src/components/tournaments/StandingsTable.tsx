@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Tournament, Match, MatchTeam } from '@/lib/types';
+import type { Tournament } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
