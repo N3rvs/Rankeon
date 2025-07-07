@@ -451,6 +451,15 @@
     "scrim_accepted_title": "Scrim Accepted!",
     "scrim_accepted_desc": "You have accepted the scrim. It will now appear on your team calendar.",
     "scrim_cancelled_title": "Scrim Cancelled",
-    "scrim_cancelled_desc": "The scrim has been removed from the listing."
+    "scrim_cancelled_desc": "The scrim has been removed from the listing.",
+    "formats": {
+      "bo1": "Best of 1",
+      "bo3": "Best of 3",
+      "bo5": "Best of 5"
+    },
+    "types": {
+      "scrim": "Scrim (Practice vs Team)",
+      "tryout": "Tryout (Test Players)"
+    }
   }
 }

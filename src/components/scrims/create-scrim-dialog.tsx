@@ -18,17 +18,6 @@ import { format } from 'date-fns';
 import { useI18n } from '@/contexts/i18n-context';
 import { Textarea } from '../ui/textarea';
 
-const scrimFormats = [
-    { value: 'bo1', label: 'Best of 1' },
-    { value: 'bo3', label: 'Best of 3' },
-    { value: 'bo5', label: 'Best of 5' },
-];
-
-const scrimTypes = [
-    { value: 'scrim', label: 'Scrim (Practice vs Team)' },
-    { value: 'tryout', label: 'Tryout (Test Players)' },
-];
-
 export function CreateScrimDialog({ teamId }: { teamId: string }) {
   const { t } = useI18n();
   const { toast } = useToast();
@@ -43,6 +32,17 @@ export function CreateScrimDialog({ teamId }: { teamId: string }) {
       notes: '',
     },
   });
+
+  const scrimFormats = [
+    { value: 'bo1', label: t('ScrimsPage.formats.bo1') },
+    { value: 'bo3', label: t('ScrimsPage.formats.bo3') },
+    { value: 'bo5', label: t('ScrimsPage.formats.bo5') },
+  ];
+
+  const scrimTypes = [
+    { value: 'scrim', label: t('ScrimsPage.types.scrim') },
+    { value: 'tryout', label: t('ScrimsPage.types.tryout') },
+  ];
 
   async function onSubmit(values: Omit<CreateScrimData, 'teamId'>) {
     startTransition(async () => {

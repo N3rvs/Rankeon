@@ -451,6 +451,15 @@
     "scrim_accepted_title": "Scrim angenommen!",
     "scrim_accepted_desc": "Du hast den Scrim angenommen. Er wird nun in deinem Teamkalender angezeigt.",
     "scrim_cancelled_title": "Scrim abgebrochen",
-    "scrim_cancelled_desc": "Der Scrim wurde aus der Liste entfernt."
+    "scrim_cancelled_desc": "Der Scrim wurde aus der Liste entfernt.",
+    "formats": {
+      "bo1": "Best of 1",
+      "bo3": "Best of 3",
+      "bo5": "Best of 5"
+    },
+    "types": {
+      "scrim": "Scrim (Übungsspiel vs Team)",
+      "tryout": "Tryout (Spieler-Test)"
+    }
   }
 }
