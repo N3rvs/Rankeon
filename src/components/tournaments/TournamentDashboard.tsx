@@ -20,8 +20,8 @@ export function TournamentDashboard({ tournament }: { tournament: Tournament }) 
   const isOwner = tournament.organizer.uid === userProfile?.id;
   const isEditable = isMod || isOwner;
 
-  const prizeText = tournament.prize && tournament.currency 
-    ? `${tournament.currency} ${tournament.prize}` 
+  const prizeText = tournament.prize
+    ? `${tournament.currency || ''} ${tournament.prize}`.trim()
     : t('TournamentDetailsPage.no_prize');
 
   return (

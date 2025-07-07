@@ -42,8 +42,8 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
   
   const FormatIcon = formatDetails[tournament.format]?.icon || Trophy;
   const formatName = t(formatDetails[tournament.format]?.nameKey || 'TournamentDetailsPage.format_label');
-  const prizeText = tournament.prize && tournament.currency 
-    ? `${tournament.currency} ${tournament.prize}` 
+  const prizeText = tournament.prize
+    ? `${tournament.currency || ''} ${tournament.prize}`.trim()
     : t('TournamentDetailsPage.no_prize');
 
   return (

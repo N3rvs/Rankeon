@@ -102,7 +102,13 @@ export function EditTournamentDialog({ tournament, open, onOpenChange }: EditTou
                     <FormItem>
                         <FormLabel>{t('ProposeTournamentDialog.prize_amount')}</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="e.g., 100" {...field} />
+                            <Input
+                                type="number"
+                                placeholder="e.g., 100"
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                value={field.value ?? ''}
+                            />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
