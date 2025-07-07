@@ -56,6 +56,7 @@ export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
             </div>
             <div className="flex flex-wrap items-center gap-2 mt-2">
                 {userProfile.skills?.map(skill => <Badge key={skill} variant="outline">{skill}</Badge>)}
+                {userProfile.rank && <Badge variant="secondary">{userProfile.rank}</Badge>}
             </div>
           </div>
         </div>

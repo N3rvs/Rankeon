@@ -4,7 +4,7 @@
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Gamepad2, Info, Target, BrainCircuit, Globe, Frown, UserPlus, CheckCircle, Crown, ShieldCheck, Trophy } from 'lucide-react';
+import { Users, Gamepad2, Info, Target, BrainCircuit, Globe, Frown, UserPlus, CheckCircle, Crown, ShieldCheck, Trophy, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, doc, getDoc, where, orderBy } from 'firebase/firestore';
@@ -70,6 +70,12 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
 
     const canApply = userProfile && !userProfile.teamId && team.lookingForPlayers;
     
+    const rankRange = team.rankMin && team.rankMax
+        ? team.rankMin === team.rankMax
+            ? team.rankMin
+            : `${team.rankMin} - ${team.rankMax}`
+        : null;
+
     const renderVideo = (videoUrl?: string) => {
         if (!videoUrl) {
           return null;
@@ -153,9 +159,10 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <div>
                                 <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
-                                <CardDescription className="flex items-center gap-4 pt-1">
+                                <CardDescription className="flex items-center gap-4 pt-1 flex-wrap">
                                     <span className="flex items-center gap-2"><Gamepad2 className="h-4 w-4" />Playing {team.game}</span>
                                     {team.country && <span className="flex items-center gap-2"><Globe className="h-4 w-4" />{team.country}</span>}
+                                    {rankRange && <span className="flex items-center gap-2"><Shield className="h-4 w-4" />{rankRange}</span>}
                                 </CardDescription>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">

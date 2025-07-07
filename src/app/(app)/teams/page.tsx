@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords } from 'lucide-react';
+import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, doc, getDoc, where, orderBy } from 'firebase/firestore';
@@ -215,6 +215,12 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     };
     
     const isStaff = currentUserRole === 'founder' || currentUserRole === 'coach';
+    
+    const rankRange = team.rankMin && team.rankMax
+        ? team.rankMin === team.rankMax
+            ? team.rankMin
+            : `${team.rankMin} - ${team.rankMax}`
+        : null;
 
     const renderVideo = (videoUrl?: string) => {
         if (!videoUrl) {
@@ -310,7 +316,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                          <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <div>
                                 <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
-                                <CardDescription className="flex items-center gap-4 pt-1">
+                                <CardDescription className="flex items-center gap-4 pt-1 flex-wrap">
                                     <span className="flex items-center gap-2">
                                         <Gamepad2 className="h-4 w-4" />
                                         <span>{t('TeamsPage.playing')} {team.game}</span>
@@ -321,6 +327,15 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                             <span className="flex items-center gap-2">
                                                 <Globe className="h-4 w-4" />
                                                 <span>{team.country}</span>
+                                            </span>
+                                        </>
+                                    )}
+                                     {rankRange && (
+                                        <>
+                                            <span className="text-muted-foreground/50">|</span>
+                                            <span className="flex items-center gap-2">
+                                                <Shield className="h-4 w-4" />
+                                                <span>{rankRange}</span>
                                             </span>
                                         </>
                                     )}
