@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,11 +15,14 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { useI18n } from '@/contexts/i18n-context';
 
+interface EnrichedChat extends Chat {
+    partner: UserProfile | null;
+}
+
 function ChatList() {
     const { user, loading: authLoading } = useAuth();
     const { t } = useI18n();
-    const [chats, setChats] = useState<Chat[]>([]);
-    const [chatPartners, setChatPartners] = useState<Map<string, UserProfile>>(new Map());
+    const [enrichedChats, setEnrichedChats] = useState<EnrichedChat[]>([]);
     const [unreadChatIds, setUnreadChatIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
     const pathname = usePathname();
@@ -43,7 +47,7 @@ function ChatList() {
     useEffect(() => {
         if (!user) {
             setLoading(false);
-            setChats([]);
+            setEnrichedChats([]);
             return;
         }
         setLoading(true);
@@ -52,45 +56,30 @@ function ChatList() {
             where('members', 'array-contains', user.uid)
         );
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const chatMap = new Map<string, Chat>();
-            snapshot.docs.forEach(doc => {
-                chatMap.set(doc.id, { id: doc.id, ...doc.data() } as Chat);
-            });
-            const initialChats = Array.from(chatMap.values());
-            
-            const sortedChats = initialChats.sort((a, b) => {
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const chatsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
+
+            const enrichedChatsData: EnrichedChat[] = await Promise.all(
+                chatsData.map(async (chat) => {
+                    const partnerId = chat.members.find(id => id !== user.uid);
+                    let partner: UserProfile | null = null;
+                    if (partnerId) {
+                        const userDoc = await getDoc(doc(db, 'users', partnerId));
+                        if (userDoc.exists()) {
+                            partner = { id: userDoc.id, ...userDoc.data() } as UserProfile;
+                        }
+                    }
+                    return { ...chat, partner };
+                })
+            );
+
+            const sortedChats = enrichedChatsData.sort((a, b) => {
                 const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
                 const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
                 return timeB - timeA;
             });
-            setChats(sortedChats);
 
-            // Fetch partner profiles for any new chats
-            setChatPartners(currentPartners => {
-                const newPartnerIds = sortedChats
-                    .map(chat => chat.members.find(id => id !== user.uid))
-                    .filter((id): id is string => !!id && !currentPartners.has(id));
-
-                if (newPartnerIds.length > 0) {
-                    const uniquePartnerIds = [...new Set(newPartnerIds)];
-                    const profilePromises = uniquePartnerIds.map(id => getDoc(doc(db, 'users', id)));
-                    
-                    Promise.all(profilePromises).then(profileDocs => {
-                        setChatPartners(prevPartners => {
-                            const newPartnersMap = new Map(prevPartners);
-                            profileDocs.forEach(docSnap => {
-                                if (docSnap.exists()) {
-                                    newPartnersMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() } as UserProfile);
-                                }
-                            });
-                            return newPartnersMap;
-                        });
-                    });
-                }
-                return currentPartners;
-            });
-            
+            setEnrichedChats(sortedChats);
             setLoading(false);
         }, (error) => {
             console.error("Error fetching chats:", error);
@@ -119,12 +108,11 @@ function ChatList() {
     return (
         <ScrollArea className="flex-1">
             <nav className="p-2 space-y-1">
-                {chats.length > 0 ? (
-                    chats.map(chat => {
-                        const partnerId = chat.members.find(id => id !== user?.uid);
-                        if (!partnerId) return null;
+                {enrichedChats.length > 0 ? (
+                    enrichedChats.map(chat => {
+                        const { partner } = chat;
+                        if (!partner) return null; // Don't render if partner data isn't loaded yet
                         
-                        const partner = chatPartners.get(partnerId);
                         const isUnread = unreadChatIds.has(chat.id);
                         const isLastMessageFromMe = chat.lastMessage?.sender === user?.uid;
 
@@ -138,15 +126,13 @@ function ChatList() {
                                 )}
                             >
                                 <Avatar className="h-10 w-10">
-                                    {partner ? <>
-                                        <AvatarImage src={partner.avatarUrl} data-ai-hint="person avatar"/>
-                                        <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
-                                    </> : <Skeleton className="h-full w-full rounded-full" />}
+                                    <AvatarImage src={partner.avatarUrl} data-ai-hint="person avatar"/>
+                                    <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1 overflow-hidden">
                                     <div className="flex justify-between items-center">
                                         <div className={cn("font-semibold text-sm truncate", isUnread && "text-primary")}>
-                                            {partner ? partner.name : <Skeleton className="h-4 w-24" />}
+                                            {partner.name}
                                         </div>
                                         {(chat.lastMessageAt || chat.createdAt) && (
                                             <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">
