@@ -15,12 +15,11 @@ import { acceptScrimAction, cancelScrimAction } from '@/lib/actions/scrims';
 import { useI18n } from '@/contexts/i18n-context';
 import { getFlagEmoji } from '@/lib/utils';
 
-export function ScrimCard({ scrim }: { scrim: Scrim }) {
+export function ScrimCard({ scrim, onScrimAccepted }: { scrim: Scrim, onScrimAccepted?: () => void }) {
   const { userProfile } = useAuth();
   const { t } = useI18n();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [isLocallyCancelled, setIsLocallyCancelled] = useState(false);
 
   const isMyTeamScrim = userProfile?.teamId === scrim.teamAId || userProfile?.teamId === scrim.teamBId;
   const canAccept = userProfile?.teamId && scrim.status === 'pending' && userProfile.teamId !== scrim.teamAId;
@@ -44,6 +43,7 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
       const result = await acceptScrimAction(scrim.id, userProfile.teamId!);
       if (result.success) {
         toast({ title: t('ScrimsPage.scrim_accepted_title'), description: t('ScrimsPage.scrim_accepted_desc') });
+        onScrimAccepted?.();
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -56,7 +56,6 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
       const result = await cancelScrimAction(scrim.id);
       if (result.success) {
         toast({ title: t('ScrimsPage.scrim_cancelled_title'), description: t('ScrimsPage.scrim_cancelled_desc') });
-        setIsLocallyCancelled(true);
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -76,10 +75,6 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
     </div>
   );
   
-  if (isLocallyCancelled) {
-    return null;
-  }
-
   return (
     <Card className="flex flex-col">
       <CardHeader>

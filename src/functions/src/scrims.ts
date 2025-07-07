@@ -138,7 +138,15 @@ export const cancelScrim = onCall(async ({ auth, data }: { auth?: any, data: Can
          throw new HttpsError("permission-denied", "You are not authorized to cancel this scrim.");
     }
     
-    await scrimRef.update({ status: 'cancelled' });
+    if (scrimData.status === 'pending') {
+        await scrimRef.delete();
+        return { success: true, message: "Scrim posting has been deleted." };
+    }
+
+    if (scrimData.status === 'confirmed') {
+        await scrimRef.update({ status: 'cancelled' });
+        return { success: true, message: "Scrim cancelled successfully."};
+    }
     
-    return { success: true, message: "Scrim cancelled."};
+    return { success: true, message: "Scrim is already in a final state."};
 });

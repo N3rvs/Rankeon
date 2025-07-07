@@ -19,7 +19,7 @@ import { getFlagEmoji } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
-function ScrimList({ scrims, loading }: { scrims: Scrim[], loading: boolean }) {
+function ScrimList({ scrims, loading, onScrimAccepted }: { scrims: Scrim[], loading: boolean, onScrimAccepted?: () => void }) {
     const { t } = useI18n();
     if (loading) {
         return (
@@ -44,7 +44,7 @@ function ScrimList({ scrims, loading }: { scrims: Scrim[], loading: boolean }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {scrims.map(scrim => (
-                <ScrimCard key={scrim.id} scrim={scrim} />
+                <ScrimCard key={scrim.id} scrim={scrim} onScrimAccepted={onScrimAccepted} />
             ))}
         </div>
     );
@@ -58,6 +58,7 @@ export default function ScrimsPage() {
   const [scheduledScrims, setScheduledScrims] = useState<Scrim[]>([]);
   const [loadingAvailable, setLoadingAvailable] = useState(true);
   const [loadingScheduled, setLoadingScheduled] = useState(true);
+  const [activeTab, setActiveTab] = useState('available');
 
   const [rankFilter, setRankFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
@@ -137,6 +138,8 @@ export default function ScrimsPage() {
     { value: 'United Kingdom', label: `${getFlagEmoji('United Kingdom')} ${t('Countries.united_kingdom')}` },
     { value: 'Vatican City', label: `${getFlagEmoji('Vatican City')} ${t('Countries.vatican_city')}` }
   ];
+
+  const handleScrimAccepted = () => setActiveTab('schedule');
 
   // Fetch available scrims
   useEffect(() => {
@@ -226,7 +229,7 @@ export default function ScrimsPage() {
         {canCreate && <CreateScrimDialog teamId={userProfile.teamId!} />}
       </div>
       
-       <Tabs defaultValue="available" className="w-full">
+       <Tabs defaultValue="available" className="w-full" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="available"><CalendarSearch className="mr-2 h-4 w-4" /> Available Scrims</TabsTrigger>
             <TabsTrigger value="schedule"><BookOpen className="mr-2 h-4 w-4" /> My Schedule</TabsTrigger>
@@ -262,7 +265,7 @@ export default function ScrimsPage() {
                 </div>
                 </div>
             </Card>
-            <ScrimList scrims={filteredAvailableScrims} loading={loadingAvailable} />
+            <ScrimList scrims={filteredAvailableScrims} loading={loadingAvailable} onScrimAccepted={handleScrimAccepted} />
         </TabsContent>
         <TabsContent value="schedule" className="mt-6">
             <ScrimList scrims={scheduledScrims} loading={loadingScheduled} />
