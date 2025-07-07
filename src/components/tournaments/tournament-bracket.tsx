@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useTransition } from 'react';
@@ -75,7 +74,6 @@ const MatchCard = ({
         isWinner ? 'font-bold text-foreground bg-primary/10' : 'text-muted-foreground',
       )}>
         <div className="flex items-center gap-2 overflow-hidden">
-          {isWinner && <Crown className="h-4 w-4 text-yellow-500 shrink-0" />}
           <Avatar className="h-6 w-6 shrink-0">
             <AvatarImage src={team.avatarUrl} data-ai-hint="team logo" />
             <AvatarFallback>{team.name?.slice(0, 2)}</AvatarFallback>
