@@ -1,18 +1,38 @@
 
 {
-  "HomePage": {
-    "title": "Reúne a tu Escuadrón de Élite",
+  "LandingPage": {
+    "news": "Noticias",
+    "tournaments": "Torneos",
+    "rankings": "Ranking",
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "go_to_app": "Ir a la App",
+    "title": "Reúne a tu Equipo de Élite",
     "subtitle": "La plataforma LFG definitiva para Valorant. Deja de jugar solo y empieza a dominar con el equipo perfecto.",
     "get_started": "Empezar",
-    "find_squad": "Encuentra tu Escuadrón",
-    "register_player": "Registrarse como Jugador",
-    "built_for_champions": "Construido para Campeones",
-    "champions_subtitle": "Todo lo que necesitas para conquistar la competencia.",
+    "features_title": "Construido para Campeones",
+    "features_subtitle": "Todo lo que necesitas para conquistar la competencia.",
     "find_players_title": "Encuentra Jugadores",
-    "find_players_desc": "Explora perfiles detallados de jugadores, filtra por rol y rango, y encuentra el ajuste perfecto para tu plantilla.",
-    "ai_tools_title": "Herramientas con IA",
-    "ai_tools_desc": "Usa nuestra IA para crear la biografía de jugador perfecta para que otros jugadores te noten.",
-    "footer_text": "© {year} SquadUp. Todos los derechos reservados. Construido para el futuro de los esports."
+    "find_players_desc": "Explora perfiles detallados, filtra por rol y rango, y encuentra el ajuste perfecto para tu plantilla.",
+    "scrims_title": "Compite en Scrims",
+    "scrims_desc": "Publica y encuentra partidas de práctica para llevar a tu equipo al siguiente nivel.",
+    "tournaments_title": "Gana Torneos",
+    "tournaments_desc": "Inscríbete en torneos de la comunidad y compite por la gloria y los premios.",
+    "footer_text": "© {year} Scrimly. Todos los derechos reservados. Construido para el futuro de los esports."
+  },
+  "Pricing": {
+    "title": "Elige tu Camino a la Gloria",
+    "subtitle": "Planes flexibles diseñados para jugadores serios y líderes de equipo.",
+    "most_popular": "Más Popular",
+    "monthly": "/mes",
+    "founder_title": "Plan Fundador",
+    "founder_desc": "Para líderes listos para construir un legado. Todas las herramientas para crear y gestionar un equipo de élite.",
+    "founder_features": "Crear y personalizar tu equipo|Reclutar jugadores del mercado|Gestionar miembros y roles|Publicar y aceptar scrims|Inscribirse a torneos|Acceso a panel de gestión avanzado",
+    "founder_cta": "Conviértete en Fundador",
+    "coach_title": "Plan Coach",
+    "coach_desc": "Para los estrategas que guían a los equipos a la victoria. Analiza, gestiona y lidera.",
+    "coach_features": "Unirse a un equipo como Coach|Gestionar miembros y roles|Acceso a estadísticas del equipo (próximamente)|Asignar roles de IGL|Participar en la planificación de scrims",
+    "coach_cta": "Empezar como Coach"
   },
   "LanguageSwitcher": {
     "change_language": "Cambiar idioma"
@@ -142,7 +162,7 @@
   },
   "ProfilePage": {
     "edit_profile": "Editar Perfil",
-    "bio_placeholder": "¡Soy nuevo en SquadUp! Listo para encontrar un equipo y competir.",
+    "bio_placeholder": "¡Soy nuevo en Scrimly! Listo para encontrar un equipo y competir.",
     "current_team": "Equipo Actual",
     "honors": "Honores",
     "performance_analysis": "Análisis de Rendimiento",
@@ -311,7 +331,7 @@
     "title": "Proponer un Nuevo Torneo",
     "description": "Rellena los detalles de tu idea de torneo. Nuestro personal lo revisará para su aprobación.",
     "name": "Nombre del Torneo",
-    "name_placeholder": "e.g., SquadUp Summer Skirmish",
+    "name_placeholder": "e.g., Scrimly Summer Skirmish",
     "game": "Juego",
     "game_placeholder": "e.g., Valorant",
     "prize_amount": "Cantidad del Premio",
@@ -378,7 +398,7 @@
   },
   "AdminPanel": {
     "title": "Panel de Administrador",
-    "subtitle": "Panel de control global para la gestión de la plataforma SquadUp.",
+    "subtitle": "Panel de control global para la gestión de la plataforma Scrimly.",
     "user_management_title": "Gestión de Usuarios",
     "user_management_desc": "Ver, editar, banear y gestionar todos los usuarios.",
     "team_management_title": "Gestión de Equipos",

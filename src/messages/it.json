@@ -1,19 +1,39 @@
 
 {
-  "HomePage": {
-    "title": "Assembla la tua squadra d'élite",
-    "subtitle": "La piattaforma LFG definitiva per Valorant. Smetti di giocare da solo e inizia a dominare con la squadra perfetta.",
-    "get_started": "Inizia",
-    "find_squad": "Trova la tua squadra",
-    "register_player": "Registrati come giocatore",
-    "built_for_champions": "Costruito per i campioni",
-    "champions_subtitle": "Tutto ciò di cui hai bisogno per conquistare la competizione.",
-    "find_players_title": "Trova giocatori",
-    "find_players_desc": "Sfoglia profili dettagliati dei giocatori, filtra per ruolo e grado e trova la soluzione perfetta per il tuo roster.",
-    "ai_tools_title": "Strumenti basati sull'IA",
-    "ai_tools_desc": "Usa la nostra intelligenza artificiale per creare la biografia del giocatore perfetta per farti notare dagli altri giocatori.",
-    "footer_text": "© {year} SquadUp. Tutti i diritti riservati. Costruito per il futuro degli eSport."
-  },
+    "LandingPage": {
+        "news": "Notizie",
+        "tournaments": "Tornei",
+        "rankings": "Classifiche",
+        "login": "Accedi",
+        "register": "Registrati",
+        "go_to_app": "Vai all'App",
+        "title": "Assembla la tua squadra d'élite",
+        "subtitle": "La piattaforma LFG definitiva per Valorant. Smetti di giocare da solo e inizia a dominare con la squadra perfetta.",
+        "get_started": "Inizia",
+        "features_title": "Costruito per i campioni",
+        "features_subtitle": "Tutto ciò di cui hai bisogno per conquistare la competizione.",
+        "find_players_title": "Trova giocatori",
+        "find_players_desc": "Sfoglia profili dettagliati dei giocatori, filtra per ruolo e grado e trova la soluzione perfetta per il tuo roster.",
+        "scrims_title": "Competi in Scrim",
+        "scrims_desc": "Pubblica e trova partite di allenamento per portare la tua squadra al livello successivo.",
+        "tournaments_title": "Vinci Tornei",
+        "tournaments_desc": "Iscriviti ai tornei gestiti dalla community e competi per la gloria e i premi.",
+        "footer_text": "© {year} Scrimly. Tutti i diritti riservati. Costruito per il futuro degli eSport."
+    },
+    "Pricing": {
+        "title": "Scegli il tuo percorso verso la gloria",
+        "subtitle": "Piani flessibili progettati per giocatori seri e leader di squadra.",
+        "most_popular": "Più Popolare",
+        "monthly": "/mese",
+        "founder_title": "Piano Fondatore",
+        "founder_desc": "Per i leader pronti a costruire un'eredità. Tutti gli strumenti per creare e gestire una squadra d'élite.",
+        "founder_features": "Crea e personalizza la tua squadra|Recluta giocatori dal mercato|Gestisci membri e ruoli|Pubblica e accetta scrim|Registrati ai tornei|Accesso al pannello di gestione avanzato",
+        "founder_cta": "Diventa un Fondatore",
+        "coach_title": "Piano Allenatore",
+        "coach_desc": "Per gli strateghi che guidano le squadre alla vittoria. Analizza, gestisci e guida.",
+        "coach_features": "Unisciti a una squadra come Allenatore|Gestisci membri e ruoli della squadra|Accesso alle analisi della squadra (presto)|Assegna ruoli IGL|Partecipa alla pianificazione degli scrim",
+        "coach_cta": "Inizia come Allenatore"
+    },
   "LanguageSwitcher": {
     "change_language": "Cambia lingua"
   },
@@ -142,7 +162,7 @@
   },
   "ProfilePage": {
     "edit_profile": "Modifica profilo",
-    "bio_placeholder": "Sono nuovo su SquadUp! Pronto a trovare una squadra e competere.",
+    "bio_placeholder": "Sono nuovo su Scrimly! Pronto a trovare una squadra e competere.",
     "current_team": "Squadra attuale",
     "honors": "Onorificenze",
     "performance_analysis": "Analisi delle prestazioni",
@@ -311,7 +331,7 @@
     "title": "Proponi un nuovo torneo",
     "description": "Compila i dettagli per la tua idea di torneo. Il nostro staff la esaminerà per l'approvazione.",
     "name": "Nome del torneo",
-    "name_placeholder": "es. SquadUp Summer Skirmish",
+    "name_placeholder": "es. Scrimly Summer Skirmish",
     "game": "Gioco",
     "game_placeholder": "es. Valorant",
     "prize_amount": "Importo del premio",
@@ -378,7 +398,7 @@
   },
   "AdminPanel": {
     "title": "Dashboard Admin",
-    "subtitle": "Pannello di controllo globale per la gestione della piattaforma SquadUp.",
+    "subtitle": "Pannello di controllo globale per la gestione della piattaforma Scrimly.",
     "user_management_title": "Gestione Utenti",
     "user_management_desc": "Visualizza, modifica, banna e gestisci tutti gli utenti.",
     "team_management_title": "Gestione Squadre",
