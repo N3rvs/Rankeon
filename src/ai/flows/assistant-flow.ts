@@ -25,9 +25,16 @@ export async function askAssistant(input: AssistantInput): Promise<AssistantOutp
   return assistantFlow(input);
 }
 
+// New schema for the prompt itself, where history is a simple string.
+const PromptInputSchema = z.object({
+  query: z.string(),
+  history: z.string().optional(),
+});
+
+
 const prompt = ai.definePrompt({
   name: 'squadUpAssistantPrompt',
-  input: {schema: AssistantInputSchema},
+  input: {schema: PromptInputSchema},
   output: {schema: AssistantOutputSchema},
   prompt: `You are "SquadUp Assistant", a friendly and helpful AI designed to assist users of the SquadUp application. Your goal is to provide clear, concise, and accurate answers about how to use the platform.
 
@@ -72,10 +79,7 @@ Based on the information above, answer the user's question.
 
 {{#if history}}
 **Conversation History:**
-{{#each history}}
-{{#if (eq role 'user')}}User: {{content.[0].text}}{{/if}}
-{{#if (eq role 'model')}}Assistant: {{content.[0].text}}{{/if}}
-{{/each}}
+{{{history}}}
 {{/if}}
 
 User's Question: {{{query}}}
@@ -89,7 +93,19 @@ const assistantFlow = ai.defineFlow(
     outputSchema: AssistantOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input);
+    // Transform the history array into a simple string for the prompt
+    const historyString = input.history?.map(h => {
+        const prefix = h.role === 'user' ? 'User:' : 'Assistant:';
+        const content = h.content[0]?.text || '';
+        return `${prefix} ${content}`;
+    }).join('\n');
+
+    const promptInput = {
+        query: input.query,
+        history: historyString,
+    };
+
+    const {output} = await prompt(promptInput);
     return output!;
   }
 );
