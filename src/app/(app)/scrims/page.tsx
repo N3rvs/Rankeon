@@ -2,13 +2,13 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Scrim } from '@/lib/types';
 import { useAuth } from '@/contexts/auth-context';
 import { useI18n } from '@/contexts/i18n-context';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flame } from 'lucide-react';
+import { Flame, CalendarSearch, BookOpen } from 'lucide-react';
 import { CreateScrimDialog } from '@/components/scrims/create-scrim-dialog';
 import { ScrimCard } from '@/components/scrims/scrim-card';
 import { Card } from '@/components/ui/card';
@@ -16,12 +16,48 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { getFlagEmoji } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+
+function ScrimList({ scrims, loading }: { scrims: Scrim[], loading: boolean }) {
+    const { t } = useI18n();
+    if (loading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
+            </div>
+        );
+    }
+
+    if (scrims.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-[400px]">
+                <Flame className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-xl font-semibold">{t('ScrimsPage.no_scrims_title')}</h3>
+                <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                    {t('ScrimsPage.no_scrims_subtitle')}
+                </p>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {scrims.map(scrim => (
+                <ScrimCard key={scrim.id} scrim={scrim} />
+            ))}
+        </div>
+    );
+}
+
 
 export default function ScrimsPage() {
   const { userProfile } = useAuth();
   const { t } = useI18n();
-  const [scrims, setScrims] = useState<Scrim[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [availableScrims, setAvailableScrims] = useState<Scrim[]>([]);
+  const [scheduledScrims, setScheduledScrims] = useState<Scrim[]>([]);
+  const [loadingAvailable, setLoadingAvailable] = useState(true);
+  const [loadingScheduled, setLoadingScheduled] = useState(true);
 
   const [rankFilter, setRankFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
@@ -102,6 +138,7 @@ export default function ScrimsPage() {
     { value: 'Vatican City', label: `${getFlagEmoji('Vatican City')} ${t('Countries.vatican_city')}` }
   ];
 
+  // Fetch available scrims
   useEffect(() => {
     const q = query(
       collection(db, 'scrims'),
@@ -110,30 +147,74 @@ export default function ScrimsPage() {
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scrim));
-      setScrims(data);
-      setLoading(false);
+      setAvailableScrims(data);
+      setLoadingAvailable(false);
     }, (error) => {
-      console.error("Error fetching scrims:", error);
-      setLoading(false);
+      console.error("Error fetching available scrims:", error);
+      setLoadingAvailable(false);
     });
 
     return () => unsubscribe();
   }, []);
-  
+
+   // Fetch scheduled scrims
+  useEffect(() => {
+    if (!userProfile?.teamId) {
+        setLoadingScheduled(false);
+        setScheduledScrims([]);
+        return;
+    }
+    setLoadingScheduled(true);
+
+    const teamId = userProfile.teamId;
+    const statuses: Scrim['status'][] = ['confirmed', 'completed', 'cancelled'];
+    
+    // Firestore does not support 'OR' queries on different fields.
+    // We must perform two separate queries and merge the results.
+    const q1 = query(collection(db, 'scrims'), where('teamAId', '==', teamId), where('status', 'in', statuses));
+    const q2 = query(collection(db, 'scrims'), where('teamBId', '==', teamId), where('status', 'in', statuses));
+    
+    let unsub1: Unsubscribe, unsub2: Unsubscribe;
+    let scrims1: Scrim[] = [], scrims2: Scrim[] = [];
+
+    const combineAndSetResults = () => {
+        const allScrims = [...scrims1, ...scrims2];
+        const uniqueScrims = Array.from(new Map(allScrims.map(item => [item.id, item])).values());
+        const sortedScrims = uniqueScrims.sort((a,b) => b.date.toMillis() - a.date.toMillis());
+        setScheduledScrims(sortedScrims);
+        setLoadingScheduled(false);
+    }
+
+    unsub1 = onSnapshot(q1, (snap1) => {
+        scrims1 = snap1.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim);
+        combineAndSetResults();
+    });
+
+    unsub2 = onSnapshot(q2, (snap2) => {
+        scrims2 = snap2.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim);
+        combineAndSetResults();
+    });
+
+    return () => {
+        if(unsub1) unsub1();
+        if(unsub2) unsub2();
+    };
+  }, [userProfile?.teamId]);
+
   const handleResetFilters = () => {
     setRankFilter('all');
     setCountryFilter('all');
   };
 
-  const filteredScrims = useMemo(() => {
-    return scrims.filter(scrim => {
+  const filteredAvailableScrims = useMemo(() => {
+    return availableScrims.filter(scrim => {
       const countryMatch = countryFilter === 'all' || scrim.country === countryFilter;
       const rankMatch = rankFilter === 'all' || 
         (!scrim.rankMin && !scrim.rankMax) ||
         (scrim.rankMin && scrim.rankMax && rankOrder[rankFilter] >= rankOrder[scrim.rankMin] && rankOrder[rankFilter] <= rankOrder[scrim.rankMax]);
       return countryMatch && rankMatch;
     });
-  }, [scrims, rankFilter, countryFilter, rankOrder]);
+  }, [availableScrims, rankFilter, countryFilter]);
 
   return (
     <div className="space-y-6">
@@ -145,56 +226,48 @@ export default function ScrimsPage() {
         {canCreate && <CreateScrimDialog teamId={userProfile.teamId!} />}
       </div>
       
-      <Card className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <div>
-            <Label htmlFor="rank-filter">{t('Market.rank_filter_label')}</Label>
-            <Select value={rankFilter} onValueChange={setRankFilter}>
-              <SelectTrigger id="rank-filter" className="mt-1">
-                <SelectValue placeholder={t('Market.all_ranks')} />
-              </SelectTrigger>
-              <SelectContent>
-                {valorantRanks.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="country-filter">{t('Market.country_filter_label')}</Label>
-            <Select value={countryFilter} onValueChange={setCountryFilter}>
-              <SelectTrigger id="country-filter" className="mt-1">
-                <SelectValue placeholder={t('Market.all_countries')} />
-              </SelectTrigger>
-              <SelectContent>
-                {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-end gap-2">
-             <Button variant="ghost" onClick={handleResetFilters} className="w-full md:w-auto">{t('Market.reset_button')}</Button>
-             <Button className="w-full md:w-auto flex-1">{t('Market.search_button')}</Button>
-          </div>
-        </div>
-      </Card>
-
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
-        </div>
-      ) : filteredScrims.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredScrims.map(scrim => (
-            <ScrimCard key={scrim.id} scrim={scrim} />
-          ))}
-        </div>
-      ) : (
-         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-[400px]">
-            <Flame className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-xl font-semibold">{t('ScrimsPage.no_scrims_title')}</h3>
-            <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                {t('ScrimsPage.no_scrims_subtitle')}
-            </p>
-        </div>
-      )}
+       <Tabs defaultValue="available" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="available"><CalendarSearch className="mr-2 h-4 w-4" /> Available Scrims</TabsTrigger>
+            <TabsTrigger value="schedule"><BookOpen className="mr-2 h-4 w-4" /> My Schedule</TabsTrigger>
+        </TabsList>
+        <TabsContent value="available" className="mt-6">
+            <Card className="p-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                    <Label htmlFor="rank-filter">{t('Market.rank_filter_label')}</Label>
+                    <Select value={rankFilter} onValueChange={setRankFilter}>
+                    <SelectTrigger id="rank-filter" className="mt-1">
+                        <SelectValue placeholder={t('Market.all_ranks')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {valorantRanks.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                    </SelectContent>
+                    </Select>
+                </div>
+                <div>
+                    <Label htmlFor="country-filter">{t('Market.country_filter_label')}</Label>
+                    <Select value={countryFilter} onValueChange={setCountryFilter}>
+                    <SelectTrigger id="country-filter" className="mt-1">
+                        <SelectValue placeholder={t('Market.all_countries')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex items-end gap-2">
+                    <Button variant="ghost" onClick={handleResetFilters} className="w-full md:w-auto">{t('Market.reset_button')}</Button>
+                    <Button className="w-full md:w-auto flex-1">{t('Market.search_button')}</Button>
+                </div>
+                </div>
+            </Card>
+            <ScrimList scrims={filteredAvailableScrims} loading={loadingAvailable} />
+        </TabsContent>
+        <TabsContent value="schedule" className="mt-6">
+            <ScrimList scrims={scheduledScrims} loading={loadingScheduled} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 // src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 
@@ -200,6 +199,8 @@ export interface Scrim {
   teamAName: string;
   teamAAvatarUrl: string;
   teamBId?: string;
+  teamBName?: string;
+  teamBAvatarUrl?: string;
   date: Timestamp;
   format: 'bo1' | 'bo3' | 'bo5';
   type: 'scrim' | 'tryout';
@@ -208,6 +209,7 @@ export interface Scrim {
   country?: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   createdAt: Timestamp;
+  notes?: string;
 }
 
 // Types for Tournament Bracket

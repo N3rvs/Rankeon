@@ -19,6 +19,7 @@ export const CreateScrimSchema = z.object({
   type: z.enum(['scrim', 'tryout'], { required_error: 'Please select a type.' }),
   rankMin: z.string().optional(),
   rankMax: z.string().optional(),
+  notes: z.string().max(100, "Notes cannot exceed 100 characters.").optional(),
 });
 export type CreateScrimData = z.infer<typeof CreateScrimSchema>;
 

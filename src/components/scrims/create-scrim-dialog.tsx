@@ -19,6 +19,7 @@ import { useI18n } from '@/contexts/i18n-context';
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from '@/lib/firebase/client';
 import type { Team } from '@/lib/types';
+import { Textarea } from '../ui/textarea';
 
 export function CreateScrimDialog({ teamId }: { teamId: string }) {
   const { t } = useI18n();
@@ -33,6 +34,7 @@ export function CreateScrimDialog({ teamId }: { teamId: string }) {
       type: 'scrim',
       rankMin: '',
       rankMax: '',
+      notes: '',
     },
   });
 
@@ -212,6 +214,23 @@ export function CreateScrimDialog({ teamId }: { teamId: string }) {
                     )}
                 />
             </div>
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('ScrimsPage.notes_label')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder={t('ScrimsPage.notes_placeholder')}
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? t('ScrimsPage.posting') : t('ScrimsPage.create_scrim')}
             </Button>

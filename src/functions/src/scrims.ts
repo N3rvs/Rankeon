@@ -1,4 +1,3 @@
-
 // src/functions/scrims.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -96,8 +95,11 @@ export const acceptScrim = onCall(async ({ auth, data }: { auth?: any, data: Acc
             throw new HttpsError("invalid-argument", "You cannot accept your own scrim.");
         }
 
+        const acceptingTeamData = teamSnap.data()!;
         transaction.update(scrimRef, {
             teamBId: acceptingTeamId,
+            teamBName: acceptingTeamData.name,
+            teamBAvatarUrl: acceptingTeamData.avatarUrl,
             status: "confirmed",
         });
 
@@ -122,12 +124,14 @@ export const cancelScrim = onCall(async ({ auth, data }: { auth?: any, data: Can
     
     // Check if user is staff of either team
     const teamARef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
-    const teamAStaff = (await teamARef.get()).exists;
+    const memberASnap = await teamARef.get();
+    const teamAStaff = memberASnap.exists && STAFF_ROLES.includes(memberASnap.data()?.role);
     
     let teamBStaff = false;
     if (scrimData.teamBId) {
         const teamBRef = db.collection("teams").doc(scrimData.teamBId).collection("members").doc(uid);
-        teamBStaff = (await teamBRef.get()).exists;
+        const memberBSnap = await teamBRef.get();
+        teamBStaff = memberBSnap.exists && STAFF_ROLES.includes(memberBSnap.data()?.role);
     }
 
     if (!teamAStaff && !teamBStaff) {
