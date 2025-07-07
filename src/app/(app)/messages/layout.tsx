@@ -142,9 +142,9 @@ function ChatList() {
                                 </Avatar>
                                 <div className="flex-1 overflow-hidden">
                                     <div className="flex justify-between items-center">
-                                        <p className={cn("font-semibold text-sm truncate", isUnread && "text-primary")}>
+                                        <div className={cn("font-semibold text-sm truncate", isUnread && "text-primary")}>
                                             {partner ? partner.name : <Skeleton className="h-4 w-24" />}
-                                        </p>
+                                        </div>
                                         {(chat.lastMessageAt || chat.createdAt) && (
                                             <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">
                                                 {formatDistanceToNow((chat.lastMessageAt || chat.createdAt)!.toDate(), { addSuffix: true })}
