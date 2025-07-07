@@ -43,15 +43,26 @@ export async function createScrimAction(values: CreateScrimData): Promise<Action
   }
 }
 
-export async function acceptScrimAction(scrimId: string, acceptingTeamId: string): Promise<ActionResponse> {
+export async function challengeScrimAction(scrimId: string, challengingTeamId: string): Promise<ActionResponse> {
   try {
-    const acceptScrimFunc = httpsCallable(functions, 'acceptScrim');
-    const result = await acceptScrimFunc({ scrimId, acceptingTeamId });
+    const challengeScrimFunc = httpsCallable(functions, 'challengeScrim');
+    const result = await challengeScrimFunc({ scrimId, challengingTeamId });
     return result.data as ActionResponse;
   } catch (error: any) {
-    console.error('Error accepting scrim:', error);
+    console.error('Error challenging scrim:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
+}
+
+export async function respondToScrimChallengeAction(scrimId: string, accept: boolean): Promise<ActionResponse> {
+    try {
+        const respondFunc = httpsCallable(functions, 'respondToScrimChallenge');
+        const result = await respondFunc({ scrimId, accept });
+        return result.data as ActionResponse;
+    } catch (error: any) {
+        console.error('Error responding to scrim challenge:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
 }
 
 export async function cancelScrimAction(scrimId: string): Promise<ActionResponse> {

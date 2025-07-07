@@ -1,3 +1,4 @@
+// src/components/inbox/notification-item.tsx
 'use client';
 
 import type { Notification, UserProfile, Team } from '@/lib/types';
@@ -58,7 +59,7 @@ export function NotificationItem({
         return;
       }
       try {
-        if (notification.type === 'scrim_accepted') {
+        if (notification.type === 'scrim_challenge_accepted' || notification.type === 'scrim_challenge_rejected') {
             const teamDocRef = doc(db, 'teams', notification.from);
             const docSnap = await getDoc(teamDocRef);
             if (isMounted && docSnap.exists()) {
@@ -178,7 +179,8 @@ export function NotificationItem({
 
   const getNotificationDetails = () => {
     const fromName = fromUser?.name || 'Someone';
-    const fromTeamName = fromTeam?.name || 'A team';
+    const fromTeamName = fromTeam?.name || notification.extraData?.challengerTeamName || 'A team';
+    const creatorTeamName = notification.extraData?.creatorTeamName || 'The other team';
     const teamName = notification.extraData?.teamName || 'A team';
     const applicantName = notification.extraData?.applicantName || 'A player';
 
@@ -190,7 +192,9 @@ export function NotificationItem({
       case 'team_application_received': return { icon: LogIn, message: `${applicantName} has applied to join your team.` };
       case 'team_application_accepted': return { icon: UserCheck, message: `Congratulations! You've been accepted to ${teamName}.` };
       case 'team_application_rejected': return { icon: X, message: `Your application to ${teamName} was declined.` };
-      case 'scrim_accepted': return { icon: Swords, message: `${fromTeamName} has accepted your scrim challenge.`};
+      case 'scrim_challenged': return { icon: Swords, message: `${fromTeamName} challenged you to a scrim.` };
+      case 'scrim_challenge_accepted': return { icon: Check, message: `${creatorTeamName} accepted your scrim challenge.` };
+      case 'scrim_challenge_rejected': return { icon: X, message: `${creatorTeamName} rejected your scrim challenge.` };
       default: return { icon: Bell, message: 'You have a new notification.' };
     }
   };
@@ -200,7 +204,7 @@ export function NotificationItem({
   }
 
   const { icon: Icon, message } = getNotificationDetails();
-  const avatarUrl = fromUser?.avatarUrl || fromTeam?.avatarUrl || notification.extraData?.applicantAvatarUrl;
+  const avatarUrl = fromUser?.avatarUrl || fromTeam?.avatarUrl || notification.extraData?.challengerTeamAvatarUrl || notification.extraData?.applicantAvatarUrl;
   const fallbackName = fromUser?.name || fromTeam?.name || '?';
 
   return (
@@ -272,7 +276,7 @@ export function NotificationItem({
                 </Button>
             </div>
         )}
-         {notification.type === 'scrim_accepted' && (
+         {(notification.type === 'scrim_challenged' || notification.type === 'scrim_challenge_accepted' || notification.type === 'scrim_challenge_rejected') && (
             <div className="flex gap-2 pt-1">
                 <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/scrims`)} disabled={isDismissing}>
                     <Swords className="h-4 w-4 mr-1" />

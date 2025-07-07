@@ -7,14 +7,14 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Check, X, Shield, Swords, Flag, Trophy, Clock } from 'lucide-react';
+import { Calendar, Check, X, Shield, Swords, Flag, Trophy, Clock, Hourglass } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { acceptScrimAction, cancelScrimAction, reportScrimResultAction } from '@/lib/actions/scrims';
+import { challengeScrimAction, cancelScrimAction, reportScrimResultAction, respondToScrimChallengeAction } from '@/lib/actions/scrims';
 import { useI18n } from '@/contexts/i18n-context';
-import { getFlagEmoji } from '@/lib/utils';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
+import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '../ui/alert-dialog';
 
 function ReportResultDialog({ scrim, onOpenChange }: { scrim: Scrim; onOpenChange: (open: boolean) => void; }) {
     const { toast } = useToast();
@@ -51,60 +51,94 @@ function ReportResultDialog({ scrim, onOpenChange }: { scrim: Scrim; onOpenChang
     )
 }
 
-export function ScrimCard({ scrim, onScrimAction }: { scrim: Scrim, onScrimAction?: () => void }) {
+export function ScrimCard({ scrim }: { scrim: Scrim }) {
   const { userProfile } = useAuth();
   const { t } = useI18n();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  const isMyTeamScrim = userProfile?.teamId === scrim.teamAId || userProfile?.teamId === scrim.teamBId;
-  const canAccept = userProfile?.teamId && scrim.status === 'pending' && userProfile.teamId !== scrim.teamAId;
-  const canCancel = isMyTeamScrim && (scrim.status === 'pending' || scrim.status === 'confirmed');
-  const canReport = isMyTeamScrim && scrim.status === 'confirmed';
+  const myTeamId = userProfile?.teamId;
+  const isTeamA = myTeamId === scrim.teamAId;
+  const isChallenger = myTeamId === scrim.challengerId;
+  const isTeamB = myTeamId === scrim.teamBId;
+  const isParticipant = isTeamA || isTeamB;
 
   const statusTextMap: Record<Scrim['status'], string> = {
-    pending: t('ScrimsPage.status_pending'),
+    open: t('ScrimsPage.status_pending'),
+    challenged: "Challenged",
     confirmed: t('ScrimsPage.status_confirmed'),
     cancelled: t('ScrimsPage.status_cancelled'),
     completed: t('ScrimsPage.status_completed'),
   };
-  const statusText = statusTextMap[scrim.status];
 
-  const handleAccept = () => {
-    if (!canAccept || !userProfile?.teamId) return;
-
+  const handleChallenge = () => {
+    if (!myTeamId || scrim.status !== 'open') return;
     startTransition(async () => {
-      const result = await acceptScrimAction(scrim.id, userProfile.teamId!);
-      if (result.success) {
-        toast({ title: t('ScrimsPage.scrim_accepted_title'), description: t('ScrimsPage.scrim_accepted_desc') });
-        onScrimAction?.();
-      } else {
-        toast({ title: 'Error', description: result.message, variant: 'destructive' });
-      }
+      const result = await challengeScrimAction(scrim.id, myTeamId);
+      toast({ title: result.success ? 'Challenge Sent' : 'Error', description: result.message, variant: result.success ? 'default' : 'destructive' });
     });
   };
 
+  const handleRespond = (accept: boolean) => {
+    startTransition(async () => {
+      const result = await respondToScrimChallengeAction(scrim.id, accept);
+      toast({ title: result.success ? 'Response Sent' : 'Error', description: result.message, variant: result.success ? 'default' : 'destructive' });
+    });
+  }
+
   const handleCancel = () => {
-    if (!canCancel) return;
     startTransition(async () => {
       const result = await cancelScrimAction(scrim.id);
-      if (result.success) {
-        toast({ title: t('ScrimsPage.scrim_cancelled_title'), description: result.message });
-        onScrimAction?.();
-      } else {
-        toast({ title: 'Error', description: result.message, variant: 'destructive' });
-      }
+      toast({ title: result.success ? 'Action Complete' : 'Error', description: result.message, variant: result.success ? 'default' : 'destructive' });
     });
   };
   
   const rankDisplay = [scrim.rankMin, scrim.rankMax].filter(Boolean).join(' - ');
+  const opponent = scrim.teamBId ? { id: scrim.teamBId, name: scrim.teamBName, avatar: scrim.teamBAvatarUrl } : 
+                   scrim.challengerId ? { id: scrim.challengerId, name: scrim.challengerName, avatar: scrim.challengerAvatarUrl } : null;
+
+  const renderCardFooter = () => {
+    switch(scrim.status) {
+        case 'open':
+            if (isTeamA) return <Button variant="destructive-outline" className="w-full" onClick={handleCancel} disabled={isPending}><X className="mr-2 h-4 w-4" /> Cancel Posting</Button>;
+            if (myTeamId) return <Button className="w-full" onClick={handleChallenge} disabled={isPending}>Challenge Team</Button>;
+            return null;
+        case 'challenged':
+            if (isTeamA) return (
+                <div className="flex w-full gap-2">
+                    <Button variant="destructive-outline" className="w-full" onClick={() => handleRespond(false)} disabled={isPending}><X className="mr-2 h-4 w-4" /> Decline</Button>
+                    <Button className="w-full" onClick={() => handleRespond(true)} disabled={isPending}><Check className="mr-2 h-4 w-4" /> Accept</Button>
+                </div>
+            );
+            if (isChallenger) return <Button variant="outline" className="w-full" disabled>Challenge Sent</Button>;
+            return null;
+        case 'confirmed':
+             if (isParticipant) return (
+                 <div className="w-full flex gap-2">
+                    <Button className="w-full" onClick={() => setIsReportModalOpen(true)} disabled={isPending}><Trophy className="mr-2 h-4 w-4" /> Report Result</Button>
+                    <Button variant="destructive-outline" size="icon" onClick={handleCancel} disabled={isPending}><X className="h-4 w-4" /></Button>
+                </div>
+            );
+            return null;
+        case 'completed':
+            return (
+                 <div className="text-center w-full">
+                    <p className="text-sm font-semibold flex items-center justify-center gap-2">
+                        <Trophy className="h-4 w-4 text-amber-500"/> Winner: {scrim.winnerId === scrim.teamAId ? scrim.teamAName : scrim.teamBName}
+                    </p>
+                </div>
+            );
+        case 'cancelled':
+             return <Badge variant="destructive" className="w-full justify-center capitalize py-2">{statusTextMap[scrim.status]}</Badge>
+        default:
+            return null;
+    }
+  }
 
   return (
     <>
-    <AlertDialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
-       <ReportResultDialog scrim={scrim} onOpenChange={setIsReportModalOpen} />
-    </AlertDialog>
+    {scrim.status === 'confirmed' && <AlertDialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}><ReportResultDialog scrim={scrim} onOpenChange={setIsReportModalOpen} /></AlertDialog>}
     <Card className="flex flex-col">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -122,22 +156,15 @@ export function ScrimCard({ scrim, onScrimAction }: { scrim: Scrim, onScrimActio
             <p className="font-semibold text-sm truncate w-full">{scrim.teamAName}</p>
           </div>
           <Swords className="h-6 w-6 text-muted-foreground shrink-0 mx-2" />
-          {scrim.teamBId && scrim.teamBName ? (
-            <div className="flex flex-col items-center gap-2 text-center w-28">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={scrim.teamBAvatarUrl} data-ai-hint="team logo" />
-                <AvatarFallback>{scrim.teamBName.slice(0, 2)}</AvatarFallback>
+          <div className="flex flex-col items-center gap-2 text-center w-28">
+              <Avatar className={cn("h-16 w-16", scrim.status === 'challenged' && 'opacity-50')}>
+                {opponent ? <AvatarImage src={opponent.avatar} data-ai-hint="team logo" /> : <div className="h-full w-full rounded-full bg-muted border-dashed border-2 flex items-center justify-center"><p className="text-3xl font-bold text-muted-foreground">?</p></div> }
+                {opponent && <AvatarFallback>{opponent.name.slice(0, 2)}</AvatarFallback>}
               </Avatar>
-              <p className="font-semibold text-sm truncate w-full">{scrim.teamBName}</p>
+              <p className={cn("font-semibold text-sm truncate w-full", !opponent && "text-xs text-muted-foreground")}>
+                {opponent ? opponent.name : t('ScrimsPage.looking_for_match')}
+              </p>
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2 text-center w-28">
-              <Avatar className="h-16 w-16 bg-muted border-dashed border-2 flex items-center justify-center">
-                <p className="text-3xl font-bold text-muted-foreground">?</p>
-              </Avatar>
-              <p className="text-xs font-semibold text-muted-foreground">{t('ScrimsPage.looking_for_match')}</p>
-            </div>
-          )}
         </div>
         <div className="text-center text-xs text-muted-foreground space-y-1 pt-2 border-t border-dashed">
             {scrim.country && <p className="flex items-center justify-center gap-2"><Flag className="h-3 w-3" />{scrim.country}</p>}
@@ -145,37 +172,7 @@ export function ScrimCard({ scrim, onScrimAction }: { scrim: Scrim, onScrimActio
         </div>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-        {scrim.status === 'pending' && (
-          canAccept ? (
-            <Button className="w-full" onClick={handleAccept} disabled={isPending}>
-              <Check className="mr-2 h-4 w-4" /> {t('ScrimsPage.accept')}
-            </Button>
-          ) : (
-            <Button variant="outline" className="w-full" onClick={handleCancel} disabled={isPending}>
-              <X className="mr-2 h-4 w-4" /> {t('ScrimsPage.cancel')}
-            </Button>
-          )
-        )}
-        {scrim.status === 'confirmed' && (
-          <div className="w-full flex gap-2">
-             <Button className="w-full" disabled={!canReport} onClick={() => setIsReportModalOpen(true)}>
-                <Trophy className="mr-2 h-4 w-4" /> Reportar Resultado
-             </Button>
-             <Button variant="destructive-outline" size="icon" onClick={handleCancel} disabled={!canCancel || isPending}>
-                <X className="h-4 w-4" />
-             </Button>
-          </div>
-        )}
-        {scrim.status === 'completed' && (
-            <div className="text-center w-full">
-                <p className="text-sm font-semibold flex items-center justify-center gap-2">
-                    <Trophy className="h-4 w-4 text-amber-500"/> Ganador: {scrim.winnerId === scrim.teamAId ? scrim.teamAName : scrim.teamBName}
-                </p>
-            </div>
-        )}
-        {scrim.status === 'cancelled' && (
-            <Badge variant="destructive" className="w-full justify-center capitalize py-2">{statusText}</Badge>
-        )}
+        {renderCardFooter()}
       </CardFooter>
     </Card>
     </>

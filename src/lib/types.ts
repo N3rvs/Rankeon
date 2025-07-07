@@ -98,6 +98,10 @@ export type NotificationType =
   | 'team_application_received'
   | 'team_application_accepted'
   | 'team_application_rejected'
+  | 'scrim_challenged'
+  | 'scrim_challenge_accepted'
+  | 'scrim_challenge_rejected'
+  | 'scrim_cancelled'
   | 'scrim_accepted';
 
 export interface Notification {
@@ -206,6 +210,9 @@ export interface Scrim {
   teamBId?: string;
   teamBName?: string;
   teamBAvatarUrl?: string;
+  challengerId?: string;
+  challengerName?: string;
+  challengerAvatarUrl?: string;
   winnerId?: string;
   date: Timestamp;
   format: 'bo1' | 'bo3' | 'bo5';
@@ -213,7 +220,7 @@ export interface Scrim {
   rankMin?: string;
   rankMax?: string;
   country?: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'open' | 'challenged' | 'confirmed' | 'cancelled' | 'completed';
   createdAt: Timestamp;
   notes?: string;
 }

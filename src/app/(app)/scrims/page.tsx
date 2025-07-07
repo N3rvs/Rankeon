@@ -137,11 +137,11 @@ export default function ScrimsPage() {
     { value: 'Vatican City', label: `${getFlagEmoji('Vatican City')} ${t('Countries.vatican_city')}` }
   ];
 
-  // Fetch available scrims (status: pending)
+  // Fetch available scrims (status: open)
   useEffect(() => {
     const q = query(
       collection(db, 'scrims'),
-      where('status', '==', 'pending'),
+      where('status', '==', 'open'),
       orderBy('date', 'asc')
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -156,7 +156,7 @@ export default function ScrimsPage() {
     return () => unsubscribe();
   }, []);
 
-   // Fetch user's scrims (confirmed, completed, cancelled)
+   // Fetch user's scrims 
   useEffect(() => {
     if (!userProfile?.teamId) {
         setLoadingMyScrims(false);
@@ -164,40 +164,35 @@ export default function ScrimsPage() {
         return;
     }
     setLoadingMyScrims(true);
-
     const teamId = userProfile.teamId;
     
-    // Firestore does not support 'OR' queries on different fields.
-    // We must perform two separate queries and merge the results.
+    // Firestore does not support logical OR queries on different fields.
+    // We must perform separate queries and merge the results.
     const q1 = query(collection(db, 'scrims'), where('teamAId', '==', teamId));
     const q2 = query(collection(db, 'scrims'), where('teamBId', '==', teamId));
+    const q3 = query(collection(db, 'scrims'), where('challengerId', '==', teamId));
     
-    let unsub1: Unsubscribe, unsub2: Unsubscribe;
-    let scrims1: Scrim[] = [], scrims2: Scrim[] = [];
+    let scrims1: Scrim[] = [], scrims2: Scrim[] = [], scrims3: Scrim[] = [];
+    let unsub1: Unsubscribe, unsub2: Unsubscribe, unsub3: Unsubscribe;
 
     const combineAndSetResults = () => {
-        const allScrims = [...scrims1, ...scrims2];
+        const allScrims = [...scrims1, ...scrims2, ...scrims3];
         const uniqueScrims = Array.from(new Map(allScrims.map(item => [item.id, item])).values());
         const sortedScrims = uniqueScrims
-            .filter(s => s.status !== 'pending')
+            .filter(s => s.status !== 'open')
             .sort((a,b) => b.date.toMillis() - a.date.toMillis());
         setMyScrims(sortedScrims);
         setLoadingMyScrims(false);
     }
 
-    unsub1 = onSnapshot(q1, (snap1) => {
-        scrims1 = snap1.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim);
-        combineAndSetResults();
-    });
-
-    unsub2 = onSnapshot(q2, (snap2) => {
-        scrims2 = snap2.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim);
-        combineAndSetResults();
-    });
+    unsub1 = onSnapshot(q1, (snap) => { scrims1 = snap.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim); combineAndSetResults(); });
+    unsub2 = onSnapshot(q2, (snap) => { scrims2 = snap.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim); combineAndSetResults(); });
+    unsub3 = onSnapshot(q3, (snap) => { scrims3 = snap.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim); combineAndSetResults(); });
 
     return () => {
         if(unsub1) unsub1();
         if(unsub2) unsub2();
+        if(unsub3) unsub3();
     };
   }, [userProfile?.teamId]);
 

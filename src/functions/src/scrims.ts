@@ -49,7 +49,7 @@ export const createScrim = onCall(async ({ auth, data }: { auth?: any, data: Cre
         format,
         type,
         notes: notes || '',
-        status: "pending",
+        status: "open",
         createdAt: Timestamp.now(),
         rankMin: rankMin || '',
         rankMax: rankMax || '',
@@ -58,68 +58,155 @@ export const createScrim = onCall(async ({ auth, data }: { auth?: any, data: Cre
     return { success: true, scrimId: scrimRef.id };
 });
 
-interface AcceptScrimData {
+interface ChallengeScrimData {
     scrimId: string;
-    acceptingTeamId: string;
+    challengingTeamId: string;
 }
 
-export const acceptScrim = onCall(async ({ auth, data }: { auth?: any, data: AcceptScrimData }) => {
+export const challengeScrim = onCall(async ({ auth, data }: { auth?: any, data: ChallengeScrimData }) => {
     const uid = auth?.uid;
-    const { scrimId, acceptingTeamId } = data;
+    const { scrimId, challengingTeamId } = data;
 
     if (!uid) throw new HttpsError("unauthenticated", "You must be logged in.");
-    if (!scrimId || !acceptingTeamId) throw new HttpsError("invalid-argument", "Missing scrim or team ID.");
+    if (!scrimId || !challengingTeamId) throw new HttpsError("invalid-argument", "Missing scrim or team ID.");
 
     const scrimRef = db.collection("scrims").doc(scrimId);
-    const acceptingTeamRef = db.collection("teams").doc(acceptingTeamId);
-    const memberRef = acceptingTeamRef.collection("members").doc(uid);
+    const challengerTeamRef = db.collection("teams").doc(challengingTeamId);
+    const memberRef = challengerTeamRef.collection("members").doc(uid);
 
     return db.runTransaction(async (transaction) => {
         const [scrimSnap, teamSnap, memberSnap] = await Promise.all([
             transaction.get(scrimRef),
-            transaction.get(acceptingTeamRef),
+            transaction.get(challengerTeamRef),
             transaction.get(memberRef),
         ]);
 
         if (!scrimSnap.exists) throw new HttpsError("not-found", "Scrim not found.");
         if (!teamSnap.exists) throw new HttpsError("not-found", "Your team could not be found.");
         if (!memberSnap.exists || !STAFF_ROLES.includes(memberSnap.data()?.role)) {
-            throw new HttpsError("permission-denied", "You must be staff to accept a scrim for this team.");
+            throw new HttpsError("permission-denied", "You must be staff to challenge a scrim for this team.");
         }
 
         const scrimData = scrimSnap.data()!;
-        if (scrimData.status !== 'pending') {
-            throw new HttpsError("failed-precondition", "This scrim is no longer available.");
+        if (scrimData.status !== 'open') {
+            throw new HttpsError("failed-precondition", "This scrim is no longer available to be challenged.");
         }
-        if (scrimData.teamAId === acceptingTeamId) {
-            throw new HttpsError("invalid-argument", "You cannot accept your own scrim.");
+        if (scrimData.teamAId === challengingTeamId) {
+            throw new HttpsError("invalid-argument", "You cannot challenge your own scrim.");
         }
 
-        const acceptingTeamData = teamSnap.data()!;
+        const challengerTeamData = teamSnap.data()!;
         transaction.update(scrimRef, {
-            teamBId: acceptingTeamId,
-            teamBName: acceptingTeamData.name,
-            teamBAvatarUrl: acceptingTeamData.avatarUrl,
-            status: "confirmed",
+            challengerId: challengingTeamId,
+            challengerName: challengerTeamData.name,
+            challengerAvatarUrl: challengerTeamData.avatarUrl,
+            status: "challenged",
         });
         
-        // Notify the creator team's founder
-        const creatorTeamFounder = (await db.collection("teams").doc(scrimData.teamAId).get()).data()?.founder;
+        const creatorTeam = (await transaction.get(db.collection("teams").doc(scrimData.teamAId))).data()
+        const creatorTeamFounder = creatorTeam?.founder;
         if(creatorTeamFounder) {
              const notificationRef = db.collection(`inbox/${creatorTeamFounder}/notifications`).doc();
              transaction.set(notificationRef, {
-                type: "scrim_accepted",
-                from: acceptingTeamId, // from the team ID
+                type: "scrim_challenged",
+                from: challengingTeamId,
                 read: false,
                 timestamp: Timestamp.now(),
                 extraData: { 
                     scrimId: scrimId,
-                    acceptingTeamName: acceptingTeamData.name
+                    challengerTeamName: challengerTeamData.name,
+                    challengerTeamAvatarUrl: challengerTeamData.avatarUrl,
                 }
             });
         }
+        return { success: true, message: "Challenge sent successfully."};
     });
 });
+
+
+interface RespondToScrimChallengeData {
+    scrimId: string;
+    accept: boolean;
+}
+
+export const respondToScrimChallenge = onCall(async ({ auth, data }: { auth?: any, data: RespondToScrimChallengeData }) => {
+    const uid = auth?.uid;
+    const { scrimId, accept } = data;
+
+    if (!uid) throw new HttpsError("unauthenticated", "You must be logged in.");
+    if (!scrimId) throw new HttpsError("invalid-argument", "Missing scrim ID.");
+
+    const scrimRef = db.collection("scrims").doc(scrimId);
+
+    return db.runTransaction(async (transaction) => {
+        const scrimSnap = await transaction.get(scrimRef);
+        if (!scrimSnap.exists) throw new HttpsError("not-found", "Scrim not found.");
+        
+        const scrimData = scrimSnap.data()!;
+        const creatorTeamId = scrimData.teamAId;
+        const challengerTeamId = scrimData.challengerId;
+
+        if (scrimData.status !== 'challenged' || !challengerTeamId) {
+            throw new HttpsError("failed-precondition", "This scrim is not in a challenged state.");
+        }
+
+        const memberRef = db.collection('teams').doc(creatorTeamId).collection('members').doc(uid);
+        const memberSnap = await transaction.get(memberRef);
+        if (!memberSnap.exists || !STAFF_ROLES.includes(memberSnap.data()?.role)) {
+            throw new HttpsError("permission-denied", "You must be staff of the creator team to respond.");
+        }
+
+        const challengerTeam = (await transaction.get(db.collection("teams").doc(challengerTeamId))).data();
+        if (!challengerTeam) {
+             throw new HttpsError("not-found", "Challenger team could not be found.");
+        }
+        const challengerFounderId = challengerTeam.founder;
+
+        if (accept) {
+            transaction.update(scrimRef, {
+                status: 'confirmed',
+                teamBId: challengerTeamId,
+                teamBName: scrimData.challengerName,
+                teamBAvatarUrl: scrimData.challengerAvatarUrl,
+                challengerId: admin.firestore.FieldValue.delete(),
+                challengerName: admin.firestore.FieldValue.delete(),
+                challengerAvatarUrl: admin.firestore.FieldValue.delete(),
+            });
+
+            if(challengerFounderId) {
+                const notificationRef = db.collection(`inbox/${challengerFounderId}/notifications`).doc();
+                transaction.set(notificationRef, {
+                   type: "scrim_challenge_accepted",
+                   from: creatorTeamId, 
+                   read: false,
+                   timestamp: Timestamp.now(),
+                   extraData: { scrimId, creatorTeamName: scrimData.teamAName }
+               });
+           }
+        } else { // Reject
+            transaction.update(scrimRef, {
+                status: 'open',
+                challengerId: admin.firestore.FieldValue.delete(),
+                challengerName: admin.firestore.FieldValue.delete(),
+                challengerAvatarUrl: admin.firestore.FieldValue.delete(),
+            });
+
+             if(challengerFounderId) {
+                const notificationRef = db.collection(`inbox/${challengerFounderId}/notifications`).doc();
+                transaction.set(notificationRef, {
+                   type: "scrim_challenge_rejected",
+                   from: creatorTeamId, 
+                   read: false,
+                   timestamp: Timestamp.now(),
+                   extraData: { scrimId, creatorTeamName: scrimData.teamAName }
+               });
+           }
+        }
+
+        return { success: true, message: `Challenge has been ${accept ? 'accepted' : 'rejected'}.`};
+    });
+});
+
 
 interface CancelScrimData {
     scrimId: string;
@@ -138,33 +225,49 @@ export const cancelScrim = onCall(async ({ auth, data }: { auth?: any, data: Can
 
         const scrimData = scrimSnap.data()!;
         
-        // Check if user is staff of either team
-        const teamARef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
-        const memberASnap = await transaction.get(teamARef);
-        const teamAStaff = memberASnap.exists && STAFF_ROLES.includes(memberASnap.data()?.role);
+        const teamAStaffRef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
+        const memberASnap = await transaction.get(teamAStaffRef);
+        const isTeamAStaff = memberASnap.exists && STAFF_ROLES.includes(memberASnap.data()?.role);
         
-        let teamBStaff = false;
+        let isTeamBStaff = false;
         if (scrimData.teamBId) {
-            const teamBRef = db.collection("teams").doc(scrimData.teamBId).collection("members").doc(uid);
-            const memberBSnap = await transaction.get(teamBRef);
-            teamBStaff = memberBSnap.exists && STAFF_ROLES.includes(memberBSnap.data()?.role);
+            const teamBStaffRef = db.collection("teams").doc(scrimData.teamBId).collection("members").doc(uid);
+            const memberBSnap = await transaction.get(teamBStaffRef);
+            isTeamBStaff = memberBSnap.exists && STAFF_ROLES.includes(memberBSnap.data()?.role);
         }
 
-        if (!teamAStaff && !teamBStaff) {
-             throw new HttpsError("permission-denied", "You are not authorized to cancel this scrim.");
+        let isChallengerStaff = false;
+        if (scrimData.challengerId) {
+            const challengerStaffRef = db.collection("teams").doc(scrimData.challengerId).collection("members").doc(uid);
+            const challengerSnap = await transaction.get(challengerStaffRef);
+            isChallengerStaff = challengerSnap.exists && STAFF_ROLES.includes(challengerSnap.data()?.role);
         }
         
-        if (scrimData.status === 'pending') {
+        if (!isTeamAStaff && !isTeamBStaff && !isChallengerStaff) {
+            throw new HttpsError("permission-denied", "You are not authorized to modify this scrim.");
+        }
+
+        if (scrimData.status === 'open' && isTeamAStaff) {
             transaction.delete(scrimRef);
             return { success: true, message: "Scrim posting has been deleted." };
         }
+        
+        if (scrimData.status === 'challenged' && (isTeamAStaff || isChallengerStaff)) {
+             transaction.update(scrimRef, {
+                status: 'open',
+                challengerId: admin.firestore.FieldValue.delete(),
+                challengerName: admin.firestore.FieldValue.delete(),
+                challengerAvatarUrl: admin.firestore.FieldValue.delete(),
+            });
+            return { success: true, message: "Challenge has been withdrawn." };
+        }
 
-        if (scrimData.status === 'confirmed') {
+        if (scrimData.status === 'confirmed' && (isTeamAStaff || isTeamBStaff)) {
             transaction.update(scrimRef, { status: 'cancelled' });
             return { success: true, message: "Scrim cancelled successfully."};
         }
         
-        return { success: false, message: "Scrim cannot be cancelled in its current state."};
+        throw new HttpsError("failed-precondition", "Scrim cannot be cancelled in its current state.");
     });
 });
 
