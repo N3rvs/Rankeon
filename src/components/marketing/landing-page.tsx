@@ -1,9 +1,9 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Rocket, Users, Trophy, Check, Swords } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useI18n } from '@/contexts/i18n-context';
 import { cn } from '@/lib/utils';
@@ -89,12 +89,8 @@ export function LandingPage() {
   return (
     <PublicLayout>
         {/* Hero Section */}
-        <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-24">
-            <div className="absolute inset-0 bg-background/90">
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-            </div>
-
-            <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="bg-background pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-24">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                  <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter mb-4">
                     {t('LandingPage.title')}
                 </h1>
