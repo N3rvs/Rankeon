@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useI18n } from '@/contexts/i18n-context';
 import { cn } from '@/lib/utils';
 import { PublicLayout } from '../public-layout';
+import Image from 'next/image';
 
 function PricingSection() {
     const { t } = useI18n();
@@ -89,12 +89,22 @@ export function LandingPage() {
   return (
     <PublicLayout>
         {/* Hero Section */}
-        <section className="bg-background pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-24">
+        <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-24 overflow-hidden">
+            <div className="absolute inset-0 -z-10">
+                <Image
+                    src="https://placehold.co/1920x1080.png"
+                    alt="Hero background"
+                    fill
+                    className="object-cover"
+                    data-ai-hint="gaming abstract"
+                />
+                 <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+            </div>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                 <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter mb-4">
+                 <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter mb-4 text-white [text-shadow:2px_2px_8px_hsl(var(--primary)/0.5)]">
                     {t('LandingPage.title')}
                 </h1>
-                <p className="max-w-3xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
+                <p className="max-w-3xl mx-auto text-lg md:text-xl text-white/90 [text-shadow:1px_1px_4px_hsl(var(--primary)/0.3)] mb-8">
                     {t('LandingPage.subtitle')}
                 </p>
                 <div className="flex justify-center gap-4">
