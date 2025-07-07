@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -25,10 +24,9 @@ function HomePageContent() {
   return (
     <div className="flex flex-col min-h-dvh bg-background text-foreground">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between z-10">
-        <div className="flex items-center gap-2">
-          <Image src={ScrimlyLogo} alt="Scrimly Logo" width={32} height={32} />
-          <h1 className="text-2xl font-bold font-headline">Scrimly</h1>
-        </div>
+        <Link href="/">
+          <Image src={ScrimlyLogo} alt="Scrimly Logo" width={40} height={40} />
+        </Link>
         <nav className="flex items-center gap-2">
           <LanguageSwitcher />
           <Button variant="ghost" asChild>

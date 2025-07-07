@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -106,10 +105,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader className="p-4 pt-6 mb-4">
-          <div className="flex items-center gap-2">
-            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={32} height={32} />
-            <h1 className="text-2xl font-bold font-headline">Scrimly</h1>
-          </div>
+          <Link href="/dashboard" className="flex justify-center">
+            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={40} height={40} />
+          </Link>
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu className="gap-4">
