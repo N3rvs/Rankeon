@@ -12,33 +12,38 @@ import { Button } from '../ui/button';
 import { Ticket as TicketIcon } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useI18n } from '@/contexts/i18n-context';
+import { RespondToTicketDialog } from './RespondToTicketDialog';
 
 function TicketCard({ ticket }: { ticket: SupportTicket }) {
   const { t } = useI18n();
+  const [isRespondOpen, setIsRespondOpen] = useState(false);
   const statusText = {
     open: t('SupportTicketsList.status_open'),
     closed: t('SupportTicketsList.status_closed'),
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-            <CardTitle className="capitalize">{ticket.subject.replace(/_/g, ' ')}</CardTitle>
-            <Badge variant={ticket.status === 'open' ? 'default' : 'secondary'} className="capitalize">{statusText[ticket.status]}</Badge>
-        </div>
-        <CardDescription>
-          From: {ticket.userName} ({ticket.userEmail})
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{ticket.description}</p>
-      </CardContent>
-      <CardFooter className="flex justify-between items-center text-xs text-muted-foreground">
-        <span>Submitted {formatDistanceToNow(ticket.createdAt.toDate(), { addSuffix: true })}</span>
-        <Button size="sm" variant="outline">View & Respond</Button>
-      </CardFooter>
-    </Card>
+    <>
+      <RespondToTicketDialog ticket={ticket} open={isRespondOpen} onOpenChange={setIsRespondOpen} />
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-start">
+              <CardTitle className="capitalize">{ticket.subject.replace(/_/g, ' ')}</CardTitle>
+              <Badge variant={ticket.status === 'open' ? 'default' : 'secondary'} className="capitalize">{statusText[ticket.status]}</Badge>
+          </div>
+          <CardDescription>
+            From: {ticket.userName} ({ticket.userEmail})
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{ticket.description}</p>
+        </CardContent>
+        <CardFooter className="flex justify-between items-center text-xs text-muted-foreground">
+          <span>Submitted {ticket.createdAt ? formatDistanceToNow(ticket.createdAt.toDate(), { addSuffix: true }) : ''}</span>
+          <Button size="sm" variant="outline" onClick={() => setIsRespondOpen(true)}>View & Respond</Button>
+        </CardFooter>
+      </Card>
+    </>
   );
 }
 

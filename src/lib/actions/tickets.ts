@@ -34,3 +34,25 @@ export async function createSupportTicket(values: CreateTicketData): Promise<Act
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function respondToTicket(ticketId: string, content: string): Promise<ActionResponse> {
+  try {
+    const respondFunc = httpsCallable(functions, 'respondToTicket');
+    const result = await respondFunc({ ticketId, content });
+    return (result.data as ActionResponse);
+  } catch (error: any) {
+    console.error('Error responding to ticket:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}
+
+export async function resolveTicket(ticketId: string): Promise<ActionResponse> {
+  try {
+    const resolveFunc = httpsCallable(functions, 'resolveTicket');
+    const result = await resolveFunc({ ticketId });
+    return (result.data as ActionResponse);
+  } catch (error: any) {
+    console.error('Error resolving ticket:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}

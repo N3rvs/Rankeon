@@ -102,7 +102,8 @@ export type NotificationType =
   | 'scrim_challenge_accepted'
   | 'scrim_challenge_rejected'
   | 'scrim_cancelled'
-  | 'scrim_accepted';
+  | 'scrim_accepted'
+  | 'support_ticket_response';
 
 export interface Notification {
   id: string;
@@ -250,6 +251,14 @@ export interface Bracket {
   rounds: Round[];
 }
 
+export interface TicketMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  createdAt: Timestamp;
+}
+
 export interface SupportTicket {
   id: string;
   userId: string;
@@ -261,4 +270,5 @@ export interface SupportTicket {
   createdAt: Timestamp;
   resolvedAt?: Timestamp;
   resolvedBy?: string; // UID of mod/admin
+  lastMessageAt?: Timestamp;
 }
