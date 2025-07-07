@@ -1,3 +1,4 @@
+
 // src/components/profile/edit-profile-form.tsx
 'use client';
 
@@ -40,16 +41,6 @@ const gameRoles: Record<string, readonly string[]> = {
   // Future games can be added here
 };
 const availableGames = Object.keys(gameRoles);
-
-const valorantRanks = [
-    { value: 'Hierro', label: 'Hierro' },
-    { value: 'Bronce', label: 'Bronce' },
-    { value: 'Plata', label: 'Plata' },
-    { value: 'Oro', label: 'Oro' },
-    { value: 'Platino', label: 'Platino' },
-    { value: 'Ascendente', label: 'Ascendente' },
-    { value: 'Inmortal', label: 'Inmortal' },
-];
 
 const europeanCountries = [
     { value: 'Albania', label: 'Albania' },
@@ -119,6 +110,18 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
       skills: userProfile.skills || [],
     },
   });
+  
+  const valorantRanks = [
+    { value: 'Hierro', label: t('Ranks.iron') },
+    { value: 'Bronce', label: t('Ranks.bronze') },
+    { value: 'Plata', label: t('Ranks.silver') },
+    { value: 'Oro', label: t('Ranks.gold') },
+    { value: 'Platino', label: t('Ranks.platinum') },
+    { value: 'Diamante', label: t('Ranks.diamond') },
+    { value: 'Ascendente', label: t('Ranks.ascendant') },
+    { value: 'Inmortal', label: t('Ranks.immortal') },
+    { value: 'Radiante', label: t('Ranks.radiant') },
+];
 
   const isEditingSelf = loggedInUserProfile?.id === userProfile.id;
   const isAdminEditing = editorClaims?.role === 'admin';

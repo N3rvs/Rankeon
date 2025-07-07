@@ -57,8 +57,10 @@
     "silver": "Silber",
     "gold": "Gold",
     "platinum": "Platin",
+    "diamond": "Diamant",
     "ascendant": "Aufsteigend",
-    "immortal": "Unsterblich"
+    "immortal": "Unsterblich",
+    "radiant": "Radiant"
   },
   "Roles": {
     "controller": "Kontrolleur",

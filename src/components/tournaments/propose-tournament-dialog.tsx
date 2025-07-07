@@ -1,3 +1,4 @@
+
 // src/components/tournaments/propose-tournament-dialog.tsx
 'use client';
 
@@ -28,16 +29,6 @@ const tournamentFormats = [
 
 const teamCountOptions = [4, 8, 16, 32, 64];
 
-const valorantRanks = [
-    { value: 'Hierro', label: 'Hierro' },
-    { value: 'Bronce', label: 'Bronce' },
-    { value: 'Plata', label: 'Plata' },
-    { value: 'Oro', label: 'Oro' },
-    { value: 'Platino', label: 'Platino' },
-    { value: 'Ascendente', label: 'Ascendente' },
-    { value: 'Inmortal', label: 'Inmortal' },
-];
-
 const currencies = [
     { value: 'USD', label: 'USD ($)' },
     { value: 'EUR', label: 'EUR (€)' },
@@ -62,6 +53,18 @@ export function ProposeTournamentDialog() {
       rankMax: '',
     },
   });
+  
+  const valorantRanks = [
+    { value: 'Hierro', label: t('Ranks.iron') },
+    { value: 'Bronce', label: t('Ranks.bronze') },
+    { value: 'Plata', label: t('Ranks.silver') },
+    { value: 'Oro', label: t('Ranks.gold') },
+    { value: 'Platino', label: t('Ranks.platinum') },
+    { value: 'Diamante', label: t('Ranks.diamond') },
+    { value: 'Ascendente', label: t('Ranks.ascendant') },
+    { value: 'Inmortal', label: t('Ranks.immortal') },
+    { value: 'Radiante', label: t('Ranks.radiant') },
+  ];
 
   async function onSubmit(values: ProposeTournamentData) {
     startTransition(async () => {

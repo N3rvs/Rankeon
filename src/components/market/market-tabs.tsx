@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -327,8 +328,10 @@ export function MarketTabs() {
         'Plata': 3,
         'Oro': 4,
         'Platino': 5,
-        'Ascendente': 6,
-        'Inmortal': 7,
+        'Diamante': 6,
+        'Ascendente': 7,
+        'Inmortal': 8,
+        'Radiante': 9,
     };
 
     const valorantRanks = [
@@ -338,8 +341,10 @@ export function MarketTabs() {
       { value: 'Plata', label: t('Ranks.silver') },
       { value: 'Oro', label: t('Ranks.gold') },
       { value: 'Platino', label: t('Ranks.platinum') },
+      { value: 'Diamante', label: t('Ranks.diamond') },
       { value: 'Ascendente', label: t('Ranks.ascendant') },
       { value: 'Inmortal', label: t('Ranks.immortal') },
+      { value: 'Radiante', label: t('Ranks.radiant') },
   ];
   
   const valorantRoles = [

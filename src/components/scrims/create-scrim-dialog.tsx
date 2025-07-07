@@ -59,8 +59,10 @@ export function CreateScrimDialog({ teamId }: { teamId: string }) {
     { value: 'Plata', label: t('Ranks.silver') },
     { value: 'Oro', label: t('Ranks.gold') },
     { value: 'Platino', label: t('Ranks.platinum') },
+    { value: 'Diamante', label: t('Ranks.diamond') },
     { value: 'Ascendente', label: t('Ranks.ascendant') },
     { value: 'Inmortal', label: t('Ranks.immortal') },
+    { value: 'Radiante', label: t('Ranks.radiant') },
   ];
 
   const scrimFormats = [
