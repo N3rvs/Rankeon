@@ -11,46 +11,7 @@ import { useI18n } from '@/contexts/i18n-context';
 import { LanguageSwitcher } from '@/components/i18n/language-switcher';
 import ScrimlyLogo from '@/assets/logo.png';
 import { cn } from '@/lib/utils';
-
-function Header() {
-  const { user, loading } = useAuth();
-  const { t } = useI18n();
-
-  return (
-    <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between z-10 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
-      <Link href="/">
-        <Image src={ScrimlyLogo} alt="Scrimly Logo" width={40} height={40} />
-      </Link>
-      <nav className="hidden md:flex items-center gap-6">
-        <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.news')}</Link>
-        <Link href="/tournaments" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.tournaments')}</Link>
-        <Link href="/rankings" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.rankings')}</Link>
-      </nav>
-      <div className="flex items-center gap-2">
-        <LanguageSwitcher />
-        {loading ? (
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-20 rounded-md bg-muted animate-pulse" />
-            <div className="h-9 w-24 rounded-md bg-muted animate-pulse" />
-          </div>
-        ) : user ? (
-          <Button asChild>
-            <Link href="/dashboard">{t('LandingPage.go_to_app')}</Link>
-          </Button>
-        ) : (
-          <>
-            <Button variant="ghost" asChild>
-              <Link href="/login">{t('LandingPage.login')}</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/register">{t('LandingPage.register')}</Link>
-            </Button>
-          </>
-        )}
-      </div>
-    </header>
-  );
-}
+import { PublicLayout } from '../public-layout';
 
 function PricingSection() {
     const { t } = useI18n();
@@ -119,19 +80,11 @@ function PricingSection() {
 
 export function LandingPage() {
   const { t } = useI18n();
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
 
   return (
-    <div className="flex flex-col min-h-dvh bg-background text-foreground">
-      <Header />
-      
-      <main className="flex-1">
+    <PublicLayout>
         {/* Hero Section */}
-        <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center">
+        <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-20">
             <div className="absolute inset-0">
                 <Image 
                     src="https://placehold.co/1200x800.png"
@@ -196,11 +149,6 @@ export function LandingPage() {
         </section>
         
         <PricingSection />
-      </main>
-
-      <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground text-sm border-t border-border/50">
-        {t('LandingPage.footer_text', { year: currentYear || new Date().getFullYear() })}
-      </footer>
-    </div>
+    </PublicLayout>
   );
 }
