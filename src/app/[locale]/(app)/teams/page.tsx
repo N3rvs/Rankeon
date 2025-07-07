@@ -1,14 +1,14 @@
-// src/app/[locale]/(app)/teams/page.tsx
+// src/app/(app)/teams/page.tsx
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
-import { collection, query, onSnapshot, Unsubscribe, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, Unsubscribe, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile } from '@/lib/types';
 import Image from 'next/image';
@@ -22,8 +22,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import Link from 'next/link';
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 import { TeamApplications } from '@/components/teams/team-applications';
+import { useI18n } from '@/contexts/i18n-context';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
+    const { t } = useI18n();
     const { toast } = useToast();
     const [isKickAlertOpen, setKickAlertOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -41,7 +43,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 setSelectedMemberProfile({ id: userDoc.id, ...userDoc.data() } as UserProfile);
                 setIsEditDialogOpen(true);
             } else {
-                toast({ title: "Error", description: "Could not find user profile.", variant: "destructive" });
+                toast({ title: "Error", description: t('MemberManager.error_user_not_found'), variant: "destructive" });
             }
         });
     };
@@ -51,7 +53,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
         startTransition(async () => {
             const result = await updateTeamMemberRole(team.id, member.id, newRole);
             if (result.success) {
-                toast({ title: "Rol Actualizado", description: `${member.name} es ahora ${newRole}.` });
+                toast({ title: t('MemberManager.role_updated'), description: t('MemberManager.role_updated_desc', { name: member.name, role: newRole }) });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -62,7 +64,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
         startTransition(async () => {
             const result = await kickTeamMember(team.id, member.id);
              if (result.success) {
-                toast({ title: "Miembro Expulsado", description: `${member.name} ha sido expulsado del equipo.` });
+                toast({ title: t('MemberManager.kick_confirm_title', {name:''}), description: `${member.name} has been kicked from the team.` });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -74,7 +76,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
         startTransition(async () => {
             const result = await setTeamIGL(team.id, member.isIGL ? null : member.id);
             if (result.success) {
-                toast({ title: "Rol Actualizado", description: result.message });
+                toast({ title: t('MemberManager.role_updated'), description: result.message });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -102,15 +104,15 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
             <AlertDialog open={isKickAlertOpen} onOpenChange={setKickAlertOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Expulsar a {member.name}?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('MemberManager.kick_confirm_title', { name: member.name })}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta acción no se puede deshacer. {member.name} será eliminado permanentemente de tu equipo.
+                           {t('MemberManager.kick_confirm_desc', { name: member.name })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>{t('MemberManager.cancel')}</AlertDialogCancel>
                         <AlertDialogAction onClick={handleKick} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            {isPending ? "Expulsando..." : "Sí, expulsar"}
+                            {isPending ? t('MemberManager.kicking') : t('MemberManager.confirm_kick')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -125,7 +127,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 <DropdownMenuContent align="end">
                     {canEditProfile && (
                         <DropdownMenuItem onSelect={handleOpenEditDialog} disabled={isPending}>
-                            <Edit className="mr-2 h-4 w-4" /> Editar Perfil
+                            <Edit className="mr-2 h-4 w-4" /> {t('MemberManager.edit_profile')}
                         </DropdownMenuItem>
                     )}
                     {(canEditProfile || canManageRoles || canSetIGL) && <DropdownMenuSeparator />}
@@ -133,12 +135,12 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                         <>
                             {member.role === 'member' && (
                                 <DropdownMenuItem onSelect={() => handleRoleChange('coach')} disabled={isPending}>
-                                    <ShieldCheck className="mr-2 h-4 w-4" /> Ascender a Coach
+                                    <ShieldCheck className="mr-2 h-4 w-4" /> {t('MemberManager.promote_coach')}
                                 </DropdownMenuItem>
                             )}
                             {member.role === 'coach' && (
                                 <DropdownMenuItem onSelect={() => handleRoleChange('member')} disabled={isPending}>
-                                    <UserCog className="mr-2 h-4 w-4" /> Degradar a Miembro
+                                    <UserCog className="mr-2 h-4 w-4" /> {t('MemberManager.demote_member')}
                                 </DropdownMenuItem>
                             )}
                         </>
@@ -146,14 +148,14 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                     {canSetIGL && (
                          <DropdownMenuItem onSelect={handleSetIGL} disabled={isPending}>
                             <BrainCircuit className="mr-2 h-4 w-4" />
-                            {member.isIGL ? 'Quitar Rol de IGL' : 'Designar como IGL'}
+                            {member.isIGL ? t('MemberManager.remove_igl') : t('MemberManager.set_igl')}
                         </DropdownMenuItem>
                     )}
                     {canKick && (
                         <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onSelect={() => setKickAlertOpen(true)} className="text-destructive focus:text-destructive" disabled={isPending}>
-                                <UserMinus className="mr-2 h-4 w-4" /> Expulsar del Equipo
+                                <UserMinus className="mr-2 h-4 w-4" /> {t('MemberManager.kick_from_team')}
                             </DropdownMenuItem>
                         </>
                     )}
@@ -164,6 +166,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
 }
 
 function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: TeamMember[], currentUserRole: 'founder' | 'coach' | 'member' }) {
+    const { t } = useI18n();
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -172,7 +175,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
         startTransition(async () => {
             const result = await deleteTeam({ teamId: team.id });
             if (result.success) {
-                toast({ title: "Equipo Eliminado", description: "Tu equipo ha sido eliminado con éxito." });
+                toast({ title: t('TeamsPage.delete_confirm_title'), description: "Your team has been successfully deleted." });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -184,73 +187,59 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
         coach: <ShieldCheck className="h-4 w-4 text-blue-400" />,
     };
 
+    const renderVideo = (videoUrl?: string) => {
+        if (!videoUrl) {
+          return (
+            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+              <p className="text-muted-foreground">No se ha proporcionado un vídeo de presentación.</p>
+            </div>
+          );
+        }
+        
+        let embedUrl = '';
+        if (videoUrl.includes("youtube.com/watch?v=")) {
+          const videoId = videoUrl.split('v=')[1].split('&')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        } else if (videoUrl.includes("youtu.be/")) {
+          const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        if (embedUrl) {
+          return (
+            <div className="aspect-video">
+              <iframe
+                className="w-full h-full rounded-lg"
+                src={embedUrl}
+                title="Team Showcase Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
+          );
+        }
+
+        // Assume it's a direct video link (.mp4 etc)
+        return <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />;
+    };
+
     return (
         <div className="space-y-6">
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
             
             <div className="pt-14 md:pt-8" />
             
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                    {/* LEFT COLUMN */}
-                    <div className="lg:col-span-2 space-y-6">
+             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+                    {/* VIDEO & MEMBERS COLUMN */}
+                    <div className="lg:col-span-3 space-y-6">
                         <Card>
-                             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                <div>
-                                    <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
-                                    <CardDescription className="flex items-center gap-4 pt-1">
-                                        <span className="flex items-center gap-2">
-                                            <Gamepad2 className="h-4 w-4" />
-                                            <span>Jugando {team.game}</span>
-                                        </span>
-                                        {team.country && (
-                                            <>
-                                                <span className="text-muted-foreground/50">|</span>
-                                                <span className="flex items-center gap-2">
-                                                    <Globe className="h-4 w-4" />
-                                                    <span>{team.country}</span>
-                                                </span>
-                                            </>
-                                        )}
-                                    </CardDescription>
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                     <Button onClick={() => setIsEditDialogOpen(true)} size="sm">
-                                        <Edit className="mr-2 h-4 w-4" /> Editar
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="destructive" size="sm">
-                                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente tu equipo y todos sus datos. Tu rol volverá a ser "jugador".
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                                    {isPending ? "Eliminando..." : "Sí, eliminar equipo"}
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <h3 className="font-headline font-semibold mb-2 flex items-center gap-2"><Info className="h-5 w-5" /> Sobre el Equipo</h3>
-                                <p className="text-muted-foreground text-sm">{team.description || 'No se ha proporcionado una descripción.'}</p>
+                            <CardContent className="p-0">
+                                {renderVideo(team.videoUrl)}
                             </CardContent>
                         </Card>
-
-                        <TeamApplications teamId={team.id} />
-
                         <Card>
                             <CardHeader>
-                                <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Miembros del Equipo ({members.length})</CardTitle>
+                                <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> {t('TeamsPage.team_members', { count: members.length })}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {members.map(member => (
@@ -289,23 +278,80 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                         </Card>
                     </div>
 
-                    {/* RIGHT COLUMN */}
-                     <div className="lg:col-span-1 space-y-6">
+                    {/* INFO COLUMN */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card>
+                             <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div>
+                                    <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
+                                    <CardDescription className="flex items-center gap-4 pt-1">
+                                        <span className="flex items-center gap-2">
+                                            <Gamepad2 className="h-4 w-4" />
+                                            <span>{t('TeamsPage.playing')} {team.game}</span>
+                                        </span>
+                                        {team.country && (
+                                            <>
+                                                <span className="text-muted-foreground/50">|</span>
+                                                <span className="flex items-center gap-2">
+                                                    <Globe className="h-4 w-4" />
+                                                    <span>{team.country}</span>
+                                                </span>
+                                            </>
+                                        )}
+                                    </CardDescription>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                     <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary">
+                                        <Edit className="h-4 w-4" />
+                                        <span className="sr-only">{t('TeamsPage.edit')}</span>
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="icon">
+                                                <Trash2 className="h-4 w-4" />
+                                                <span className="sr-only">{t('TeamsPage.delete')}</span>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    {t('TeamsPage.delete_confirm_desc')}
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>{t('MemberManager.cancel')}</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                                    {isPending ? t('TeamsPage.deleting') : t('TeamsPage.delete_confirm_button')}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <h3 className="font-headline font-semibold mb-2 flex items-center gap-2"><Info className="h-5 w-5" /> {t('TeamsPage.about_the_team')}</h3>
+                                <p className="text-muted-foreground text-sm">{team.description || t('TeamsPage.no_description')}</p>
+                            </CardContent>
+                        </Card>
+                        
                         <Card>
                             <CardHeader>
-                                <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> Estado de Reclutamiento</CardTitle>
+                                <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> {t('TeamsPage.recruitment_status')}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>{team.lookingForPlayers ? 'Activamente Reclutando' : 'Equipo Lleno'}</Badge>
+                                <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>{team.lookingForPlayers ? t('TeamsPage.recruiting') : t('TeamsPage.team_full')}</Badge>
                                 <div className="flex flex-wrap gap-2">
                                     {team.lookingForPlayers && team.recruitingRoles && team.recruitingRoles.length > 0 ? (
                                         team.recruitingRoles.map((role) => <Badge key={role} variant="outline">{role}</Badge>)
                                     ) : (
-                                        <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? 'Cualquier rol es bienvenido.' : 'No se están buscando roles específicos.'}</p>
+                                        <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? t('TeamsPage.all_roles_welcome') : t('TeamsPage.no_roles_wanted')}</p>
                                     )}
                                 </div>
                             </CardContent>
                         </Card>
+
+                        <TeamApplications teamId={team.id} />
                     </div>
                 </div>
         </div>
@@ -313,33 +359,34 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
 }
 
 function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
+    const { t } = useI18n();
     const canCreateTeam = userProfile?.role === 'player';
 
     return (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-xl font-semibold">Aún no tienes un equipo</h3>
+            <h3 className="mt-4 text-xl font-semibold">{t('TeamsPage.no_team_title')}</h3>
             
             {canCreateTeam ? (
-                <>
+                 <>
                     <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                        ¡Crea tu propio equipo para empezar a reclutar jugadores!
+                        {t('TeamsPage.no_team_subtitle')}
                     </p>
                     <CreateTeamDialog />
-                </>
+                 </>
             ) : (
                 <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                    No estás en un equipo. Puedes buscar uno en el mercado.
+                    {t('TeamsPage.no_team_subtitle_generic')}
                 </p>
             )}
 
             <p className="mb-4 mt-8 text-sm text-muted-foreground">
-                Busca en el mercado para encontrar tu escuadrón ideal.
+                {t('TeamsPage.no_team_join_prompt')}
             </p>
             <Button asChild>
                 <Link href="/dashboard">
                     <Store className="mr-2 h-4 w-4" />
-                    Unete a un Equipo
+                    {t('TeamsPage.join_a_team')}
                 </Link>
             </Button>
         </div>
