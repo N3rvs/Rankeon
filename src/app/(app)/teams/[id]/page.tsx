@@ -84,11 +84,45 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
         <div className="space-y-6">
             <div className="pt-14 md:pt-8" />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* VIDEO COLUMN */}
+                {/* VIDEO & MEMBERS COLUMN */}
                 <div className="lg:col-span-3 space-y-6">
+                    {team.videoUrl && (
+                        <Card>
+                            <CardContent className="p-0">
+                                {renderVideo(team.videoUrl)}
+                            </CardContent>
+                        </Card>
+                    )}
                     <Card>
-                        <CardContent className="p-0">
-                            {renderVideo(team.videoUrl)}
+                        <CardHeader>
+                            <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Team Members ({members.length})</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {members.map(member => (
+                                <div key={member.id} className="p-3 flex items-center justify-between rounded-lg border bg-background">
+                                    <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
+                                        <Avatar>
+                                            <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
+                                            <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
+                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                {roleIcons[member.role] || null}
+                                                <span className="capitalize">{member.role}</span>
+                                                {member.isIGL && (<> <span className="mx-1">·</span> <BrainCircuit className="h-4 w-4 text-sky-400" /><span>IGL</span> </>)}
+                                            </div>
+                                            {member.skills && member.skills.length > 0 && (
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    {member.skills.map(skill => (
+                                                        <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Link>
+                                </div>
+                            ))}
                         </CardContent>
                     </Card>
                 </div>
@@ -135,39 +169,6 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                                     <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? 'All roles welcome.' : 'No specific roles wanted.'}</p>
                                 )}
                             </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Team Members ({members.length})</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {members.map(member => (
-                                <div key={member.id} className="p-3 flex items-center justify-between rounded-lg border bg-background">
-                                    <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
-                                        <Avatar>
-                                            <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
-                                            <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
-                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                {roleIcons[member.role] || null}
-                                                <span className="capitalize">{member.role}</span>
-                                                {member.isIGL && (<> <span className="mx-1">·</span> <BrainCircuit className="h-4 w-4 text-sky-400" /><span>IGL</span> </>)}
-                                            </div>
-                                            {member.skills && member.skills.length > 0 && (
-                                                <div className="flex items-center gap-1 mt-1">
-                                                    {member.skills.map(skill => (
-                                                        <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </Link>
-                                </div>
-                            ))}
                         </CardContent>
                     </Card>
                 </div>
