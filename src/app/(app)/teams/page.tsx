@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Store, Trophy, ClipboardList, Settings, BrainCircuit } from 'lucide-react';
+import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, doc, getDoc, where, orderBy } from 'firebase/firestore';
@@ -25,6 +25,7 @@ import { TeamApplications } from '@/components/teams/team-applications';
 import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
 import { CreateScrimDialog } from '@/components/scrims/create-scrim-dialog';
+import { Separator } from '../ui/separator';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
@@ -169,6 +170,8 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
 
 function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: TeamMember[], currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [wonTournaments, setWonTournaments] = useState<Tournament[]>([]);
     const [loadingTrophies, setLoadingTrophies] = useState(true);
@@ -195,7 +198,58 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
         return () => unsubscribe();
     }, [team?.id]);
 
+    const handleDelete = () => {
+        startTransition(async () => {
+            const result = await deleteTeam({ teamId: team.id });
+            if (result.success) {
+                toast({ title: t('TeamsPage.delete_confirm_title'), description: "Your team has been successfully deleted." });
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+        });
+    };
+
+    const roleIcons: { [key: string]: React.ReactNode } = {
+        founder: <Crown className="h-4 w-4 text-amber-400" />,
+        coach: <ShieldCheck className="h-4 w-4 text-blue-400" />,
+    };
+    
     const isStaff = currentUserRole === 'founder' || currentUserRole === 'coach';
+
+    const renderVideo = (videoUrl?: string) => {
+        if (!videoUrl) {
+          return (
+            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+              <p className="text-muted-foreground">No se ha proporcionado un vídeo de presentación.</p>
+            </div>
+          );
+        }
+        
+        let embedUrl = '';
+        if (videoUrl.includes("youtube.com/watch?v=")) {
+          const videoId = videoUrl.split('v=')[1].split('&')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        } else if (videoUrl.includes("youtu.be/")) {
+          const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        if (embedUrl) {
+          return (
+            <div className="aspect-video">
+              <iframe
+                className="w-full h-full rounded-lg"
+                src={embedUrl}
+                title="Team Showcase Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
+          );
+        }
+
+        return <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />;
+    };
 
     return (
         <div className="space-y-6">
@@ -203,97 +257,181 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
             
             <div className="pt-14 md:pt-8" />
             
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                    {/* LEFT COLUMN */}
-                    <div className="lg:col-span-2 space-y-6">
-                         <Card>
-                            <CardHeader>
-                                <CardTitle className="font-headline flex items-center gap-2">
-                                    <Trophy className="h-5 w-5 text-yellow-400"/>
-                                    {t('TeamsPage.trophy_room_title')}
-                                </CardTitle>
-                                <CardDescription>{t('TeamsPage.trophy_room_desc')}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {loadingTrophies ? (
-                                    <Skeleton className="h-16 w-full" />
-                                ) : wonTournaments.length > 0 ? (
-                                    <div className="space-y-3">
-                                        {wonTournaments.map(tourney => (
-                                            <div key={tourney.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
-                                                <Trophy className="h-5 w-5 text-yellow-500" />
-                                                <div className="flex-1">
-                                                    <p className="font-semibold">{t('TeamsPage.tournament_champion', { tournamentName: tourney.name })}</p>
-                                                    <p className="text-xs text-muted-foreground">{format(tourney.startDate.toDate(), "PPP")}</p>
+             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+                {/* LEFT/MAIN COLUMN */}
+                <div className="lg:col-span-3 space-y-6">
+                    <Card>
+                        <CardContent className="p-0">
+                            {renderVideo(team.videoUrl)}
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> {t('TeamsPage.team_members', { count: members.length })}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {members.map(member => (
+                                <div key={member.id} className="p-3 flex items-center justify-between rounded-lg border bg-background">
+                                    <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
+                                        <Avatar>
+                                            <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
+                                            <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex flex-col items-start">
+                                            <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
+                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                 {roleIcons[member.role] || null}
+                                                 <span className="capitalize">{member.role}</span>
+                                                 {member.isIGL && (
+                                                    <>
+                                                        <span className="mx-1">·</span>
+                                                        <BrainCircuit className="h-4 w-4 text-sky-400" />
+                                                        <span>IGL</span>
+                                                    </>
+                                                 )}
+                                            </div>
+                                            {member.skills && member.skills.length > 0 && (
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    {member.skills.map(skill => (
+                                                        <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                                                    ))}
                                                 </div>
+                                            )}
+                                        </div>
+                                    </Link>
+                                    <MemberManager team={team} member={member} currentUserRole={currentUserRole} />
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* RIGHT COLUMN */}
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                            <div>
+                                <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
+                                <CardDescription className="flex items-center gap-4 pt-1">
+                                    <span className="flex items-center gap-2">
+                                        <Gamepad2 className="h-4 w-4" />
+                                        <span>{t('TeamsPage.playing')} {team.game}</span>
+                                    </span>
+                                    {team.country && (
+                                        <>
+                                            <span className="text-muted-foreground/50">|</span>
+                                            <span className="flex items-center gap-2">
+                                                <Globe className="h-4 w-4" />
+                                                <span>{team.country}</span>
+                                            </span>
+                                        </>
+                                    )}
+                                </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                 <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary">
+                                    <Edit className="h-4 w-4" />
+                                    <span className="sr-only">{t('TeamsPage.edit')}</span>
+                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="icon">
+                                            <Trash2 className="h-4 w-4" />
+                                            <span className="sr-only">{t('TeamsPage.delete')}</span>
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                {t('TeamsPage.delete_confirm_desc')}
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>{t('MemberManager.cancel')}</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                                {isPending ? t('TeamsPage.deleting') : t('TeamsPage.delete_confirm_button')}
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <h3 className="font-headline font-semibold mb-2 flex items-center gap-2"><Info className="h-5 w-5" /> {t('TeamsPage.about_the_team')}</h3>
+                            <p className="text-muted-foreground text-sm">{team.description || t('TeamsPage.no_description')}</p>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> {t('TeamsPage.recruitment_status')}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Badge variant={team.lookingForPlayers ? 'default' : 'secondary'}>{team.lookingForPlayers ? t('TeamsPage.recruiting') : t('TeamsPage.team_full')}</Badge>
+                            <div className="flex flex-wrap gap-2">
+                                {team.lookingForPlayers && team.recruitingRoles && team.recruitingRoles.length > 0 ? (
+                                    team.recruitingRoles.map((role) => <Badge key={role} variant="outline">{role}</Badge>)
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? t('TeamsPage.all_roles_welcome') : t('TeamsPage.no_roles_wanted')}</p>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline flex items-center gap-2">
+                                <Trophy className="h-5 w-5" />
+                                {t('TeamsPage.achievements_title')}
+                            </CardTitle>
+                            <CardDescription>{t('TeamsPage.achievements_desc')}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <h4 className="text-sm font-semibold mb-2">{t('TeamsPage.trophy_room_title')}</h4>
+                                {loadingTrophies ? (
+                                    <Skeleton className="h-12 w-full" />
+                                ) : wonTournaments.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {wonTournaments.map(tourney => (
+                                            <div key={tourney.id} className="flex items-center gap-2 p-2 rounded-md bg-muted/50 text-sm">
+                                                <Trophy className="h-4 w-4 text-yellow-500" />
+                                                <p className="font-semibold flex-1 truncate">{t('TeamsPage.tournament_champion', { tournamentName: tourney.name })}</p>
+                                                <p className="text-xs text-muted-foreground">{format(tourney.startDate.toDate(), "d MMM")}</p>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-muted-foreground text-center py-4">{t('TeamsPage.no_tournaments_won')}</p>
+                                    <p className="text-xs text-muted-foreground text-center py-2">{t('TeamsPage.no_tournaments_won')}</p>
                                 )}
-                            </CardContent>
-                        </Card>
+                            </div>
+                            <Separator />
+                             <div>
+                                <h4 className="text-sm font-semibold mb-2">{t('TeamsPage.scrim_record_title')}</h4>
+                                <p className="text-xs text-muted-foreground text-center py-2">{t('TeamsPage.scrim_record_soon')}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {isStaff && <TeamApplications teamId={team.id} />}
+                    
+                    {isStaff && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="font-headline flex items-center gap-2">
-                                    <ClipboardList className="h-5 w-5" />
-                                    {t('TeamsPage.scrim_record_title')}
+                                    <Settings className="h-5 w-5" />
+                                    {t('TeamsPage.management_title')}
                                 </CardTitle>
-                                <CardDescription>{t('TeamsPage.scrim_record_desc')}</CardDescription>
+                                <CardDescription>{t('TeamsPage.management_desc')}</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground text-center py-4">{t('TeamsPage.scrim_record_soon')}</p>
+                            <CardContent className="flex flex-col gap-2">
+                                <CreateScrimDialog teamId={team.id} />
                             </CardContent>
                         </Card>
-                    </div>
-
-                    {/* RIGHT COLUMN */}
-                    <div className="space-y-6">
-                        {isStaff && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="font-headline flex items-center gap-2">
-                                        <Settings className="h-5 w-5" />
-                                        {t('TeamsPage.management_title')}
-                                    </CardTitle>
-                                    <CardDescription>{t('TeamsPage.management_desc')}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-2">
-                                    <Button onClick={() => setIsEditDialogOpen(true)} variant="outline">
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        {t('TeamsPage.edit_team_button')}
-                                    </Button>
-                                    <CreateScrimDialog teamId={team.id} />
-                                </CardContent>
-                            </Card>
-                        )}
-                        
-                        {isStaff && <TeamApplications teamId={team.id} />}
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> {t('TeamsPage.team_members', { count: members.length })}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                {members.map(member => (
-                                    <div key={member.id} className="p-2 flex items-center justify-between rounded-lg border bg-background">
-                                        <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
-                                            <Avatar>
-                                                <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
-                                                <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex flex-col items-start">
-                                                <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
-                                            </div>
-                                        </Link>
-                                        <MemberManager team={team} member={member} currentUserRole={currentUserRole} />
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    </div>
+                    )}
                 </div>
+            </div>
         </div>
     );
 }
