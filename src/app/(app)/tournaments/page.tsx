@@ -10,6 +10,7 @@ import { db } from '@/lib/firebase/client';
 import type { Tournament } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TournamentCard } from '@/components/tournaments/tournament-card';
+import { TournamentGuideDialog } from '@/components/tournaments/tournament-guide-dialog';
 
 export default function TournamentsPage() {
   const { claims } = useAuth();
@@ -52,7 +53,10 @@ export default function TournamentsPage() {
             {t('TournamentsPage.subtitle')}
           </p>
         </div>
-        {canPropose && <ProposeTournamentDialog />}
+        <div className="flex items-center gap-2">
+          <TournamentGuideDialog />
+          {canPropose && <ProposeTournamentDialog />}
+        </div>
       </div>
 
       {loading ? (

@@ -262,6 +262,7 @@
     "no_tournaments_title": "No hay torneos activos",
     "no_tournaments_subtitle": "Vuelve más tarde para ver los próximos eventos.",
     "propose_tournament": "Proponer Torneo",
+    "tournament_guide": "Guía de Torneos",
     "view_details": "Ver Detalles"
   },
   "TournamentDetailsPage": {
@@ -293,6 +294,17 @@
     "desc_rules_placeholder": "Describe tu torneo, incluyendo reglas, premios, enlaces de transmisión, etc.",
     "submit": "Enviar Propuesta",
     "submitting": "Enviando..."
+  },
+  "TournamentGuideDialog": {
+    "title": "Guía de Formatos de Torneo",
+    "description": "Aprende sobre los diferentes formatos de torneo disponibles.",
+    "single_elim_title": "Eliminación Simple",
+    "single_elim_desc": "Un equipo es eliminado del torneo tras una sola derrota. Es el formato más rápido, ideal para torneos grandes.",
+    "double_elim_title": "Doble Eliminación",
+    "double_elim_desc": "Un equipo debe perder dos veces para ser eliminado. Los equipos que pierden una vez pasan a un 'cuadro inferior' para tener una segunda oportunidad de llegar a la final.",
+    "round_robin_title": "Round Robin (Todos contra todos)",
+    "round_robin_desc": "Cada equipo juega contra todos los demás equipos al menos una vez. El ganador es el equipo con más victorias. Este formato es el más completo.",
+    "close_button": "Cerrar"
   },
   "MessagesPage": {
     "direct_messages": "Mensajes Directos",

@@ -262,6 +262,7 @@
     "no_tournaments_title": "Nessun torneo attivo",
     "no_tournaments_subtitle": "Torna più tardi per gli eventi imminenti.",
     "propose_tournament": "Proponi un torneo",
+    "tournament_guide": "Guida ai tornei",
     "view_details": "Visualizza dettagli"
   },
   "TournamentDetailsPage": {
@@ -293,6 +294,17 @@
     "desc_rules_placeholder": "Descrivi il tuo torneo, incluse regole, montepremi, link streaming, ecc.",
     "submit": "Invia proposta",
     "submitting": "Invio..."
+  },
+  "TournamentGuideDialog": {
+    "title": "Guida ai formati dei tornei",
+    "description": "Scopri i diversi formati di torneo disponibili.",
+    "single_elim_title": "Eliminazione singola",
+    "single_elim_desc": "Una squadra viene eliminata dal torneo dopo una sola sconfitta. Questo è il formato più veloce, ideale per grandi tornei.",
+    "double_elim_title": "Doppia eliminazione",
+    "double_elim_desc": "Una squadra deve perdere due volte per essere eliminata. Le squadre che perdono una volta si spostano in un 'girone inferiore' per una seconda possibilità di raggiungere la finale.",
+    "round_robin_title": "Girone all'italiana",
+    "round_robin_desc": "Ogni squadra gioca contro ogni altra squadra almeno una volta. Il vincitore è la squadra con il maggior numero di vittorie. Questo formato è il più completo.",
+    "close_button": "Chiudi"
   },
   "MessagesPage": {
     "direct_messages": "Messaggi diretti",

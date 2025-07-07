@@ -262,6 +262,7 @@
     "no_tournaments_title": "No active tournaments",
     "no_tournaments_subtitle": "Check back later for upcoming events.",
     "propose_tournament": "Propose Tournament",
+    "tournament_guide": "Tournament Guide",
     "view_details": "View Details"
   },
   "TournamentDetailsPage": {
@@ -293,6 +294,17 @@
     "desc_rules_placeholder": "Describe your tournament, including rules, prize pools, stream links, etc.",
     "submit": "Submit Proposal",
     "submitting": "Submitting..."
+  },
+  "TournamentGuideDialog": {
+    "title": "Tournament Format Guide",
+    "description": "Learn about the different tournament formats available.",
+    "single_elim_title": "Single Elimination",
+    "single_elim_desc": "A team is eliminated from the tournament after a single loss. This is the fastest format, ideal for large tournaments.",
+    "double_elim_title": "Double Elimination",
+    "double_elim_desc": "A team must lose twice to be eliminated. Teams that lose once move to a 'lower bracket' for a second chance to reach the final.",
+    "round_robin_title": "Round Robin",
+    "round_robin_desc": "Each team plays against every other team at least once. The winner is the team with the most victories. This format is the most comprehensive.",
+    "close_button": "Close"
   },
   "MessagesPage": {
     "direct_messages": "Direct Messages",
