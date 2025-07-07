@@ -279,7 +279,9 @@
     "no_participants": "Nessuna squadra si è ancora registrata.",
     "status_upcoming": "In arrivo",
     "status_ongoing": "In corso",
-    "status_completed": "Completato"
+    "status_completed": "Completato",
+    "bracket_coming_soon_title": "Tabellone in arrivo",
+    "bracket_coming_soon_desc": "Il tabellone del torneo verrà generato una volta che le squadre saranno registrate e sorteggiate."
   },
   "ProposeTournamentDialog": {
     "title": "Proponi un nuovo torneo",

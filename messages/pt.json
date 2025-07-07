@@ -279,7 +279,9 @@
     "no_participants": "Nenhuma equipa se registou ainda.",
     "status_upcoming": "Próximo",
     "status_ongoing": "Em curso",
-    "status_completed": "Concluído"
+    "status_completed": "Concluído",
+    "bracket_coming_soon_title": "Chaveamento em Breve",
+    "bracket_coming_soon_desc": "O chaveamento do torneio será gerado assim que as equipas estiverem registadas e posicionadas."
   },
   "ProposeTournamentDialog": {
     "title": "Propor um Novo Torneio",

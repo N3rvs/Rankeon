@@ -279,7 +279,9 @@
     "no_participants": "No teams have registered yet.",
     "status_upcoming": "Upcoming",
     "status_ongoing": "Ongoing",
-    "status_completed": "Completed"
+    "status_completed": "Completed",
+    "bracket_coming_soon_title": "Bracket Coming Soon",
+    "bracket_coming_soon_desc": "The tournament bracket will be generated once teams are registered and seeded."
   },
   "ProposeTournamentDialog": {
     "title": "Propose a New Tournament",

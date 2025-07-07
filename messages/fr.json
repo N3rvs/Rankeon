@@ -279,7 +279,9 @@
     "no_participants": "Aucune équipe n'est encore inscrite.",
     "status_upcoming": "À venir",
     "status_ongoing": "En cours",
-    "status_completed": "Terminé"
+    "status_completed": "Terminé",
+    "bracket_coming_soon_title": "Arbre de tournoi bientôt disponible",
+    "bracket_coming_soon_desc": "L'arbre de tournoi sera généré une fois que les équipes seront inscrites et classées."
   },
   "ProposeTournamentDialog": {
     "title": "Proposer un nouveau tournoi",

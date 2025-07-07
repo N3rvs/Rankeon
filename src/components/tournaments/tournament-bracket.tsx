@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Trophy } from 'lucide-react';
 import React from 'react';
+import { useI18n } from '@/contexts/i18n-context';
 
 const TeamDisplay = ({
   team,
@@ -96,14 +97,15 @@ const BracketConnectors = ({ round }: { round: Round }) => {
 };
 
 export const TournamentBracket = ({ bracket }: { bracket: Bracket | null }) => {
+  const { t } = useI18n();
+
   if (!bracket || !bracket.rounds || bracket.rounds.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center h-[300px]">
         <Trophy className="mx-auto h-12 w-12 text-muted-foreground" />
-        <h3 className="mt-4 text-xl font-semibold">Bracket Coming Soon</h3>
+        <h3 className="mt-4 text-xl font-semibold">{t('TournamentDetailsPage.bracket_coming_soon_title')}</h3>
         <p className="mt-2 text-muted-foreground">
-          The tournament bracket will be generated once teams are registered and
-          seeded.
+          {t('TournamentDetailsPage.bracket_coming_soon_desc')}
         </p>
       </div>
     );
