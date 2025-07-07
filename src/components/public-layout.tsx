@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
@@ -9,16 +8,17 @@ import { useI18n } from '@/contexts/i18n-context';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/i18n/language-switcher';
 import ScrimlyLogo from '@/assets/logo.png';
+import { Separator } from '@/components/ui/separator';
 
 function Header() {
   const { user, loading } = useAuth();
   const { t } = useI18n();
 
   return (
-    <header className="h-28 w-full z-10 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
+    <header className="h-28 w-full z-20 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
             <Link href="/">
-                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={100} height={100} />
+                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
             </Link>
             <nav className="hidden md:flex items-center gap-6">
                 <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.news')}</Link>
@@ -62,7 +62,19 @@ function Footer() {
     return (
         <footer className="w-full border-t border-border/50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground text-sm">
-                {t('LandingPage.footer_text', { year: currentYear || new Date().getFullYear() })}
+                 <div className="mb-2">
+                    <span>© {currentYear || new Date().getFullYear()} Scrimly. </span>
+                    <span>{t('LandingPage.footer_rights')}</span>
+                </div>
+                <div className="flex justify-center items-center gap-4">
+                    <Button variant="link" className="p-0 h-auto text-muted-foreground" asChild>
+                        <Link href="/terms">{t('LandingPage.terms')}</Link>
+                    </Button>
+                    <Separator orientation="vertical" className="h-4 bg-border" />
+                    <Button variant="link" className="p-0 h-auto text-muted-foreground" asChild>
+                        <Link href="/privacy">{t('LandingPage.privacy')}</Link>
+                    </Button>
+                </div>
             </div>
         </footer>
     );
