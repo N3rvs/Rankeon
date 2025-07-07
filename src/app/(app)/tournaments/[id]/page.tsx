@@ -43,14 +43,15 @@ function getStatusBadgeVariant(status: Tournament['status']) {
 }
 
 function TournamentDetails({ tournament }: { tournament: Tournament }) {
-  const { userProfile } = useAuth();
+  const { userProfile, claims } = useAuth();
   const { t, locale } = useI18n();
   const { toast } = useToast();
   const [isRegistering, startRegistering] = useTransition();
 
   const isFounder = userProfile?.role === 'founder';
+  const isAdminOrMod = claims?.role === 'admin' || claims?.role === 'moderator';
   const hasTeam = !!userProfile?.teamId;
-  const canRegister = tournament.status === 'upcoming' && hasTeam && isFounder;
+  const canRegister = tournament.status === 'upcoming' && hasTeam && (isFounder || isAdminOrMod);
   const isRegistered = tournament.participants?.some(p => p.id === userProfile?.teamId);
   const isFull = tournament.participants && tournament.participants.length >= tournament.maxTeams;
 
@@ -64,7 +65,7 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
   };
   
   const handleRegister = () => {
-    if (!userProfile?.teamId || !isFounder) return;
+    if (!userProfile?.teamId || !canRegister) return;
     startRegistering(async () => {
       const result = await registerTeamForTournament({
         tournamentId: tournament.id,

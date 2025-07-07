@@ -146,7 +146,7 @@ export const reviewTournamentProposal = onCall(async (request) => {
 export const registerTeamForTournament = onCall(async ({ auth: requestAuth, data }) => {
     if (!requestAuth) throw new HttpsError("unauthenticated", "You must be logged in to register.");
     
-    const { uid } = requestAuth;
+    const { uid, token } = requestAuth;
     const { tournamentId, teamId } = data as { tournamentId: string, teamId: string };
 
     if (!tournamentId || !teamId) {
@@ -157,19 +157,25 @@ export const registerTeamForTournament = onCall(async ({ auth: requestAuth, data
     const teamRef = db.collection("teams").doc(teamId);
     
     return db.runTransaction(async (transaction) => {
-        const [tournamentSnap, teamSnap] = await Promise.all([
+        const [tournamentSnap, teamSnap, teamMemberSnap] = await Promise.all([
             transaction.get(tournamentRef),
-            transaction.get(teamRef)
+            transaction.get(teamRef),
+            transaction.get(teamRef.collection("members").doc(uid)) // Check if caller is member
         ]);
         
         if (!tournamentSnap.exists) throw new HttpsError("not-found", "Tournament not found.");
         if (!teamSnap.exists) throw new HttpsError("not-found", "Team not found.");
+        if (!teamMemberSnap.exists) throw new HttpsError("permission-denied", "You are not a member of the team you are trying to register.");
         
         const tournamentData = tournamentSnap.data()!;
         const teamData = teamSnap.data()!;
 
-        if (teamData.founder !== uid) {
-            throw new HttpsError("permission-denied", "Only the team founder can register for a tournament.");
+        const isFounder = teamData.founder === uid;
+        const isAdmin = token.role === 'admin';
+        const isModerator = token.role === 'moderator';
+
+        if (!isFounder && !isAdmin && !isModerator) {
+            throw new HttpsError("permission-denied", "Only the team founder, an admin, or a moderator can register the team.");
         }
         
         if (tournamentData.status !== 'upcoming') {

@@ -284,7 +284,7 @@
     "bracket_coming_soon_desc": "Il tabellone del torneo verrà generato una volta che le squadre saranno registrate e sorteggiate.",
     "full_text": "Il torneo è al completo.",
     "registering_text": "Registrazione...",
-    "founder_only_register": "Solo il fondatore della squadra può registrarla."
+    "founder_only_register": "Solo il fondatore della squadra, un amministratore o un moderatore possono registrare la squadra."
   },
   "ProposeTournamentDialog": {
     "title": "Proponi un nuovo torneo",

@@ -284,7 +284,7 @@
     "bracket_coming_soon_desc": "El cuadro del torneo se generará una vez que los equipos se hayan registrado y emparejado.",
     "full_text": "El torneo está lleno.",
     "registering_text": "Inscribiendo...",
-    "founder_only_register": "Solo el fundador del equipo puede inscribirlo."
+    "founder_only_register": "Solo el fundador del equipo, un administrador o un moderador pueden inscribirlo."
   },
   "ProposeTournamentDialog": {
     "title": "Proponer un Nuevo Torneo",

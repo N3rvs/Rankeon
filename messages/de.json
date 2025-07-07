@@ -284,7 +284,7 @@
     "bracket_coming_soon_desc": "Der Turnierbaum wird generiert, sobald die Teams registriert und gesetzt sind.",
     "full_text": "Das Turnier ist voll.",
     "registering_text": "Wird registriert...",
-    "founder_only_register": "Nur der Teamgründer kann das Team registrieren."
+    "founder_only_register": "Nur der Teamgründer, ein Administrator oder ein Moderator können das Team registrieren."
   },
   "ProposeTournamentDialog": {
     "title": "Ein neues Turnier vorschlagen",

@@ -284,7 +284,7 @@
     "bracket_coming_soon_desc": "The tournament bracket will be generated once teams are registered and seeded.",
     "full_text": "Tournament is full.",
     "registering_text": "Registering...",
-    "founder_only_register": "Only the team founder can register."
+    "founder_only_register": "Only the team founder, an admin, or a moderator can register the team."
   },
   "ProposeTournamentDialog": {
     "title": "Propose a New Tournament",

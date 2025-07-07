@@ -284,7 +284,7 @@
     "bracket_coming_soon_desc": "O chaveamento do torneio será gerado assim que as equipas estiverem registadas e posicionadas.",
     "full_text": "O torneio está cheio.",
     "registering_text": "A registar...",
-    "founder_only_register": "Apenas o fundador da equipa pode registá-la."
+    "founder_only_register": "Apenas o fundador da equipa, um administrador ou um moderador podem registar a equipa."
   },
   "ProposeTournamentDialog": {
     "title": "Propor um Novo Torneio",
