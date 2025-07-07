@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -43,41 +44,43 @@ export default function TournamentsPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold font-headline tracking-tight">
-            {t('TournamentsPage.title')}
-          </h1>
-          <p className="text-muted-foreground">
-            {t('TournamentsPage.subtitle')}
-          </p>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold font-headline tracking-tight">
+              {t('TournamentsPage.title')}
+            </h1>
+            <p className="text-muted-foreground">
+              {t('TournamentsPage.subtitle')}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <TournamentGuideDialog />
+            {canPropose && <ProposeTournamentDialog />}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <TournamentGuideDialog />
-          {canPropose && <ProposeTournamentDialog />}
-        </div>
-      </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
-        </div>
-      ) : tournaments.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {tournaments.map(tournament => (
-            <TournamentCard key={tournament.id} tournament={tournament} />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-[400px]">
-          <Trophy className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-xl font-semibold">{t('TournamentsPage.no_tournaments_title')}</h3>
-          <p className="mb-4 mt-2 text-sm text-muted-foreground">
-            {t('TournamentsPage.no_tournaments_subtitle')}
-          </p>
-        </div>
-      )}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
+          </div>
+        ) : tournaments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {tournaments.map(tournament => (
+              <TournamentCard key={tournament.id} tournament={tournament} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-[400px]">
+            <Trophy className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-xl font-semibold">{t('TournamentsPage.no_tournaments_title')}</h3>
+            <p className="mb-4 mt-2 text-sm text-muted-foreground">
+              {t('TournamentsPage.no_tournaments_subtitle')}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
