@@ -11,9 +11,9 @@ import { giveHonor } from './honors';
 import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
-import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL } from './teams';
-import { proposeTournament, reviewTournamentProposal, editTournament } from './tournaments';
-import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
+import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL, sendTeamInvite, respondToTeamInvite, applyToTeam, respondToTeamApplication } from './teams';
+import { proposeTournament, reviewTournamentProposal, editTournament, registerTeamForTournament, deleteTournament } from './tournaments';
+import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence } from './users';
 
 export {
   deleteChatHistory,
@@ -39,10 +39,17 @@ export {
   updateTeamMemberRole,
   kickTeamMember,
   setTeamIGL,
+  sendTeamInvite,
+  respondToTeamInvite,
+  applyToTeam,
+  respondToTeamApplication,
   proposeTournament,
   reviewTournamentProposal,
   editTournament,
+  registerTeamForTournament,
+  deleteTournament,
   updateUserRole,
   updateUserStatus,
-  updateUserCertification
+  updateUserCertification,
+  updateUserPresence
 };
