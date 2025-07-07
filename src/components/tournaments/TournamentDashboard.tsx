@@ -1,7 +1,7 @@
 'use client';
 
 import type { Tournament } from '@/lib/types';
-import { TournamentBracket } from './TournamentBracket';
+import { TournamentBracket } from './tournament-bracket';
 import { StandingsTable } from './StandingsTable';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { Gamepad2, Info } from 'lucide-react';
