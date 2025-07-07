@@ -4,12 +4,12 @@
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Gamepad2, Info, Target, BrainCircuit, Globe, Frown, UserPlus, CheckCircle, Crown, ShieldCheck } from 'lucide-react';
+import { Users, Gamepad2, Info, Target, BrainCircuit, Globe, Frown, UserPlus, CheckCircle, Crown, ShieldCheck, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
-import { collection, query, onSnapshot, Unsubscribe, doc, getDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, Unsubscribe, doc, getDoc, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import type { Team, TeamMember, UserProfile } from '@/lib/types';
+import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -18,12 +18,39 @@ import Link from 'next/link';
 import { applyToTeam } from '@/lib/actions/teams';
 import { useParams, useRouter } from 'next/navigation';
 import { useI18n } from '@/contexts/i18n-context';
+import { format } from 'date-fns';
+import { Separator } from '@/components/ui/separator';
 
 function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[] }) {
     const { t } = useI18n();
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
     const { userProfile, loading: authLoading } = useAuth();
+    const [wonTournaments, setWonTournaments] = useState<Tournament[]>([]);
+    const [loadingTrophies, setLoadingTrophies] = useState(true);
+
+    useEffect(() => {
+        if (!team?.id) {
+            setLoadingTrophies(false);
+            return;
+        }
+        setLoadingTrophies(true);
+        const q = query(
+            collection(db, 'tournaments'),
+            where('winnerId', '==', team.id),
+            orderBy('startDate', 'desc')
+        );
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const tournaments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tournament));
+            setWonTournaments(tournaments);
+            setLoadingTrophies(false);
+        }, (error) => {
+            console.error("Error fetching won tournaments:", error);
+            setLoadingTrophies(false);
+        });
+        return () => unsubscribe();
+    }, [team?.id]);
+
 
     const handleApply = () => {
         startTransition(async () => {
@@ -46,11 +73,7 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
     
     const renderVideo = (videoUrl?: string) => {
         if (!videoUrl) {
-          return (
-            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-              <p className="text-muted-foreground">No showcase video provided.</p>
-            </div>
-          );
+          return null;
         }
         
         let embedUrl = '';
@@ -64,35 +87,38 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
 
         if (embedUrl) {
           return (
-            <div className="aspect-video">
-              <iframe
-                className="w-full h-full rounded-lg"
-                src={embedUrl}
-                title="Team Showcase Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              ></iframe>
-            </div>
+            <Card>
+              <CardContent className="p-0">
+                <div className="aspect-video">
+                  <iframe
+                    className="w-full h-full rounded-lg"
+                    src={embedUrl}
+                    title="Team Showcase Video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              </CardContent>
+            </Card>
           );
         }
 
-        // Assume it's a direct video link (.mp4 etc)
-        return <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />;
+        return (
+          <Card>
+            <CardContent className="p-0">
+              <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
+            </CardContent>
+          </Card>
+        );
     };
 
     return (
         <div className="space-y-6">
             <div className="pt-14 md:pt-8" />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* VIDEO & MEMBERS COLUMN */}
+                {/* INFO & MEMBERS COLUMN */}
                 <div className="lg:col-span-3 space-y-6">
-                    {team.videoUrl && (
-                        <Card>
-                            <CardContent className="p-0">
-                                {renderVideo(team.videoUrl)}
-                            </CardContent>
-                        </Card>
-                    )}
+                   {renderVideo(team.videoUrl)}
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> Team Members ({members.length})</CardTitle>
@@ -127,7 +153,7 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                     </Card>
                 </div>
 
-                {/* INFO COLUMN */}
+                {/* RIGHT COLUMN */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -168,6 +194,41 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                                 ) : (
                                     <p className="text-sm text-muted-foreground">{team.lookingForPlayers ? 'All roles welcome.' : 'No specific roles wanted.'}</p>
                                 )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline flex items-center gap-2">
+                                <Trophy className="h-5 w-5" />
+                                {t('TeamsPage.achievements_title')}
+                            </CardTitle>
+                            <CardDescription>{t('TeamsPage.achievements_desc')}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <h4 className="text-sm font-semibold mb-2">{t('TeamsPage.trophy_room_title')}</h4>
+                                {loadingTrophies ? (
+                                    <Skeleton className="h-12 w-full" />
+                                ) : wonTournaments.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {wonTournaments.map(tourney => (
+                                            <div key={tourney.id} className="flex items-center gap-2 p-2 rounded-md bg-muted/50 text-sm">
+                                                <Trophy className="h-4 w-4 text-yellow-500" />
+                                                <p className="font-semibold flex-1 truncate">{t('TeamsPage.tournament_champion', { tournamentName: tourney.name })}</p>
+                                                <p className="text-xs text-muted-foreground">{format(tourney.startDate.toDate(), "d MMM")}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground text-center py-2">{t('TeamsPage.no_tournaments_won')}</p>
+                                )}
+                            </div>
+                            <Separator />
+                             <div>
+                                <h4 className="text-sm font-semibold mb-2">{t('TeamsPage.scrim_record_title')}</h4>
+                                <p className="text-xs text-muted-foreground text-center py-2">{t('TeamsPage.scrim_record_soon')}</p>
                             </div>
                         </CardContent>
                     </Card>
