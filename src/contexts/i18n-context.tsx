@@ -3,12 +3,12 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 // Import all message files
-import enMessages from '../../messages/en.json';
-import esMessages from '../../messages/es.json';
-import deMessages from '../../messages/de.json';
-import frMessages from '../../messages/fr.json';
-import itMessages from '../../messages/it.json';
-import ptMessages from '../../messages/pt.json';
+import enMessages from '../messages/en.json';
+import esMessages from '../messages/es.json';
+import deMessages from '../messages/de.json';
+import frMessages from '../messages/fr.json';
+import itMessages from '../messages/it.json';
+import ptMessages from '../messages/pt.json';
 
 export type Locale = 'en' | 'es' | 'de' | 'fr' | 'it' | 'pt';
 
