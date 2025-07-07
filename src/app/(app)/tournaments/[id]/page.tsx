@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, CheckCircle2, Gamepad2, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -115,28 +115,6 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
           </CardContent>
         </Card>
         
-        {canRegister && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('TournamentDetailsPage.register_title')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isRegistered ? (
-                  <div className="flex items-center text-green-600 font-semibold">
-                    <CheckCircle2 className="mr-2 h-5 w-5"/>
-                    {t('TournamentDetailsPage.registered_text')}
-                  </div>
-                ) : isFull ? (
-                  <p className="text-destructive font-semibold">Tournament is full.</p>
-                ) : (
-                  <Button className="w-full" onClick={handleRegister} disabled={isRegistering}>
-                    {isRegistering ? 'Registering...' : t('TournamentDetailsPage.register_button')}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-        )}
-
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2">
@@ -159,6 +137,22 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
                     <p className="text-sm text-muted-foreground text-center py-4">{t('TournamentDetailsPage.no_participants')}</p>
                 )}
             </CardContent>
+             {canRegister && (
+                <CardFooter>
+                    {isRegistered ? (
+                      <div className="flex items-center justify-center text-green-600 font-semibold w-full">
+                        <CheckCircle2 className="mr-2 h-5 w-5"/>
+                        {t('TournamentDetailsPage.registered_text')}
+                      </div>
+                    ) : isFull ? (
+                      <p className="text-destructive font-semibold text-center w-full">Tournament is full.</p>
+                    ) : (
+                      <Button className="w-full" onClick={handleRegister} disabled={isRegistering}>
+                        {isRegistering ? 'Registering...' : t('TournamentDetailsPage.register_button')}
+                      </Button>
+                    )}
+                </CardFooter>
+            )}
         </Card>
       </div>
 
