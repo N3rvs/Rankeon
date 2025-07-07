@@ -1,3 +1,4 @@
+
 // src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
 
@@ -204,6 +205,7 @@ export interface Scrim {
   type: 'scrim' | 'tryout';
   rankMin?: string;
   rankMax?: string;
+  country?: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   createdAt: Timestamp;
 }

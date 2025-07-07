@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useTransition } from 'react';
@@ -12,6 +13,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { acceptScrimAction, cancelScrimAction } from '@/lib/actions/scrims';
 import { useI18n } from '@/contexts/i18n-context';
+import { getFlagEmoji } from '@/lib/utils';
 
 export function ScrimCard({ scrim }: { scrim: Scrim }) {
   const { userProfile } = useAuth();
@@ -56,7 +58,15 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
           </Avatar>
           <div>
             <CardTitle className="text-base font-semibold">{scrim.teamAName}</CardTitle>
-            <CardDescription className="text-xs">{t('ScrimsPage.looking_for_match')}</CardDescription>
+            <CardDescription className="text-xs flex items-center gap-2">
+                <span>{t('ScrimsPage.looking_for_match')}</span>
+                {scrim.country && (
+                    <>
+                        <span className="text-muted-foreground/50">·</span>
+                        <span>{getFlagEmoji(scrim.country)} {scrim.country}</span>
+                    </>
+                )}
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
