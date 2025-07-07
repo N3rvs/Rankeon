@@ -436,18 +436,33 @@ export const respondToTeamInvite = onCall(async ({ auth: requestAuth, data }) =>
 
 export const applyToTeam = onCall(async ({ auth: requestAuth, data }) => {
     if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
-    const { teamId } = data as { teamId: string, message?: string };
+    
+    const { teamId, message } = data as { teamId: string, message?: string };
     if (!teamId) throw new HttpsError("invalid-argument", "Falta ID del equipo.");
 
     const userDoc = await db.collection("users").doc(requestAuth.uid).get();
+    if (!userDoc.exists()) {
+        throw new HttpsError("not-found", "User profile does not exist.");
+    }
+
     const userData = userDoc.data();
-    if (!userDoc.exists || userData?.teamId) {
+    if (!userData) {
+      throw new HttpsError("internal", "Could not retrieve user data.");
+    }
+    if (userData.teamId) {
         throw new HttpsError("failed-precondition", "Ya estás en un equipo.");
     }
     
     const teamDoc = await db.collection("teams").doc(teamId).get();
-    if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
-    if (!teamDoc.data()?.lookingForPlayers) {
+    if (!teamDoc.exists()) {
+        throw new HttpsError("not-found", "El equipo no existe.");
+    }
+
+    const teamData = teamDoc.data();
+    if (!teamData) {
+        throw new HttpsError("internal", "Could not retrieve team data.");
+    }
+    if (!teamData.lookingForPlayers) {
         throw new HttpsError("failed-precondition", "Este equipo no está reclutando actualmente.");
     }
     
@@ -460,12 +475,17 @@ export const applyToTeam = onCall(async ({ auth: requestAuth, data }) => {
         applicantId: requestAuth.uid,
         applicantName: userData.name,
         applicantAvatarUrl: userData.avatarUrl,
-        message: data.message || `Hola, me gustaría unirme a ${teamDoc.data()?.name}.`,
+        message: message || `Hola, me gustaría unirme a ${teamData.name}.`,
         status: 'pending',
         createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    const founderId = teamDoc.data()?.founder;
+    const founderId = teamData.founder;
+    if (!founderId) {
+        console.error(`Team ${teamId} is missing a founder.`);
+        throw new HttpsError("internal", "The team is misconfigured and has no founder.");
+    }
+
     const notificationRef = db.collection(`inbox/${founderId}/notifications`).doc();
     batch.set(notificationRef, {
         type: "team_application_received",
