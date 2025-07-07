@@ -229,7 +229,8 @@
     "friends": "Amigos",
     "admin_panel": "Panel Admin",
     "mod_panel": "Panel Mod",
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "support": "Soporte"
   },
   "Status": {
     "title": "Estado",
@@ -605,5 +606,28 @@
     "rank_header": "Rango",
     "player_header": "Jugador",
     "honors_header": "Honores Totales"
+  },
+  "SupportDialog": {
+    "title": "Contactar con Soporte",
+    "description": "¿Tienes un problema o una pregunta? Háznoslo saber.",
+    "subject": "Asunto",
+    "select_subject": "Selecciona un asunto...",
+    "subject_general": "Pregunta General",
+    "subject_bug": "Reportar un Bug",
+    "subject_feature": "Sugerencia de Función",
+    "subject_account": "Problema con la Cuenta",
+    "describe_issue": "Describe tu problema",
+    "submit": "Enviar Ticket",
+    "submitting": "Enviando..."
+  },
+  "Assistant": {
+    "title": "Asistente SquadUp",
+    "placeholder": "Pregunta sobre SquadUp..."
+  },
+  "SupportTicketsList": {
+    "no_tickets_title": "¡Todo en orden!",
+    "no_tickets_desc": "No hay tickets de soporte abiertos.",
+    "status_open": "Abierto",
+    "status_closed": "Cerrado"
   }
 }

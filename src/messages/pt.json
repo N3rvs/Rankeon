@@ -229,7 +229,8 @@
     "friends": "Amigos",
     "admin_panel": "Painel Admin",
     "mod_panel": "Painel Mod",
-    "logout": "Sair"
+    "logout": "Sair",
+    "support": "Suporte"
   },
   "Status": {
     "title": "Status",
@@ -605,5 +606,28 @@
     "rank_header": "Rank",
     "player_header": "Jogador",
     "honors_header": "Honras Totais"
+  },
+  "SupportDialog": {
+    "title": "Contactar o Suporte",
+    "description": "Tem um problema ou uma questão? Informe-nos.",
+    "subject": "Assunto",
+    "select_subject": "Selecione um assunto...",
+    "subject_general": "Questão Geral",
+    "subject_bug": "Relatório de Bug",
+    "subject_feature": "Sugestão de Funcionalidade",
+    "subject_account": "Problema de Conta",
+    "describe_issue": "Descreva o seu problema",
+    "submit": "Enviar Ticket",
+    "submitting": "A enviar..."
+  },
+  "Assistant": {
+    "title": "Assistente SquadUp",
+    "placeholder": "Pergunte sobre o SquadUp..."
+  },
+  "SupportTicketsList": {
+    "no_tickets_title": "Tudo limpo!",
+    "no_tickets_desc": "Não há tickets de suporte abertos.",
+    "status_open": "Aberto",
+    "status_closed": "Fechado"
   }
 }

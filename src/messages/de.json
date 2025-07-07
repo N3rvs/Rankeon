@@ -229,7 +229,8 @@
     "friends": "Freunde",
     "admin_panel": "Admin-Panel",
     "mod_panel": "Mod-Panel",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "support": "Unterstützung"
   },
   "Status": {
     "title": "Status",
@@ -605,5 +606,28 @@
     "rank_header": "Rang",
     "player_header": "Spieler",
     "honors_header": "Gesamtehrungen"
+  },
+  "SupportDialog": {
+    "title": "Support kontaktieren",
+    "description": "Haben Sie ein Problem oder eine Frage? Lassen Sie es uns wissen.",
+    "subject": "Betreff",
+    "select_subject": "Wählen Sie einen Betreff...",
+    "subject_general": "Allgemeine Frage",
+    "subject_bug": "Fehler melden",
+    "subject_feature": "Funktionswunsch",
+    "subject_account": "Kontoproblem",
+    "describe_issue": "Beschreiben Sie Ihr Problem",
+    "submit": "Ticket senden",
+    "submitting": "Wird gesendet..."
+  },
+  "Assistant": {
+    "title": "SquadUp Assistent",
+    "placeholder": "Fragen Sie nach SquadUp..."
+  },
+  "SupportTicketsList": {
+    "no_tickets_title": "Alles klar!",
+    "no_tickets_desc": "Es gibt keine offenen Support-Tickets.",
+    "status_open": "Offen",
+    "status_closed": "Geschlossen"
   }
 }

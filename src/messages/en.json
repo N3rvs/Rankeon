@@ -229,7 +229,8 @@
     "friends": "Friends",
     "admin_panel": "Admin Panel",
     "mod_panel": "Mod Panel",
-    "logout": "Logout"
+    "logout": "Logout",
+    "support": "Support"
   },
   "Status": {
     "title": "Status",
@@ -605,5 +606,28 @@
     "rank_header": "Rank",
     "player_header": "Player",
     "honors_header": "Total Honors"
+  },
+  "SupportDialog": {
+    "title": "Contact Support",
+    "description": "Have an issue or a question? Let us know.",
+    "subject": "Subject",
+    "select_subject": "Select a subject...",
+    "subject_general": "General Question",
+    "subject_bug": "Bug Report",
+    "subject_feature": "Feature Request",
+    "subject_account": "Account Issue",
+    "describe_issue": "Describe your issue",
+    "submit": "Submit Ticket",
+    "submitting": "Submitting..."
+  },
+  "Assistant": {
+    "title": "SquadUp Assistant",
+    "placeholder": "Ask about SquadUp..."
+  },
+  "SupportTicketsList": {
+    "no_tickets_title": "All Clear!",
+    "no_tickets_desc": "There are no open support tickets.",
+    "status_open": "Open",
+    "status_closed": "Closed"
   }
 }

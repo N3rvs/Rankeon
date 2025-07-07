@@ -249,3 +249,16 @@ export interface Round {
 export interface Bracket {
   rounds: Round[];
 }
+
+export interface SupportTicket {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  subject: string;
+  description: string;
+  status: 'open' | 'closed';
+  createdAt: Timestamp;
+  resolvedAt?: Timestamp;
+  resolvedBy?: string; // UID of mod/admin
+}

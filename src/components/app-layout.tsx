@@ -26,6 +26,7 @@ import {
   Circle,
   Flame,
   Medal,
+  LifeBuoy,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -52,6 +53,8 @@ import type { UserStatus } from '@/lib/types';
 import { updateUserPresence } from '@/lib/actions/users';
 import Image from 'next/image';
 import ScrimlyLogo from '@/assets/logo.png';
+import { CreateTicketDialog } from './support/create-ticket-dialog';
+import { AssistantWidget } from './ai/assistant-widget';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -59,6 +62,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [unreadFriendActivity, setUnreadFriendActivity] = useState(0);
   const { t } = useI18n();
   const [isPending, startTransition] = useTransition();
+  const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -102,6 +106,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isModOrAdmin = claims?.role === 'moderator' || claims?.role === 'admin';
 
   return (
+    <>
+    {user && <CreateTicketDialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen} />}
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader className="flex h-16 items-center justify-center border-b p-0">
@@ -326,6 +332,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setIsTicketDialogOpen(true)}>
+                    <LifeBuoy className="mr-2 h-4 w-4" />
+                    <span>{t('Sidebar.support')}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>{t('Sidebar.logout')}</span>
@@ -338,7 +349,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>
+        <AssistantWidget />
       </SidebarInset>
     </SidebarProvider>
+    </>
   );
 }
