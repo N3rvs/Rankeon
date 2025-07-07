@@ -52,42 +52,42 @@ function ChatList() {
             where('members', 'array-contains', user.uid)
         );
 
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             const initialChats = snapshot.docs
-                .map(doc => ({ id: doc.id, ...doc.data() } as Chat))
-                .filter(chat => !!chat.lastMessage);
+                .map(doc => ({ id: doc.id, ...doc.data() } as Chat));
             
-            const chatMap = new Map<string, Chat>();
-            initialChats.forEach(doc => {
-                chatMap.set(doc.id, doc);
-            });
-
-            const sortedChats = Array.from(chatMap.values()).sort((a, b) => {
+            const sortedChats = initialChats.sort((a, b) => {
                 const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
                 const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
                 return timeB - timeA;
             });
             setChats(sortedChats);
 
-            const partnerIdsToFetch = sortedChats
-                .map(chat => chat.members.find(id => id !== user.uid))
-                .filter((id): id is string => !!id && !chatPartners.has(id));
-            
-            if (partnerIdsToFetch.length > 0) {
-                const uniquePartnerIds = [...new Set(partnerIdsToFetch)];
-                const profilePromises = uniquePartnerIds.map(id => getDoc(doc(db, 'users', id)));
-                const profileDocs = await Promise.all(profilePromises);
-                
-                setChatPartners(prevPartners => {
-                    const newPartners = new Map(prevPartners);
-                    profileDocs.forEach(docSnap => {
-                        if (docSnap.exists()) {
-                            newPartners.set(docSnap.id, { id: docSnap.id, ...docSnap.data() } as UserProfile);
-                        }
+            // Fetch partner profiles for any new chats
+            setChatPartners(currentPartners => {
+                const newPartnerIds = sortedChats
+                    .map(chat => chat.members.find(id => id !== user.uid))
+                    .filter((id): id is string => !!id && !currentPartners.has(id));
+
+                if (newPartnerIds.length > 0) {
+                    const uniquePartnerIds = [...new Set(newPartnerIds)];
+                    const profilePromises = uniquePartnerIds.map(id => getDoc(doc(db, 'users', id)));
+                    
+                    Promise.all(profilePromises).then(profileDocs => {
+                        setChatPartners(prevPartners => {
+                            const newPartnersMap = new Map(prevPartners);
+                            profileDocs.forEach(docSnap => {
+                                if (docSnap.exists()) {
+                                    newPartnersMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() } as UserProfile);
+                                }
+                            });
+                            return newPartnersMap;
+                        });
                     });
-                    return newPartners;
-                });
-            }
+                }
+                return currentPartners;
+            });
+            
             setLoading(false);
         }, (error) => {
             console.error("Error fetching chats:", error);
@@ -95,7 +95,7 @@ function ChatList() {
         });
 
         return () => unsubscribe();
-    }, [user, chatPartners]);
+    }, [user]);
 
     if (authLoading || loading) {
         return (
@@ -122,8 +122,6 @@ function ChatList() {
                         if (!partnerId) return null;
                         
                         const partner = chatPartners.get(partnerId);
-                        if (!partner) return null;
-
                         const isUnread = unreadChatIds.has(chat.id);
                         const isLastMessageFromMe = chat.lastMessage?.sender === user?.uid;
 
@@ -137,15 +135,19 @@ function ChatList() {
                                 )}
                             >
                                 <Avatar className="h-10 w-10">
-                                    <AvatarImage src={partner.avatarUrl} data-ai-hint="person avatar"/>
-                                    <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
+                                    {partner ? <>
+                                        <AvatarImage src={partner.avatarUrl} data-ai-hint="person avatar"/>
+                                        <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
+                                    </> : <Skeleton className="h-full w-full rounded-full" />}
                                 </Avatar>
                                 <div className="flex-1 overflow-hidden">
                                     <div className="flex justify-between items-center">
-                                        <p className={cn("font-semibold text-sm truncate", isUnread && "text-primary")}>{partner.name}</p>
-                                        {chat.lastMessageAt && (
+                                        <p className={cn("font-semibold text-sm truncate", isUnread && "text-primary")}>
+                                            {partner ? partner.name : <Skeleton className="h-4 w-24" />}
+                                        </p>
+                                        {(chat.lastMessageAt || chat.createdAt) && (
                                             <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">
-                                                {formatDistanceToNow(chat.lastMessageAt.toDate(), { addSuffix: true })}
+                                                {formatDistanceToNow((chat.lastMessageAt || chat.createdAt)!.toDate(), { addSuffix: true })}
                                             </p>
                                         )}
                                     </div>
@@ -153,7 +155,14 @@ function ChatList() {
                                         "text-sm text-muted-foreground truncate",
                                         isUnread && !isLastMessageFromMe && "text-foreground font-medium"
                                     )}>
-                                        {isLastMessageFromMe && t('MessagesPage.you_prefix')}{chat.lastMessage?.content || '...'}
+                                        {chat.lastMessage ? (
+                                            <>
+                                                {isLastMessageFromMe && t('MessagesPage.you_prefix')}
+                                                {chat.lastMessage.content}
+                                            </>
+                                        ) : (
+                                            'Chat created. Say hello!'
+                                        )}
                                     </p>
                                 </div>
                             </Link>
