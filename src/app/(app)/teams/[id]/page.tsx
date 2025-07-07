@@ -69,7 +69,6 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
     };
 
     const canApply = userProfile && !userProfile.teamId && team.lookingForPlayers;
-    const hasApplied = false; // TODO: Implement logic to check if user has already applied
     
     const renderVideo = (videoUrl?: string) => {
         if (!videoUrl) {
@@ -85,30 +84,26 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
           embedUrl = `https://www.youtube.com/embed/${videoId}`;
         }
 
-        if (embedUrl) {
-          return (
-            <Card>
-              <CardContent className="p-0">
-                <div className="aspect-video">
-                  <iframe
-                    className="w-full h-full rounded-lg"
-                    src={embedUrl}
-                    title="Team Showcase Video"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        }
-
+        const videoNode = embedUrl ? (
+          <div className="aspect-video">
+            <iframe
+              className="w-full h-full rounded-lg"
+              src={embedUrl}
+              title="Team Showcase Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            ></iframe>
+          </div>
+        ) : (
+          <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
+        );
+        
         return (
-          <Card>
-            <CardContent className="p-0">
-              <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
-            </CardContent>
-          </Card>
+            <Card>
+                <CardContent className="p-0">
+                    {videoNode}
+                </CardContent>
+            </Card>
         );
     };
 
@@ -116,7 +111,6 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
         <div className="space-y-6">
             <div className="pt-14 md:pt-8" />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* INFO & MEMBERS COLUMN */}
                 <div className="lg:col-span-3 space-y-6">
                    {renderVideo(team.videoUrl)}
                     <Card>

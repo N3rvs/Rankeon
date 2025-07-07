@@ -218,11 +218,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
 
     const renderVideo = (videoUrl?: string) => {
         if (!videoUrl) {
-          return (
-            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-              <p className="text-muted-foreground">No se ha proporcionado un vídeo de presentación.</p>
-            </div>
-          );
+          return null;
         }
         
         let embedUrl = '';
@@ -234,9 +230,8 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
           embedUrl = `https://www.youtube.com/embed/${videoId}`;
         }
 
-        if (embedUrl) {
-          return (
-            <div className="aspect-video">
+        const videoNode = embedUrl ? (
+             <div className="aspect-video">
               <iframe
                 className="w-full h-full rounded-lg"
                 src={embedUrl}
@@ -245,10 +240,17 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                 allowFullScreen
               ></iframe>
             </div>
-          );
-        }
+        ) : (
+            <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
+        );
 
-        return <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />;
+        return (
+            <Card>
+                <CardContent className="p-0">
+                    {videoNode}
+                </CardContent>
+            </Card>
+        );
     };
 
     return (
@@ -260,11 +262,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 {/* LEFT/MAIN COLUMN */}
                 <div className="lg:col-span-3 space-y-6">
-                    <Card>
-                        <CardContent className="p-0">
-                            {renderVideo(team.videoUrl)}
-                        </CardContent>
-                    </Card>
+                    {renderVideo(team.videoUrl)}
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> {t('TeamsPage.team_members', { count: members.length })}</CardTitle>
