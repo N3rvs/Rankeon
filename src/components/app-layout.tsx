@@ -197,6 +197,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/rankings')}
+                tooltip={t('Sidebar.rankings')}
+                size="lg"
+              >
+                <Link href="/rankings">
+                  <Medal />
+                  <span>{t('Sidebar.rankings')}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             
             <SidebarMenuItem>
               <SidebarMenuButton
