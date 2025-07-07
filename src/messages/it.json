@@ -214,7 +214,18 @@
     "your_team": "La tua squadra",
     "join_requests": "Richieste di adesione ({count})",
     "join_requests_desc": "Esamina i giocatori che vogliono unirsi alla tua squadra.",
-    "default_join_message": "Vorrei unirmi alla vostra squadra!"
+    "default_join_message": "Vorrei unirmi alla vostra squadra!",
+    "trophy_room_title": "Sala trofei",
+    "trophy_room_desc": "Vittorie da tornei ufficiali.",
+    "no_tournaments_won": "La tua squadra non ha ancora vinto nessun torneo.",
+    "tournament_champion": "Campione di {tournamentName}",
+    "scrim_record_title": "Cronologia Scrim",
+    "scrim_record_desc": "Risultati delle partite di allenamento.",
+    "scrim_record_soon": "I risultati e le statistiche delle scrim saranno disponibili a breve.",
+    "management_title": "Pannello di gestione",
+    "management_desc": "Azioni per lo staff della squadra.",
+    "post_scrim_button": "Pubblica Scrim / Provino",
+    "edit_team_button": "Modifica profilo squadra"
   },
   "MemberManager": {
     "role_updated": "Ruolo aggiornato",

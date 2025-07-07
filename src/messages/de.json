@@ -214,7 +214,18 @@
     "your_team": "Dein Team",
     "join_requests": "Beitrittsanfragen ({count})",
     "join_requests_desc": "Überprüfe Spieler, die deinem Team beitreten möchten.",
-    "default_join_message": "Ich würde gerne deinem Team beitreten!"
+    "default_join_message": "Ich würde gerne deinem Team beitreten!",
+    "trophy_room_title": "Trophäenraum",
+    "trophy_room_desc": "Siege aus offiziellen Turnieren.",
+    "no_tournaments_won": "Dein Team hat noch keine Turniere gewonnen.",
+    "tournament_champion": "Champion von {tournamentName}",
+    "scrim_record_title": "Scrim-Verlauf",
+    "scrim_record_desc": "Ergebnisse aus Übungsspielen.",
+    "scrim_record_soon": "Scrim-Ergebnisse und Statistiken kommen bald.",
+    "management_title": "Verwaltungspanel",
+    "management_desc": "Aktionen für Teammitarbeiter.",
+    "post_scrim_button": "Scrim / Tryout posten",
+    "edit_team_button": "Teamprofil bearbeiten"
   },
   "MemberManager": {
     "role_updated": "Rolle aktualisiert",

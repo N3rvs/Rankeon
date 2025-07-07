@@ -214,7 +214,18 @@
     "your_team": "Your Team",
     "join_requests": "Join Requests ({count})",
     "join_requests_desc": "Review players who want to join your team.",
-    "default_join_message": "I'd like to join your team!"
+    "default_join_message": "I'd like to join your team!",
+    "trophy_room_title": "Trophy Room",
+    "trophy_room_desc": "Victories from official tournaments.",
+    "no_tournaments_won": "Your team has not won any tournaments yet.",
+    "tournament_champion": "Champion of {tournamentName}",
+    "scrim_record_title": "Scrim Record",
+    "scrim_record_desc": "Results from practice matches.",
+    "scrim_record_soon": "Scrim results and stats are coming soon.",
+    "management_title": "Management Panel",
+    "management_desc": "Actions for team staff.",
+    "post_scrim_button": "Post Scrim / Tryout",
+    "edit_team_button": "Edit Team Profile"
   },
   "MemberManager": {
     "role_updated": "Role Updated",
