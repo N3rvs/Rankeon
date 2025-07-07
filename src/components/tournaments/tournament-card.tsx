@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Tournament } from '@/lib/types';
@@ -51,20 +52,21 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
             <CardTitle className="font-headline text-xl flex items-center gap-2">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                           <FormatIcon className="h-5 w-5 text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent><p>{formatName}</p></TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                {tournament.winnerId && <Trophy className="h-5 w-5 text-yellow-400" />}
                 <span>{tournament.name}</span>
             </CardTitle>
             <Badge variant={getStatusBadgeVariant(tournament.status)} className="capitalize shrink-0">{statusText[tournament.status]}</Badge>
         </div>
-        <CardDescription className="flex items-center gap-2 pt-1">
-            <Gamepad2 className="h-4 w-4" /> {tournament.game}
+        <CardDescription className="flex items-center gap-4 pt-1">
+            <span className="flex items-center gap-2"><Gamepad2 className="h-4 w-4" /> {tournament.game}</span>
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                       <span className="flex items-center gap-2"><FormatIcon className="h-4 w-4" /> {formatName}</span>
+                    </TooltipTrigger>
+                    <TooltipContent><p>{formatName}</p></TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">

@@ -119,6 +119,7 @@
     "rooms": "Salas de Juego",
     "scrims": "Partidas de Práctica",
     "tournaments": "Torneos",
+    "rankings": "Clasificaciones",
     "my_team": "Mi Equipo",
     "friends": "Amigos",
     "admin_panel": "Panel Admin",
@@ -461,5 +462,17 @@
       "scrim": "Scrim (Práctica vs Equipo)",
       "tryout": "Tryout (Prueba de Jugadores)"
     }
+  },
+  "RankingsPage": {
+    "title": "Clasificaciones de la Plataforma",
+    "subtitle": "Mira quién está en la cima de las tablas de clasificación.",
+    "tournaments_tab": "Torneos",
+    "scrims_tab": "Partidas de Práctica",
+    "no_tournaments_title": "No hay Torneos Completados",
+    "no_tournaments_desc": "Una vez que los torneos finalicen, sus campeones se mostrarán aquí.",
+    "no_scrims_title": "Clasificaciones de Scrims Próximamente",
+    "no_scrims_desc": "Las tablas de clasificación para el rendimiento en partidas de práctica están en desarrollo.",
+    "champion": "Campeón",
+    "tournament_won_on": "Ganado el {date}"
   }
 }

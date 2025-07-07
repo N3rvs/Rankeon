@@ -119,6 +119,7 @@
     "rooms": "Spielräume",
     "scrims": "Trainingsspiele",
     "tournaments": "Turniere",
+    "rankings": "Ranglisten",
     "my_team": "Mein Team",
     "friends": "Freunde",
     "admin_panel": "Admin-Panel",
@@ -461,5 +462,17 @@
       "scrim": "Scrim (Übungsspiel vs Team)",
       "tryout": "Tryout (Spieler-Test)"
     }
+  },
+  "RankingsPage": {
+    "title": "Plattform-Ranglisten",
+    "subtitle": "Sehen Sie, wer an der Spitze der Bestenlisten steht.",
+    "tournaments_tab": "Turniere",
+    "scrims_tab": "Scrims",
+    "no_tournaments_title": "Keine abgeschlossenen Turniere",
+    "no_tournaments_desc": "Sobald Turniere abgeschlossen sind, werden ihre Champions hier angezeigt.",
+    "no_scrims_title": "Scrim-Ranglisten folgen in Kürze",
+    "no_scrims_desc": "Bestenlisten für die Leistung in Scrim-Spielen sind in Entwicklung.",
+    "champion": "Champion",
+    "tournament_won_on": "Gewonnen am {date}"
   }
 }

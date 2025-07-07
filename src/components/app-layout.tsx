@@ -27,6 +27,7 @@ import {
   Gavel,
   Circle,
   Flame,
+  Medal,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -156,6 +157,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
+                isActive={isActive('/scrims')}
+                tooltip={t('Sidebar.scrims')}
+                size="lg"
+              >
+                <Link href="/scrims">
+                  <Flame />
+                  <span>{t('Sidebar.scrims')}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
                 isActive={isActive('/tournaments')}
                 tooltip={t('Sidebar.tournaments')}
                 size="lg"
@@ -170,31 +185,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={isActive('/teams')}
-                tooltip={t('Sidebar.my_team')}
+                isActive={isActive('/rankings')}
+                tooltip={t('Sidebar.rankings')}
                 size="lg"
               >
-                <Link href="/teams">
-                  <Swords />
-                  <span>{t('Sidebar.my_team')}</span>
+                <Link href="/rankings">
+                  <Medal />
+                  <span>{t('Sidebar.rankings')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/scrims')}
-                tooltip={t('Sidebar.scrims')}
-                size="lg"
-              >
-                <Link href="/scrims">
-                  <Flame />
-                  <span>{t('Sidebar.scrims')}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
+            
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -264,6 +265,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/rankings">
+                <Medal className="h-5 w-5" />
+                <span className="sr-only">Rankings</span>
+              </Link>
+            </Button>
             <InboxIcon />
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />

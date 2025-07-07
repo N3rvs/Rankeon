@@ -119,6 +119,7 @@
     "rooms": "Stanze di gioco",
     "scrims": "Partite di Allenamento",
     "tournaments": "Tornei",
+    "rankings": "Classifiche",
     "my_team": "La mia squadra",
     "friends": "Amici",
     "admin_panel": "Pannello Admin",
@@ -461,5 +462,17 @@
       "scrim": "Scrim (Allenamento vs Squadra)",
       "tryout": "Tryout (Prova Giocatori)"
     }
+  },
+  "RankingsPage": {
+    "title": "Classifiche della Piattaforma",
+    "subtitle": "Guarda chi è in cima alle classifiche.",
+    "tournaments_tab": "Tornei",
+    "scrims_tab": "Partite di Allenamento",
+    "no_tournaments_title": "Nessun Torneo Completato",
+    "no_tournaments_desc": "Una volta completati i tornei, i loro campioni verranno visualizzati qui.",
+    "no_scrims_title": "Classifiche Scrim in Arrivo",
+    "no_scrims_desc": "Le classifiche per le prestazioni delle partite di allenamento sono in fase di sviluppo.",
+    "champion": "Campione",
+    "tournament_won_on": "Vinto il {date}"
   }
 }

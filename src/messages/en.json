@@ -119,6 +119,7 @@
     "rooms": "Game Rooms",
     "scrims": "Scrims",
     "tournaments": "Tournaments",
+    "rankings": "Rankings",
     "my_team": "My Team",
     "friends": "Friends",
     "admin_panel": "Admin Panel",
@@ -461,5 +462,17 @@
       "scrim": "Scrim (Practice vs Team)",
       "tryout": "Tryout (Test Players)"
     }
+  },
+  "RankingsPage": {
+    "title": "Platform Rankings",
+    "subtitle": "See who is at the top of the leaderboards.",
+    "tournaments_tab": "Tournaments",
+    "scrims_tab": "Scrims",
+    "no_tournaments_title": "No Completed Tournaments",
+    "no_tournaments_desc": "Once tournaments are completed, their champions will be displayed here.",
+    "no_scrims_title": "Scrim Rankings Coming Soon",
+    "no_scrims_desc": "Leaderboards for scrim match performance are under development.",
+    "champion": "Champion",
+    "tournament_won_on": "Won on {date}"
   }
 }
