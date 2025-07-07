@@ -126,6 +126,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             
+            {userProfile?.teamId && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/teams')}
+                  tooltip={t('Sidebar.my_team')}
+                  size="lg"
+                >
+                  <Link href="/teams">
+                    <Swords />
+                    <span>{t('Sidebar.my_team')}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
