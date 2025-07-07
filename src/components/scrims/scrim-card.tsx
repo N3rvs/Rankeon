@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { acceptScrimAction, cancelScrimAction, reportScrimResultAction } from '@/lib/actions/scrims';
 import { useI18n } from '@/contexts/i18n-context';
 import { getFlagEmoji } from '@/lib/utils';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
 function ReportResultDialog({ scrim, onOpenChange }: { scrim: Scrim; onOpenChange: (open: boolean) => void; }) {
     const { toast } = useToast();
@@ -158,11 +158,9 @@ export function ScrimCard({ scrim, onScrimAction }: { scrim: Scrim, onScrimActio
         )}
         {scrim.status === 'confirmed' && (
           <div className="w-full flex gap-2">
-             <AlertDialogTrigger asChild>
-                <Button className="w-full" disabled={!canReport} onClick={() => setIsReportModalOpen(true)}>
-                    <Trophy className="mr-2 h-4 w-4" /> Reportar Resultado
-                </Button>
-             </AlertDialogTrigger>
+             <Button className="w-full" disabled={!canReport} onClick={() => setIsReportModalOpen(true)}>
+                <Trophy className="mr-2 h-4 w-4" /> Reportar Resultado
+             </Button>
              <Button variant="destructive-outline" size="icon" onClick={handleCancel} disabled={!canCancel || isPending}>
                 <X className="h-4 w-4" />
              </Button>
