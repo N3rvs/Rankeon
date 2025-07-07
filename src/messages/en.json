@@ -20,7 +20,9 @@
     "tournaments_desc": "Sign up for community-run tournaments and compete for glory and prizes.",
     "footer_rights": "All rights reserved. Built for the future of esports.",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "upcoming_matches": "Upcoming Matches",
+    "community_matches": "Community-confirmed matches."
   },
   "AboutPage": {
     "title": "About Scrimly",

@@ -8,6 +8,7 @@ import { useI18n } from '@/contexts/i18n-context';
 import { cn } from '@/lib/utils';
 import { PublicLayout } from '../public-layout';
 import Image from 'next/image';
+import { FeaturedScrims } from './featured-scrims';
 
 function PricingSection() {
     const { t } = useI18n();
@@ -151,6 +152,8 @@ export function LandingPage() {
           </div>
         </section>
         
+        <FeaturedScrims />
+
         <PricingSection />
     </PublicLayout>
   );

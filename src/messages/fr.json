@@ -20,7 +20,9 @@
         "tournaments_desc": "Inscrivez-vous à des tournois organisés par la communauté et battez-vous pour la gloire et les prix.",
         "footer_rights": "Tous droits réservés. Conçu pour l'avenir de l'esport.",
         "terms": "Conditions d'utilisation",
-        "privacy": "Politique de confidentialité"
+        "privacy": "Politique de confidentialité",
+        "upcoming_matches": "Matchs à venir",
+        "community_matches": "Matchs confirmés par la communauté."
     },
     "AboutPage": {
         "title": "À propos de Scrimly",
