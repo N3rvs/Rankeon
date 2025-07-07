@@ -48,9 +48,14 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
   const { toast } = useToast();
   const [isRegistering, startRegistering] = useTransition();
 
-  const canRegister = tournament.status === 'upcoming' && userProfile?.teamId && userProfile.role === 'founder';
+  const isFounder = userProfile?.role === 'founder';
+  const hasTeam = !!userProfile?.teamId;
+  const canRegister = tournament.status === 'upcoming' && hasTeam && isFounder;
   const isRegistered = tournament.participants?.some(p => p.id === userProfile?.teamId);
   const isFull = tournament.participants && tournament.participants.length >= tournament.maxTeams;
+
+  const showRegistrationUI = tournament.status === 'upcoming' && hasTeam;
+
 
   const statusText = {
     upcoming: t('TournamentDetailsPage.status_upcoming'),
@@ -59,7 +64,7 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
   };
   
   const handleRegister = () => {
-    if (!userProfile?.teamId) return;
+    if (!userProfile?.teamId || !isFounder) return;
     startRegistering(async () => {
       const result = await registerTeamForTournament({
         tournamentId: tournament.id,
@@ -137,7 +142,7 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
                     <p className="text-sm text-muted-foreground text-center py-4">{t('TournamentDetailsPage.no_participants')}</p>
                 )}
             </CardContent>
-             {canRegister && (
+             {showRegistrationUI && (
                 <CardFooter>
                     {isRegistered ? (
                       <div className="flex items-center justify-center text-green-600 font-semibold w-full">
@@ -145,12 +150,17 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
                         {t('TournamentDetailsPage.registered_text')}
                       </div>
                     ) : isFull ? (
-                      <p className="text-destructive font-semibold text-center w-full">Tournament is full.</p>
-                    ) : (
+                      <p className="text-destructive font-semibold text-center w-full">{t('TournamentDetailsPage.full_text')}</p>
+                    ) : canRegister ? (
                       <Button className="w-full" onClick={handleRegister} disabled={isRegistering}>
-                        {isRegistering ? 'Registering...' : t('TournamentDetailsPage.register_button')}
+                        {isRegistering ? t('TournamentDetailsPage.registering_text') : t('TournamentDetailsPage.register_button')}
                       </Button>
-                    )}
+                    ) : (
+                        <p className="text-sm text-muted-foreground text-center w-full">
+                            {t('TournamentDetailsPage.founder_only_register')}
+                        </p>
+                    )
+                }
                 </CardFooter>
             )}
         </Card>

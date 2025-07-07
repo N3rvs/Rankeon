@@ -281,7 +281,10 @@
     "status_ongoing": "Laufend",
     "status_completed": "Abgeschlossen",
     "bracket_coming_soon_title": "Turnierbaum demnächst verfügbar",
-    "bracket_coming_soon_desc": "Der Turnierbaum wird generiert, sobald die Teams registriert und gesetzt sind."
+    "bracket_coming_soon_desc": "Der Turnierbaum wird generiert, sobald die Teams registriert und gesetzt sind.",
+    "full_text": "Das Turnier ist voll.",
+    "registering_text": "Wird registriert...",
+    "founder_only_register": "Nur der Teamgründer kann das Team registrieren."
   },
   "ProposeTournamentDialog": {
     "title": "Ein neues Turnier vorschlagen",

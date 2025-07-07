@@ -281,7 +281,10 @@
     "status_ongoing": "In corso",
     "status_completed": "Completato",
     "bracket_coming_soon_title": "Tabellone in arrivo",
-    "bracket_coming_soon_desc": "Il tabellone del torneo verrà generato una volta che le squadre saranno registrate e sorteggiate."
+    "bracket_coming_soon_desc": "Il tabellone del torneo verrà generato una volta che le squadre saranno registrate e sorteggiate.",
+    "full_text": "Il torneo è al completo.",
+    "registering_text": "Registrazione...",
+    "founder_only_register": "Solo il fondatore della squadra può registrarla."
   },
   "ProposeTournamentDialog": {
     "title": "Proponi un nuovo torneo",

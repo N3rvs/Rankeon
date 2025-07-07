@@ -281,7 +281,10 @@
     "status_ongoing": "En cours",
     "status_completed": "Terminé",
     "bracket_coming_soon_title": "Arbre de tournoi bientôt disponible",
-    "bracket_coming_soon_desc": "L'arbre de tournoi sera généré une fois que les équipes seront inscrites et classées."
+    "bracket_coming_soon_desc": "L'arbre de tournoi sera généré une fois que les équipes seront inscrites et classées.",
+    "full_text": "Le tournoi est complet.",
+    "registering_text": "Inscription en cours...",
+    "founder_only_register": "Seul le fondateur de l'équipe peut l'inscrire."
   },
   "ProposeTournamentDialog": {
     "title": "Proposer un nouveau tournoi",

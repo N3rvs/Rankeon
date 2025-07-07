@@ -281,7 +281,10 @@
     "status_ongoing": "Em curso",
     "status_completed": "Concluído",
     "bracket_coming_soon_title": "Chaveamento em Breve",
-    "bracket_coming_soon_desc": "O chaveamento do torneio será gerado assim que as equipas estiverem registadas e posicionadas."
+    "bracket_coming_soon_desc": "O chaveamento do torneio será gerado assim que as equipas estiverem registadas e posicionadas.",
+    "full_text": "O torneio está cheio.",
+    "registering_text": "A registar...",
+    "founder_only_register": "Apenas o fundador da equipa pode registá-la."
   },
   "ProposeTournamentDialog": {
     "title": "Propor um Novo Torneio",
