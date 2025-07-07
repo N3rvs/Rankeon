@@ -223,6 +223,8 @@
     "set_igl": "Définir comme IGL",
     "remove_igl": "Retirer le rôle d'IGL",
     "edit_profile": "Modifier le profil",
+    "promote_coach": "Promouvoir au rang de Coach",
+    "demote_member": "Rétrograder au rang de Membre",
     "kick_from_team": "Expulser de l'équipe"
   },
   "EditTeamDialog": {
@@ -313,13 +315,13 @@
     "title": "Guide des formats de tournoi",
     "description": "Découvrez les différents formats de tournoi disponibles.",
     "single_elim_title": "Élimination simple",
-    "single_elim_desc": "Une équipe est éliminée du tournoi après une seule défaite. C'est le format le plus rapide, idéal pour les grands tournois.",
+    "single_elim_desc": "Le chemin le plus rapide vers un champion. Dans ce format à enjeux élevés, une seule défaite signifie que votre équipe est éliminée du tournoi. C'est un système à élimination directe pur, parfait pour les grands événements où le temps est un facteur clé.",
     "double_elim_title": "Double élimination",
-    "double_elim_desc": "Une équipe doit perdre deux fois pour être éliminée. Les équipes qui perdent une fois passent dans un 'tableau inférieur' pour une deuxième chance d'atteindre la finale.",
+    "double_elim_desc": "Un format qui récompense la résilience. Chaque équipe a une seconde chance. Après votre première défaite, vous tombez dans le 'Tableau Inférieur' pour vous battre pour revenir. Si vous perdez à nouveau, vous êtes éliminé. Les vainqueurs des tableaux Supérieur et Inférieur s'affrontent en Grande Finale.",
     "round_robin_title": "Round Robin (Toutes rondes)",
-    "round_robin_desc": "Chaque équipe joue contre toutes les autres équipes au moins une fois. Le vainqueur est l'équipe qui a le plus de victoires. Ce format est le plus complet.",
+    "round_robin_desc": "Le test de compétence le plus complet. Chaque équipe joue contre toutes les autres de son groupe au moins une fois. Le classement est déterminé par le nombre total de victoires, ce qui en fait une véritable mesure de la constance. Idéal pour les petits groupes afin de trouver une équipe de tête claire.",
     "swiss_system_title": "Système Suisse",
-    "swiss_system_desc": "Un format sans élimination où les joueurs sont appariés contre des adversaires ayant un score similaire. Il est conçu pour déterminer un vainqueur clair sans que chaque joueur ait à affronter tous les autres, ce qui le rend idéal pour un grand nombre de concurrents.",
+    "swiss_system_desc": "Un format équilibré et sans élimination, parfait pour un grand nombre de concurrents. À chaque tour, vous êtes apparié contre un adversaire ayant un bilan de victoires-défaites identique ou très similaire. Cela garantit des matchs compétitifs tout au long de l'événement sans avoir à jouer contre tout le monde.",
     "close_button": "Fermer"
   },
   "MessagesPage": {
@@ -412,7 +414,7 @@
     "status_ongoing": "En cours",
     "status_completed": "Terminé",
     "no_tournaments_title": "Aucun tournoi actif",
-    "no_tournaments_desc": "Il n'y a currently aucun tournoi approuvé à gérer."
+    "no_tournaments_desc": "Il n'y a actuellement aucun tournoi approuvé à gérer."
   },
   "StandingsTable": {
     "title": "Classement",

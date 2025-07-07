@@ -223,6 +223,8 @@
     "set_igl": "Set as IGL",
     "remove_igl": "Remove IGL Role",
     "edit_profile": "Edit Profile",
+    "promote_coach": "Promote to Coach",
+    "demote_member": "Demote to Member",
     "kick_from_team": "Kick from Team"
   },
   "EditTeamDialog": {
@@ -313,13 +315,13 @@
     "title": "Tournament Format Guide",
     "description": "Learn about the different tournament formats available.",
     "single_elim_title": "Single Elimination",
-    "single_elim_desc": "A team is eliminated from the tournament after a single loss. This is the fastest format, ideal for large tournaments.",
+    "single_elim_desc": "The fastest way to a champion. In this high-stakes format, a single loss means your team is out of the tournament. It's a pure knockout system, perfect for large events where time is of the essence.",
     "double_elim_title": "Double Elimination",
-    "double_elim_desc": "A team must lose twice to be eliminated. Teams that lose once move to a 'lower bracket' for a second chance to reach the final.",
+    "double_elim_desc": "A format that rewards resilience. Every team gets a second chance. After your first loss, you drop to the 'Lower Bracket' to fight your way back. Lose again, and you're eliminated. The winners of the Upper and Lower Brackets face off in the Grand Final.",
     "round_robin_title": "Round Robin",
-    "round_robin_desc": "Each team plays against every other team at least once. The winner is the team with the most victories. This format is the most comprehensive.",
+    "round_robin_desc": "The most comprehensive test of skill. Every team plays against every other team in their group at least once. Standings are determined by total wins, making it a true measure of consistency. Ideal for smaller groups to find a clear top team.",
     "swiss_system_title": "Swiss System",
-    "swiss_system_desc": "A non-eliminating format where players are paired against opponents with a similar score. It's designed to determine a clear winner without every player having to play every other player, making it ideal for large fields of competitors.",
+    "swiss_system_desc": "A balanced, non-eliminating format perfect for large fields of competitors. In each round, you're paired against an opponent with the same or a very similar win-loss record. This ensures competitive matches throughout the event without needing to play everyone.",
     "close_button": "Close"
   },
   "MessagesPage": {

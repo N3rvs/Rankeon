@@ -223,6 +223,8 @@
     "set_igl": "Als IGL festlegen",
     "remove_igl": "IGL-Rolle entfernen",
     "edit_profile": "Profil bearbeiten",
+    "promote_coach": "Zum Coach befördern",
+    "demote_member": "Zum Mitglied degradieren",
     "kick_from_team": "Aus dem Team werfen"
   },
   "EditTeamDialog": {
@@ -313,13 +315,13 @@
     "title": "Leitfaden für Turnierformate",
     "description": "Erfahren Sie mehr über die verschiedenen verfügbaren Turnierformate.",
     "single_elim_title": "Einfaches Ausscheiden",
-    "single_elim_desc": "Ein Team scheidet nach einer einzigen Niederlage aus dem Turnier aus. Dies ist das schnellste Format, ideal für große Turniere.",
+    "single_elim_desc": "Der schnellste Weg zum Champion. In diesem risikoreichen Format bedeutet eine einzige Niederlage, dass Ihr Team aus dem Turnier ausscheidet. Es ist ein reines K.o.-System, perfekt für große Events, bei denen die Zeit von entscheidender Bedeutung ist.",
     "double_elim_title": "Doppeltes Ausscheiden",
-    "double_elim_desc": "Ein Team muss zweimal verlieren, um auszuscheiden. Teams, die einmal verlieren, wechseln in eine 'untere Runde' für eine zweite Chance, das Finale zu erreichen.",
+    "double_elim_desc": "Ein Format, das Widerstandsfähigkeit belohnt. Jedes Team erhält eine zweite Chance. Nach Ihrer ersten Niederlage fallen Sie in die 'Untere Runde', um sich zurückzukämpfen. Verlieren Sie erneut, sind Sie ausgeschieden. Die Gewinner der Oberen und Unteren Runde treten im Großen Finale gegeneinander an.",
     "round_robin_title": "Jeder gegen jeden",
-    "round_robin_desc": "Jedes Team spielt mindestens einmal gegen jedes andere Team. Der Gewinner ist das Team mit den meisten Siegen. Dieses Format ist das umfassendste.",
+    "round_robin_desc": "Der umfassendste Test für Fähigkeiten. Jedes Team spielt mindestens einmal gegen jedes andere Team in seiner Gruppe. Die Platzierungen werden durch die Gesamtzahl der Siege bestimmt, was es zu einem wahren Maß für die Konstanz macht. Ideal für kleinere Gruppen, um ein klares Spitzenteam zu finden.",
     "swiss_system_title": "Schweizer System",
-    "swiss_system_desc": "Ein nicht-eliminierendes Format, bei dem Spieler gegen Gegner mit ähnlicher Punktzahl gepaart werden. Es wurde entwickelt, um einen klaren Sieger zu ermitteln, ohne dass jeder Spieler gegen jeden anderen spielen muss, was es ideal für große Teilnehmerfelder macht.",
+    "swiss_system_desc": "Ein ausgewogenes, nicht-eliminierendes Format, perfekt für große Teilnehmerfelder. In jeder Runde werden Sie gegen einen Gegner mit derselben oder einer sehr ähnlichen Sieg-Niederlage-Bilanz gepaart. Dies gewährleistet wettbewerbsfähige Spiele während des gesamten Events, ohne dass jeder gegen jeden spielen muss.",
     "close_button": "Schließen"
   },
   "MessagesPage": {

@@ -59,7 +59,7 @@ export function TournamentGuideDialog() {
           {t('TournamentsPage.tournament_guide')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t('TournamentGuideDialog.title')}</DialogTitle>
           <DialogDescription>
@@ -70,7 +70,7 @@ export function TournamentGuideDialog() {
           {formats.map((format) => (
             <AccordionItem key={format.id} value={format.id}>
               <AccordionTrigger>
-                <div className="flex items-center">
+                <div className="flex items-center font-semibold">
                   {format.icon}
                   {format.title}
                 </div>

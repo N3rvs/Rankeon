@@ -223,6 +223,8 @@
     "set_igl": "Imposta come IGL",
     "remove_igl": "Rimuovi ruolo IGL",
     "edit_profile": "Modifica profilo",
+    "promote_coach": "Promuovi a Coach",
+    "demote_member": "Retrocedi a Membro",
     "kick_from_team": "Espelli dalla squadra"
   },
   "EditTeamDialog": {
@@ -313,13 +315,13 @@
     "title": "Guida ai formati dei tornei",
     "description": "Scopri i diversi formati di torneo disponibili.",
     "single_elim_title": "Eliminazione singola",
-    "single_elim_desc": "Una squadra viene eliminata dal torneo dopo una sola sconfitta. Questo è il formato più veloce, ideale per grandi tornei.",
+    "single_elim_desc": "Il modo più veloce per incoronare un campione. In questo formato ad alto rischio, una singola sconfitta significa che la tua squadra è fuori dal torneo. È un sistema a eliminazione diretta puro, perfetto per grandi eventi dove il tempo è essenziale.",
     "double_elim_title": "Doppia eliminazione",
-    "double_elim_desc": "Una squadra deve perdere due volte per essere eliminata. Le squadre che perdono una volta si spostano in un 'girone inferiore' per una seconda possibilità di raggiungere la finale.",
+    "double_elim_desc": "Un formato che premia la resilienza. Ogni squadra ha una seconda possibilità. Dopo la prima sconfitta, cadi nel 'Girone Inferiore' per combattere e tornare in gioco. Se perdi di nuovo, sei eliminato. I vincitori del Girone Superiore e Inferiore si affrontano nella Gran Finale.",
     "round_robin_title": "Girone all'italiana",
-    "round_robin_desc": "Ogni squadra gioca contro ogni altra squadra almeno una volta. Il vincitore è la squadra con il maggior numero di vittorie. Questo formato è il più completo.",
+    "round_robin_desc": "Il test di abilità più completo. Ogni squadra gioca contro ogni altra squadra del proprio girone almeno una volta. La classifica è determinata dal totale delle vittorie, rendendola una vera misura di costanza. Ideale per piccoli gruppi per trovare una squadra di vertice chiara.",
     "swiss_system_title": "Sistema Svizzero",
-    "swiss_system_desc": "Un formato senza eliminazione in cui i giocatori vengono abbinati contro avversari con un punteggio simile. È progettato per determinare un chiaro vincitore senza che ogni giocatore debba giocare contro tutti gli altri, rendendolo ideale per un gran numero di concorrenti.",
+    "swiss_system_desc": "Un formato equilibrato e senza eliminazione, perfetto per un gran numero di concorrenti. In ogni turno, vieni abbinato a un avversario con un record di vittorie e sconfitte identico o molto simile. Ciò garantisce partite competitive durante tutto l'evento senza la necessità di giocare contro tutti.",
     "close_button": "Chiudi"
   },
   "MessagesPage": {
