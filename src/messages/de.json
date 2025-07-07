@@ -102,9 +102,20 @@
         "accept_error": "Sie müssen die Nutzungsbedingungen und die Datenschutzrichtlinie akzeptieren, um fortzufahren."
     },
     "CookieBanner": {
-        "message": "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern. Indem Sie fortfahren, stimmen Sie unserer Verwendung von Cookies zu.",
-        "accept": "Akzeptieren",
-        "decline": "Ablehnen"
+        "message": "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern. Um die Datenschutzbestimmungen einzuhalten, benötigen wir Ihre Zustimmung zum Setzen dieser Cookies.",
+        "accept": "Alle akzeptieren",
+        "decline": "Alle ablehnen",
+        "customize": "Anpassen"
+    },
+    "CookieCustomize": {
+        "title": "Cookie-Einstellungen anpassen",
+        "description": "Verwalten Sie Ihre Cookie-Einstellungen. Sie können unten verschiedene Arten von Cookies aktivieren oder deaktivieren. Notwendige Cookies können nicht deaktiviert werden.",
+        "necessary_title": "Unbedingt notwendige Cookies",
+        "necessary_desc": "Diese Cookies sind für das Funktionieren der Website unerlässlich und können nicht deaktiviert werden. Sie werden für Sicherheit, Sitzungsverwaltung und andere Kernfunktionen verwendet.",
+        "always_on": "Immer aktiv",
+        "analytics_title": "Analyse-Cookies",
+        "analytics_desc": "Diese Cookies helfen uns zu verstehen, wie Sie unsere Website nutzen, indem sie anonyme Daten sammeln (z. B. mit Firebase Analytics). Dies ermöglicht es uns, die Benutzererfahrung zu verbessern.",
+        "save": "Einstellungen speichern"
     },
   "LanguageSwitcher": {
     "change_language": "Sprache ändern"

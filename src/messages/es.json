@@ -101,10 +101,21 @@
     "privacy_policy": "Política de Privacidad",
     "accept_error": "Debes aceptar los Términos y la Política de Privacidad para continuar."
   },
-   "CookieBanner": {
-    "message": "Utilizamos cookies para mejorar tu experiencia. Al continuar, aceptas nuestro uso de cookies.",
-    "accept": "Aceptar",
-    "decline": "Rechazar"
+  "CookieBanner": {
+    "message": "Utilizamos cookies para mejorar tu experiencia. Para cumplir con las normativas de privacidad, necesitamos tu consentimiento para usar estas cookies.",
+    "accept": "Aceptar Todas",
+    "decline": "Rechazar Todas",
+    "customize": "Personalizar"
+  },
+  "CookieCustomize": {
+    "title": "Personalizar Preferencias de Cookies",
+    "description": "Gestiona tu configuración de cookies. Puedes habilitar o deshabilitar diferentes tipos de cookies a continuación. Las cookies necesarias no se pueden deshabilitar.",
+    "necessary_title": "Cookies Estrictamente Necesarias",
+    "necessary_desc": "Estas cookies son esenciales para que el sitio web funcione y no se pueden desactivar. Se utilizan para seguridad, gestión de sesiones y otras funciones básicas.",
+    "always_on": "Siempre Activas",
+    "analytics_title": "Cookies de Análisis",
+    "analytics_desc": "Estas cookies nos ayudan a entender cómo usas nuestro sitio recopilando datos anónimos (p. ej., usando Firebase Analytics). Esto nos permite mejorar la experiencia del usuario.",
+    "save": "Guardar Preferencias"
   },
   "LanguageSwitcher": {
     "change_language": "Cambiar idioma"

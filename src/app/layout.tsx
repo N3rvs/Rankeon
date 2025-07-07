@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { I18nProvider } from '@/contexts/i18n-context';
 import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
 import type { Metadata } from 'next';
+import { CookieConsentProvider } from '@/contexts/cookie-consent-context';
 import { CookieConsentBanner } from '@/components/cookies/cookie-consent-banner';
 
 const inter = Inter({
@@ -33,11 +34,13 @@ export default function RootLayout({
     <html lang="es" className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <body className={cn("font-body antialiased")}>
           <I18nProvider>
-            <AuthProvider>
-              {children}
-              <Toaster />
-              <CookieConsentBanner />
-            </AuthProvider>
+            <CookieConsentProvider>
+              <AuthProvider>
+                {children}
+                <Toaster />
+                <CookieConsentBanner />
+              </AuthProvider>
+            </CookieConsentProvider>
           </I18nProvider>
       </body>
     </html>

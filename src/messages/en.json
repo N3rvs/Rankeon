@@ -102,9 +102,20 @@
     "accept_error": "You must accept the Terms and Privacy Policy to continue."
   },
   "CookieBanner": {
-    "message": "We use cookies to enhance your experience. By continuing, you agree to our use of cookies.",
-    "accept": "Accept",
-    "decline": "Decline"
+    "message": "We use cookies to enhance your experience. To comply with privacy regulations, we need your consent to set these cookies.",
+    "accept": "Accept All",
+    "decline": "Decline All",
+    "customize": "Customize"
+  },
+  "CookieCustomize": {
+    "title": "Customize Cookie Preferences",
+    "description": "Manage your cookie settings. You can enable or disable different types of cookies below. Necessary cookies cannot be disabled.",
+    "necessary_title": "Strictly Necessary Cookies",
+    "necessary_desc": "These cookies are essential for the website to function and cannot be disabled. They are used for security, session management, and other core features.",
+    "always_on": "Always On",
+    "analytics_title": "Analytics Cookies",
+    "analytics_desc": "These cookies help us understand how you use our site by collecting anonymous data (e.g., using Firebase Analytics). This allows us to improve the user experience.",
+    "save": "Save Preferences"
   },
   "LanguageSwitcher": {
     "change_language": "Change language"
