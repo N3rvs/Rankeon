@@ -1,3 +1,4 @@
+// src/components/teams/create-team-dialog.tsx
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -10,10 +11,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Users, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { createTeam, CreateTeamSchema, type CreateTeamData } from '@/lib/actions/teams';
+import { useI18n } from '@/contexts/i18n-context';
 
 export function CreateTeamDialog() {
+  const { t } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -33,12 +36,11 @@ export function CreateTeamDialog() {
       const result = await createTeam(values);
       if (result.success && result.teamId) {
         toast({
-          title: '¡Equipo Creado!',
+          title: t('CreateTeamDialog.title'),
           description: `Tu nuevo equipo "${values.name}" está listo.`,
         });
         setIsOpen(false);
         form.reset();
-        // For now, let's just refresh to show the new state
         router.refresh();
       } else {
         toast({
@@ -55,14 +57,14 @@ export function CreateTeamDialog() {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Crear Equipo
+          {t('TeamsPage.create_team')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Crear tu Equipo</DialogTitle>
+          <DialogTitle>{t('CreateTeamDialog.title')}</DialogTitle>
           <DialogDescription>
-            Rellena los detalles para crear tu propio equipo. Como fundador, podrás gestionarlo.
+            {t('CreateTeamDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -72,9 +74,9 @@ export function CreateTeamDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nombre del Equipo</FormLabel>
+                  <FormLabel>{t('CreateTeamDialog.team_name')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Dragones Cósmicos" {...field} />
+                    <Input placeholder={t('CreateTeamDialog.team_name_placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -85,7 +87,7 @@ export function CreateTeamDialog() {
               name="game"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Juego Principal</FormLabel>
+                  <FormLabel>{t('CreateTeamDialog.primary_game')}</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Valorant" {...field} />
                   </FormControl>
@@ -98,16 +100,16 @@ export function CreateTeamDialog() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción (Opcional)</FormLabel>
+                  <FormLabel>{t('CreateTeamDialog.description_optional')}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe los objetivos y la cultura de tu equipo..." {...field} />
+                    <Textarea placeholder={t('CreateTeamDialog.description_placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Creando...' : 'Confirmar y Crear Equipo'}
+              {isPending ? t('CreateTeamDialog.creating') : t('CreateTeamDialog.confirm_create')}
             </Button>
           </form>
         </Form>
