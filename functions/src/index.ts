@@ -11,6 +11,7 @@ import { giveHonor } from './honors';
 import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
+import { createScrim, acceptScrim, cancelScrim } from './scrims';
 import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL } from './teams';
 import { proposeTournament, reviewTournamentProposal } from './tournaments';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
@@ -33,6 +34,9 @@ export {
   joinRoom,
   leaveRoom,
   sendMessageToRoom,
+  createScrim,
+  acceptScrim,
+  cancelScrim,
   createTeam,
   updateTeam,
   deleteTeam,
