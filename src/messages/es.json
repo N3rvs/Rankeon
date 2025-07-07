@@ -206,7 +206,7 @@
     "no_roles_wanted": "No se buscan roles específicos.",
     "no_team_title": "Aún no tienes un equipo",
     "no_team_subtitle": "¡Crea tu propio equipo para empezar a reclutar jugadores!",
-    "create_team": "Crear Equipo",
+    "no_team_subtitle_generic": "No estás en un equipo. Busca en el mercado para encontrar uno.",
     "no_team_join_prompt": "Busca en el mercado para encontrar tu escuadrón ideal.",
     "join_a_team": "Únete a un Equipo",
     "your_team": "Tu Equipo",

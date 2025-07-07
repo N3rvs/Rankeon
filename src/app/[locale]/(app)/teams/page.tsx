@@ -1,3 +1,4 @@
+// src/app/[locale]/(app)/teams/page.tsx
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
@@ -311,15 +312,27 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     );
 }
 
-function NoTeamDisplay() {
+function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
+    const canCreateTeam = userProfile?.role === 'player';
+
     return (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-xl font-semibold">Aún no tienes un equipo</h3>
-            <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                ¡Crea tu propio equipo para empezar a reclutar jugadores!
-            </p>
-            <CreateTeamDialog />
+            
+            {canCreateTeam ? (
+                <>
+                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                        ¡Crea tu propio equipo para empezar a reclutar jugadores!
+                    </p>
+                    <CreateTeamDialog />
+                </>
+            ) : (
+                <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                    No estás en un equipo. Puedes buscar uno en el mercado.
+                </p>
+            )}
+
             <p className="mb-4 mt-8 text-sm text-muted-foreground">
                 Busca en el mercado para encontrar tu escuadrón ideal.
             </p>
@@ -445,7 +458,7 @@ export default function TeamsPage() {
                 )}
             </div>
 
-            {team && currentUserMembership ? <TeamDisplay team={team} members={members} currentUserRole={currentUserMembership.role} /> : <NoTeamDisplay />}
+            {team && currentUserMembership ? <TeamDisplay team={team} members={members} currentUserRole={currentUserMembership.role} /> : <NoTeamDisplay userProfile={userProfile} />}
         </div>
     );
 }

@@ -206,7 +206,7 @@
     "no_roles_wanted": "Nessun ruolo specifico richiesto.",
     "no_team_title": "Non hai ancora una squadra",
     "no_team_subtitle": "Crea la tua squadra per iniziare a reclutare giocatori!",
-    "create_team": "Crea squadra",
+    "no_team_subtitle_generic": "Non fai parte di una squadra. Puoi cercarne una sul mercato.",
     "no_team_join_prompt": "Cerca nel mercato per trovare la tua squadra ideale.",
     "join_a_team": "Unisciti a una squadra",
     "your_team": "La tua squadra",

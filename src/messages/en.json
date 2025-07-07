@@ -206,7 +206,7 @@
     "no_roles_wanted": "No specific roles wanted.",
     "no_team_title": "You don't have a team yet",
     "no_team_subtitle": "Create your own team to start recruiting players!",
-    "create_team": "Create Team",
+    "no_team_subtitle_generic": "You are not in a team. Search the market to find one.",
     "no_team_join_prompt": "Search the market to find your ideal squad.",
     "join_a_team": "Join a Team",
     "your_team": "Your Team",
