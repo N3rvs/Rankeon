@@ -1,4 +1,3 @@
-
 {
     "LandingPage": {
         "about_us": "À Propos",
@@ -629,5 +628,50 @@
     "no_tickets_desc": "Il n'y a pas de tickets de support ouverts.",
     "status_open": "Ouvert",
     "status_closed": "Fermé"
+  },
+  "Footer": {
+    "tagline": "Votre plateforme pour le jeu compétitif.",
+    "support_title": "Support",
+    "help_center": "Centre d'aide",
+    "refunds": "Remboursements",
+    "legal_title": "Légal",
+    "terms": "Termes et Conditions",
+    "privacy": "Politique de confidentialité",
+    "company_title": "Entreprise",
+    "about_us": "À propos de nous",
+    "pricing": "Tarifs"
+  },
+  "SupportPage": {
+    "title": "Centre d'aide",
+    "subtitle": "Besoin d'un coup de main ? Vous êtes au bon endroit.",
+    "ai_title": "Assistant IA",
+    "ai_desc": "Obtenez des réponses instantanées à vos questions sur la plateforme.",
+    "ai_cta": "Démarrer le chat",
+    "ai_note": "Le widget se trouve dans le coin inférieur droit.",
+    "faq_title": "Questions fréquemment posées",
+    "faq_desc": "Trouvez les réponses aux questions les plus courantes.",
+    "refund_title": "Politique de remboursement",
+    "refund_desc": "Consultez nos politiques et comment demander un remboursement.",
+    "refund_cta": "Voir la politique de remboursement",
+    "contact_title": "Vous ne trouvez pas ce que vous cherchez ?",
+    "contact_desc": "Notre équipe de support est là pour vous aider.",
+    "contact_cta": "Contacter le support",
+    "faq_q1": "Comment créer une équipe ?",
+    "faq_a1": "Pour créer une équipe, vous devez avoir le rôle de 'Fondateur'. Vous pouvez obtenir ce rôle via nos plans tarifaires. Une fois que vous avez le rôle, allez sur la page 'Mon Équipe' et suivez les étapes pour créer votre équipe.",
+    "faq_q2": "Comment puis-je proposer un tournoi ?",
+    "faq_a2": "La proposition de tournois est disponible pour les streamers vérifiés, les modérateurs et les administrateurs. Si vous remplissez les conditions, vous trouverez un bouton 'Proposer un tournoi' sur la page des tournois.",
+    "faq_q3": "Comment fonctionnent les scrims ?",
+    "faq_a3": "Les équipes peuvent poster des scrims ouverts (matchs d'entraînement) que d'autres équipes peuvent défier. Une fois qu'un défi est accepté, le match est confirmé. Après le match, l'une ou l'autre équipe peut rapporter le résultat pour mettre à jour les statistiques."
+  },
+  "RefundPage": {
+    "title": "Politique de remboursement",
+    "subtitle": "Informations sur la manière de demander un remboursement pour vos abonnements.",
+    "eligibility_title": "Éligibilité au remboursement",
+    "eligibility_desc": "Nous proposons des remboursements pour les abonnements Fondateur et Coach dans les 14 jours suivant l'achat, à condition que les fonctionnalités principales (comme la création d'une équipe ou l'acceptation d'une invitation en tant que coach) n'aient pas été utilisées.",
+    "process_title": "Comment demander un remboursement",
+    "process_step1": "Ouvrez un ticket de support en utilisant le bouton ci-dessous.",
+    "process_step2": "Sélectionnez 'Problème de compte' ou 'Question générale' comme sujet.",
+    "process_step3": "Dans votre message, veuillez inclure votre date d'achat et la raison de votre demande de remboursement. Notre équipe examinera votre demande et vous répondra.",
+    "cta": "Ouvrir un ticket de support"
   }
 }

@@ -1,4 +1,3 @@
-
 {
     "LandingPage": {
         "about_us": "Chi Siamo",
@@ -629,5 +628,50 @@
     "no_tickets_desc": "Non ci sono ticket di supporto aperti.",
     "status_open": "Aperto",
     "status_closed": "Chiuso"
+  },
+  "Footer": {
+    "tagline": "Your platform for competitive gaming.",
+    "support_title": "Supporto",
+    "help_center": "Centro Assistenza",
+    "refunds": "Rimborsi",
+    "legal_title": "Legale",
+    "terms": "Termini e Condizioni",
+    "privacy": "Informativa sulla Privacy",
+    "company_title": "Azienda",
+    "about_us": "Chi Siamo",
+    "pricing": "Prezzi"
+  },
+  "SupportPage": {
+    "title": "Centro Assistenza",
+    "subtitle": "Hai bisogno di una mano? Sei nel posto giusto.",
+    "ai_title": "Assistente AI",
+    "ai_desc": "Ottieni risposte immediate alle tue domande sulla piattaforma.",
+    "ai_cta": "Avvia Chat",
+    "ai_note": "Il widget si trova nell'angolo in basso a destra.",
+    "faq_title": "Domande Frequenti",
+    "faq_desc": "Trova le risposte alle domande più comuni.",
+    "refund_title": "Politica di Rimborso",
+    "refund_desc": "Consulta le nostre politiche e come richiedere un rimborso.",
+    "refund_cta": "Vedi Politica di Rimborso",
+    "contact_title": "Non trovi quello che cerchi?",
+    "contact_desc": "Il nostro team di supporto è qui per aiutarti.",
+    "contact_cta": "Contatta il Supporto",
+    "faq_q1": "Come si crea una squadra?",
+    "faq_a1": "Per creare una squadra, devi avere il ruolo di 'Fondatore'. Puoi ottenere questo ruolo tramite i nostri piani tariffari. Una volta ottenuto il ruolo, vai alla pagina 'La mia squadra' e segui i passaggi per creare la tua squadra.",
+    "faq_q2": "Come posso proporre un torneo?",
+    "faq_a2": "La proposta di tornei è disponibile per streamer verificati, moderatori e amministratori. Se soddisfi i criteri, troverai un pulsante 'Proponi Torneo' nella pagina dei tornei.",
+    "faq_q3": "Come funzionano le scrim?",
+    "faq_a3": "Le squadre possono pubblicare scrim aperte (partite di allenamento) che altre squadre possono sfidare. Una volta accettata una sfida, la partita è confermata. Dopo la partita, una delle due squadre può riportare il risultato per aggiornare le statistiche."
+  },
+  "RefundPage": {
+    "title": "Politica di Rimborso",
+    "subtitle": "Informazioni su come richiedere un rimborso per i tuoi abbonamenti.",
+    "eligibility_title": "Idoneità al Rimborso",
+    "eligibility_desc": "Offriamo rimborsi per gli abbonamenti Fondatore e Allenatore entro 14 giorni dall'acquisto, a condizione che le funzionalità principali (come la creazione di una squadra o l'accettazione di un invito come allenatore) non siano state utilizzate.",
+    "process_title": "Come Richiedere un Rimborso",
+    "process_step1": "Apri un ticket di supporto utilizzando il pulsante qui sotto.",
+    "process_step2": "Seleziona 'Problema Account' o 'Domanda Generale' come oggetto.",
+    "process_step3": "Nel tuo messaggio, includi la data di acquisto e il motivo della tua richiesta di rimborso. Il nostro team esaminerà la tua richiesta e ti risponderà.",
+    "cta": "Apri un Ticket di Supporto"
   }
 }

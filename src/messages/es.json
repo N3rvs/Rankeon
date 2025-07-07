@@ -1,4 +1,3 @@
-
 {
   "LandingPage": {
     "about_us": "Sobre Nosotros",
@@ -629,5 +628,50 @@
     "no_tickets_desc": "No hay tickets de soporte abiertos.",
     "status_open": "Abierto",
     "status_closed": "Cerrado"
+  },
+  "Footer": {
+    "tagline": "Tu plataforma para el juego competitivo.",
+    "support_title": "Soporte",
+    "help_center": "Centro de Ayuda",
+    "refunds": "Reembolsos",
+    "legal_title": "Legal",
+    "terms": "Términos y Condiciones",
+    "privacy": "Política de Privacidad",
+    "company_title": "Empresa",
+    "about_us": "Sobre Nosotros",
+    "pricing": "Precios"
+  },
+  "SupportPage": {
+    "title": "Centro de Ayuda",
+    "subtitle": "¿Necesitas ayuda? Has venido al lugar correcto.",
+    "ai_title": "Asistente de IA",
+    "ai_desc": "Obtén respuestas instantáneas a tus preguntas sobre la plataforma.",
+    "ai_cta": "Iniciar Chat",
+    "ai_note": "El widget está en la esquina inferior derecha.",
+    "faq_title": "Preguntas Frecuentes",
+    "faq_desc": "Encuentra respuestas a las preguntas más comunes.",
+    "refund_title": "Política de Reembolso",
+    "refund_desc": "Revisa nuestras políticas y cómo solicitar un reembolso.",
+    "refund_cta": "Ver Política de Reembolso",
+    "contact_title": "¿No encuentras lo que buscas?",
+    "contact_desc": "Nuestro equipo de soporte está aquí para ayudarte.",
+    "contact_cta": "Contactar con Soporte",
+    "faq_q1": "¿Cómo creo un equipo?",
+    "faq_a1": "Para crear un equipo, debes tener el rol de 'Fundador'. Puedes adquirir este rol a través de nuestros planes de suscripción en la página de precios. Una vez que tengas el rol, ve a la página 'Mi Equipo' y sigue los pasos para crear tu equipo.",
+    "faq_q2": "¿Cómo puedo proponer un torneo?",
+    "faq_a2": "La propuesta de torneos está disponible para streamers verificados, moderadores y administradores. Si cumples con los requisitos, encontrarás un botón de 'Proponer Torneo' en la página de torneos.",
+    "faq_q3": "¿Cómo funcionan los scrims?",
+    "faq_a3": "Los equipos pueden publicar scrims abiertos (partidas de práctica) que otros equipos pueden desafiar. Una vez que se acepta un desafío, la partida se confirma. Después de la partida, cualquiera de los equipos puede reportar el resultado para que se actualicen las estadísticas."
+  },
+  "RefundPage": {
+    "title": "Política de Reembolsos",
+    "subtitle": "Información sobre cómo solicitar un reembolso para tus suscripciones.",
+    "eligibility_title": "Elegibilidad para Reembolsos",
+    "eligibility_desc": "Ofrecemos reembolsos para suscripciones de Fundador y Coach dentro de los 14 días posteriores a la compra, siempre y cuando no se hayan utilizado las funciones principales (como crear un equipo o aceptar una invitación como coach).",
+    "process_title": "Cómo Solicitar un Reembolso",
+    "process_step1": "Abre un ticket de soporte utilizando el botón de abajo.",
+    "process_step2": "Selecciona 'Problema con la Cuenta' o 'Pregunta General' como asunto.",
+    "process_step3": "En tu mensaje, incluye la fecha de tu compra y la razón de tu solicitud de reembolso. Nuestro equipo revisará tu solicitud y se pondrá en contacto contigo.",
+    "cta": "Abrir un Ticket de Soporte"
   }
 }

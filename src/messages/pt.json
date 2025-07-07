@@ -1,4 +1,3 @@
-
 {
     "LandingPage": {
         "about_us": "Sobre Nós",
@@ -629,5 +628,50 @@
     "no_tickets_desc": "Não há tickets de suporte abertos.",
     "status_open": "Aberto",
     "status_closed": "Fechado"
+  },
+  "Footer": {
+    "tagline": "Sua plataforma para jogos competitivos.",
+    "support_title": "Suporte",
+    "help_center": "Centro de Ajuda",
+    "refunds": "Reembolsos",
+    "legal_title": "Legal",
+    "terms": "Termos e Condições",
+    "privacy": "Política de Privacidade",
+    "company_title": "Empresa",
+    "about_us": "Sobre Nós",
+    "pricing": "Preços"
+  },
+  "SupportPage": {
+    "title": "Centro de Ajuda",
+    "subtitle": "Precisa de uma mão? Você veio ao lugar certo.",
+    "ai_title": "Assistente de IA",
+    "ai_desc": "Obtenha respostas instantâneas para suas perguntas sobre a plataforma.",
+    "ai_cta": "Iniciar Chat",
+    "ai_note": "O widget está no canto inferior direito.",
+    "faq_title": "Perguntas Frequentes",
+    "faq_desc": "Encontre respostas para as perguntas mais comuns.",
+    "refund_title": "Política de Reembolso",
+    "refund_desc": "Revise nossas políticas e como solicitar um reembolso.",
+    "refund_cta": "Ver Política de Reembolso",
+    "contact_title": "Não encontrou o que procurava?",
+    "contact_desc": "Nossa equipe de suporte está aqui para ajudá-lo.",
+    "contact_cta": "Contatar Suporte",
+    "faq_q1": "Como eu crio uma equipe?",
+    "faq_a1": "Para criar uma equipe, você precisa da função 'Fundador'. Você pode obter essa função em nossos planos de preços. Uma vez que você tenha a função, vá para a página 'Minha Equipe' e siga os passos para criar sua equipe.",
+    "faq_q2": "Como posso propor um torneio?",
+    "faq_a2": "A proposição de torneios está disponível para streamers verificados, moderadores e administradores. Se você atender aos critérios, encontrará um botão 'Propor Torneio' na página de torneios.",
+    "faq_q3": "Como funcionam os scrims?",
+    "faq_a3": "As equipes podem postar scrims abertos (partidas de treino) para que outras equipes desafiem. Uma vez que um desafio é aceito, a partida é confirmada. Após a partida, qualquer uma das equipes pode relatar o resultado para atualizar as estatísticas."
+  },
+  "RefundPage": {
+    "title": "Política de Reembolso",
+    "subtitle": "Informações sobre como solicitar um reembolso para suas assinaturas.",
+    "eligibility_title": "Elegibilidade para Reembolso",
+    "eligibility_desc": "Oferecemos reembolsos para assinaturas de Fundador e Treinador dentro de 14 dias após a compra, desde que os recursos principais (como criar uma equipe ou aceitar um convite de treinador) não tenham sido usados.",
+    "process_title": "Como Solicitar um Reembolso",
+    "process_step1": "Abra um ticket de suporte usando o botão abaixo.",
+    "process_step2": "Selecione 'Problema na Conta' ou 'Questão Geral' como assunto.",
+    "process_step3": "Na sua mensagem, inclua a data da sua compra e o motivo do seu pedido de reembolso. Nossa equipe analisará sua solicitação e entrará em contato com você.",
+    "cta": "Abrir um Ticket de Suporte"
   }
 }
