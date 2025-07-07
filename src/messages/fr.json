@@ -52,6 +52,8 @@
     "no_teams_found": "Aucune équipe trouvée."
   },
   "Ranks": {
+    "iron": "Fer",
+    "bronze": "Bronze",
     "silver": "Argent",
     "gold": "Or",
     "platinum": "Platine",

@@ -33,6 +33,8 @@ const DiscordIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const valorantRanks = [
+    { value: 'Hierro', label: 'Hierro' },
+    { value: 'Bronce', label: 'Bronce' },
     { value: 'Plata', label: 'Plata' },
     { value: 'Oro', label: 'Oro' },
     { value: 'Platino', label: 'Platino' },

@@ -8,11 +8,13 @@ import { app } from '../firebase/client';
 const functions = getFunctions(app);
 
 const rankOrder: { [key: string]: number } = {
-    'Plata': 1,
-    'Oro': 2,
-    'Platino': 3,
-    'Ascendente': 4,
-    'Inmortal': 5,
+    'Hierro': 1,
+    'Bronce': 2,
+    'Plata': 3,
+    'Oro': 4,
+    'Platino': 5,
+    'Ascendente': 6,
+    'Inmortal': 7,
 };
 
 export const ProposeTournamentSchema = z.object({
@@ -119,4 +121,26 @@ export async function editTournament(values: EditTournamentData): Promise<Action
         console.error('Error editing tournament:', error);
         return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
+}
+
+export async function deleteTournament(values: { tournamentId: string }): Promise<ActionResponse> {
+    try {
+        const deleteFunc = httpsCallable(functions, 'deleteTournament');
+        const result = await deleteFunc(values);
+        return (result.data as ActionResponse);
+    } catch (error: any) {
+        console.error('Error deleting tournament:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
+}
+
+export async function registerTeamForTournament(values: { tournamentId: string; teamId: string }): Promise<ActionResponse> {
+  try {
+    const registerFunc = httpsCallable(functions, 'registerTeamForTournament');
+    const result = await registerFunc(values);
+    return (result.data as ActionResponse);
+  } catch (error: any) {
+    console.error('Error registering team:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
 }

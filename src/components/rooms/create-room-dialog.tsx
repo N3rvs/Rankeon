@@ -29,6 +29,8 @@ const valorantServers = [
 ];
 
 const valorantRanks = [
+    { value: 'Hierro', label: 'Hierro' },
+    { value: 'Bronce', label: 'Bronce' },
     { value: 'Plata', label: 'Plata' },
     { value: 'Oro', label: 'Oro' },
     { value: 'Platino', label: 'Platino' },

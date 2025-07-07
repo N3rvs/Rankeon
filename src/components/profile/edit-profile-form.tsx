@@ -42,6 +42,8 @@ const gameRoles: Record<string, readonly string[]> = {
 const availableGames = Object.keys(gameRoles);
 
 const valorantRanks = [
+    { value: 'Hierro', label: 'Hierro' },
+    { value: 'Bronce', label: 'Bronce' },
     { value: 'Plata', label: 'Plata' },
     { value: 'Oro', label: 'Oro' },
     { value: 'Platino', label: 'Platino' },

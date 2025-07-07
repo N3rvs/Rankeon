@@ -41,11 +41,13 @@ export const UpdateTeamSchema = z.object({
 }).refine((data) => {
     if (data.rankMin && data.rankMax) {
         const rankOrder: { [key: string]: number } = {
-            'Plata': 1,
-            'Oro': 2,
-            'Platino': 3,
-            'Ascendente': 4,
-            'Inmortal': 5,
+            'Hierro': 1,
+            'Bronce': 2,
+            'Plata': 3,
+            'Oro': 4,
+            'Platino': 5,
+            'Ascendente': 6,
+            'Inmortal': 7,
         };
         return rankOrder[data.rankMin as keyof typeof rankOrder] <= rankOrder[data.rankMax as keyof typeof rankOrder];
     }

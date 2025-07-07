@@ -322,15 +322,19 @@ export function MarketTabs() {
   const primaryGame = userProfile?.primaryGame || 'Valorant';
   
   const rankOrder: { [key: string]: number } = {
-        'Plata': 1,
-        'Oro': 2,
-        'Platino': 3,
-        'Ascendente': 4,
-        'Inmortal': 5,
+        'Hierro': 1,
+        'Bronce': 2,
+        'Plata': 3,
+        'Oro': 4,
+        'Platino': 5,
+        'Ascendente': 6,
+        'Inmortal': 7,
     };
 
     const valorantRanks = [
       { value: 'all', label: t('Market.all_ranks') },
+      { value: 'Hierro', label: t('Ranks.iron') },
+      { value: 'Bronce', label: t('Ranks.bronze') },
       { value: 'Plata', label: t('Ranks.silver') },
       { value: 'Oro', label: t('Ranks.gold') },
       { value: 'Platino', label: t('Ranks.platinum') },

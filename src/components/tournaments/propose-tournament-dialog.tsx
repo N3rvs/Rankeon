@@ -29,6 +29,8 @@ const tournamentFormats = [
 const teamCountOptions = [4, 8, 16, 32, 64];
 
 const valorantRanks = [
+    { value: 'Hierro', label: 'Hierro' },
+    { value: 'Bronce', label: 'Bronce' },
     { value: 'Plata', label: 'Plata' },
     { value: 'Oro', label: 'Oro' },
     { value: 'Platino', label: 'Platino' },
