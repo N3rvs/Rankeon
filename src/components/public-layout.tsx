@@ -22,8 +22,7 @@ function Header() {
                 <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
             </Link>
             <nav className="hidden md:flex items-center gap-6">
-                <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.news')}</Link>
-                <Link href="/tournaments" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.tournaments')}</Link>
+                <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
             </nav>
             <div className="flex items-center gap-2">
                 <LanguageSwitcher />

@@ -1,7 +1,7 @@
 
 {
   "LandingPage": {
-    "news": "News",
+    "about_us": "About Us",
     "tournaments": "Tournaments",
     "rankings": "Rankings",
     "login": "Login",
@@ -21,6 +21,18 @@
     "footer_rights": "All rights reserved. Built for the future of esports.",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy"
+  },
+  "AboutPage": {
+    "title": "About Scrimly",
+    "subtitle": "Connecting players, forging champions.",
+    "community_title": "Our Community",
+    "community_desc": "We are a hub for passionate gamers looking to take their play to the next level. We believe in the power of teamwork and healthy competition.",
+    "mission_title": "Our Mission",
+    "mission_desc": "Our mission is simple: to provide the best platform for players to find teammates, compete in scrims and tournaments, and grow as competitors.",
+    "values_title": "Our Values",
+    "values_desc": "Integrity, sportsmanship, and a relentless dedication to improvement are at the core of everything we do at Scrimly.",
+    "join_us_title": "Join the Arena",
+    "join_us_desc": "Whether you're looking for your first team or you're a seasoned veteran, Scrimly is your proving ground. Sign up today and unleash your potential."
   },
   "PrivacyPage": {
     "title": "Privacy Policy",

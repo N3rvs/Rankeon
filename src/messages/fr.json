@@ -1,7 +1,7 @@
 
 {
     "LandingPage": {
-        "news": "Actualités",
+        "about_us": "À Propos",
         "tournaments": "Tournois",
         "rankings": "Classements",
         "login": "Connexion",
@@ -22,6 +22,18 @@
         "terms": "Conditions d'utilisation",
         "privacy": "Politique de confidentialité"
     },
+    "AboutPage": {
+        "title": "À propos de Scrimly",
+        "subtitle": "Connecter les joueurs, forger des champions.",
+        "community_title": "Notre communauté",
+        "community_desc": "Nous sommes une plateforme pour les joueurs passionnés qui cherchent à passer au niveau supérieur. Nous croyons en la puissance du travail d'équipe et de la saine compétition.",
+        "mission_title": "Notre Mission",
+        "mission_desc": "Notre mission est simple : fournir la meilleure plateforme pour que les joueurs trouvent des coéquipiers, participent à des scrims et des tournois, et grandissent en tant que compétiteurs.",
+        "values_title": "Nos Valeurs",
+        "values_desc": "L'intégrité, l'esprit sportif et un dévouement sans faille à l'amélioration sont au cœur de tout ce que nous faisons chez Scrimly.",
+        "join_us_title": "Rejoignez l'Arène",
+        "join_us_desc": "Que vous cherchiez votre première équipe ou que vous soyez un vétéran chevronné, Scrimly est votre terrain d'essai. Inscrivez-vous aujourd'hui et libérez votre potentiel."
+    },
     "PrivacyPage": {
         "title": "Politique de confidentialité",
         "last_updated": "Dernière mise à jour : 24 juillet 2024",
@@ -34,7 +46,7 @@
         "data_sharing_title": "Partage de vos données",
         "data_sharing_text": "Nous ne vendons pas vos données personnelles. Nous pouvons partager vos informations comme suit : Avec d'autres utilisateurs : Votre profil de jeu (nom d'invocateur, rang, statistiques) est visible par les autres utilisateurs de Scrimly. Avec des fournisseurs de services : Nous utilisons des services tiers (comme Firebase pour l'hébergement et la base de données) qui traitent les données en notre nom. Avec des exigences légales : Si la loi l'exige.",
         "data_security_title": "Sécurité des données",
-        "data_security_text": "Nous prenons des mesures raisonnables pour protéger vos informations, mais aucun système de sécurité n'est impénétrable. Nous не pouvons garantir la sécurité absolue de vos données.",
+        "data_security_text": "Nous prenons des mesures raisonnables pour protéger vos informations, mais aucun système de sécurité n'est impénétrable. Nous ne pouvons garantir la sécurité absolue de vos données.",
         "your_rights_title": "Vos droits",
         "your_rights_text": "Vous avez le droit d'accéder, de corriger ou de supprimer vos informations personnelles. Vous pouvez mettre à jour les informations de votre profil directement dans l'application. Pour toute autre demande, veuillez nous contacter.",
         "contact_title": "Contact",
@@ -502,7 +514,7 @@
     "status_ongoing": "En cours",
     "status_completed": "Terminé",
     "no_tournaments_title": "Aucun tournoi actif",
-    "no_tournaments_desc": "Il n'y a currently aucun tournoi approuvé à gérer."
+    "no_tournaments_desc": "Il n'y a actuellement aucun tournoi approuvé à gérer."
   },
   "StandingsTable": {
     "title": "Classement",

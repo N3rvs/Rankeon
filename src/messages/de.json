@@ -1,7 +1,7 @@
 
 {
     "LandingPage": {
-        "news": "Nachrichten",
+        "about_us": "Über Uns",
         "tournaments": "Turniere",
         "rankings": "Ranglisten",
         "login": "Anmelden",
@@ -21,6 +21,18 @@
         "footer_rights": "Alle Rechte vorbehalten. Für die Zukunft des E-Sports entwickelt.",
         "terms": "Nutzungsbedingungen",
         "privacy": "Datenschutz-Bestimmungen"
+    },
+    "AboutPage": {
+        "title": "Über Scrimly",
+        "subtitle": "Spieler verbinden, Champions schmieden.",
+        "community_title": "Unsere Gemeinschaft",
+        "community_desc": "Wir sind ein Zentrum für leidenschaftliche Gamer, die ihr Spiel auf die nächste Stufe heben wollen. Wir glauben an die Kraft von Teamwork und gesundem Wettbewerb.",
+        "mission_title": "Unsere Mission",
+        "mission_desc": "Unsere Mission ist einfach: die beste Plattform für Spieler bereitzustellen, um Teamkollegen zu finden, in Scrims und Turnieren anzutreten und als Wettkämpfer zu wachsen.",
+        "values_title": "Unsere Werte",
+        "values_desc": "Integrität, Sportsgeist und ein unermüdliches Engagement für Verbesserungen sind der Kern von allem, was wir bei Scrimly tun.",
+        "join_us_title": "Tritt der Arena bei",
+        "join_us_desc": "Egal, ob du dein erstes Team suchst oder ein erfahrener Veteran bist, Scrimly ist dein Testgelände. Melde dich noch heute an und entfessle dein Potenzial."
     },
      "PrivacyPage": {
         "title": "Datenschutz-Bestimmungen",
@@ -486,7 +498,7 @@
     "user_management_page_desc": "Überwachen Sie alle registrierten Benutzer auf der Plattform.",
     "tournament_proposals_page_title": "Turniervorschläge",
     "tournament_proposals_page_desc": "Von der Community eingereichte Turniere genehmigen oder ablehnen.",
-    "support_tickets_page_title": "Support-Tickets",
+    "support_tickets_page_title": "Tickets de Soporte",
     "chat_moderation_page_title": "Chat-Moderation",
     "manage_tournaments_title": "Turniere verwalten",
     "manage_tournaments_desc": "Bestehende Turniere anzeigen, bearbeiten oder löschen."
