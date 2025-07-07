@@ -1,4 +1,3 @@
-
 // src/functions/scrims.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -13,12 +12,13 @@ interface CreateScrimData {
     date: string; // ISO string
     format: 'bo1' | 'bo3' | 'bo5';
     type: 'scrim' | 'tryout';
-    notes?: string;
+    rankMin?: string;
+    rankMax?: string;
 }
 
 export const createScrim = onCall(async ({ auth, data }: { auth?: any, data: CreateScrimData }) => {
     const uid = auth?.uid;
-    const { teamId, date, format, type, notes } = data;
+    const { teamId, date, format, type, rankMin, rankMax } = data;
 
     if (!uid) throw new HttpsError("unauthenticated", "You must be logged in.");
     if (!teamId || !date || !format || !type) {
@@ -46,7 +46,8 @@ export const createScrim = onCall(async ({ auth, data }: { auth?: any, data: Cre
         date: Timestamp.fromDate(new Date(date)),
         format,
         type,
-        notes: notes || '',
+        rankMin: rankMin || '',
+        rankMax: rankMax || '',
         status: "pending",
         createdAt: Timestamp.now(),
     });

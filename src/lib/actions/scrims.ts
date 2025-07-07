@@ -1,4 +1,3 @@
-
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -18,7 +17,8 @@ export const CreateScrimSchema = z.object({
   date: z.date({ required_error: 'Please select a date.' }),
   format: z.enum(['bo1', 'bo3', 'bo5'], { required_error: 'Please select a format.' }),
   type: z.enum(['scrim', 'tryout'], { required_error: 'Please select a type.' }),
-  notes: z.string().max(200, 'Notes cannot exceed 200 characters.').optional(),
+  rankMin: z.string().optional(),
+  rankMax: z.string().optional(),
 });
 export type CreateScrimData = z.infer<typeof CreateScrimSchema>;
 

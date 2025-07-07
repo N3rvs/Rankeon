@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useTransition } from 'react';
@@ -7,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Check, X } from 'lucide-react';
+import { Calendar, Check, X, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -69,8 +68,13 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
         <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">{scrim.format.toUpperCase()}</Badge>
             <Badge variant="outline" className="capitalize">{scrim.type}</Badge>
+            {(scrim.rankMin || scrim.rankMax) && (
+                <Badge variant="outline" className="capitalize">
+                    <Shield className="h-3 w-3 mr-1.5" />
+                    {scrim.rankMin}{scrim.rankMin && scrim.rankMax && scrim.rankMin !== scrim.rankMax ? ` - ${scrim.rankMax}` : ''}
+                </Badge>
+            )}
         </div>
-        {scrim.notes && <p className="text-sm text-muted-foreground border-l-2 pl-3 italic">"{scrim.notes}"</p>}
       </CardContent>
       <CardFooter>
         {isMyTeamScrim ? (

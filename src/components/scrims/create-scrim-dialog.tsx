@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
@@ -16,7 +16,9 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useI18n } from '@/contexts/i18n-context';
-import { Textarea } from '../ui/textarea';
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from '@/lib/firebase/client';
+import type { Team } from '@/lib/types';
 
 export function CreateScrimDialog({ teamId }: { teamId: string }) {
   const { t } = useI18n();
@@ -29,9 +31,37 @@ export function CreateScrimDialog({ teamId }: { teamId: string }) {
     defaultValues: {
       format: 'bo3',
       type: 'scrim',
-      notes: '',
+      rankMin: '',
+      rankMax: '',
     },
   });
+
+  // Fetch team data to pre-fill ranks when dialog opens
+  useEffect(() => {
+    if (!isOpen || !teamId) return;
+    
+    const unsub = onSnapshot(doc(db, "teams", teamId), (doc) => {
+        if (doc.exists()) {
+            const teamData = doc.data() as Team;
+            form.reset({
+                ...form.getValues(),
+                rankMin: teamData.rankMin || '',
+                rankMax: teamData.rankMax || ''
+            });
+        }
+    });
+    return () => unsub();
+  }, [isOpen, teamId, form]);
+
+  const valorantRanks = [
+    { value: 'Hierro', label: t('Ranks.iron') },
+    { value: 'Bronce', label: t('Ranks.bronze') },
+    { value: 'Plata', label: t('Ranks.silver') },
+    { value: 'Oro', label: t('Ranks.gold') },
+    { value: 'Platino', label: t('Ranks.platinum') },
+    { value: 'Ascendente', label: t('Ranks.ascendant') },
+    { value: 'Inmortal', label: t('Ranks.immortal') },
+  ];
 
   const scrimFormats = [
     { value: 'bo1', label: t('ScrimsPage.formats.bo1') },
@@ -130,19 +160,56 @@ export function CreateScrimDialog({ teamId }: { teamId: string }) {
                     )}
                 />
             </div>
-             <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('ScrimsPage.notes_label')}</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder={t('ScrimsPage.notes_placeholder')} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="rankMin"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>{t('EditTeamDialog.min_rank')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                            <SelectValue placeholder={t('ProposeTournamentDialog.no_restriction')} />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {valorantRanks.map((rank) => (
+                            <SelectItem key={rank.value} value={rank.value}>
+                                {rank.label}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="rankMax"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>{t('EditTeamDialog.max_rank')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                            <SelectValue placeholder={t('ProposeTournamentDialog.no_restriction')} />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {valorantRanks.map((rank) => (
+                            <SelectItem key={rank.value} value={rank.value}>
+                                {rank.label}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </div>
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? t('ScrimsPage.posting') : t('ScrimsPage.create_scrim')}
             </Button>
