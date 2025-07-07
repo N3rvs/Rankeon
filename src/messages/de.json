@@ -563,7 +563,11 @@
     "types": {
       "scrim": "Scrim (Übungsspiel vs Team)",
       "tryout": "Tryout (Spieler-Test)"
-    }
+    },
+    "status_pending": "Ausstehend",
+    "status_confirmed": "Bestätigt",
+    "status_cancelled": "Abgesagt",
+    "status_completed": "Abgeschlossen"
   },
   "RankingsPage": {
     "title": "Plattform-Ranglisten",

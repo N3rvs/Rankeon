@@ -99,7 +99,7 @@ export function ScrimCard({ scrim, onScrimAccepted }: { scrim: Scrim, onScrimAcc
         </div>
       </CardHeader>
       <CardContent className="space-y-3 flex-grow text-center">
-        <p className="text-sm font-semibold">{format(scrim.date.toDate(), 'PPP p')}</p>
+        <p className="text-sm font-semibold">{format(scrim.date.toDate(), "PPP p")}</p>
         <div className="flex flex-wrap gap-2 justify-center">
           <Badge variant="secondary">{scrim.format.toUpperCase()}</Badge>
           <Badge variant="outline" className="capitalize">{scrim.type}</Badge>

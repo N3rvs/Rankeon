@@ -563,7 +563,11 @@
     "types": {
       "scrim": "Scrim (Allenamento vs Squadra)",
       "tryout": "Tryout (Prova Giocatori)"
-    }
+    },
+    "status_pending": "In attesa",
+    "status_confirmed": "Confermata",
+    "status_cancelled": "Annullata",
+    "status_completed": "Completata"
   },
   "RankingsPage": {
     "title": "Classifiche della Piattaforma",

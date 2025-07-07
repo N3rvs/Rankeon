@@ -522,7 +522,7 @@
     "status_ongoing": "En cours",
     "status_completed": "Terminé",
     "no_tournaments_title": "Aucun tournoi actif",
-    "no_tournaments_desc": "Il n'y a actuellement aucun tournoi approuvé à gérer."
+    "no_tournaments_desc": "Il n'y a currently aucun tournoi approuvé à gérer."
   },
   "StandingsTable": {
     "title": "Classement",
@@ -563,7 +563,11 @@
     "types": {
       "scrim": "Scrim (Match d'entraînement vs Équipe)",
       "tryout": "Tryout (Test de Joueurs)"
-    }
+    },
+    "status_pending": "En attente",
+    "status_confirmed": "Confirmé",
+    "status_cancelled": "Annulé",
+    "status_completed": "Terminé"
   },
   "RankingsPage": {
     "title": "Classements de la Plateforme",

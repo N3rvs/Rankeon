@@ -563,7 +563,11 @@
     "types": {
       "scrim": "Scrim (Práctica vs Equipo)",
       "tryout": "Tryout (Prueba de Jugadores)"
-    }
+    },
+    "status_pending": "Pendiente",
+    "status_confirmed": "Confirmado",
+    "status_cancelled": "Cancelado",
+    "status_completed": "Completado"
   },
   "RankingsPage": {
     "title": "Clasificaciones de la Plataforma",
