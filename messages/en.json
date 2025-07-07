@@ -1,10 +1,10 @@
 
 {
   "HomePage": {
-    "title": "Assemble Your Elite Squad",
+    "title": "Assemble Your Elite Team",
     "subtitle": "The definitive LFG platform for Valorant. Stop solo queuing and start dominating with the perfect team.",
     "get_started": "Get Started",
-    "find_squad": "Find your Squad",
+    "find_squad": "Find your Team",
     "register_player": "Register as a Player",
     "built_for_champions": "Built for Champions",
     "champions_subtitle": "Everything you need to conquer the competition.",
@@ -12,7 +12,7 @@
     "find_players_desc": "Browse detailed player profiles, filter by role and rank, and find the perfect fit for your roster.",
     "ai_tools_title": "AI-Powered Tools",
     "ai_tools_desc": "Use our AI to craft the perfect player bio to get noticed by other players.",
-    "footer_text": "© {year} SquadUp. All rights reserved. Built for the future of esports."
+    "footer_text": "© {year} Scrimly. All rights reserved. Built for the future of esports."
   },
   "LanguageSwitcher": {
     "change_language": "Change language"
@@ -52,11 +52,15 @@
     "no_teams_found": "No teams found."
   },
   "Ranks": {
+    "iron": "Iron",
+    "bronze": "Bronze",
     "silver": "Silver",
     "gold": "Gold",
     "platinum": "Platinum",
+    "diamond": "Diamond",
     "ascendant": "Ascendant",
-    "immortal": "Immortal"
+    "immortal": "Immortal",
+    "radiant": "Radiant"
   },
   "Roles": {
     "controller": "Controller",
@@ -115,7 +119,9 @@
     "profile": "Profile",
     "market": "Market",
     "rooms": "Game Rooms",
+    "scrims": "Scrims",
     "tournaments": "Tournaments",
+    "rankings": "Rankings",
     "my_team": "My Team",
     "friends": "Friends",
     "admin_panel": "Admin Panel",
@@ -136,7 +142,7 @@
   },
   "ProfilePage": {
     "edit_profile": "Edit Profile",
-    "bio_placeholder": "I'm new to SquadUp! Ready to find a team and compete.",
+    "bio_placeholder": "I'm new to Scrimly! Ready to find a team and compete.",
     "current_team": "Current Team",
     "honors": "Honors",
     "performance_analysis": "Performance Analysis",
@@ -202,14 +208,25 @@
     "all_roles_welcome": "All roles welcome.",
     "no_roles_wanted": "No specific roles wanted.",
     "no_team_title": "You don't have a team yet",
-    "no_team_subtitle": "Create your own team to start recruiting players!",
     "create_team": "Create Team",
-    "no_team_join_prompt": "Search the market to find your ideal squad.",
+    "no_team_subtitle": "Create your own team to start recruiting players!",
+    "no_team_subtitle_generic": "You are not in a team. Search the market to find one.",
+    "no_team_join_prompt": "Search the market to find your ideal team.",
     "join_a_team": "Join a Team",
     "your_team": "Your Team",
     "join_requests": "Join Requests ({count})",
     "join_requests_desc": "Review players who want to join your team.",
-    "default_join_message": "I'd like to join your team!"
+    "default_join_message": "I'd like to join your team!",
+    "achievements_title": "Achievements & Stats",
+    "achievements_desc": "Trophies and scrim match results.",
+    "trophy_room_title": "Trophy Room",
+    "no_tournaments_won": "Your team has not won any tournaments yet.",
+    "tournament_champion": "Champion of {tournamentName}",
+    "scrim_record_title": "Scrim Record",
+    "scrim_record_soon": "Scrim results and stats are coming soon.",
+    "management_title": "Management Panel",
+    "management_desc": "Actions for team staff.",
+    "edit_team_button": "Edit Team Profile"
   },
   "MemberManager": {
     "role_updated": "Role Updated",
@@ -294,11 +311,12 @@
     "title": "Propose a New Tournament",
     "description": "Fill out the details for your tournament idea. Our staff will review it for approval.",
     "name": "Tournament Name",
-    "name_placeholder": "e.g., SquadUp Summer Skirmish",
+    "name_placeholder": "e.g., Scrimly Summer Skirmish",
     "game": "Game",
     "game_placeholder": "e.g., Valorant",
-    "prize": "Prize (Optional)",
-    "prize_placeholder": "e.g., $100 USD, Skins, etc.",
+    "prize_amount": "Prize Amount",
+    "currency": "Currency",
+    "select_currency": "Select currency...",
     "min_rank": "Minimum Rank",
     "max_rank": "Maximum Rank",
     "no_restriction": "No restriction",
@@ -315,13 +333,13 @@
     "title": "Tournament Format Guide",
     "description": "Learn about the different tournament formats available.",
     "single_elim_title": "Single Elimination",
-    "single_elim_desc": "A team is eliminated from the tournament after a single loss. This is the fastest format, ideal for large tournaments.",
+    "single_elim_desc": "The fastest way to a champion. In this high-stakes format, a single loss means your team is out of the tournament. It's a pure knockout system, perfect for large events where time is of the essence.",
     "double_elim_title": "Double Elimination",
-    "double_elim_desc": "A team must lose twice to be eliminated. Teams that lose once move to a 'lower bracket' for a second chance to reach the final.",
+    "double_elim_desc": "A format that rewards resilience. Every team gets a second chance. After your first loss, you drop to the 'Lower Bracket' to fight your way back. Lose again, and you're eliminated. The winners of the Upper and Lower Brackets face off in the Grand Final.",
     "round_robin_title": "Round Robin",
-    "round_robin_desc": "Each team plays against every other team at least once. The winner is the team with the most victories. This format is the most comprehensive.",
+    "round_robin_desc": "The most comprehensive test of skill. Every team plays against every other team in their group at least once. Standings are determined by total wins, making it a true measure of consistency. Ideal for smaller groups to find a clear top team.",
     "swiss_system_title": "Swiss System",
-    "swiss_system_desc": "A non-eliminating format where players are paired against opponents with a similar score. It's designed to determine a clear winner without every player having to play every other player, making it ideal for large fields of competitors.",
+    "swiss_system_desc": "A balanced, non-eliminating format perfect for large fields of competitors. In each round, you're paired against an opponent with the same or a very similar win-loss record. This ensures competitive matches throughout the event without needing to play everyone.",
     "close_button": "Close"
   },
   "MessagesPage": {
@@ -360,7 +378,7 @@
   },
   "AdminPanel": {
     "title": "Admin Dashboard",
-    "subtitle": "Global control panel for SquadUp platform management.",
+    "subtitle": "Global control panel for Scrimly platform management.",
     "user_management_title": "User Management",
     "user_management_desc": "View, edit, ban, and manage all users.",
     "team_management_title": "Team Management",
@@ -415,5 +433,66 @@
     "status_completed": "Completed",
     "no_tournaments_title": "No Active Tournaments",
     "no_tournaments_desc": "There are no approved tournaments to manage right now."
+  },
+  "StandingsTable": {
+    "title": "Standings",
+    "teams_header": "Team",
+    "victories_header": "Victories",
+    "wl_header": "W/L",
+    "status_header": "Status",
+    "status_champion": "Champion",
+    "tbd": "TBD"
+  },
+  "ScrimsPage": {
+    "title": "Scrim Finder",
+    "subtitle": "Find a practice match or post one for your team.",
+    "no_scrims_title": "No Available Scrims",
+    "no_scrims_subtitle": "Be the first to post a scrim for others to accept.",
+    "create_scrim": "Post Scrim",
+    "create_scrim_desc": "Fill out the details to list a practice match for your team.",
+    "date_label": "Date & Time",
+    "format_label": "Format",
+    "type_label": "Type",
+    "notes_label": "Notes (Optional)",
+    "notes_placeholder": "e.g., Diamond+ only, looking for IGL...",
+    "posting": "Posting...",
+    "looking_for_match": "Looking for match",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "scrim_posted_title": "Scrim Posted!",
+    "scrim_posted_desc": "Your scrim is now listed for other teams to accept.",
+    "scrim_accepted_title": "Scrim Accepted!",
+    "scrim_accepted_desc": "You have accepted the scrim. It will now appear on your team calendar.",
+    "scrim_cancelled_title": "Scrim Cancelled",
+    "scrim_cancelled_desc": "The scrim has been removed from the listing.",
+    "formats": {
+      "bo1": "Best of 1",
+      "bo3": "Best of 3",
+      "bo5": "Best of 5"
+    },
+    "types": {
+      "scrim": "Scrim (Practice vs Team)",
+      "tryout": "Tryout (Test Players)"
+    }
+  },
+  "RankingsPage": {
+    "title": "Platform Rankings",
+    "subtitle": "See who is at the top of the leaderboards.",
+    "tournaments_tab": "Tournaments",
+    "scrims_tab": "Scrims",
+    "honors_tab": "Honors",
+    "no_tournaments_title": "No Completed Tournaments",
+    "no_tournaments_desc": "Once tournaments are completed, their champions will be displayed here.",
+    "no_scrims_title": "Scrim Rankings Coming Soon",
+    "no_scrims_desc": "Leaderboards for scrim match performance are under development.",
+    "no_honors_title": "No Players Ranked Yet",
+    "no_honors_desc": "As players receive honors from their peers, the most honorable players will be displayed here.",
+    "champion": "Champion",
+    "tournament_won_on": "Won on {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rank",
+    "player_header": "Player",
+    "honors_header": "Total Honors"
   }
 }

@@ -14,7 +14,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
              <div className="flex flex-col items-center justify-center mb-8">
                 <Gamepad2 className="h-12 w-12 text-primary" />
-                <h1 className="text-3xl font-bold font-headline mt-4">Create your SquadUp Account</h1>
+                <h1 className="text-3xl font-bold font-headline mt-4">Create your Scrimly Account</h1>
                 <p className="text-muted-foreground">Join the community and find your team.</p>
             </div>
             <RegisterForm />

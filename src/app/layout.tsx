@@ -19,8 +19,8 @@ const spaceGrotesk = SpaceGrotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'SquadUp MVP',
-  description: 'Find your squad, conquer the game.',
+  title: 'Scrimly MVP',
+  description: 'Find your team, conquer the game.',
 };
  
 export default function RootLayout({

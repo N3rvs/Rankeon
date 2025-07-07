@@ -73,7 +73,7 @@ export default function AdminPage() {
                 <ShieldCheck className="h-10 w-10 text-primary" />
                 <div>
                     <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
-                    <p className="text-muted-foreground">Global control panel for SquadUp platform management.</p>
+                    <p className="text-muted-foreground">Global control panel for Scrimly platform management.</p>
                 </div>
             </div>
 

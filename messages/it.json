@@ -12,7 +12,7 @@
     "find_players_desc": "Sfoglia profili dettagliati dei giocatori, filtra per ruolo e grado e trova la soluzione perfetta per il tuo roster.",
     "ai_tools_title": "Strumenti basati sull'IA",
     "ai_tools_desc": "Usa la nostra intelligenza artificiale per creare la biografia del giocatore perfetta per farti notare dagli altri giocatori.",
-    "footer_text": "© {year} SquadUp. Tutti i diritti riservati. Costruito per il futuro degli eSport."
+    "footer_text": "© {year} Scrimly. Tutti i diritti riservati. Costruito per il futuro degli eSport."
   },
   "LanguageSwitcher": {
     "change_language": "Cambia lingua"
@@ -52,11 +52,15 @@
     "no_teams_found": "Nessuna squadra trovata."
   },
   "Ranks": {
+    "iron": "Ferro",
+    "bronze": "Bronzo",
     "silver": "Argento",
     "gold": "Oro",
     "platinum": "Platino",
+    "diamond": "Diamante",
     "ascendant": "Ascendente",
-    "immortal": "Immortale"
+    "immortal": "Immortale",
+    "radiant": "Radiante"
   },
   "Roles": {
     "controller": "Controllore",
@@ -115,7 +119,9 @@
     "profile": "Profilo",
     "market": "Mercato",
     "rooms": "Stanze di gioco",
+    "scrims": "Partite di Allenamento",
     "tournaments": "Tornei",
+    "rankings": "Classifiche",
     "my_team": "La mia squadra",
     "friends": "Amici",
     "admin_panel": "Pannello Admin",
@@ -136,7 +142,7 @@
   },
   "ProfilePage": {
     "edit_profile": "Modifica profilo",
-    "bio_placeholder": "Sono nuovo su SquadUp! Pronto a trovare una squadra e competere.",
+    "bio_placeholder": "Sono nuovo su Scrimly! Pronto a trovare una squadra e competere.",
     "current_team": "Squadra attuale",
     "honors": "Onorificenze",
     "performance_analysis": "Analisi delle prestazioni",
@@ -202,14 +208,25 @@
     "all_roles_welcome": "Tutti i ruoli sono benvenuti.",
     "no_roles_wanted": "Nessun ruolo specifico richiesto.",
     "no_team_title": "Non hai ancora una squadra",
-    "no_team_subtitle": "Crea la tua squadra per iniziare a reclutare giocatori!",
     "create_team": "Crea squadra",
+    "no_team_subtitle": "Crea la tua squadra per iniziare a reclutare giocatori!",
+    "no_team_subtitle_generic": "Non fai parte di una squadra. Puoi cercarne una sul mercato.",
     "no_team_join_prompt": "Cerca nel mercato per trovare la tua squadra ideale.",
     "join_a_team": "Unisciti a una squadra",
     "your_team": "La tua squadra",
     "join_requests": "Richieste di adesione ({count})",
     "join_requests_desc": "Esamina i giocatori che vogliono unirsi alla tua squadra.",
-    "default_join_message": "Vorrei unirmi alla vostra squadra!"
+    "default_join_message": "Vorrei unirmi alla vostra squadra!",
+    "achievements_title": "Risultati e Statistiche",
+    "achievements_desc": "Trofei e risultati delle partite di allenamento.",
+    "trophy_room_title": "Sala trofei",
+    "no_tournaments_won": "La tua squadra non ha ancora vinto nessun torneo.",
+    "tournament_champion": "Campione di {tournamentName}",
+    "scrim_record_title": "Cronologia Scrim",
+    "scrim_record_soon": "I risultati e le statistiche delle scrim saranno disponibili a breve.",
+    "management_title": "Pannello di gestione",
+    "management_desc": "Azioni per lo staff della squadra.",
+    "edit_team_button": "Modifica profilo squadra"
   },
   "MemberManager": {
     "role_updated": "Ruolo aggiornato",
@@ -294,11 +311,12 @@
     "title": "Proponi un nuovo torneo",
     "description": "Compila i dettagli per la tua idea di torneo. Il nostro staff la esaminerà per l'approvazione.",
     "name": "Nome del torneo",
-    "name_placeholder": "es. SquadUp Summer Skirmish",
+    "name_placeholder": "es. Scrimly Summer Skirmish",
     "game": "Gioco",
     "game_placeholder": "es. Valorant",
-    "prize": "Premio (facoltativo)",
-    "prize_placeholder": "es. 100 USD, Skin, ecc.",
+    "prize_amount": "Importo del premio",
+    "currency": "Valuta",
+    "select_currency": "Seleziona valuta...",
     "min_rank": "Grado minimo",
     "max_rank": "Grado massimo",
     "no_restriction": "Nessuna restrizione",
@@ -315,13 +333,13 @@
     "title": "Guida ai formati dei tornei",
     "description": "Scopri i diversi formati di torneo disponibili.",
     "single_elim_title": "Eliminazione singola",
-    "single_elim_desc": "Una squadra viene eliminata dal torneo dopo una sola sconfitta. Questo è il formato più veloce, ideale per grandi tornei.",
+    "single_elim_desc": "Il modo più veloce per incoronare un campione. In questo formato ad alto rischio, una singola sconfitta significa che la tua squadra è fuori dal torneo. È un sistema a eliminazione diretta puro, perfetto per grandi eventi dove il tempo è essenziale.",
     "double_elim_title": "Doppia eliminazione",
-    "double_elim_desc": "Una squadra deve perdere due volte per essere eliminata. Le squadre che perdono una volta si spostano in un 'girone inferiore' per una seconda possibilità di raggiungere la finale.",
+    "double_elim_desc": "Un formato che premia la resilienza. Ogni squadra ha una seconda possibilità. Dopo la prima sconfitta, cadi nel 'Girone Inferiore' per combattere e tornare in gioco. Se perdi di nuovo, sei eliminato. I vincitori del Girone Superiore e Inferiore si affrontano nella Gran Finale.",
     "round_robin_title": "Girone all'italiana",
-    "round_robin_desc": "Ogni squadra gioca contro ogni altra squadra almeno una volta. Il vincitore è la squadra con il maggior numero di vittorie. Questo formato è il più completo.",
+    "round_robin_desc": "Il test di abilità più completo. Ogni squadra gioca contro ogni altra squadra del proprio girone almeno una volta. La classifica è determinata dal totale delle vittorie, rendendola una vera misura di costanza. Ideale per piccoli gruppi per trovare una squadra di vertice chiara.",
     "swiss_system_title": "Sistema Svizzero",
-    "swiss_system_desc": "Un formato senza eliminazione in cui i giocatori vengono abbinati contro avversari con un punteggio simile. È progettato per determinare un chiaro vincitore senza che ogni giocatore debba giocare contro tutti gli altri, rendendolo ideale per un gran numero di concorrenti.",
+    "swiss_system_desc": "Un formato equilibrato e senza eliminazione, perfetto per un gran numero di concorrenti. In ogni turno, vieni abbinato a un avversario con un record di vittorie e sconfitte identico o molto simile. Ciò garantisce partite competitive durante tutto l'evento senza la necessità di giocare contro tutti.",
     "close_button": "Chiudi"
   },
   "MessagesPage": {
@@ -360,7 +378,7 @@
   },
   "AdminPanel": {
     "title": "Dashboard Admin",
-    "subtitle": "Pannello di controllo globale per la gestione della piattaforma SquadUp.",
+    "subtitle": "Pannello di controllo globale per la gestione della piattaforma Scrimly.",
     "user_management_title": "Gestione Utenti",
     "user_management_desc": "Visualizza, modifica, banna e gestisci tutti gli utenti.",
     "team_management_title": "Gestione Squadre",
@@ -415,5 +433,66 @@
     "status_completed": "Completato",
     "no_tournaments_title": "Nessun torneo attivo",
     "no_tournaments_desc": "Non ci sono tornei approvati da gestire in questo momento."
+  },
+  "StandingsTable": {
+    "title": "Classifica",
+    "teams_header": "Squadra",
+    "victories_header": "Vittorie",
+    "wl_header": "V/S",
+    "status_header": "Stato",
+    "status_champion": "Campione",
+    "tbd": "Da definire"
+  },
+  "ScrimsPage": {
+    "title": "Cerca Scrim",
+    "subtitle": "Trova una partita di allenamento o pubblicane una per la tua squadra.",
+    "no_scrims_title": "Nessuna Scrim Disponibile",
+    "no_scrims_subtitle": "Sii il primo a pubblicare una scrim perché altri la accettino.",
+    "create_scrim": "Pubblica Scrim",
+    "create_scrim_desc": "Compila i dettagli per elencare una partita di allenamento per la tua squadra.",
+    "date_label": "Data e Ora",
+    "format_label": "Formato",
+    "type_label": "Tipo",
+    "notes_label": "Note (Opzionale)",
+    "notes_placeholder": "es. Solo Diamante+, cerco IGL...",
+    "posting": "Pubblicazione...",
+    "looking_for_match": "Cerca partita",
+    "cancel": "Annulla",
+    "accept": "Accetta",
+    "scrim_posted_title": "Scrim Pubblicata!",
+    "scrim_posted_desc": "La tua scrim è ora elencata per essere accettata da altre squadre.",
+    "scrim_accepted_title": "Scrim Accettata!",
+    "scrim_accepted_desc": "Hai accettato la scrim. Apparirà ora nel calendario della tua squadra.",
+    "scrim_cancelled_title": "Scrim Annullata",
+    "scrim_cancelled_desc": "La scrim è stata rimossa dall'elenco.",
+    "formats": {
+      "bo1": "Al meglio di 1",
+      "bo3": "Al meglio di 3",
+      "bo5": "Al meglio di 5"
+    },
+    "types": {
+      "scrim": "Scrim (Allenamento vs Squadra)",
+      "tryout": "Tryout (Prova Giocatori)"
+    }
+  },
+  "RankingsPage": {
+    "title": "Classifiche della Piattaforma",
+    "subtitle": "Guarda chi è in cima alle classifiche.",
+    "tournaments_tab": "Tornei",
+    "scrims_tab": "Partite di Allenamento",
+    "honors_tab": "Onorificenze",
+    "no_tournaments_title": "Nessun Torneo Completato",
+    "no_tournaments_desc": "Una volta completati i tornei, i loro campioni verranno visualizzati qui.",
+    "no_scrims_title": "Classifiche Scrim in Arrivo",
+    "no_scrims_desc": "Le classifiche per le prestazioni delle partite di allenamento sono in fase di sviluppo.",
+    "no_honors_title": "Nessun giocatore ancora classificato",
+    "no_honors_desc": "Man mano che i giocatori riceveranno onorificenze dai loro compagni, i giocatori più onorevoli verranno visualizzati qui.",
+    "champion": "Campione",
+    "tournament_won_on": "Vinto il {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rango",
+    "player_header": "Giocatore",
+    "honors_header": "Onorificenze Totali"
   }
 }

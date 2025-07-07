@@ -26,7 +26,7 @@ function HomePageContent() {
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between z-10">
         <div className="flex items-center gap-2">
           <Gamepad2 className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold font-headline">SquadUp</h1>
+          <h1 className="text-2xl font-bold font-headline">Scrimly</h1>
         </div>
         <nav className="flex items-center gap-2">
           <LanguageSwitcher />

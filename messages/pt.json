@@ -1,18 +1,18 @@
 
 {
   "HomePage": {
-    "title": "Monte seu Esquadrão de Elite",
-    "subtitle": "A plataforma LFG definitiva para Valorant. Pare de jogar sozinho e comece a dominar com la equipe perfeita.",
+    "title": "Monte seu Equipe de Elite",
+    "subtitle": "A plataforma LFG definitiva para Valorant. Pare de jogar sozinho e comece a dominar com a equipe perfeita.",
     "get_started": "Começar",
-    "find_squad": "Encontre seu Esquadrão",
+    "find_squad": "Encontre sua Equipe",
     "register_player": "Registrar-se como jogador",
     "built_for_champions": "Construído para Campeões",
     "champions_subtitle": "Tudo o que você precisa para conquistar a competição.",
     "find_players_title": "Encontrar Jogadores",
     "find_players_desc": "Navegue por perfis detalhados de jogadores, filtre por função e classificação e encontre o ajuste perfeito para sua lista.",
     "ai_tools_title": "Ferramentas com IA",
-    "ai_tools_desc": "Use nossa IA para criar la biografia de jogador perfetta para ser notado por outros jogadores.",
-    "footer_text": "© {year} SquadUp. Todos os direitos reservados. Construído para o futuro dos e-sports."
+    "ai_tools_desc": "Use nossa IA para criar a biografia de jogador perfeita para ser notado por outros jogadores.",
+    "footer_text": "© {year} Scrimly. Todos os direitos reservados. Construído para o futuro dos e-sports."
   },
   "LanguageSwitcher": {
     "change_language": "Mudar idioma"
@@ -52,11 +52,15 @@
     "no_teams_found": "Nenhuma equipa encontrada."
   },
   "Ranks": {
+    "iron": "Ferro",
+    "bronze": "Bronze",
     "silver": "Prata",
     "gold": "Ouro",
     "platinum": "Platina",
+    "diamond": "Diamante",
     "ascendant": "Ascendente",
-    "immortal": "Imortal"
+    "immortal": "Imortal",
+    "radiant": "Radiante"
   },
   "Roles": {
     "controller": "Controlador",
@@ -115,7 +119,9 @@
     "profile": "Perfil",
     "market": "Mercado",
     "rooms": "Salas de Jogo",
+    "scrims": "Jogos de Treino",
     "tournaments": "Torneios",
+    "rankings": "Classificações",
     "my_team": "Minha Equipa",
     "friends": "Amigos",
     "admin_panel": "Painel Admin",
@@ -136,7 +142,7 @@
   },
   "ProfilePage": {
     "edit_profile": "Editar Perfil",
-    "bio_placeholder": "Sou novo no SquadUp! Pronto para encontrar uma equipe e competir.",
+    "bio_placeholder": "Sou novo no Scrimly! Pronto para encontrar uma equipe e competir.",
     "current_team": "Equipe Atual",
     "honors": "Honras",
     "performance_analysis": "Análise de Desempenho",
@@ -202,14 +208,25 @@
     "all_roles_welcome": "Todas as funções são bem-vindas.",
     "no_roles_wanted": "Nenhuma função específica desejada.",
     "no_team_title": "Você ainda não tem uma equipe",
-    "no_team_subtitle": "Crie sua própria equipe para começar a recrutar jogadores!",
     "create_team": "Criar Equipe",
+    "no_team_subtitle": "Crie sua própria equipe para começar a recrutar jogadores!",
+    "no_team_subtitle_generic": "Você não está em uma equipe. Procure uma no mercado.",
     "no_team_join_prompt": "Pesquise no mercado para encontrar seu esquadrão ideal.",
     "join_a_team": "Junte-se a uma Equipe",
     "your_team": "Sua Equipe",
     "join_requests": "Pedidos para Entrar ({count})",
     "join_requests_desc": "Analise os jogadores que querem se juntar à sua equipe.",
-    "default_join_message": "Eu gostaria de me juntar à sua equipe!"
+    "default_join_message": "Eu gostaria de me juntar à sua equipe!",
+    "achievements_title": "Conquistas e Estatísticas",
+    "achievements_desc": "Troféus e resultados de jogos de treino.",
+    "trophy_room_title": "Sala de Troféus",
+    "no_tournaments_won": "Sua equipe ainda não venceu nenhum torneio.",
+    "tournament_champion": "Campeão de {tournamentName}",
+    "scrim_record_title": "Histórico de Scrims",
+    "scrim_record_soon": "Resultados e estatísticas de scrims em breve.",
+    "management_title": "Painel de Gerenciamento",
+    "management_desc": "Ações para a equipe técnica.",
+    "edit_team_button": "Editar Perfil da Equipe"
   },
   "MemberManager": {
     "role_updated": "Função Atualizada",
@@ -294,11 +311,12 @@
     "title": "Propor um Novo Torneio",
     "description": "Preencha os detalhes para a sua ideia de torneio. Nossa equipe irá analisá-la para aprovação.",
     "name": "Nome do Torneio",
-    "name_placeholder": "ex: SquadUp Summer Skirmish",
+    "name_placeholder": "ex: Scrimly Summer Skirmish",
     "game": "Jogo",
     "game_placeholder": "ex: Valorant",
-    "prize": "Prêmio (Opcional)",
-    "prize_placeholder": "ex: 100 USD, Skins, etc.",
+    "prize_amount": "Valor do Prêmio",
+    "currency": "Moeda",
+    "select_currency": "Selecione a moeda...",
     "min_rank": "Classificação Mínima",
     "max_rank": "Classificação Máxima",
     "no_restriction": "Nenhuma restrição",
@@ -315,11 +333,11 @@
     "title": "Guia de Formatos de Torneio",
     "description": "Aprenda sobre os diferentes formatos de torneio disponíveis.",
     "single_elim_title": "Eliminação Simples",
-    "single_elim_desc": "Uma equipe é eliminada do torneio após uma única derrota. Este é o formato mais rápido, ideal para grandes torneios.",
+    "single_elim_desc": "A maneira mais rápida de chegar a um campeão. Neste formato de alto risco, uma única derrota significa que a sua equipa está fora do torneio. É um sistema de eliminação direta puro, perfeito para grandes eventos onde o tempo é essencial.",
     "double_elim_title": "Eliminação Dupla",
-    "double_elim_desc": "Uma equipe deve perder duas vezes para ser eliminada. As equipes que perdem uma vez passam para um 'suporte inferior' para uma segunda chance de chegar à final.",
+    "double_elim_desc": "Um formato que recompensa a resiliência. Cada equipa tem uma segunda oportunidade. Após a sua primeira derrota, você cai para a 'Chave Inferior' para lutar pelo seu regresso. Se perder novamente, está eliminado. Os vencedores das chaves Superior e Inferior enfrentam-se na Grande Final.",
     "round_robin_title": "Round Robin (Todos contra todos)",
-    "round_robin_desc": "Cada equipe joga contra todas as outras equipes pelo menos uma vez. O vencedor é a equipe com mais vitórias. Este formato é o mais abrangente.",
+    "round_robin_desc": "O teste de habilidade mais completo. Cada equipa joga contra todas as outras equipas do seu grupo pelo menos uma vez. A classificação é determinada pelo número total de vitórias, tornando-se uma verdadeira medida de consistência. Ideal para grupos pequenos para encontrar uma equipa de topo clara.",
     "swiss_system_title": "Sistema Suíço",
     "swiss_system_desc": "Um formato sem eliminação onde os jogadores são emparelhados contra adversários com uma pontuação semelhante. É projetado para determinar um vencedor claro sem que cada jogador tenha que jogar contra todos os outros, tornando-o ideal para grandes campos de competidores.",
     "close_button": "Fechar"
@@ -360,7 +378,7 @@
   },
   "AdminPanel": {
     "title": "Painel do Administrador",
-    "subtitle": "Painel de controle global para gerenciamento da plataforma SquadUp.",
+    "subtitle": "Painel de controle global para gerenciamento da plataforma Scrimly.",
     "user_management_title": "Gerenciamento de Usuários",
     "user_management_desc": "Visualizar, editar, banir e gerenciar todos os usuários.",
     "team_management_title": "Gerenciamento de Equipes",
@@ -415,5 +433,66 @@
     "status_completed": "Concluído",
     "no_tournaments_title": "Nenhum torneio ativo",
     "no_tournaments_desc": "Não há torneios aprovados para gerenciar no momento."
+  },
+  "StandingsTable": {
+    "title": "Classificação",
+    "teams_header": "Equipe",
+    "victories_header": "Vitórias",
+    "wl_header": "V/D",
+    "status_header": "Status",
+    "status_champion": "Campeão",
+    "tbd": "A definir"
+  },
+  "ScrimsPage": {
+    "title": "Localizador de Scrims",
+    "subtitle": "Encontre uma partida de treino ou publique uma para sua equipe.",
+    "no_scrims_title": "Nenhum Scrim Disponível",
+    "no_scrims_subtitle": "Seja o primeiro a publicar um scrim para que outros aceitem.",
+    "create_scrim": "Publicar Scrim",
+    "create_scrim_desc": "Preencha os detalhes para listar uma partida de treino para sua equipe.",
+    "date_label": "Data e Hora",
+    "format_label": "Formato",
+    "type_label": "Tipo",
+    "notes_label": "Notas (Opcional)",
+    "notes_placeholder": "Ex: Apenas Diamante+, procurando IGL...",
+    "posting": "Publicando...",
+    "looking_for_match": "Procurando partida",
+    "cancel": "Cancelar",
+    "accept": "Aceitar",
+    "scrim_posted_title": "Scrim Publicado!",
+    "scrim_posted_desc": "Seu scrim está agora listado para outras equipes aceitarem.",
+    "scrim_accepted_title": "Scrim Aceito!",
+    "scrim_accepted_desc": "Você aceitou o scrim. Ele agora aparecerá no calendário da sua equipe.",
+    "scrim_cancelled_title": "Scrim Cancelado",
+    "scrim_cancelled_desc": "O scrim foi removido da lista.",
+    "formats": {
+      "bo1": "Melhor de 1",
+      "bo3": "Melhor de 3",
+      "bo5": "Melhor de 5"
+    },
+    "types": {
+      "scrim": "Scrim (Jogo de Treino vs Equipe)",
+      "tryout": "Tryout (Teste de Jogadores)"
+    }
+  },
+  "RankingsPage": {
+    "title": "Classificações da Plataforma",
+    "subtitle": "Veja quem está no topo das tabelas de classificação.",
+    "tournaments_tab": "Torneios",
+    "scrims_tab": "Jogos de Treino",
+    "honors_tab": "Honras",
+    "no_tournaments_title": "Nenhum Torneio Concluído",
+    "no_tournaments_desc": "Assim que os torneios forem concluídos, seus campeões serão exibidos aqui.",
+    "no_scrims_title": "Classificações de Scrims em Breve",
+    "no_scrims_desc": "As tabelas de classificação para o desempenho em partidas de treino estão em desenvolvimento.",
+    "no_honors_title": "Nenhum Jogador Classificado Ainda",
+    "no_honors_desc": "À medida que os jogadores receberem honras de seus colegas, os jogadores mais honrados serão exibidos aqui.",
+    "champion": "Campeão",
+    "tournament_won_on": "Venceu em {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rank",
+    "player_header": "Jogador",
+    "honors_header": "Honras Totais"
   }
 }

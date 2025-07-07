@@ -12,7 +12,7 @@
     "find_players_desc": "Durchsuchen Sie detaillierte Spielerprofile, filtern Sie nach Rolle und Rang und finden Sie die perfekte Ergänzung für Ihren Kader.",
     "ai_tools_title": "KI-gestützte Werkzeuge",
     "ai_tools_desc": "Nutzen Sie unsere KI, um die perfekte Spielerbiografie zu erstellen, damit andere Spieler auf Sie aufmerksam werden.",
-    "footer_text": "© {year} SquadUp. Alle Rechte vorbehalten. Für die Zukunft des E-Sports entwickelt."
+    "footer_text": "© {year} Scrimly. Alle Rechte vorbehalten. Für die Zukunft des E-Sports entwickelt."
   },
   "LanguageSwitcher": {
     "change_language": "Sprache ändern"
@@ -52,11 +52,15 @@
     "no_teams_found": "Keine Teams gefunden."
   },
   "Ranks": {
+    "iron": "Eisen",
+    "bronze": "Bronze",
     "silver": "Silber",
     "gold": "Gold",
     "platinum": "Platin",
+    "diamond": "Diamant",
     "ascendant": "Aufsteigend",
-    "immortal": "Unsterblich"
+    "immortal": "Unsterblich",
+    "radiant": "Radiant"
   },
   "Roles": {
     "controller": "Kontrolleur",
@@ -85,7 +89,7 @@
     "iceland": "Island",
     "ireland": "Irland",
     "italy": "Italien",
-    "latvia": "Lettland",
+    "latvia": "Lettonia",
     "liechtenstein": "Liechtenstein",
     "lithuania": "Litauen",
     "luxembourg": "Luxemburg",
@@ -115,7 +119,9 @@
     "profile": "Profil",
     "market": "Markt",
     "rooms": "Spielräume",
+    "scrims": "Trainingsspiele",
     "tournaments": "Turniere",
+    "rankings": "Ranglisten",
     "my_team": "Mein Team",
     "friends": "Freunde",
     "admin_panel": "Admin-Panel",
@@ -136,7 +142,7 @@
   },
   "ProfilePage": {
     "edit_profile": "Profil bearbeiten",
-    "bio_placeholder": "Ich bin neu bei SquadUp! Bereit, ein Team zu finden und anzutreten.",
+    "bio_placeholder": "Ich bin neu bei Scrimly! Bereit, ein Team zu finden und anzutreten.",
     "current_team": "Aktuelles Team",
     "honors": "Ehrungen",
     "performance_analysis": "Leistungsanalyse",
@@ -202,14 +208,25 @@
     "all_roles_welcome": "Alle Rollen willkommen.",
     "no_roles_wanted": "Keine bestimmten Rollen gesucht.",
     "no_team_title": "Du hast noch kein Team",
-    "no_team_subtitle": "Erstelle dein eigenes Team, um Spieler zu rekrutieren!",
     "create_team": "Team erstellen",
+    "no_team_subtitle": "Erstelle dein eigenes Team, um Spieler zu rekrutieren!",
+    "no_team_subtitle_generic": "Du bist in keinem Team. Suche auf dem Markt nach einem.",
     "no_team_join_prompt": "Durchsuche den Markt, um deine ideale Truppe zu finden.",
     "join_a_team": "Einem Team beitreten",
     "your_team": "Dein Team",
     "join_requests": "Beitrittsanfragen ({count})",
     "join_requests_desc": "Überprüfe Spieler, die deinem Team beitreten möchten.",
-    "default_join_message": "Ich würde gerne deinem Team beitreten!"
+    "default_join_message": "Ich würde gerne deinem Team beitreten!",
+    "achievements_title": "Erfolge & Statistiken",
+    "achievements_desc": "Trophäen und Ergebnisse von Trainingsspielen.",
+    "trophy_room_title": "Trophäenraum",
+    "no_tournaments_won": "Dein Team hat noch keine Turniere gewonnen.",
+    "tournament_champion": "Champion von {tournamentName}",
+    "scrim_record_title": "Scrim-Verlauf",
+    "scrim_record_soon": "Scrim-Ergebnisse und Statistiken kommen bald.",
+    "management_title": "Verwaltungspanel",
+    "management_desc": "Aktionen für Teammitarbeiter.",
+    "edit_team_button": "Teamprofil bearbeiten"
   },
   "MemberManager": {
     "role_updated": "Rolle aktualisiert",
@@ -294,11 +311,12 @@
     "title": "Ein neues Turnier vorschlagen",
     "description": "Fülle die Details für deine Turnieridee aus. Unser Personal wird sie zur Genehmigung prüfen.",
     "name": "Turniername",
-    "name_placeholder": "z.B., SquadUp Summer Skirmish",
+    "name_placeholder": "z.B., Scrimly Summer Skirmish",
     "game": "Spiel",
     "game_placeholder": "z.B., Valorant",
-    "prize": "Preis (Optional)",
-    "prize_placeholder": "z.B., 100 USD, Skins, etc.",
+    "prize_amount": "Preisbetrag",
+    "currency": "Währung",
+    "select_currency": "Währung auswählen...",
     "min_rank": "Mindestrang",
     "max_rank": "Höchstrang",
     "no_restriction": "Keine Einschränkung",
@@ -315,13 +333,13 @@
     "title": "Leitfaden für Turnierformate",
     "description": "Erfahren Sie mehr über die verschiedenen verfügbaren Turnierformate.",
     "single_elim_title": "Einfaches Ausscheiden",
-    "single_elim_desc": "Ein Team scheidet nach einer einzigen Niederlage aus dem Turnier aus. Dies ist das schnellste Format, ideal für große Turniere.",
+    "single_elim_desc": "Der schnellste Weg zum Champion. In diesem risikoreichen Format bedeutet eine einzige Niederlage, dass Ihr Team aus dem Turnier ausscheidet. Es ist ein reines K.o.-System, perfekt für große Events, bei denen die Zeit von entscheidender Bedeutung ist.",
     "double_elim_title": "Doppeltes Ausscheiden",
-    "double_elim_desc": "Ein Team muss zweimal verlieren, um auszuscheiden. Teams, die einmal verlieren, wechseln in eine 'untere Runde' für eine zweite Chance, das Finale zu erreichen.",
+    "double_elim_desc": "Ein Format, das Widerstandsfähigkeit belohnt. Jedes Team erhält eine zweite Chance. Nach Ihrer ersten Niederlage fallen Sie in die 'Untere Runde', um sich zurückzukämpfen. Verlieren Sie erneut, sind Sie ausgeschieden. Die Gewinner der Oberen und Unteren Runde treten im Großen Finale gegeneinander an.",
     "round_robin_title": "Jeder gegen jeden",
-    "round_robin_desc": "Jedes Team spielt mindestens einmal gegen jedes andere Team. Der Gewinner ist das Team mit den meisten Siegen. Dieses Format ist das umfassendste.",
+    "round_robin_desc": "Der umfassendste Test für Fähigkeiten. Jedes Team spielt mindestens einmal gegen jedes andere Team in seiner Gruppe. Die Platzierungen werden durch die Gesamtzahl der Siege bestimmt, was es zu einem wahren Maß für die Konstanz macht. Ideal für kleinere Gruppen, um ein klares Spitzenteam zu finden.",
     "swiss_system_title": "Schweizer System",
-    "swiss_system_desc": "Ein nicht-eliminierendes Format, bei dem Spieler gegen Gegner mit ähnlicher Punktzahl gepaart werden. Es wurde entwickelt, um einen klaren Sieger zu ermitteln, ohne dass jeder Spieler gegen jeden anderen spielen muss, was es ideal für große Teilnehmerfelder macht.",
+    "swiss_system_desc": "Ein ausgewogenes, nicht-eliminierendes Format, perfekt für große Teilnehmerfelder. In jeder Runde werden Sie gegen einen Gegner mit derselben oder einer sehr ähnlichen Sieg-Niederlage-Bilanz gepaart. Dies gewährleistet wettbewerbsfähige Spiele während des gesamten Events, ohne dass jeder gegen jeden spielen muss.",
     "close_button": "Schließen"
   },
   "MessagesPage": {
@@ -360,7 +378,7 @@
   },
   "AdminPanel": {
     "title": "Admin-Dashboard",
-    "subtitle": "Globales Kontrollpanel für die Verwaltung der SquadUp-Plattform.",
+    "subtitle": "Globales Kontrollpanel für die Verwaltung der Scrimly-Plattform.",
     "user_management_title": "Benutzerverwaltung",
     "user_management_desc": "Alle Benutzer anzeigen, bearbeiten, sperren und verwalten.",
     "team_management_title": "Teamverwaltung",
@@ -415,5 +433,66 @@
     "status_completed": "Abgeschlossen",
     "no_tournaments_title": "Keine aktiven Turniere",
     "no_tournaments_desc": "Derzeit gibt es keine genehmigten Turniere zu verwalten."
+  },
+  "StandingsTable": {
+    "title": "Rangliste",
+    "teams_header": "Team",
+    "victories_header": "Siege",
+    "wl_header": "S/N",
+    "status_header": "Status",
+    "status_champion": "Meister",
+    "tbd": "TBD"
+  },
+  "ScrimsPage": {
+    "title": "Scrim-Finder",
+    "subtitle": "Finde ein Trainingsspiel oder poste eines für dein Team.",
+    "no_scrims_title": "Keine verfügbaren Scrims",
+    "no_scrims_subtitle": "Sei der Erste, der einen Scrim postet, damit andere ihn annehmen können.",
+    "create_scrim": "Scrim posten",
+    "create_scrim_desc": "Fülle die Details aus, um ein Trainingsspiel für dein Team aufzulisten.",
+    "date_label": "Datum & Uhrzeit",
+    "format_label": "Format",
+    "type_label": "Typ",
+    "notes_label": "Notizen (Optional)",
+    "notes_placeholder": "z.B. Nur Diamant+, suche IGL...",
+    "posting": "Wird gepostet...",
+    "looking_for_match": "Sucht Spiel",
+    "cancel": "Abbrechen",
+    "accept": "Annehmen",
+    "scrim_posted_title": "Scrim gepostet!",
+    "scrim_posted_desc": "Dein Scrim ist jetzt für andere Teams zur Annahme gelistet.",
+    "scrim_accepted_title": "Scrim angenommen!",
+    "scrim_accepted_desc": "Du hast den Scrim angenommen. Er wird nun in deinem Teamkalender angezeigt.",
+    "scrim_cancelled_title": "Scrim abgebrochen",
+    "scrim_cancelled_desc": "Der Scrim wurde aus der Liste entfernt.",
+    "formats": {
+      "bo1": "Best of 1",
+      "bo3": "Best of 3",
+      "bo5": "Best of 5"
+    },
+    "types": {
+      "scrim": "Scrim (Übungsspiel vs Team)",
+      "tryout": "Tryout (Spieler-Test)"
+    }
+  },
+  "RankingsPage": {
+    "title": "Plattform-Ranglisten",
+    "subtitle": "Sehen Sie, wer an der Spitze der Bestenlisten steht.",
+    "tournaments_tab": "Turniere",
+    "scrims_tab": "Scrims",
+    "honors_tab": "Ehrungen",
+    "no_tournaments_title": "Keine abgeschlossenen Turniere",
+    "no_tournaments_desc": "Sobald Turniere abgeschlossen sind, werden ihre Champions hier angezeigt.",
+    "no_scrims_title": "Scrim-Ranglisten folgen in Kürze",
+    "no_scrims_desc": "Bestenlisten für die Leistung in Scrim-Spielen sind in Entwicklung.",
+    "no_honors_title": "Noch keine Spieler eingestuft",
+    "no_honors_desc": "Wenn Spieler Ehrungen von ihren Kollegen erhalten, werden die ehrenhaftesten Spieler hier angezeigt.",
+    "champion": "Meister",
+    "tournament_won_on": "Gewonnen am {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rang",
+    "player_header": "Spieler",
+    "honors_header": "Gesamtehrungen"
   }
 }
