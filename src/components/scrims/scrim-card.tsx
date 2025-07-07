@@ -75,10 +75,10 @@ export function ScrimCard({ scrim, onScrimAccepted }: { scrim: Scrim, onScrimAcc
     </div>
   );
   
-  const rankDisplay = [scrim.rankMin, scrim.rankMax]
-    .filter(Boolean)
-    .filter((value, index, self) => self.indexOf(value) === index)
-    .join(' - ');
+  const rankParts = [];
+  if (scrim.rankMin) rankParts.push(scrim.rankMin);
+  if (scrim.rankMax && scrim.rankMax !== scrim.rankMin) rankParts.push(scrim.rankMax);
+  const rankDisplay = rankParts.join(' - ');
 
   return (
     <Card className="flex flex-col">
