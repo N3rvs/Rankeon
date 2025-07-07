@@ -53,8 +53,11 @@ function ChatList() {
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const initialChats = snapshot.docs
-                .map(doc => ({ id: doc.id, ...doc.data() } as Chat));
+            const chatMap = new Map<string, Chat>();
+            snapshot.docs.forEach(doc => {
+                chatMap.set(doc.id, { id: doc.id, ...doc.data() } as Chat);
+            });
+            const initialChats = Array.from(chatMap.values());
             
             const sortedChats = initialChats.sort((a, b) => {
                 const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
