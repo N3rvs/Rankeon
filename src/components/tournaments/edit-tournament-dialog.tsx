@@ -39,8 +39,22 @@ export function EditTournamentDialog({ tournament, open, onOpenChange }: EditTou
       description: tournament.description || '',
       prize: tournament.prize || undefined,
       currency: tournament.currency || '',
+      rankMin: tournament.rankMin || '',
+      rankMax: tournament.rankMax || '',
     },
   });
+
+  const valorantRanks = [
+    { value: 'Hierro', label: t('Ranks.iron') },
+    { value: 'Bronce', label: t('Ranks.bronze') },
+    { value: 'Plata', label: t('Ranks.silver') },
+    { value: 'Oro', label: t('Ranks.gold') },
+    { value: 'Platino', label: t('Ranks.platinum') },
+    { value: 'Diamante', label: t('Ranks.diamond') },
+    { value: 'Ascendente', label: t('Ranks.ascendant') },
+    { value: 'Inmortal', label: t('Ranks.immortal') },
+    { value: 'Radiante', label: t('Ranks.radiant') },
+  ];
 
   async function onSubmit(values: EditTournamentData) {
     startTransition(async () => {
@@ -130,6 +144,40 @@ export function EditTournamentDialog({ tournament, open, onOpenChange }: EditTou
                     </FormItem>
                     )}
                 />
+            </div>
+             <div className="grid grid-cols-2 gap-4">
+               <FormField
+                control={form.control}
+                name="rankMin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('ProposeTournamentDialog.min_rank')}</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder={t('ProposeTournamentDialog.no_restriction')} /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            {valorantRanks.map(rank => <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="rankMax"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('ProposeTournamentDialog.max_rank')}</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder={t('ProposeTournamentDialog.no_restriction')} /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            {valorantRanks.map(rank => <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? 'Saving...' : 'Save Changes'}

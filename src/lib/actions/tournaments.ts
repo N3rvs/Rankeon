@@ -67,6 +67,8 @@ export const EditTournamentSchema = z.object({
     description: z.string().min(20, 'Please provide a detailed description.').max(1000),
     prize: z.coerce.number().positive().optional(),
     currency: z.string().optional(),
+    rankMin: z.string().optional(),
+    rankMax: z.string().optional(),
 }).refine(data => {
     if (data.prize && !data.currency) return false;
     if (!data.prize && data.currency) return false;

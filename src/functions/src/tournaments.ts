@@ -22,6 +22,20 @@ interface ReviewTournamentData {
   status: 'approved' | 'rejected';
 }
 
+interface EditTournamentData {
+    tournamentId: string;
+    name: string;
+    description: string;
+    prize?: number;
+    currency?: string;
+    rankMin?: string;
+    rankMax?: string;
+}
+
+interface DeleteTournamentData {
+    tournamentId: string;
+}
+
 export const proposeTournament = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to propose a tournament.");
@@ -156,4 +170,62 @@ export const reviewTournamentProposal = onCall(async (request) => {
         // Otherwise, wrap it in a generic internal error.
         throw new HttpsError('internal', 'A server error occurred while processing the proposal. Please check the function logs.');
     }
+});
+
+export const editTournament = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in to edit a tournament.");
+    }
+
+    const { uid, token } = request.auth;
+    const { tournamentId, ...updateData } = request.data as EditTournamentData;
+
+    if (!tournamentId) {
+        throw new HttpsError("invalid-argument", "Tournament ID is required.");
+    }
+
+    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const tournamentSnap = await tournamentRef.get();
+
+    if (!tournamentSnap.exists) {
+        throw new HttpsError("not-found", "Tournament not found.");
+    }
+
+    const tournamentData = tournamentSnap.data()!;
+    const isOwner = tournamentData.organizer.uid === uid;
+    const isModOrAdmin = token.role === 'moderator' || token.role === 'admin';
+
+    if (!isOwner && !isModOrAdmin) {
+        throw new HttpsError("permission-denied", "You do not have permission to edit this tournament.");
+    }
+
+    await tournamentRef.update(updateData);
+
+    return { success: true, message: "Tournament updated successfully." };
+});
+
+export const deleteTournament = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in to delete a tournament.");
+    }
+     const { token } = request.auth;
+    if (token.role !== 'moderator' && token.role !== 'admin') {
+        throw new HttpsError("permission-denied", "You do not have permission to delete tournaments.");
+    }
+
+    const { tournamentId } = request.data as DeleteTournamentData;
+    if (!tournamentId) {
+        throw new HttpsError("invalid-argument", "Tournament ID is required.");
+    }
+
+    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const tournamentSnap = await tournamentRef.get();
+
+    if (!tournamentSnap.exists) {
+        return { success: true, message: "Tournament already deleted." };
+    }
+
+    await tournamentRef.delete();
+
+    return { success: true, message: "Tournament deleted successfully." };
 });
