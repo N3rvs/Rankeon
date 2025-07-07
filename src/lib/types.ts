@@ -151,6 +151,7 @@ export interface TournamentProposal {
   id: string;
   proposerUid: string;
   proposerName: string;
+  proposerCountry?: string;
   tournamentName: string;
   game: string;
   description: string;
@@ -184,6 +185,7 @@ export interface Tournament {
     uid: string;
     name: string;
   };
+  country?: string;
   createdAt: Timestamp;
   proposalId: string;
   bracket?: Bracket | null;
