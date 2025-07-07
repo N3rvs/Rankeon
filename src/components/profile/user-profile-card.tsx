@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { EditProfileDialog } from './edit-profile-dialog';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
-import { Twitch } from 'lucide-react';
+import { Edit, Twitch } from 'lucide-react';
 import { useI18n } from '@/contexts/i18n-context';
 
 export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
@@ -28,7 +28,17 @@ export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
   }
 
   return (
-    <Card>
+    <Card className="relative">
+      {isOwnProfile && (
+        <div className="absolute top-3 right-3">
+          <EditProfileDialog userProfile={userProfile}>
+            <Button variant="ghost" size="icon">
+              <Edit className="h-4 w-4" />
+              <span className="sr-only">{t('ProfilePage.edit_profile')}</span>
+            </Button>
+          </EditProfileDialog>
+        </div>
+      )}
       <CardContent className="pt-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16">
@@ -50,11 +60,6 @@ export function UserProfileCard({ userProfile }: { userProfile: UserProfile }) {
           </div>
         </div>
         <p className="text-muted-foreground mt-4">{userProfile.bio || t('ProfilePage.bio_placeholder')}</p>
-        {isOwnProfile && (
-          <EditProfileDialog userProfile={userProfile}>
-             <Button className="w-full mt-4">{t('ProfilePage.edit_profile')}</Button>
-          </EditProfileDialog>
-        )}
       </CardContent>
     </Card>
   );
