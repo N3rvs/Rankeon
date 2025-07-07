@@ -99,7 +99,7 @@ export function LandingPage() {
                     className="object-cover"
                     data-ai-hint="gaming abstract"
                 />
-                 <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+                 <div className="absolute inset-0 bg-background/40 backdrop-blur-sm" />
             </div>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                  <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter mb-4 text-white [text-shadow:2px_2px_8px_hsl(var(--primary)/0.5)]">
