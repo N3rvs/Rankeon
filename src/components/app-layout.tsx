@@ -266,15 +266,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger className="md:hidden" />
           </div>
 
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <Button variant="secondary" asChild>
-                <Link href="/rankings">
-                    <Medal className="mr-2 h-4 w-4" />
-                    {t('Sidebar.rankings')}
-                </Link>
-            </Button>
-          </div>
-          
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
             <InboxIcon />

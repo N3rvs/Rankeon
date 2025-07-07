@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
@@ -23,7 +24,6 @@ function Header() {
             <nav className="hidden md:flex items-center gap-6">
                 <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.news')}</Link>
                 <Link href="/tournaments" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.tournaments')}</Link>
-                <Link href="/rankings" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.rankings')}</Link>
             </nav>
             <div className="flex items-center gap-2">
                 <LanguageSwitcher />
