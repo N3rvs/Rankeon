@@ -468,11 +468,19 @@
     "subtitle": "Voyez qui est au sommet des classements.",
     "tournaments_tab": "Tournois",
     "scrims_tab": "Matchs d'entraînement",
+    "honors_tab": "Honneurs",
     "no_tournaments_title": "Aucun Tournoi Terminé",
     "no_tournaments_desc": "Une fois les tournois terminés, leurs champions seront affichés ici.",
     "no_scrims_title": "Classements des Scrims Bientôt Disponibles",
     "no_scrims_desc": "Les classements pour les performances des matchs d'entraînement sont en cours de développement.",
+    "no_honors_title": "Aucun joueur classé pour le moment",
+    "no_honors_desc": "Au fur et à mesure que les joueurs recevront des honneurs de leurs pairs, les joueurs les plus honorables seront affichés ici.",
     "champion": "Champion",
     "tournament_won_on": "Gagné le {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rang",
+    "player_header": "Joueur",
+    "honors_header": "Honneurs Totals"
   }
 }

@@ -468,11 +468,19 @@
     "subtitle": "Sehen Sie, wer an der Spitze der Bestenlisten steht.",
     "tournaments_tab": "Turniere",
     "scrims_tab": "Scrims",
+    "honors_tab": "Ehrungen",
     "no_tournaments_title": "Keine abgeschlossenen Turniere",
     "no_tournaments_desc": "Sobald Turniere abgeschlossen sind, werden ihre Champions hier angezeigt.",
     "no_scrims_title": "Scrim-Ranglisten folgen in Kürze",
     "no_scrims_desc": "Bestenlisten für die Leistung in Scrim-Spielen sind in Entwicklung.",
+    "no_honors_title": "Noch keine Spieler eingestuft",
+    "no_honors_desc": "Wenn Spieler Ehrungen von ihren Kollegen erhalten, werden die ehrenhaftesten Spieler hier angezeigt.",
     "champion": "Champion",
     "tournament_won_on": "Gewonnen am {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rang",
+    "player_header": "Spieler",
+    "honors_header": "Gesamtehrungen"
   }
 }

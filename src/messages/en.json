@@ -468,11 +468,19 @@
     "subtitle": "See who is at the top of the leaderboards.",
     "tournaments_tab": "Tournaments",
     "scrims_tab": "Scrims",
+    "honors_tab": "Honors",
     "no_tournaments_title": "No Completed Tournaments",
     "no_tournaments_desc": "Once tournaments are completed, their champions will be displayed here.",
     "no_scrims_title": "Scrim Rankings Coming Soon",
     "no_scrims_desc": "Leaderboards for scrim match performance are under development.",
+    "no_honors_title": "No Players Ranked Yet",
+    "no_honors_desc": "As players receive honors from their peers, the most honorable players will be displayed here.",
     "champion": "Champion",
     "tournament_won_on": "Won on {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rank",
+    "player_header": "Player",
+    "honors_header": "Total Honors"
   }
 }

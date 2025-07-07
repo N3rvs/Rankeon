@@ -468,11 +468,19 @@
     "subtitle": "Guarda chi è in cima alle classifiche.",
     "tournaments_tab": "Tornei",
     "scrims_tab": "Partite di Allenamento",
+    "honors_tab": "Onorificenze",
     "no_tournaments_title": "Nessun Torneo Completato",
     "no_tournaments_desc": "Una volta completati i tornei, i loro campioni verranno visualizzati qui.",
     "no_scrims_title": "Classifiche Scrim in Arrivo",
     "no_scrims_desc": "Le classifiche per le prestazioni delle partite di allenamento sono in fase di sviluppo.",
+    "no_honors_title": "Nessun giocatore ancora classificato",
+    "no_honors_desc": "Man mano che i giocatori riceveranno onorificenze dai loro compagni, i giocatori più onorevoli verranno visualizzati qui.",
     "champion": "Campione",
     "tournament_won_on": "Vinto il {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rango",
+    "player_header": "Giocatore",
+    "honors_header": "Onorificenze Totali"
   }
 }

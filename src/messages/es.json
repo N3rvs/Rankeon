@@ -468,11 +468,19 @@
     "subtitle": "Mira quién está en la cima de las tablas de clasificación.",
     "tournaments_tab": "Torneos",
     "scrims_tab": "Partidas de Práctica",
+    "honors_tab": "Honores",
     "no_tournaments_title": "No hay Torneos Completados",
     "no_tournaments_desc": "Una vez que los torneos finalicen, sus campeones se mostrarán aquí.",
     "no_scrims_title": "Clasificaciones de Scrims Próximamente",
     "no_scrims_desc": "Las tablas de clasificación para el rendimiento en partidas de práctica están en desarrollo.",
+    "no_honors_title": "Aún no hay Jugadores Clasificados",
+    "no_honors_desc": "A medida que los jugadores reciban honores de sus compañeros, los más honorables se mostrarán aquí.",
     "champion": "Campeón",
     "tournament_won_on": "Ganado el {date}"
+  },
+  "HonorRankings": {
+    "rank_header": "Rango",
+    "player_header": "Jugador",
+    "honors_header": "Honores Totales"
   }
 }
