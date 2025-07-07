@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useI18n } from '@/contexts/i18n-context';
 import { cn } from '@/lib/utils';
 import { PublicLayout } from '../public-layout';
-import ScrimlyLogo from '@/assets/logo.png';
 
 function PricingSection() {
     const { t } = useI18n();
@@ -91,15 +90,7 @@ export function LandingPage() {
     <PublicLayout>
         {/* Hero Section */}
         <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-24">
-            <div className="absolute inset-0">
-                <Image 
-                    src="https://placehold.co/1200x800.png"
-                    alt="Gaming background"
-                    fill
-                    className="object-cover opacity-20"
-                    data-ai-hint="valorant gaming"
-                    priority
-                />
+            <div className="absolute inset-0 bg-background/90">
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
             </div>
 
