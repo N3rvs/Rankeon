@@ -51,7 +51,7 @@ function PricingSection() {
                 </div>
                 <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
                     {plans.map(plan => (
-                        <Card key={plan.title} className={cn("flex flex-col", plan.isFeatured && "border-primary ring-2 ring-primary shadow-lg")}>
+                        <Card key={plan.title} className={cn("flex flex-col transition-transform duration-300 hover:-translate-y-2", plan.isFeatured && "border-primary ring-2 ring-primary shadow-lg")}>
                             <CardHeader className="pb-4">
                                 {plan.isFeatured && <div className="text-center text-sm font-bold text-primary pb-2">{t('Pricing.most_popular')}</div>}
                                 <CardTitle className="font-headline text-2xl">{plan.title}</CardTitle>
@@ -97,9 +97,9 @@ export function LandingPage() {
                     alt="Hero background"
                     fill
                     className="object-cover"
-                    data-ai-hint="gaming abstract"
+                    data-ai-hint="esports abstract"
                 />
-                 <div className="absolute inset-0 bg-background/40 backdrop-blur-sm" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
             </div>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                  <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter mb-4 text-white [text-shadow:2px_2px_8px_hsl(var(--primary)/0.5)]">
@@ -127,27 +127,39 @@ export function LandingPage() {
                 <p className="text-lg text-muted-foreground mt-2">{t('LandingPage.features_subtitle')}</p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
-               <div className="text-center">
-                    <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit mb-4">
-                        <Users className="h-8 w-8" />
-                    </div>
-                    <h3 className="font-headline text-xl font-bold">{t('LandingPage.find_players_title')}</h3>
-                    <p className="text-muted-foreground mt-2">{t('LandingPage.find_players_desc')}</p>
-                </div>
-                 <div className="text-center">
-                     <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit mb-4">
-                        <Swords className="h-8 w-8" />
-                    </div>
-                    <h3 className="font-headline text-xl font-bold">{t('LandingPage.scrims_title')}</h3>
-                    <p className="text-muted-foreground mt-2">{t('LandingPage.scrims_desc')}</p>
-                </div>
-                 <div className="text-center">
-                     <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit mb-4">
-                        <Trophy className="h-8 w-8" />
-                    </div>
-                    <h3 className="font-headline text-xl font-bold">{t('LandingPage.tournaments_title')}</h3>
-                    <p className="text-muted-foreground mt-2">{t('LandingPage.tournaments_desc')}</p>
-                </div>
+               <Card className="text-center p-6 transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 hover:shadow-lg">
+                    <CardHeader className="p-0">
+                        <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit mb-4">
+                            <Users className="h-8 w-8" />
+                        </div>
+                        <CardTitle className="font-headline text-xl">{t('LandingPage.find_players_title')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0 mt-2">
+                        <p className="text-muted-foreground">{t('LandingPage.find_players_desc')}</p>
+                    </CardContent>
+                </Card>
+                 <Card className="text-center p-6 transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 hover:shadow-lg">
+                     <CardHeader className="p-0">
+                        <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit mb-4">
+                            <Swords className="h-8 w-8" />
+                        </div>
+                        <CardTitle className="font-headline text-xl">{t('LandingPage.scrims_title')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0 mt-2">
+                        <p className="text-muted-foreground">{t('LandingPage.scrims_desc')}</p>
+                    </CardContent>
+                </Card>
+                 <Card className="text-center p-6 transition-transform duration-300 hover:-translate-y-2 hover:shadow-primary/20 hover:shadow-lg">
+                     <CardHeader className="p-0">
+                        <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit mb-4">
+                            <Trophy className="h-8 w-8" />
+                        </div>
+                        <CardTitle className="font-headline text-xl">{t('LandingPage.tournaments_title')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0 mt-2">
+                        <p className="text-muted-foreground">{t('LandingPage.tournaments_desc')}</p>
+                    </CardContent>
+                </Card>
             </div>
           </div>
         </section>
