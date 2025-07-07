@@ -198,3 +198,49 @@ export const registerTeamForTournament = onCall(async ({ auth: requestAuth, data
         return { success: true, message: "Team registered successfully." };
     });
 });
+
+export const deleteTournament = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+    const { token } = request.auth;
+    if (token.role !== 'moderator' && token.role !== 'admin') {
+        throw new HttpsError("permission-denied", "You do not have permission to delete tournaments.");
+    }
+
+    const { tournamentId } = request.data as { tournamentId: string };
+    if (!tournamentId) {
+        throw new HttpsError("invalid-argument", "Missing tournament ID.");
+    }
+
+    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+
+    try {
+        const tournamentDoc = await tournamentRef.get();
+        if (!tournamentDoc.exists) {
+            return { success: true, message: "Tournament already deleted." };
+        }
+
+        const tournamentData = tournamentDoc.data();
+        const proposalId = tournamentData?.proposalId;
+
+        const batch = db.batch();
+
+        // Delete the tournament document
+        batch.delete(tournamentRef);
+
+        // Optional: Delete the original proposal as well for cleanup
+        if (proposalId) {
+            const proposalRef = db.collection("tournamentProposals").doc(proposalId);
+            batch.delete(proposalRef);
+        }
+
+        await batch.commit();
+
+        return { success: true, message: "Tournament deleted successfully." };
+
+    } catch (error: any) {
+        console.error("Error deleting tournament:", error);
+        throw new HttpsError('internal', 'A server error occurred while deleting the tournament.');
+    }
+});

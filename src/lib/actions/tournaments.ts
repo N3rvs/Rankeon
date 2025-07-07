@@ -30,6 +30,11 @@ export const RegisterTeamSchema = z.object({
 });
 export type RegisterTeamData = z.infer<typeof RegisterTeamSchema>;
 
+export const DeleteTournamentSchema = z.object({
+    tournamentId: z.string().min(1),
+});
+export type DeleteTournamentData = z.infer<typeof DeleteTournamentSchema>;
+
 
 type ActionResponse = {
   success: boolean;
@@ -88,6 +93,23 @@ export async function registerTeamForTournament(values: RegisterTeamData): Promi
         return (result.data as ActionResponse);
     } catch (error: any) {
         console.error('Error registering team for tournament:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
+}
+
+export async function deleteTournament(values: DeleteTournamentData): Promise<ActionResponse> {
+    try {
+        const validatedFields = DeleteTournamentSchema.safeParse(values);
+        if (!validatedFields.success) {
+            return { success: false, message: 'Invalid data provided.' };
+        }
+        
+        const deleteFunc = httpsCallable(functions, 'deleteTournament');
+        const result = await deleteFunc(validatedFields.data);
+        
+        return (result.data as ActionResponse);
+    } catch (error: any) {
+        console.error('Error deleting tournament:', error);
         return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }

@@ -385,6 +385,21 @@
     "tournament_proposals_page_title": "Turniervorschläge",
     "tournament_proposals_page_desc": "Von der Community eingereichte Turniere genehmigen oder ablehnen.",
     "support_tickets_page_title": "Support-Tickets",
-    "chat_moderation_page_title": "Chat-Moderation"
+    "chat_moderation_page_title": "Chat-Moderation",
+    "manage_tournaments_title": "Turniere verwalten",
+    "manage_tournaments_desc": "Bestehende Turniere anzeigen, bearbeiten oder löschen."
+  },
+  "TournamentManagement": {
+    "delete_button": "Löschen",
+    "delete_confirm_title": "Bist du absolut sicher?",
+    "delete_confirm_desc": "Diese Aktion kann nicht rückgängig gemacht werden. Dies löscht das Turnier \"{name}\" dauerhaft.",
+    "cancel": "Abbrechen",
+    "confirm_delete": "Ja, Turnier löschen",
+    "deleting": "Wird gelöscht...",
+    "status_upcoming": "Anstehend",
+    "status_ongoing": "Laufend",
+    "status_completed": "Abgeschlossen",
+    "no_tournaments_title": "Keine aktiven Turniere",
+    "no_tournaments_desc": "Derzeit gibt es keine genehmigten Turniere zu verwalten."
   }
 }

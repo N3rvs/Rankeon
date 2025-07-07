@@ -385,6 +385,21 @@
     "tournament_proposals_page_title": "Proposte di Tornei",
     "tournament_proposals_page_desc": "Approva o rifiuta i tornei inviati dalla community.",
     "support_tickets_page_title": "Ticket di Supporto",
-    "chat_moderation_page_title": "Moderazione Chat"
+    "chat_moderation_page_title": "Moderazione Chat",
+    "manage_tournaments_title": "Gestisci Tornei",
+    "manage_tournaments_desc": "Visualizza, modifica o elimina tornei esistenti."
+  },
+  "TournamentManagement": {
+    "delete_button": "Elimina",
+    "delete_confirm_title": "Sei assolutamente sicuro?",
+    "delete_confirm_desc": "Questa azione non può essere annullata. Questo eliminerà permanentemente il torneo \"{name}\".",
+    "cancel": "Annulla",
+    "confirm_delete": "Sì, elimina torneo",
+    "deleting": "Eliminazione...",
+    "status_upcoming": "In arrivo",
+    "status_ongoing": "In corso",
+    "status_completed": "Completato",
+    "no_tournaments_title": "Nessun torneo attivo",
+    "no_tournaments_desc": "Non ci sono tornei approvati da gestire in questo momento."
   }
 }

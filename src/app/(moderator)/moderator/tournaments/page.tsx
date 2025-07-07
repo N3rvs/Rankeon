@@ -3,9 +3,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TournamentProposalsList } from '@/components/moderator/tournament-proposals-list';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Gavel } from 'lucide-react';
+import { ArrowLeft, Gavel, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from "@/contexts/i18n-context";
+import { TournamentManagementList } from "@/components/moderator/tournament-management-list";
 
 export default function ModeratorTournamentsPage() {
     const { t } = useI18n();
@@ -31,8 +32,21 @@ export default function ModeratorTournamentsPage() {
                     <TournamentProposalsList />
                 </CardContent>
             </Card>
+
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-4">
+                        <Trophy className="h-6 w-6 text-primary" />
+                         <div>
+                            <CardTitle className="font-headline text-2xl">{t('ModPanel.manage_tournaments_title')}</CardTitle>
+                            <CardDescription>{t('ModPanel.manage_tournaments_desc')}</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <TournamentManagementList />
+                </CardContent>
+            </Card>
         </div>
     )
 }
-
-    
