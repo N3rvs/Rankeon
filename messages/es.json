@@ -269,6 +269,8 @@
     "back_button": "Volver a Torneos",
     "date_label": "Fecha",
     "format_label": "Formato",
+    "slots_label": "Plazas",
+    "slots_count": "{count} / {max}",
     "description_label": "Descripción",
     "register_title": "Inscribe a tu Equipo",
     "registered_text": "¡Tu equipo está inscrito!",

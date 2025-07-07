@@ -269,6 +269,8 @@
     "back_button": "Zurück zu den Turnieren",
     "date_label": "Datum",
     "format_label": "Format",
+    "slots_label": "Plätze",
+    "slots_count": "{count} / {max}",
     "description_label": "Beschreibung",
     "register_title": "Dein Team registrieren",
     "registered_text": "Dein Team ist registriert!",

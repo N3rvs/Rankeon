@@ -269,6 +269,8 @@
     "back_button": "Torna ai tornei",
     "date_label": "Data",
     "format_label": "Formato",
+    "slots_label": "Slot",
+    "slots_count": "{count} / {max}",
     "description_label": "Descrizione",
     "register_title": "Registra la tua squadra",
     "registered_text": "La tua squadra è registrata!",

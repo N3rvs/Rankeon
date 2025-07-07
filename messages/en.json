@@ -269,6 +269,8 @@
     "back_button": "Back to Tournaments",
     "date_label": "Date",
     "format_label": "Format",
+    "slots_label": "Slots",
+    "slots_count": "{count} / {max}",
     "description_label": "Description",
     "register_title": "Register Your Team",
     "registered_text": "Your team is registered!",

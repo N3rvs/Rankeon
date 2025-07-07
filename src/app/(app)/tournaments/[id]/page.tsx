@@ -12,12 +12,22 @@ import { ArrowLeft, Calendar, CheckCircle2, Gamepad2, Trophy, Users } from 'luci
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
+import { es, enUS, de, fr, it, pt } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { TournamentBracket } from '@/components/tournaments/tournament-bracket';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useI18n } from '@/contexts/i18n-context';
+import { useI18n, type Locale } from '@/contexts/i18n-context';
 import { useToast } from '@/hooks/use-toast';
 import { registerTeamForTournament } from '@/lib/actions/tournaments';
+
+const dateLocales: Record<Locale, globalThis.Locale> = {
+  en: enUS,
+  es,
+  de,
+  fr,
+  it,
+  pt,
+};
 
 function getStatusBadgeVariant(status: Tournament['status']) {
   switch (status) {
@@ -34,7 +44,7 @@ function getStatusBadgeVariant(status: Tournament['status']) {
 
 function TournamentDetails({ tournament }: { tournament: Tournament }) {
   const { userProfile } = useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { toast } = useToast();
   const [isRegistering, startRegistering] = useTransition();
 
@@ -81,7 +91,7 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
             <div className="flex items-center gap-3 text-sm">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">{t('TournamentDetailsPage.date_label')}:</span>
-              <span className="font-semibold">{format(tournament.startDate.toDate(), "PPP")}</span>
+              <span className="font-semibold">{format(tournament.startDate.toDate(), "PPP", { locale: dateLocales[locale] })}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
               <Trophy className="h-4 w-4 text-muted-foreground" />
@@ -90,8 +100,13 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
             </div>
             <div className="flex items-center gap-3 text-sm">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Slots:</span>
-                <span className="font-semibold">{tournament.participants?.length || 0} / {tournament.maxTeams}</span>
+                <span className="text-muted-foreground">{t('TournamentDetailsPage.slots_label')}:</span>
+                <span className="font-semibold">
+                  {t('TournamentDetailsPage.slots_count', {
+                    count: tournament.participants?.length || 0,
+                    max: tournament.maxTeams || '?',
+                  })}
+                </span>
             </div>
             <div>
               <h4 className="font-semibold text-sm mb-1">{t('TournamentDetailsPage.description_label')}</h4>

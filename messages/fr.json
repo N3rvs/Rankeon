@@ -269,6 +269,8 @@
     "back_button": "Retour aux tournois",
     "date_label": "Date",
     "format_label": "Format",
+    "slots_label": "Places",
+    "slots_count": "{count} / {max}",
     "description_label": "Description",
     "register_title": "Inscrire votre équipe",
     "registered_text": "Votre équipe est inscrite !",
