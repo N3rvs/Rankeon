@@ -308,6 +308,8 @@
     "double_elim_desc": "Un equipo debe perder dos veces para ser eliminado. Los equipos que pierden una vez pasan a un 'cuadro inferior' para tener una segunda oportunidad de llegar a la final.",
     "round_robin_title": "Round Robin (Todos contra todos)",
     "round_robin_desc": "Cada equipo juega contra todos los demás equipos al menos una vez. El ganador es el equipo con más victorias. Este formato es el más completo.",
+    "swiss_system_title": "Sistema Suizo",
+    "swiss_system_desc": "Un formato sin eliminación donde los jugadores se emparejan contra oponentes con una puntuación similar. Está diseñado para determinar un claro ganador sin que todos jueguen contra todos, ideal para un gran número de competidores.",
     "close_button": "Cerrar"
   },
   "MessagesPage": {

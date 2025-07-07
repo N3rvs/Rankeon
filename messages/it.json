@@ -308,6 +308,8 @@
     "double_elim_desc": "Una squadra deve perdere due volte per essere eliminata. Le squadre che perdono una volta si spostano in un 'girone inferiore' per una seconda possibilità di raggiungere la finale.",
     "round_robin_title": "Girone all'italiana",
     "round_robin_desc": "Ogni squadra gioca contro ogni altra squadra almeno una volta. Il vincitore è la squadra con il maggior numero di vittorie. Questo formato è il più completo.",
+    "swiss_system_title": "Sistema Svizzero",
+    "swiss_system_desc": "Un formato senza eliminazione in cui i giocatori vengono abbinati contro avversari con un punteggio simile. È progettato per determinare un chiaro vincitore senza che ogni giocatore debba giocare contro tutti gli altri, rendendolo ideale per un gran numero di concorrenti.",
     "close_button": "Chiudi"
   },
   "MessagesPage": {

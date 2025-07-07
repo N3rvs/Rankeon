@@ -1,3 +1,4 @@
+// src/components/tournaments/tournament-guide-dialog.tsx
 'use client';
 
 import {
@@ -17,7 +18,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from '@/components/ui/button';
-import { BookOpen, Shield, ShieldCheck, Recycle } from 'lucide-react';
+import { BookOpen, Shield, ShieldCheck, Recycle, Shuffle } from 'lucide-react';
 import { useI18n } from '@/contexts/i18n-context';
 
 export function TournamentGuideDialog() {
@@ -41,6 +42,12 @@ export function TournamentGuideDialog() {
       title: t('TournamentGuideDialog.round_robin_title'),
       description: t('TournamentGuideDialog.round_robin_desc'),
       icon: <Recycle className="h-5 w-5 mr-3 text-yellow-500" />
+    },
+    {
+      id: "swiss_system",
+      title: t('TournamentGuideDialog.swiss_system_title'),
+      description: t('TournamentGuideDialog.swiss_system_desc'),
+      icon: <Shuffle className="h-5 w-5 mr-3 text-purple-500" />
     }
   ];
 

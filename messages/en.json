@@ -308,6 +308,8 @@
     "double_elim_desc": "A team must lose twice to be eliminated. Teams that lose once move to a 'lower bracket' for a second chance to reach the final.",
     "round_robin_title": "Round Robin",
     "round_robin_desc": "Each team plays against every other team at least once. The winner is the team with the most victories. This format is the most comprehensive.",
+    "swiss_system_title": "Swiss System",
+    "swiss_system_desc": "A non-eliminating format where players are paired against opponents with a similar score. It's designed to determine a clear winner without every player having to play every other player, making it ideal for large fields of competitors.",
     "close_button": "Close"
   },
   "MessagesPage": {
