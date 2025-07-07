@@ -87,7 +87,7 @@
     "iceland": "Island",
     "ireland": "Irland",
     "italy": "Italien",
-    "latvia": "Lettland",
+    "latvia": "Lettonia",
     "liechtenstein": "Liechtenstein",
     "lithuania": "Litauen",
     "luxembourg": "Luxemburg",
@@ -475,7 +475,7 @@
     "no_scrims_desc": "Bestenlisten für die Leistung in Scrim-Spielen sind in Entwicklung.",
     "no_honors_title": "Noch keine Spieler eingestuft",
     "no_honors_desc": "Wenn Spieler Ehrungen von ihren Kollegen erhalten, werden die ehrenhaftesten Spieler hier angezeigt.",
-    "champion": "Champion",
+    "champion": "Meister",
     "tournament_won_on": "Gewonnen am {date}"
   },
   "HonorRankings": {
