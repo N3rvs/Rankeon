@@ -49,6 +49,9 @@
         "data_security_text": "Tomamos medidas razoáveis para proteger suas informações, mas nenhum sistema de segurança é impenetrável. Não podemos garantir a segurança absoluta de seus dados.",
         "your_rights_title": "Seus direitos",
         "your_rights_text": "Você tem o direito de acessar, corrigir ou excluir suas informações pessoais. Você pode atualizar as informações do seu perfil diretamente no aplicativo. Para outras solicitações, entre em contato conosco.",
+        "cookies_title": "Cookies e Tecnologias de Rastreamento",
+        "cookies_text_intro": "O Scrimly usa cookies e tecnologias semelhantes para aprimorar sua experiência na plataforma. Um cookie é um pequeno arquivo de dados armazenado no seu dispositivo. Abaixo estão os tipos de cookies que usamos:",
+        "cookies_list": "Cookies Essenciais: Fundamentais para a operação da plataforma. Eles são usados para manter sua sessão logada, gerenciar a segurança e lembrar seu consentimento de cookies. Eles não podem ser desativados.|Cookies de Análise: Usamos ferramentas como o Google Analytics para coletar dados anônimos sobre como os usuários interagem com o Scrimly. Isso nos ajuda a identificar problemas, entender padrões de uso e melhorar o aplicativo. Você pode optar por não participar através das configurações do seu navegador.|Cookies de Preferência: Usados para lembrar suas escolhas, como idioma ou tema (claro/escuro), para que você não precise defini-los a cada visita.|Gerenciando Cookies: A maioria dos navegadores permite que você controle os cookies através de suas configurações. No entanto, restringir os cookies pode afetar a funcionalidade do nosso site.",
         "contact_title": "Contato",
         "contact_text": "Se você tiver dúvidas sobre esta Política de Privacidade, entre em contato conosco em: support@scrimly.app"
     },

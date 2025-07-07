@@ -52,6 +52,12 @@ export default function PrivacyPolicyPage() {
                     </section>
 
                     <section>
+                        <h2 className="text-2xl font-headline font-semibold mb-4">{t('PrivacyPage.cookies_title')}</h2>
+                        <p className="mb-4">{t('PrivacyPage.cookies_text_intro')}</p>
+                        {renderList('PrivacyPage.cookies_list')}
+                    </section>
+
+                    <section>
                         <h2 className="text-2xl font-headline font-semibold mb-4">{t('PrivacyPage.contact_title')}</h2>
                         <p>{t('PrivacyPage.contact_text')}</p>
                     </section>

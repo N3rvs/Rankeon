@@ -49,6 +49,9 @@
         "data_security_text": "Nous prenons des mesures raisonnables pour protéger vos informations, mais aucun système de sécurité n'est impénétrable. Nous ne pouvons garantir la sécurité absolue de vos données.",
         "your_rights_title": "Vos droits",
         "your_rights_text": "Vous avez le droit d'accéder, de corriger ou de supprimer vos informations personnelles. Vous pouvez mettre à jour les informations de votre profil directement dans l'application. Pour toute autre demande, veuillez nous contacter.",
+        "cookies_title": "Cookies et Technologies de Suivi",
+        "cookies_text_intro": "Scrimly utilise des cookies et des technologies similaires pour améliorer votre expérience sur la plateforme. Un cookie est un petit fichier de données stocké sur votre appareil. Voici les types de cookies que nous utilisons :",
+        "cookies_list": "Cookies Essentiels : Fondamentaux pour le fonctionnement de la plateforme. Ils sont utilisés pour maintenir votre session connectée, gérer la sécurité et mémoriser votre consentement aux cookies. Ils ne peuvent pas être désactivés.|Cookies Analytiques : Nous utilisons des outils comme Google Analytics pour collecter des données anonymes sur la manière dont les utilisateurs interagissent avec Scrimly. Cela nous aide à identifier les problèmes, à comprendre les modèles d'utilisation et à améliorer l'application. Vous pouvez vous désinscrire via les paramètres de votre navigateur.|Cookies de Préférences : Utilisés pour mémoriser vos choix, tels que la langue ou le thème (clair/sombre), afin que vous n'ayez pas à les définir à chaque visite.|Gestion des Cookies : La plupart des navigateurs vous permettent de contrôler les cookies via leurs paramètres. Cependant, la restriction des cookies peut avoir un impact sur la fonctionnalité de notre site Web.",
         "contact_title": "Contact",
         "contact_text": "Si vous avez des questions sur cette politique de confidentialité, veuillez nous contacter à : support@scrimly.app"
     },
@@ -510,7 +513,7 @@
   },
   "TournamentManagement": {
     "delete_button": "Supprimer",
-    "delete_confirm_title": "Êtes-vous absolutely sûr ?",
+    "delete_confirm_title": "Êtes-vous absolument sûr ?",
     "delete_confirm_desc": "Cette action est irréversible. Cela supprimera définitivement le tournoi \"{name}\".",
     "cancel": "Annuler",
     "confirm_delete": "Oui, supprimer le tournoi",

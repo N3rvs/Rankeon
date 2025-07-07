@@ -49,6 +49,9 @@
     "data_security_text": "We take reasonable measures to protect your information, but no security system is impenetrable. We cannot guarantee the absolute security of your data.",
     "your_rights_title": "Your Rights",
     "your_rights_text": "You have the right to access, correct, or delete your personal information. You can update your profile information directly in the application. For other requests, please contact us.",
+    "cookies_title": "Cookies and Tracking Technologies",
+    "cookies_text_intro": "Scrimly uses cookies and similar technologies to enhance your experience on the platform. A cookie is a small data file stored on your device. Below are the types of cookies we use:",
+    "cookies_list": "Essential Cookies: Fundamental for the platform's operation. They are used to keep your session logged in, manage security, and remember your cookie consent. They cannot be disabled.|Analytics Cookies: We use tools like Google Analytics to collect anonymous data on how users interact with Scrimly. This helps us identify issues, understand usage patterns, and improve the application. You can opt-out via your browser settings.|Preference Cookies: Used to remember your choices, such as language or theme (light/dark), so you don't have to set them each time you visit.|Managing Cookies: Most browsers allow you to control cookies through their settings. However, restricting cookies may impact the functionality of our website.",
     "contact_title": "Contact",
     "contact_text": "If you have questions about this Privacy Policy, please contact us at: support@scrimly.app"
   },
