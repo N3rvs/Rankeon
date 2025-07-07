@@ -318,7 +318,8 @@
     "scrim_record_soon": "Resultados e estatísticas de scrims em breve.",
     "management_title": "Painel de Gerenciamento",
     "management_desc": "Ações para a equipe técnica.",
-    "edit_team_button": "Editar Perfil da Equipe"
+    "edit_team_button": "Editar Perfil da Equipe",
+    "upcoming_matches": "Próximas Partidas"
   },
   "MemberManager": {
     "role_updated": "Função Atualizada",
@@ -569,7 +570,10 @@
     "status_pending": "Pendente",
     "status_confirmed": "Confirmado",
     "status_cancelled": "Cancelado",
-    "status_completed": "Concluído"
+    "status_completed": "Concluído",
+    "available_scrims_tab": "Scrims Disponíveis",
+    "my_scrims_tab": "Meus Scrims",
+    "confirmed_matches_tab": "Partidas Confirmadas"
   },
   "RankingsPage": {
     "title": "Classificações da Plataforma",

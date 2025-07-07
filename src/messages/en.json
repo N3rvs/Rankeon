@@ -318,7 +318,8 @@
     "scrim_record_soon": "Scrim results and stats are coming soon.",
     "management_title": "Management Panel",
     "management_desc": "Actions for team staff.",
-    "edit_team_button": "Edit Team Profile"
+    "edit_team_button": "Edit Team Profile",
+    "upcoming_matches": "Upcoming Matches"
   },
   "MemberManager": {
     "role_updated": "Role Updated",
@@ -569,7 +570,10 @@
     "status_pending": "Pending",
     "status_confirmed": "Confirmed",
     "status_cancelled": "Cancelled",
-    "status_completed": "Completed"
+    "status_completed": "Completed",
+    "available_scrims_tab": "Available Scrims",
+    "my_scrims_tab": "My Scrims",
+    "confirmed_matches_tab": "Confirmed Matches"
   },
   "RankingsPage": {
     "title": "Platform Rankings",

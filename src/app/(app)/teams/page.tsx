@@ -26,6 +26,7 @@ import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
 import { CreateScrimDialog } from '@/components/scrims/create-scrim-dialog';
 import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
+import { UpcomingScrimsCard } from '@/components/teams/upcoming-scrims-card';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
@@ -308,6 +309,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                             ))}
                         </CardContent>
                     </Card>
+                    <UpcomingScrimsCard teamId={team.id} />
                 </div>
 
                 {/* RIGHT COLUMN */}
