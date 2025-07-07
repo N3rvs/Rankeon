@@ -2,23 +2,20 @@
 
 import { Button } from '@/components/ui/button';
 import { Rocket, Users, Trophy, Check, Swords } from 'lucide-react';
-import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useI18n } from '@/contexts/i18n-context';
-import { LanguageSwitcher } from '@/components/i18n/language-switcher';
-import ScrimlyLogo from '@/assets/logo.png';
 import { cn } from '@/lib/utils';
 import { PublicLayout } from '../public-layout';
+import ScrimlyLogo from '@/assets/logo.png';
 
 function PricingSection() {
     const { t } = useI18n();
     const plans = [
         {
             title: t('Pricing.founder_title'),
-            price: "€9.99",
+            price: "€4.99",
             period: t('Pricing.monthly'),
             description: t('Pricing.founder_desc'),
             features: t('Pricing.founder_features').split('|'),
@@ -27,7 +24,7 @@ function PricingSection() {
         },
         {
             title: t('Pricing.coach_title'),
-            price: "€7.99",
+            price: "€1.99",
             period: t('Pricing.monthly'),
             description: t('Pricing.coach_desc'),
             features: t('Pricing.coach_features').split('|'),
@@ -84,7 +81,7 @@ export function LandingPage() {
   return (
     <PublicLayout>
         {/* Hero Section */}
-        <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-20">
+        <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-24">
             <div className="absolute inset-0">
                 <Image 
                     src="https://placehold.co/1200x800.png"
