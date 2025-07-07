@@ -261,7 +261,22 @@
     "subtitle": "Battez-vous pour la gloire et les prix.",
     "no_tournaments_title": "Aucun tournoi actif",
     "no_tournaments_subtitle": "Revenez plus tard pour les événements à venir.",
-    "propose_tournament": "Proposer un tournoi"
+    "propose_tournament": "Proposer un tournoi",
+    "view_details": "Voir les détails"
+  },
+  "TournamentDetailsPage": {
+    "back_button": "Retour aux tournois",
+    "date_label": "Date",
+    "format_label": "Format",
+    "description_label": "Description",
+    "register_title": "Inscrire votre équipe",
+    "registered_text": "Votre équipe est inscrite !",
+    "register_button": "Inscrire l'équipe",
+    "participants_title": "Participants ({count})",
+    "no_participants": "Aucune équipe n'est encore inscrite.",
+    "status_upcoming": "À venir",
+    "status_ongoing": "En cours",
+    "status_completed": "Terminé"
   },
   "ProposeTournamentDialog": {
     "title": "Proposer un nouveau tournoi",
@@ -357,5 +372,3 @@
     "chat_moderation_page_title": "Modération du chat"
   }
 }
-
-    

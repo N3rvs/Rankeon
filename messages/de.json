@@ -261,7 +261,22 @@
     "subtitle": "Kämpfe um Ruhm und Preise.",
     "no_tournaments_title": "Keine aktiven Turniere",
     "no_tournaments_subtitle": "Schau später für kommende Events wieder vorbei.",
-    "propose_tournament": "Turnier vorschlagen"
+    "propose_tournament": "Turnier vorschlagen",
+    "view_details": "Details anzeigen"
+  },
+  "TournamentDetailsPage": {
+    "back_button": "Zurück zu den Turnieren",
+    "date_label": "Datum",
+    "format_label": "Format",
+    "description_label": "Beschreibung",
+    "register_title": "Dein Team registrieren",
+    "registered_text": "Dein Team ist registriert!",
+    "register_button": "Team registrieren",
+    "participants_title": "Teilnehmer ({count})",
+    "no_participants": "Es haben sich noch keine Teams registriert.",
+    "status_upcoming": "Anstehend",
+    "status_ongoing": "Laufend",
+    "status_completed": "Abgeschlossen"
   },
   "ProposeTournamentDialog": {
     "title": "Ein neues Turnier vorschlagen",
@@ -357,5 +372,3 @@
     "chat_moderation_page_title": "Chat-Moderation"
   }
 }
-
-    

@@ -261,7 +261,22 @@
     "subtitle": "Compite por la gloria y los premios.",
     "no_tournaments_title": "No hay torneos activos",
     "no_tournaments_subtitle": "Vuelve más tarde para ver los próximos eventos.",
-    "propose_tournament": "Proponer Torneo"
+    "propose_tournament": "Proponer Torneo",
+    "view_details": "Ver Detalles"
+  },
+  "TournamentDetailsPage": {
+    "back_button": "Volver a Torneos",
+    "date_label": "Fecha",
+    "format_label": "Formato",
+    "description_label": "Descripción",
+    "register_title": "Inscribe a tu Equipo",
+    "registered_text": "¡Tu equipo está inscrito!",
+    "register_button": "Inscribir Equipo",
+    "participants_title": "Participantes ({count})",
+    "no_participants": "Aún no se ha inscrito ningún equipo.",
+    "status_upcoming": "Próximo",
+    "status_ongoing": "En curso",
+    "status_completed": "Completado"
   },
   "ProposeTournamentDialog": {
     "title": "Proponer un Nuevo Torneo",
@@ -357,5 +372,3 @@
     "chat_moderation_page_title": "Moderación de Chat"
   }
 }
-
-    
