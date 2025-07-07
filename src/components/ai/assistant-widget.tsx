@@ -69,7 +69,7 @@ export function AssistantWidget() {
             </div>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsOpen(false)}><X className="h-4 w-4" /></Button>
           </CardHeader>
-          <CardContent className="flex-1 p-0 flex flex-col">
+          <CardContent className="flex-1 p-0 flex flex-col min-h-0">
             <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {messages.map((msg, index) => (
