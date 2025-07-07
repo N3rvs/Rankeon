@@ -14,6 +14,15 @@ function PricingSection() {
     const { t } = useI18n();
     const plans = [
         {
+            title: t('Pricing.player_title'),
+            price: t('Pricing.player_price'),
+            period: '',
+            description: t('Pricing.player_desc'),
+            features: t('Pricing.player_features').split('|'),
+            cta: t('Pricing.player_cta'),
+            isFeatured: false,
+        },
+        {
             title: t('Pricing.founder_title'),
             price: "€4.99",
             period: t('Pricing.monthly'),
@@ -40,7 +49,7 @@ function PricingSection() {
                     <h2 className="text-3xl md:text-4xl font-bold font-headline">{t('Pricing.title')}</h2>
                     <p className="text-lg text-muted-foreground mt-2">{t('Pricing.subtitle')}</p>
                 </div>
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
                     {plans.map(plan => (
                         <Card key={plan.title} className={cn("flex flex-col", plan.isFeatured && "border-primary ring-2 ring-primary shadow-lg")}>
                             <CardHeader className="pb-4">
@@ -51,7 +60,7 @@ function PricingSection() {
                             <CardContent className="flex-grow space-y-6">
                                 <div className="flex items-baseline">
                                     <span className="text-4xl font-bold">{plan.price}</span>
-                                    <span className="text-muted-foreground ml-1">{plan.period}</span>
+                                    {plan.period && <span className="text-muted-foreground ml-1">{plan.period}</span>}
                                 </div>
                                 <ul className="space-y-3">
                                     {plan.features.map(feature => (
