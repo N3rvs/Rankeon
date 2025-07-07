@@ -82,9 +82,9 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {managementCards.map((card) => (
                     <Card key={card.title} className="flex flex-col">
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <card.icon className="h-8 w-8 text-muted-foreground" />
-                             <div>
+                        <CardHeader className="flex flex-row items-start gap-4">
+                            <card.icon className="h-6 w-6 text-muted-foreground mt-1 flex-shrink-0" />
+                             <div className="flex-1">
                                 <CardTitle className="font-headline text-xl">{card.title}</CardTitle>
                                 <CardDescription>{card.description}</CardDescription>
                             </div>
@@ -103,5 +103,3 @@ export default function AdminPage() {
         </div>
     )
 }
-
-    
