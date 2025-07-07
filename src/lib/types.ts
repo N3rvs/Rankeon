@@ -156,6 +156,7 @@ export interface TournamentProposal {
   description: string;
   proposedDate: Timestamp;
   format: string;
+  maxTeams: number;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Timestamp;
   reviewedBy?: string; // UID of admin/mod who reviewed
@@ -169,6 +170,7 @@ export interface Tournament {
   description: string;
   startDate: Timestamp;
   format: string;
+  maxTeams: number;
   status: 'upcoming' | 'ongoing' | 'completed';
   organizer: {
     uid: string;

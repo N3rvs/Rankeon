@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useParams } from 'next/navigation';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
@@ -8,7 +8,7 @@ import type { Tournament } from '@/lib/types';
 import { useAuth } from '@/contexts/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Gamepad2, Trophy, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle2, Gamepad2, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { TournamentBracket } from '@/components/tournaments/tournament-bracket';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useI18n } from '@/contexts/i18n-context';
+import { useToast } from '@/hooks/use-toast';
+import { registerTeamForTournament } from '@/lib/actions/tournaments';
 
 function getStatusBadgeVariant(status: Tournament['status']) {
   switch (status) {
@@ -33,13 +35,32 @@ function getStatusBadgeVariant(status: Tournament['status']) {
 function TournamentDetails({ tournament }: { tournament: Tournament }) {
   const { userProfile } = useAuth();
   const { t } = useI18n();
+  const { toast } = useToast();
+  const [isRegistering, startRegistering] = useTransition();
+
   const canRegister = tournament.status === 'upcoming' && userProfile?.teamId && userProfile.role === 'founder';
   const isRegistered = tournament.participants?.some(p => p.id === userProfile?.teamId);
+  const isFull = tournament.participants && tournament.participants.length >= tournament.maxTeams;
 
   const statusText = {
     upcoming: t('TournamentDetailsPage.status_upcoming'),
     ongoing: t('TournamentDetailsPage.status_ongoing'),
     completed: t('TournamentDetailsPage.status_completed'),
+  };
+  
+  const handleRegister = () => {
+    if (!userProfile?.teamId) return;
+    startRegistering(async () => {
+      const result = await registerTeamForTournament({
+        tournamentId: tournament.id,
+        teamId: userProfile.teamId!,
+      });
+      if (result.success) {
+        toast({ title: 'Success', description: result.message });
+      } else {
+        toast({ title: 'Error', description: result.message, variant: 'destructive' });
+      }
+    });
   };
 
   return (
@@ -67,6 +88,11 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
               <span className="text-muted-foreground">{t('TournamentDetailsPage.format_label')}:</span>
               <span className="font-semibold capitalize">{tournament.format.replace('-', ' ')}</span>
             </div>
+            <div className="flex items-center gap-3 text-sm">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Slots:</span>
+                <span className="font-semibold">{tournament.participants?.length || 0} / {tournament.maxTeams}</span>
+            </div>
             <div>
               <h4 className="font-semibold text-sm mb-1">{t('TournamentDetailsPage.description_label')}</h4>
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{tournament.description}</p>
@@ -75,18 +101,25 @@ function TournamentDetails({ tournament }: { tournament: Tournament }) {
         </Card>
         
         {canRegister && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('TournamentDetailsPage.register_title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isRegistered ? (
-                 <p className="text-green-600 font-semibold">{t('TournamentDetailsPage.registered_text')}</p>
-              ) : (
-                <Button className="w-full">{t('TournamentDetailsPage.register_button')}</Button>
-              )}
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('TournamentDetailsPage.register_title')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isRegistered ? (
+                  <div className="flex items-center text-green-600 font-semibold">
+                    <CheckCircle2 className="mr-2 h-5 w-5"/>
+                    {t('TournamentDetailsPage.registered_text')}
+                  </div>
+                ) : isFull ? (
+                  <p className="text-destructive font-semibold">Tournament is full.</p>
+                ) : (
+                  <Button className="w-full" onClick={handleRegister} disabled={isRegistering}>
+                    {isRegistering ? 'Registering...' : t('TournamentDetailsPage.register_button')}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
         )}
 
         <Card>

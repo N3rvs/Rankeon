@@ -26,6 +26,8 @@ const tournamentFormats = [
     { value: 'swiss', label: 'Swiss System' },
 ];
 
+const teamCountOptions = [4, 8, 16, 32, 64];
+
 export function ProposeTournamentDialog() {
   const { t } = useI18n();
   const { toast } = useToast();
@@ -39,6 +41,7 @@ export function ProposeTournamentDialog() {
       game: 'Valorant',
       description: '',
       format: '',
+      maxTeams: 8,
     },
   });
 
@@ -92,21 +95,21 @@ export function ProposeTournamentDialog() {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="game"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('ProposeTournamentDialog.game')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('ProposeTournamentDialog.game_placeholder')} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="game"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('ProposeTournamentDialog.game')}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t('ProposeTournamentDialog.game_placeholder')} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
+               <FormField
                 control={form.control}
                 name="format"
                 render={({ field }) => (
@@ -116,6 +119,22 @@ export function ProposeTournamentDialog() {
                         <FormControl><SelectTrigger><SelectValue placeholder={t('ProposeTournamentDialog.select_format')} /></SelectTrigger></FormControl>
                         <SelectContent>
                             {tournamentFormats.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="maxTeams"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Teams</FormLabel>
+                    <Select onValueChange={(val) => field.onChange(parseInt(val, 10))} defaultValue={String(field.value)}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select max teams..." /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            {teamCountOptions.map(count => <SelectItem key={count} value={String(count)}>{count} Teams</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <FormMessage />

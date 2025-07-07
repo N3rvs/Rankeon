@@ -13,6 +13,7 @@ export const ProposeTournamentSchema = z.object({
   description: z.string().min(20, 'Please provide a detailed description.').max(1000),
   proposedDate: z.date({ required_error: "Please select a date." }),
   format: z.string().min(1, 'Please select a format.'),
+  maxTeams: z.coerce.number().int().min(2, "Must have at least 2 teams.").max(64, "Cannot exceed 64 teams."),
 });
 
 export type ProposeTournamentData = z.infer<typeof ProposeTournamentSchema>;
