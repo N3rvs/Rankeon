@@ -105,12 +105,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader className="p-4 pt-6 mb-4">
-          <Link href="/" className="flex justify-center">
-            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={100} height={100} />
+        <SidebarHeader className="flex h-16 items-center justify-center border-b p-0">
+          <Link href="/" className="flex items-center gap-2">
+            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={32} height={32} />
+            <span className="font-headline text-lg font-bold group-data-[collapsible=icon]:hidden">
+              Scrimly
+            </span>
           </Link>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="pt-4">
           <SidebarMenu className="gap-4">
             <SidebarMenuItem>
               <SidebarMenuButton
