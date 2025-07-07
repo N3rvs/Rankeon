@@ -18,7 +18,7 @@ function Header() {
     <header className="h-24 w-full z-10 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
             <Link href="/">
-                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={64} height={64} />
+                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
             </Link>
             <nav className="hidden md:flex items-center gap-6">
                 <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.news')}</Link>
