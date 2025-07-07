@@ -20,6 +20,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
+import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
 
 function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[] }) {
     const { t } = useI18n();
@@ -199,6 +200,8 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                         </CardContent>
                     </Card>
 
+                     <TeamScrimStatsCard team={team} />
+
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline flex items-center gap-2">
@@ -226,11 +229,6 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                                     <p className="text-xs text-muted-foreground text-center py-2">{t('TeamsPage.no_tournaments_won')}</p>
                                 )}
                             </div>
-                            <Separator />
-                             <div>
-                                <h4 className="text-sm font-semibold mb-2">{t('TeamsPage.scrim_record_title')}</h4>
-                                <p className="text-xs text-muted-foreground text-center py-2">{t('TeamsPage.scrim_record_soon')}</p>
-                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -243,7 +241,6 @@ export default function TeamPage() {
     const params = useParams();
     const router = useRouter();
     const { userProfile, loading: authLoading } = useAuth();
-    const { t } = useI18n();
     const teamId = params.id as string;
 
     const [team, setTeam] = useState<Team | null>(null);

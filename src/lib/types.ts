@@ -55,6 +55,10 @@ export interface Team {
   recruitingRoles?: string[];
   description: string;
   createdAt: Timestamp;
+  stats?: {
+    scrimsPlayed: number;
+    scrimsWon: number;
+  };
 }
 
 export interface TeamMember {
@@ -93,7 +97,8 @@ export type NotificationType =
   | 'team_invite_accepted'
   | 'team_application_received'
   | 'team_application_accepted'
-  | 'team_application_rejected';
+  | 'team_application_rejected'
+  | 'scrim_accepted';
 
 export interface Notification {
   id: string;
@@ -201,6 +206,7 @@ export interface Scrim {
   teamBId?: string;
   teamBName?: string;
   teamBAvatarUrl?: string;
+  winnerId?: string;
   date: Timestamp;
   format: 'bo1' | 'bo3' | 'bo5';
   type: 'scrim' | 'tryout';

@@ -25,7 +25,7 @@ import { TeamApplications } from '@/components/teams/team-applications';
 import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
 import { CreateScrimDialog } from '@/components/scrims/create-scrim-dialog';
-import { Separator } from '@/components/ui/separator';
+import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
@@ -419,11 +419,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                     <p className="text-xs text-muted-foreground text-center py-2">{t('TeamsPage.no_tournaments_won')}</p>
                                 )}
                             </div>
-                            <Separator />
-                             <div>
-                                <h4 className="text-sm font-semibold mb-2">{t('TeamsPage.scrim_record_title')}</h4>
-                                <p className="text-xs text-muted-foreground text-center py-2">{t('TeamsPage.scrim_record_soon')}</p>
-                            </div>
+                            <TeamScrimStatsCard team={team} />
                         </CardContent>
                     </Card>
 

@@ -1,4 +1,4 @@
-
+// src/app/(app)/scrims/page.tsx
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -18,13 +18,12 @@ import { Button } from '@/components/ui/button';
 import { getFlagEmoji } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-
-function ScrimList({ scrims, loading, onScrimAccepted }: { scrims: Scrim[], loading: boolean, onScrimAccepted?: () => void }) {
+function ScrimList({ scrims, loading }: { scrims: Scrim[], loading: boolean }) {
     const { t } = useI18n();
     if (loading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />)}
             </div>
         );
     }
@@ -42,22 +41,21 @@ function ScrimList({ scrims, loading, onScrimAccepted }: { scrims: Scrim[], load
     }
     
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {scrims.map(scrim => (
-                <ScrimCard key={scrim.id} scrim={scrim} onScrimAccepted={onScrimAccepted} />
+                <ScrimCard key={scrim.id} scrim={scrim} />
             ))}
         </div>
     );
 }
 
-
 export default function ScrimsPage() {
   const { userProfile } = useAuth();
   const { t } = useI18n();
   const [availableScrims, setAvailableScrims] = useState<Scrim[]>([]);
-  const [scheduledScrims, setScheduledScrims] = useState<Scrim[]>([]);
+  const [myScrims, setMyScrims] = useState<Scrim[]>([]);
   const [loadingAvailable, setLoadingAvailable] = useState(true);
-  const [loadingScheduled, setLoadingScheduled] = useState(true);
+  const [loadingMyScrims, setLoadingMyScrims] = useState(true);
   const [activeTab, setActiveTab] = useState('available');
 
   const [rankFilter, setRankFilter] = useState('all');
@@ -139,9 +137,7 @@ export default function ScrimsPage() {
     { value: 'Vatican City', label: `${getFlagEmoji('Vatican City')} ${t('Countries.vatican_city')}` }
   ];
 
-  const handleScrimAccepted = () => setActiveTab('schedule');
-
-  // Fetch available scrims
+  // Fetch available scrims (status: pending)
   useEffect(() => {
     const q = query(
       collection(db, 'scrims'),
@@ -160,22 +156,21 @@ export default function ScrimsPage() {
     return () => unsubscribe();
   }, []);
 
-   // Fetch scheduled scrims
+   // Fetch user's scrims (confirmed, completed, cancelled)
   useEffect(() => {
     if (!userProfile?.teamId) {
-        setLoadingScheduled(false);
-        setScheduledScrims([]);
+        setLoadingMyScrims(false);
+        setMyScrims([]);
         return;
     }
-    setLoadingScheduled(true);
+    setLoadingMyScrims(true);
 
     const teamId = userProfile.teamId;
-    const statuses: Scrim['status'][] = ['confirmed', 'completed', 'cancelled'];
     
     // Firestore does not support 'OR' queries on different fields.
     // We must perform two separate queries and merge the results.
-    const q1 = query(collection(db, 'scrims'), where('teamAId', '==', teamId), where('status', 'in', statuses));
-    const q2 = query(collection(db, 'scrims'), where('teamBId', '==', teamId), where('status', 'in', statuses));
+    const q1 = query(collection(db, 'scrims'), where('teamAId', '==', teamId));
+    const q2 = query(collection(db, 'scrims'), where('teamBId', '==', teamId));
     
     let unsub1: Unsubscribe, unsub2: Unsubscribe;
     let scrims1: Scrim[] = [], scrims2: Scrim[] = [];
@@ -183,9 +178,11 @@ export default function ScrimsPage() {
     const combineAndSetResults = () => {
         const allScrims = [...scrims1, ...scrims2];
         const uniqueScrims = Array.from(new Map(allScrims.map(item => [item.id, item])).values());
-        const sortedScrims = uniqueScrims.sort((a,b) => b.date.toMillis() - a.date.toMillis());
-        setScheduledScrims(sortedScrims);
-        setLoadingScheduled(false);
+        const sortedScrims = uniqueScrims
+            .filter(s => s.status !== 'pending')
+            .sort((a,b) => b.date.toMillis() - a.date.toMillis());
+        setMyScrims(sortedScrims);
+        setLoadingMyScrims(false);
     }
 
     unsub1 = onSnapshot(q1, (snap1) => {
@@ -231,44 +228,43 @@ export default function ScrimsPage() {
       
        <Tabs defaultValue="available" className="w-full" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="available"><CalendarSearch className="mr-2 h-4 w-4" /> Available Scrims</TabsTrigger>
-            <TabsTrigger value="schedule"><BookOpen className="mr-2 h-4 w-4" /> My Schedule</TabsTrigger>
+            <TabsTrigger value="available"><CalendarSearch className="mr-2 h-4 w-4" /> Scrims Disponibles</TabsTrigger>
+            <TabsTrigger value="my-scrims"><BookOpen className="mr-2 h-4 w-4" /> Mis Scrims</TabsTrigger>
         </TabsList>
         <TabsContent value="available" className="mt-6">
             <Card className="p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div>
-                    <Label htmlFor="rank-filter">{t('Market.rank_filter_label')}</Label>
-                    <Select value={rankFilter} onValueChange={setRankFilter}>
-                    <SelectTrigger id="rank-filter" className="mt-1">
-                        <SelectValue placeholder={t('Market.all_ranks')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {valorantRanks.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-                    </SelectContent>
-                    </Select>
-                </div>
-                <div>
-                    <Label htmlFor="country-filter">{t('Market.country_filter_label')}</Label>
-                    <Select value={countryFilter} onValueChange={setCountryFilter}>
-                    <SelectTrigger id="country-filter" className="mt-1">
-                        <SelectValue placeholder={t('Market.all_countries')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                    </SelectContent>
-                    </Select>
-                </div>
-                <div className="flex items-end gap-2">
-                    <Button variant="ghost" onClick={handleResetFilters} className="w-full md:w-auto">{t('Market.reset_button')}</Button>
-                    <Button className="w-full md:w-auto flex-1">{t('Market.search_button')}</Button>
-                </div>
+                    <div>
+                        <Label htmlFor="rank-filter">{t('Market.rank_filter_label')}</Label>
+                        <Select value={rankFilter} onValueChange={setRankFilter}>
+                            <SelectTrigger id="rank-filter" className="mt-1">
+                                <SelectValue placeholder={t('Market.all_ranks')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {valorantRanks.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <Label htmlFor="country-filter">{t('Market.country_filter_label')}</Label>
+                        <Select value={countryFilter} onValueChange={setCountryFilter}>
+                            <SelectTrigger id="country-filter" className="mt-1">
+                                <SelectValue placeholder={t('Market.all_countries')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {europeanCountries.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex items-end gap-2">
+                        <Button variant="ghost" onClick={handleResetFilters} className="w-full md:w-auto">{t('Market.reset_button')}</Button>
+                    </div>
                 </div>
             </Card>
-            <ScrimList scrims={filteredAvailableScrims} loading={loadingAvailable} onScrimAccepted={handleScrimAccepted} />
+            <ScrimList scrims={filteredAvailableScrims} loading={loadingAvailable} />
         </TabsContent>
-        <TabsContent value="schedule" className="mt-6">
-            <ScrimList scrims={scheduledScrims} loading={loadingScheduled} />
+        <TabsContent value="my-scrims" className="mt-6">
+            <ScrimList scrims={myScrims} loading={loadingMyScrims} />
         </TabsContent>
       </Tabs>
     </div>

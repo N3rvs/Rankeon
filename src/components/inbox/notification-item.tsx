@@ -1,6 +1,6 @@
 'use client';
 
-import type { Notification, UserProfile } from '@/lib/types';
+import type { Notification, UserProfile, Team } from '@/lib/types';
 import { useTransition, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +24,7 @@ import {
   MessageSquare,
   Bell,
   LogIn,
+  Swords,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
@@ -45,35 +46,42 @@ export function NotificationItem({
   const [isDismissing, startDismissing] = useTransition();
   const [isActionTaken, setIsActionTaken] = useState(false);
   const [fromUser, setFromUser] = useState<UserProfile | null>(null);
+  const [fromTeam, setFromTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    const fetchFromUser = async () => {
-      setLoading(true); // Reset loading state for each notification
+    const fetchFromData = async () => {
+      setLoading(true);
       if (!notification.from) {
         if (isMounted) setLoading(false);
         return;
       }
       try {
-        const userDocRef = doc(db, 'users', notification.from);
-        const docSnap = await getDoc(userDocRef);
-        if (isMounted) {
-          if (docSnap.exists()) {
-            setFromUser({ id: docSnap.id, ...docSnap.data() } as UserProfile);
-          }
+        if (notification.type === 'scrim_accepted') {
+            const teamDocRef = doc(db, 'teams', notification.from);
+            const docSnap = await getDoc(teamDocRef);
+            if (isMounted && docSnap.exists()) {
+              setFromTeam({ id: docSnap.id, ...docSnap.data() } as Team);
+            }
+        } else {
+            const userDocRef = doc(db, 'users', notification.from);
+            const docSnap = await getDoc(userDocRef);
+            if (isMounted && docSnap.exists()) {
+                setFromUser({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+            }
         }
       } catch (error) {
-        console.error('Error fetching user for notification:', error);
+        console.error('Error fetching data for notification:', error);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    fetchFromUser();
+    fetchFromData();
     
     return () => { isMounted = false; };
-  }, [notification.id, notification.from]);
+  }, [notification.id, notification.from, notification.type]);
 
   const findRequestId = async (): Promise<string | null> => {
     if (notification.extraData?.requestId) {
@@ -170,6 +178,7 @@ export function NotificationItem({
 
   const getNotificationDetails = () => {
     const fromName = fromUser?.name || 'Someone';
+    const fromTeamName = fromTeam?.name || 'A team';
     const teamName = notification.extraData?.teamName || 'A team';
     const applicantName = notification.extraData?.applicantName || 'A player';
 
@@ -181,6 +190,7 @@ export function NotificationItem({
       case 'team_application_received': return { icon: LogIn, message: `${applicantName} has applied to join your team.` };
       case 'team_application_accepted': return { icon: UserCheck, message: `Congratulations! You've been accepted to ${teamName}.` };
       case 'team_application_rejected': return { icon: X, message: `Your application to ${teamName} was declined.` };
+      case 'scrim_accepted': return { icon: Swords, message: `${fromTeamName} has accepted your scrim challenge.`};
       default: return { icon: Bell, message: 'You have a new notification.' };
     }
   };
@@ -190,14 +200,15 @@ export function NotificationItem({
   }
 
   const { icon: Icon, message } = getNotificationDetails();
-  const fallbackInitials = fromUser?.name?.slice(0, 2) || '?';
+  const avatarUrl = fromUser?.avatarUrl || fromTeam?.avatarUrl || notification.extraData?.applicantAvatarUrl;
+  const fallbackName = fromUser?.name || fromTeam?.name || '?';
 
   return (
     <div className={cn( 'flex items-start gap-3 p-3 transition-colors hover:bg-accent rounded-lg', !notification.read && 'bg-primary/5 hover:bg-primary/10' )}>
       <div className="flex-shrink-0">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={fromUser?.avatarUrl || notification.extraData?.applicantAvatarUrl} data-ai-hint="person avatar" />
-          <AvatarFallback>{fromUser ? fallbackInitials : <Icon className="h-5 w-5" />}</AvatarFallback>
+          <AvatarImage src={avatarUrl} data-ai-hint="person avatar" />
+          <AvatarFallback>{fallbackName ? fallbackName.slice(0, 2) : <Icon className="h-5 w-5" />}</AvatarFallback>
         </Avatar>
       </div>
       <div className="flex-1 space-y-1">
@@ -258,6 +269,14 @@ export function NotificationItem({
                 <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/teams/${notification.extraData.teamId}`)} disabled={isDismissing}>
                     <Users className="h-4 w-4 mr-1" />
                     {isDismissing ? "Loading..." : "View Team"}
+                </Button>
+            </div>
+        )}
+         {notification.type === 'scrim_accepted' && (
+            <div className="flex gap-2 pt-1">
+                <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/scrims`)} disabled={isDismissing}>
+                    <Swords className="h-4 w-4 mr-1" />
+                    {isDismissing ? "Cargando..." : "Ver Scrims"}
                 </Button>
             </div>
         )}

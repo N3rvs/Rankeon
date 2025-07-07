@@ -64,3 +64,14 @@ export async function cancelScrimAction(scrimId: string): Promise<ActionResponse
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function reportScrimResultAction(scrimId: string, winnerId: string): Promise<ActionResponse> {
+    try {
+        const reportResultFunc = httpsCallable(functions, 'reportScrimResult');
+        const result = await reportResultFunc({ scrimId, winnerId });
+        return result.data as ActionResponse;
+    } catch (error: any) {
+        console.error('Error reporting scrim result:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
+}

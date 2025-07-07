@@ -1,32 +1,67 @@
-
+// src/components/scrims/scrim-card.tsx
 'use client';
 
 import { useTransition, useState } from 'react';
 import type { Scrim } from '@/lib/types';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Check, X, Shield, Swords } from 'lucide-react';
+import { Calendar, Check, X, Shield, Swords, Flag, Trophy, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { acceptScrimAction, cancelScrimAction } from '@/lib/actions/scrims';
+import { acceptScrimAction, cancelScrimAction, reportScrimResultAction } from '@/lib/actions/scrims';
 import { useI18n } from '@/contexts/i18n-context';
 import { getFlagEmoji } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 
-export function ScrimCard({ scrim, onScrimAccepted }: { scrim: Scrim, onScrimAccepted?: () => void }) {
+function ReportResultDialog({ scrim, onOpenChange }: { scrim: Scrim; onOpenChange: (open: boolean) => void; }) {
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+
+    const handleReport = (winnerId: string) => {
+        startTransition(async () => {
+            const result = await reportScrimResultAction(scrim.id, winnerId);
+            if(result.success) {
+                toast({ title: "Result Reported", description: "The match result has been saved." });
+                onOpenChange(false);
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+        });
+    }
+    
+    return (
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Report Scrim Result</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Who won the match between {scrim.teamAName} and {scrim.teamBName}? This action cannot be undone.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <Button onClick={() => handleReport(scrim.teamAId)} disabled={isPending} variant="outline" className="w-full">{scrim.teamAName} Won</Button>
+                    <Button onClick={() => handleReport(scrim.teamBId!)} disabled={isPending} variant="outline" className="w-full">{scrim.teamBName} Won</Button>
+                </div>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    )
+}
+
+export function ScrimCard({ scrim, onScrimAction }: { scrim: Scrim, onScrimAction?: () => void }) {
   const { userProfile } = useAuth();
   const { t } = useI18n();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const isMyTeamScrim = userProfile?.teamId === scrim.teamAId || userProfile?.teamId === scrim.teamBId;
   const canAccept = userProfile?.teamId && scrim.status === 'pending' && userProfile.teamId !== scrim.teamAId;
   const canCancel = isMyTeamScrim && (scrim.status === 'pending' || scrim.status === 'confirmed');
-
-  const isCompleted = scrim.status === 'completed';
-  const isCancelled = scrim.status === 'cancelled';
+  const canReport = isMyTeamScrim && scrim.status === 'confirmed';
 
   const statusTextMap: Record<Scrim['status'], string> = {
     pending: t('ScrimsPage.status_pending'),
@@ -43,7 +78,7 @@ export function ScrimCard({ scrim, onScrimAccepted }: { scrim: Scrim, onScrimAcc
       const result = await acceptScrimAction(scrim.id, userProfile.teamId!);
       if (result.success) {
         toast({ title: t('ScrimsPage.scrim_accepted_title'), description: t('ScrimsPage.scrim_accepted_desc') });
-        onScrimAccepted?.();
+        onScrimAction?.();
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -55,88 +90,96 @@ export function ScrimCard({ scrim, onScrimAccepted }: { scrim: Scrim, onScrimAcc
     startTransition(async () => {
       const result = await cancelScrimAction(scrim.id);
       if (result.success) {
-        toast({ title: t('ScrimsPage.scrim_cancelled_title'), description: t('ScrimsPage.scrim_cancelled_desc') });
+        toast({ title: t('ScrimsPage.scrim_cancelled_title'), description: result.message });
+        onScrimAction?.();
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
     });
   };
-
-  const TeamDisplay = ({ name, avatarUrl, country }: { name: string, avatarUrl?: string, country?: string }) => (
-    <div className="flex flex-col items-center gap-2 text-center w-28">
-        <Avatar className="h-12 w-12">
-            <AvatarImage src={avatarUrl} data-ai-hint="team logo" />
-            <AvatarFallback>{name.slice(0, 2)}</AvatarFallback>
-        </Avatar>
-        <div className="w-full">
-            <p className="font-semibold text-sm truncate">{name}</p>
-            {country && <p className="text-xs text-muted-foreground">{getFlagEmoji(country)}</p>}
-        </div>
-    </div>
-  );
   
-  const rankParts = [];
-  if (scrim.rankMin) rankParts.push(scrim.rankMin);
-  if (scrim.rankMax && scrim.rankMax !== scrim.rankMin) rankParts.push(scrim.rankMax);
-  const rankDisplay = rankParts.join(' - ');
+  const rankDisplay = [scrim.rankMin, scrim.rankMax].filter(Boolean).join(' - ');
 
   return (
+    <>
+    <AlertDialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
+       <ReportResultDialog scrim={scrim} onOpenChange={setIsReportModalOpen} />
+    </AlertDialog>
     <Card className="flex flex-col">
-      <CardHeader>
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3" /> {format(scrim.date.toDate(), "d MMM, HH:mm")}</span>
+            <Badge variant="secondary" className="capitalize">{scrim.format.toUpperCase()}</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-grow space-y-4">
         <div className="flex justify-around items-center">
-          <TeamDisplay name={scrim.teamAName} avatarUrl={scrim.teamAAvatarUrl} country={scrim.country} />
-          <Swords className="h-6 w-6 text-muted-foreground shrink-0" />
+          <div className="flex flex-col items-center gap-2 text-center w-28">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={scrim.teamAAvatarUrl} data-ai-hint="team logo" />
+              <AvatarFallback>{scrim.teamAName.slice(0, 2)}</AvatarFallback>
+            </Avatar>
+            <p className="font-semibold text-sm truncate w-full">{scrim.teamAName}</p>
+          </div>
+          <Swords className="h-6 w-6 text-muted-foreground shrink-0 mx-2" />
           {scrim.teamBId && scrim.teamBName ? (
-            <TeamDisplay name={scrim.teamBName} avatarUrl={scrim.teamBAvatarUrl} />
+            <div className="flex flex-col items-center gap-2 text-center w-28">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={scrim.teamBAvatarUrl} data-ai-hint="team logo" />
+                <AvatarFallback>{scrim.teamBName.slice(0, 2)}</AvatarFallback>
+              </Avatar>
+              <p className="font-semibold text-sm truncate w-full">{scrim.teamBName}</p>
+            </div>
           ) : (
             <div className="flex flex-col items-center gap-2 text-center w-28">
-              <Avatar className="h-12 w-12 bg-muted border-dashed border-2 flex items-center justify-center">
-                <p className="text-2xl font-bold text-muted-foreground">?</p>
+              <Avatar className="h-16 w-16 bg-muted border-dashed border-2 flex items-center justify-center">
+                <p className="text-3xl font-bold text-muted-foreground">?</p>
               </Avatar>
               <p className="text-xs font-semibold text-muted-foreground">{t('ScrimsPage.looking_for_match')}</p>
             </div>
           )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3 flex-grow text-center">
-        <p className="text-sm font-semibold">{format(scrim.date.toDate(), "PPP p")}</p>
-        <div className="flex flex-wrap gap-2 justify-center">
-          <Badge variant="secondary">{scrim.format.toUpperCase()}</Badge>
-          <Badge variant="outline" className="capitalize">{scrim.type}</Badge>
-          {rankDisplay && (
-            <Badge variant="outline" className="capitalize">
-              <Shield className="h-3 w-3 mr-1.5" />
-              {rankDisplay}
-            </Badge>
-          )}
+        <div className="text-center text-xs text-muted-foreground space-y-1 pt-2 border-t border-dashed">
+            {scrim.country && <p className="flex items-center justify-center gap-2"><Flag className="h-3 w-3" />{scrim.country}</p>}
+            {rankDisplay && <p className="flex items-center justify-center gap-2"><Shield className="h-3 w-3" />{rankDisplay}</p>}
         </div>
-        {scrim.notes && <p className="text-xs text-muted-foreground pt-2 italic">"{scrim.notes}"</p>}
       </CardContent>
-      <CardFooter>
-        {scrim.status === 'pending' &&
-          (isMyTeamScrim ? (
-            <Button variant="destructive-outline" className="w-full" onClick={handleCancel} disabled={isPending}>
-              <X className="mr-2" /> {t('ScrimsPage.cancel')}
+      <CardFooter className="flex-col gap-2">
+        {scrim.status === 'pending' && (
+          canAccept ? (
+            <Button className="w-full" onClick={handleAccept} disabled={isPending}>
+              <Check className="mr-2 h-4 w-4" /> {t('ScrimsPage.accept')}
             </Button>
           ) : (
-            <Button className="w-full" onClick={handleAccept} disabled={!canAccept || isPending}>
-              <Check className="mr-2" /> {t('ScrimsPage.accept')}
+            <Button variant="outline" className="w-full" onClick={handleCancel} disabled={isPending}>
+              <X className="mr-2 h-4 w-4" /> {t('ScrimsPage.cancel')}
             </Button>
-          ))}
-        {scrim.status === 'confirmed' &&
-          (canCancel ? (
-            <Button variant="destructive-outline" className="w-full" onClick={handleCancel} disabled={isPending}>
-              <X className="mr-2" /> {t('ScrimsPage.cancel')}
-            </Button>
-          ) : (
-            <Badge variant="default" className="w-full justify-center capitalize py-2">{statusText}</Badge>
-          ))}
-        {(isCancelled || isCompleted) && (
-          <Badge variant={isCancelled ? 'destructive' : 'outline'} className="w-full justify-center capitalize py-2">
-            {statusText}
-          </Badge>
+          )
+        )}
+        {scrim.status === 'confirmed' && (
+          <div className="w-full flex gap-2">
+             <AlertDialogTrigger asChild>
+                <Button className="w-full" disabled={!canReport} onClick={() => setIsReportModalOpen(true)}>
+                    <Trophy className="mr-2 h-4 w-4" /> Reportar Resultado
+                </Button>
+             </AlertDialogTrigger>
+             <Button variant="destructive-outline" size="icon" onClick={handleCancel} disabled={!canCancel || isPending}>
+                <X className="h-4 w-4" />
+             </Button>
+          </div>
+        )}
+        {scrim.status === 'completed' && (
+            <div className="text-center w-full">
+                <p className="text-sm font-semibold flex items-center justify-center gap-2">
+                    <Trophy className="h-4 w-4 text-amber-500"/> Ganador: {scrim.winnerId === scrim.teamAId ? scrim.teamAName : scrim.teamBName}
+                </p>
+            </div>
+        )}
+        {scrim.status === 'cancelled' && (
+            <Badge variant="destructive" className="w-full justify-center capitalize py-2">{statusText}</Badge>
         )}
       </CardFooter>
     </Card>
+    </>
   );
 }
