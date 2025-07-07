@@ -77,6 +77,13 @@
     "coach_features": "Join a team as a Coach|Manage team members and roles|Access team analytics (soon)|Assign IGL roles|Participate in scrim planning",
     "coach_cta": "Start as a Coach"
   },
+  "RegisterPage": {
+    "i_accept": "I accept the",
+    "terms_of_service": "Terms of Service",
+    "and_the": "and the",
+    "privacy_policy": "Privacy Policy",
+    "accept_error": "You must accept the Terms and Privacy Policy to continue."
+  },
   "LanguageSwitcher": {
     "change_language": "Change language"
   },

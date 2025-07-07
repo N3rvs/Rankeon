@@ -77,6 +77,13 @@
         "coach_features": "Einem Team als Coach beitreten|Teammitglieder und Rollen verwalten|Zugang zu Team-Analysen (bald)|IGL-Rollen zuweisen|An der Scrim-Planung teilnehmen",
         "coach_cta": "Als Coach starten"
     },
+    "RegisterPage": {
+        "i_accept": "Ich akzeptiere die",
+        "terms_of_service": "Nutzungsbedingungen",
+        "and_the": "und die",
+        "privacy_policy": "Datenschutz-Bestimmungen",
+        "accept_error": "Sie müssen die Nutzungsbedingungen und die Datenschutzrichtlinie akzeptieren, um fortzufahren."
+    },
   "LanguageSwitcher": {
     "change_language": "Sprache ändern"
   },

@@ -77,6 +77,13 @@
     "coach_features": "Unirse a un equipo como Coach|Gestionar miembros y roles|Acceso a estadísticas del equipo (próximamente)|Asignar roles de IGL|Participar en la planificación de scrims",
     "coach_cta": "Empezar como Coach"
   },
+  "RegisterPage": {
+    "i_accept": "Acepto los",
+    "terms_of_service": "Términos de Servicio",
+    "and_the": "y la",
+    "privacy_policy": "Política de Privacidad",
+    "accept_error": "Debes aceptar los Términos y la Política de Privacidad para continuar."
+  },
   "LanguageSwitcher": {
     "change_language": "Cambiar idioma"
   },

@@ -77,6 +77,13 @@
         "coach_features": "Rejoindre une équipe en tant que Coach|Gérer les membres et les rôles de l'équipe|Accès aux analyses de l'équipe (bientôt)|Attribuer des rôles d'IGL|Participer à la planification des scrims",
         "coach_cta": "Commencer en tant que Coach"
     },
+    "RegisterPage": {
+        "i_accept": "J'accepte les",
+        "terms_of_service": "Conditions d'utilisation",
+        "and_the": "et la",
+        "privacy_policy": "Politique de confidentialité",
+        "accept_error": "Vous devez accepter les conditions et la politique de confidentialité pour continuer."
+    },
   "LanguageSwitcher": {
     "change_language": "Changer de langue"
   },
@@ -495,7 +502,7 @@
     "status_ongoing": "En cours",
     "status_completed": "Terminé",
     "no_tournaments_title": "Aucun tournoi actif",
-    "no_tournaments_desc": "Il n'y a actuellement aucun tournoi approuvé à gérer."
+    "no_tournaments_desc": "Il n'y a currently aucun tournoi approuvé à gérer."
   },
   "StandingsTable": {
     "title": "Classement",

@@ -15,24 +15,33 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
-
-const formSchema = z
-  .object({
-    email: z.string().email({ message: 'Please enter a valid email address.' }),
-    password: z.string().min(6, { message: 'Password must be at least 6 characters long.' }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
-    path: ['confirmPassword'],
-  });
+import { Checkbox } from '../ui/checkbox';
+import { useI18n } from '@/contexts/i18n-context';
 
 export function RegisterForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const formSchema = z
+  .object({
+    email: z.string().email({ message: 'Please enter a valid email address.' }),
+    password: z.string().min(6, { message: 'Password must be at least 6 characters long.' }),
+    confirmPassword: z.string(),
+    acceptTerms: z.boolean().default(false),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match.",
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.acceptTerms, {
+    message: t('RegisterPage.accept_error'),
+    path: ["acceptTerms"],
+  });
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,6 +49,7 @@ export function RegisterForm() {
       email: '',
       password: '',
       confirmPassword: '',
+      acceptTerms: false,
     },
   });
 
@@ -160,6 +170,36 @@ export function RegisterForm() {
                         <FormMessage />
                     </FormItem>
                     )}
+                />
+                <FormField
+                  control={form.control}
+                  name="acceptTerms"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          <span className="text-sm font-normal text-muted-foreground">
+                            {t('RegisterPage.i_accept')}{' '}
+                            <Link href="/terms" className="text-primary hover:underline" target="_blank">
+                              {t('RegisterPage.terms_of_service')}
+                            </Link>{' '}
+                            {t('RegisterPage.and_the')}{' '}
+                            <Link href="/privacy" className="text-primary hover:underline" target="_blank">
+                              {t('RegisterPage.privacy_policy')}
+                            </Link>
+                            .
+                          </span>
+                        </FormLabel>
+                         <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
                 />
             </CardContent>
             <CardFooter className="flex flex-col gap-4">

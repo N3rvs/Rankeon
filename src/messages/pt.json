@@ -77,6 +77,13 @@
         "coach_features": "Junte-se a uma equipe como Treinador|Gerencie membros e funções da equipe|Acesso a análises da equipe (em breve)|Atribua funções de IGL|Participe do planejamento de scrims",
         "coach_cta": "Começar como Treinador"
     },
+    "RegisterPage": {
+        "i_accept": "Eu aceito os",
+        "terms_of_service": "Termos de Serviço",
+        "and_the": "e a",
+        "privacy_policy": "Política de Privacidade",
+        "accept_error": "Você deve aceitar os Termos e a Política de Privacidade para continuar."
+    },
   "LanguageSwitcher": {
     "change_language": "Mudar idioma"
   },

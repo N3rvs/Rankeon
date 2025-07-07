@@ -77,6 +77,13 @@
         "coach_features": "Unisciti a una squadra come Allenatore|Gestisci membri e ruoli della squadra|Accesso alle analisi della squadra (presto)|Assegna ruoli IGL|Partecipa alla pianificazione degli scrim",
         "coach_cta": "Inizia come Allenatore"
     },
+    "RegisterPage": {
+        "i_accept": "Accetto i",
+        "terms_of_service": "Termini di servizio",
+        "and_the": "e la",
+        "privacy_policy": "Politica sulla privacy",
+        "accept_error": "Devi accettare i Termini e l'Informativa sulla privacy per continuare."
+    },
   "LanguageSwitcher": {
     "change_language": "Cambia lingua"
   },
