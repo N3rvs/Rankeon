@@ -12,21 +12,26 @@ const calculateTotalHonors = (userData: admin.firestore.DocumentData): number =>
 
 export const getFeaturedScrims = onCall(async () => {
     try {
+        // Fetch recent scrims and filter in-memory to avoid needing a composite index.
         const scrimsSnapshot = await db.collection('scrims')
-            .where('status', '==', 'confirmed')
             .orderBy('date', 'desc')
-            .limit(10)
+            .limit(50) // Fetch more to have a good pool for filtering
             .get();
+
+        const confirmedScrims = scrimsSnapshot.docs
+            .map(doc => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    id: doc.id,
+                    date: data.date?.toDate().toISOString(),
+                    createdAt: data.createdAt?.toDate().toISOString(),
+                };
+            })
+            .filter(scrim => scrim.status === 'confirmed')
+            .slice(0, 10); // Take the first 10 confirmed ones
         
-        return scrimsSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                ...data,
-                id: doc.id,
-                date: data.date?.toDate().toISOString(),
-                createdAt: data.createdAt?.toDate().toISOString(),
-            };
-        });
+        return confirmedScrims;
     } catch (error) {
         console.error("Error fetching featured scrims:", error);
         throw new HttpsError("internal", "Failed to retrieve featured scrims.");
