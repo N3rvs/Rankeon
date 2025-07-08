@@ -25,6 +25,19 @@
         "upcoming_matches": "Incontri in arrivo",
         "community_matches": "Partite confermate dalla community."
     },
+    "LoginPage": {
+        "forgot_password": "Password dimenticata?"
+    },
+    "ForgotPasswordPage": {
+        "title": "Reimposta password",
+        "description": "Inserisci la tua email e ti invieremo un link per reimpostare la tua password.",
+        "email_label": "Email",
+        "submit_button": "Invia link",
+        "sending": "Invio in corso...",
+        "back_to_login": "Torna al login",
+        "success_title": "Controlla la tua email",
+        "success_description": "Se esiste un account con l'email {email}, è stato inviato un link per reimpostare la password."
+    },
      "AboutPage": {
         "title": "Riguardo a Scrimly",
         "subtitle": "Connettere i giocatori, forgiare campioni.",
@@ -445,7 +458,7 @@
     "title": "Guida ai formati dei tornei",
     "description": "Scopri i diversi formati di torneo disponibili.",
     "single_elim_title": "Eliminazione singola",
-    "single_elim_desc": "Il modo più veloce per incoronare un campione. In questo formato ad alto rischio, una singola sconfitta significa che la tua squadra è fuori dal torneo. È un sistema a eliminazione diretta puro, perfetto per grandi eventi dove il tempo è essenziale.",
+    "single_elim_desc": "Il modo più veloce per incoronare un campione. In questo formato ad alto rischio, una singola sconfitta significa che la tua squadra è fuori dal torneo. È un sistema a eliminazione diretta puro, perfetto per grandi eventi where il tempo è essenziale.",
     "double_elim_title": "Doppia eliminazione",
     "double_elim_desc": "Un formato che premia la resilienza. Ogni squadra ha una seconda possibilità. Dopo la prima sconfitta, cadi nel 'Girone Inferiore' per combattere e tornare in gioco. Se perdi di nuovo, sei eliminato. I vincitori del Girone Superiore e Inferiore si affrontano nella Gran Finale.",
     "round_robin_title": "Girone all'italiana",

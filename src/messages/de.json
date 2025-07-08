@@ -25,6 +25,19 @@
         "upcoming_matches": "Anstehende Spiele",
         "community_matches": "Von der Community bestätigte Spiele."
     },
+    "LoginPage": {
+        "forgot_password": "Passwort vergessen?"
+    },
+    "ForgotPasswordPage": {
+        "title": "Passwort zurücksetzen",
+        "description": "Geben Sie Ihre E-Mail ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.",
+        "email_label": "E-Mail",
+        "submit_button": "Link senden",
+        "sending": "Senden...",
+        "back_to_login": "Zurück zum Login",
+        "success_title": "Überprüfen Sie Ihre E-Mails",
+        "success_description": "Wenn ein Konto mit der E-Mail {email} existiert, wurde ein Link zum Zurücksetzen des Passworts gesendet."
+    },
     "AboutPage": {
         "title": "Über Scrimly",
         "subtitle": "Spieler verbinden, Champions schmieden.",

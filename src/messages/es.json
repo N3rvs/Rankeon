@@ -23,7 +23,21 @@
     "terms": "Términos de Servicio",
     "privacy": "Política de Privacidad",
     "upcoming_matches": "Próximos Encuentros",
-    "community_matches": "Partidas confirmadas por la comunidad."
+    "community_matches": "Partidas confirmadas por la comunidad.",
+    "forgot_password": "¿Olvidaste tu contraseña?"
+  },
+  "LoginPage": {
+    "forgot_password": "¿Olvidaste tu contraseña?"
+  },
+  "ForgotPasswordPage": {
+    "title": "Restablecer Contraseña",
+    "description": "Introduce tu correo y te enviaremos un enlace para restablecer tu contraseña.",
+    "email_label": "Correo Electrónico",
+    "submit_button": "Enviar Enlace",
+    "sending": "Enviando...",
+    "back_to_login": "Volver a Iniciar Sesión",
+    "success_title": "Revisa tu correo",
+    "success_description": "Si existe una cuenta con el correo {email}, se ha enviado un enlace para restablecer la contraseña."
   },
   "AboutPage": {
     "title": "Sobre Scrimly",

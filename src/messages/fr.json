@@ -25,6 +25,19 @@
         "upcoming_matches": "Matchs à venir",
         "community_matches": "Matchs confirmés par la communauté."
     },
+    "LoginPage": {
+        "forgot_password": "Mot de passe oublié ?"
+    },
+    "ForgotPasswordPage": {
+        "title": "Réinitialiser le mot de passe",
+        "description": "Entrez votre e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+        "email_label": "E-mail",
+        "submit_button": "Envoyer le lien",
+        "sending": "Envoi...",
+        "back_to_login": "Retour à la connexion",
+        "success_title": "Vérifiez vos e-mails",
+        "success_description": "Si un compte avec l'e-mail {email} existe, un lien de réinitialisation de mot de passe a été envoyé."
+    },
     "AboutPage": {
         "title": "À propos de Scrimly",
         "subtitle": "Connecter les joueurs, forger des champions.",

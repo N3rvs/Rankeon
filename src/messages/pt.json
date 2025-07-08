@@ -25,6 +25,19 @@
         "upcoming_matches": "Próximas Partidas",
         "community_matches": "Partidas confirmadas pela comunidade."
     },
+    "LoginPage": {
+        "forgot_password": "Esqueceu a senha?"
+    },
+    "ForgotPasswordPage": {
+        "title": "Redefinir Senha",
+        "description": "Digite seu e-mail e enviaremos um link para redefinir sua senha.",
+        "email_label": "E-mail",
+        "submit_button": "Enviar Link",
+        "sending": "Enviando...",
+        "back_to_login": "Voltar para o Login",
+        "success_title": "Verifique seu e-mail",
+        "success_description": "Se existir uma conta com o e-mail {email}, um link para redefinição de senha foi enviado."
+    },
     "AboutPage": {
         "title": "Sobre o Scrimly",
         "subtitle": "Conectando jogadores, forjando campeões.",

@@ -25,6 +25,19 @@
     "upcoming_matches": "Upcoming Matches",
     "community_matches": "Community-confirmed matches."
   },
+  "LoginPage": {
+    "forgot_password": "Forgot your password?"
+  },
+  "ForgotPasswordPage": {
+    "title": "Reset Password",
+    "description": "Enter your email and we'll send a link to reset your password.",
+    "email_label": "Email",
+    "submit_button": "Send Reset Link",
+    "sending": "Sending...",
+    "back_to_login": "Back to Login",
+    "success_title": "Check your email",
+    "success_description": "If an account with {email} exists, a password reset link has been sent."
+  },
   "AboutPage": {
     "title": "About Scrimly",
     "subtitle": "Connecting players, forging champions.",

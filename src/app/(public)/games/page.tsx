@@ -10,18 +10,18 @@ export default function GamesPage() {
     const games = [
         {
             title: "Valorant",
-            imageUrl: "https://placehold.co/720x960.png",
+            imageUrl: "https://cdn1.epicgames.com/offer/cbd5b3d310a54b12bf3fe8c41994174f/EGS_VALORANT_RiotGames_S2_1200x1600-e4f9165ef5ef86fc591575bdec066bb6",
             imageHint: "valorant game art",
             description: t('GamesPage.valorant_desc'),
         },
         {
-            title: "League of Legends",
+            title: "League of Legends (proximamente)",
             imageUrl: "https://cdn1.epicgames.com/offer/24b9b5e323bc40eea252a10cdd3b2f10/EGS_LeagueofLegends_RiotGames_S2_1200x1600-905a96cea329205358868f5871393042",
             imageHint: "LeagoeOfLegends game art",
             description: t('GamesPage.valorant_desc'),
         },
         {
-            title: "Csgo2",
+            title: "Csgo2 (proximamente)",
             imageUrl: "https://static.wikia.nocookie.net/cswikia/images/3/37/Cs2_boxart.jpg/revision/latest?cb=20230930151452",
             imageHint: "Csgo2 game art",
             description: t('GamesPage.valorant_desc'),

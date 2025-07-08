@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { useI18n } from '@/contexts/i18n-context';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -23,6 +24,7 @@ const formSchema = z.object({
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -113,6 +115,11 @@ export function LoginForm() {
                     </FormItem>
                     )}
                 />
+                 <div className="flex justify-end">
+                    <Button variant="link" asChild className="p-0 h-auto text-sm">
+                        <Link href="/forgot-password">{t('LoginPage.forgot_password')}</Link>
+                    </Button>
+                </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
                 <Button type="submit" className="w-full" disabled={isLoading}>
