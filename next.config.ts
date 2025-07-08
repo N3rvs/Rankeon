@@ -9,11 +9,11 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    allowedDevOrigins: [
-        'https://6000-firebase-studio-1751330697604.cluster-c3a7z3wnwzapkx3rfr5kz62dac.cloudworkstations.dev',
-        'https://9000-firebase-studio-1751330697604.cluster-c3a7z3wnwzapkx3rfr5kz62dac.cloudworkstations.dev'
-    ]
   },
+  allowedDevOrigins: [
+      'https://6000-firebase-studio-1751330697604.cluster-c3a7z3wnwzapkx3rfr5kz62dac.cloudworkstations.dev',
+      'https://9000-firebase-studio-1751330697604.cluster-c3a7z3wnwzapkx3rfr5kz62dac.cloudworkstations.dev'
+  ],
   images: {
     remotePatterns: [
       {
@@ -25,6 +25,18 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn1.epicgames.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.wikia.nocookie.net',
         port: '',
         pathname: '/**',
       },
