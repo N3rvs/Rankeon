@@ -1,7 +1,6 @@
 // src/app/(public)/refund/page.tsx
 'use client';
 
-import { PublicLayout } from "@/components/public-layout";
 import { useI18n } from "@/contexts/i18n-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ export default function RefundPolicyPage() {
     const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
 
     return (
-        <PublicLayout>
+        <>
             <CreateTicketDialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen} />
             <div className="container mx-auto max-w-3xl px-4 py-12">
                 <Card>
@@ -47,6 +46,6 @@ export default function RefundPolicyPage() {
                     </CardContent>
                 </Card>
             </div>
-        </PublicLayout>
+        </>
     );
 }

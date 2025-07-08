@@ -1,7 +1,6 @@
 // src/app/(public)/support/page.tsx
 'use client';
 
-import { PublicLayout } from "@/components/public-layout";
 import { useI18n } from "@/contexts/i18n-context";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +30,7 @@ export default function SupportPage() {
     ];
 
     return (
-        <PublicLayout>
+        <>
             <CreateTicketDialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen} />
             <div className="container mx-auto max-w-6xl px-4 py-12">
                 <div className="text-center mb-12">
@@ -98,6 +97,6 @@ export default function SupportPage() {
                     <Button onClick={() => setIsTicketDialogOpen(true)}>{t('SupportPage.contact_cta')}</Button>
                 </div>
             </div>
-        </PublicLayout>
+        </>
     );
 }
