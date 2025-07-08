@@ -109,7 +109,7 @@ function ChatList() {
         });
 
         return () => unsubscribe();
-    }, [user, userProfile]);
+    }, [user, userProfile, JSON.stringify(userProfile?.friends)]);
 
     if (authLoading || loading) {
         return (

@@ -20,12 +20,12 @@ export default function GamesPage() {
             imageHint: "LeagoeOfLegends game art",
             description: t('GamesPage.valorant_desc'),
         },
-        {
-            title: "Csgo2 (proximamente)",
-            imageUrl: "https://static.wikia.nocookie.net/cswikia/images/3/37/Cs2_boxart.jpg/revision/latest?cb=20230930151452",
-            imageHint: "Csgo2 game art",
-            description: t('GamesPage.valorant_desc'),
-        }
+        // {
+        //     title: "Csgo2 (proximamente)",
+        //     imageUrl: "https://static.wikia.nocookie.net/cswikia/images/3/37/Cs2_boxart.jpg/revision/latest?cb=20230930151452",
+        //     imageHint: "Csgo2 game art",
+        //     description: t('GamesPage.valorant_desc'),
+        // }
     ];
 
     return (
