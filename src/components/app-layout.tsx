@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -218,20 +219,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/games')}
-                tooltip={t('Sidebar.games')}
-                size="lg"
-              >
-                <Link href="/games">
-                  <Gamepad2 />
-                  <span>{t('Sidebar.games')}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild

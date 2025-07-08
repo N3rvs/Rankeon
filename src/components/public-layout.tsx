@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ReactNode } from 'react';
@@ -22,7 +23,8 @@ function Header() {
             </Link>
             <nav className="hidden md:flex items-center gap-6">
                 <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
-                 <Link href="/support" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('Footer.support_title')}</Link>
+                <Link href="/games" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.games')}</Link>
+                <Link href="/support" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('Footer.support_title')}</Link>
             </nav>
             <div className="flex items-center gap-2">
                 <LanguageSwitcher />
