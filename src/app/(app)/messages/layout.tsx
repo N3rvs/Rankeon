@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase/client';
-import { collection, query, where, orderBy, onSnapshot, getDoc, doc } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import type { UserProfile, Chat, UserStatus } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,8 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { useI18n } from '@/contexts/i18n-context';
+import { getFriends } from '@/lib/actions/friends';
+import { useToast } from '@/hooks/use-toast';
 
 interface EnrichedChat extends Chat {
     partner: UserProfile | null;
@@ -23,6 +25,7 @@ function ChatList() {
     const { user, userProfile, loading: authLoading } = useAuth();
     const { t } = useI18n();
     const pathname = usePathname();
+    const { toast } = useToast();
 
     const [unreadChatIds, setUnreadChatIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
@@ -51,50 +54,22 @@ function ChatList() {
         return () => unsubscribe();
     }, [user]);
 
-    // Effect 1: Fetch and update friend profiles when the friends list changes
+    // Effect 1: Fetch friend profiles using a secure cloud function.
     useEffect(() => {
-        if (!userProfile?.friends) {
+        if (!user) {
             setFriendProfiles([]);
-            setLoading(false);
             return;
         }
 
-        setLoading(true);
-
-        const friendIds = userProfile.friends || [];
-        if (friendIds.length === 0) {
-            setFriendProfiles([]);
-            setLoading(false);
-            return;
-        }
-        
-        const unsubscribes = friendIds.map(id => {
-            const docRef = doc(db, 'users', id);
-            return onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const friendData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
-                    setFriendProfiles(currentFriends => {
-                        const existingFriendIndex = currentFriends.findIndex(f => f.id === id);
-                        if (existingFriendIndex > -1) {
-                            const updatedFriends = [...currentFriends];
-                            updatedFriends[existingFriendIndex] = friendData;
-                            return updatedFriends;
-                        } else {
-                            return [...currentFriends, friendData];
-                        }
-                    });
-                } else {
-                     setFriendProfiles(currentFriends => currentFriends.filter(f => f.id !== id));
-                }
-            });
+        getFriends().then(result => {
+            if (result.success && result.data) {
+                setFriendProfiles(result.data);
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+                setFriendProfiles([]);
+            }
         });
-        
-        setLoading(false);
-
-        return () => {
-            unsubscribes.forEach(unsub => unsub());
-        };
-    }, [JSON.stringify(userProfile?.friends)]);
+    }, [user, userProfile?.friends, toast]);
 
     // Effect 2: Listen for all chat updates for the current user
     useEffect(() => {
@@ -136,6 +111,7 @@ function ChatList() {
 
         setOnlineFriends(online);
         setOfflineFriends(offline);
+        setLoading(false);
 
     }, [friendProfiles, chatsMap, user]);
 
