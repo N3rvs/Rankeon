@@ -36,7 +36,6 @@ function ChatList() {
     const [onlineFriends, setOnlineFriends] = useState<EnrichedChat[]>([]);
     const [offlineFriends, setOfflineFriends] = useState<EnrichedChat[]>([]);
 
-
     useEffect(() => {
         if (!user) {
             setUnreadChatIds(new Set());
@@ -215,7 +214,6 @@ function ChatList() {
         </ScrollArea>
     )
 }
-
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
     const { t } = useI18n();

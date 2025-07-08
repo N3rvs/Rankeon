@@ -4,6 +4,7 @@
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
+import type { UserProfile } from '../types';
 
 type ActionResponse = {
   success: boolean;
@@ -74,6 +75,20 @@ export async function unblockUser(userId: string): Promise<ActionResponse> {
     return (result.data as ActionResponse) || { success: true, message: 'User unblocked.' };
   } catch (error: any) {
     console.error('Error unblocking user:', error);
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
+  }
+}
+
+export async function getFriends(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
+  try {
+    const getFriendsFunc = httpsCallable<void, UserProfile[]>(functions, 'getFriendProfiles');
+    const result = await getFriendsFunc();
+    return { success: true, data: result.data, message: 'Friends fetched.' };
+  } catch (error: any) {
+    console.error('Error getting friends:', error);
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',
