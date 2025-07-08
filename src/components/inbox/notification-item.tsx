@@ -59,7 +59,7 @@ export function NotificationItem({
         return;
       }
       try {
-        if (notification.type === 'scrim_challenge_accepted' || notification.type === 'scrim_challenge_rejected') {
+        if (notification.type === 'scrim_challenge_accepted' || notification.type === 'scrim_challenge_rejected' || notification.type === 'team_invite_received') {
             const teamDocRef = doc(db, 'teams', notification.from);
             const docSnap = await getDoc(teamDocRef);
             if (isMounted && docSnap.exists()) {
@@ -113,7 +113,7 @@ export function NotificationItem({
         try {
             const q = query(
                 collection(db, "teamInvitations"),
-                where("fromTeamId", "==", notification.extraData.teamId),
+                where("fromTeamId", "==", notification.from),
                 where("toUserId", "==", user.uid),
                 where("status", "==", "pending")
             );
@@ -179,19 +179,18 @@ export function NotificationItem({
 
   const getNotificationDetails = () => {
     const fromName = fromUser?.name || 'Someone';
-    const fromTeamName = fromTeam?.name || notification.extraData?.challengerTeamName || 'A team';
+    const fromTeamName = fromTeam?.name || notification.extraData?.teamName || 'A team';
     const creatorTeamName = notification.extraData?.creatorTeamName || 'The other team';
-    const teamName = notification.extraData?.teamName || 'A team';
     const applicantName = notification.extraData?.applicantName || 'A player';
 
     switch (notification.type) {
       case 'friend_request': return { icon: UserPlus, message: `${fromName} sent you a friend request.` };
       case 'friend_accepted': return { icon: UserCheck, message: `You are now friends with ${fromName}.` };
-      case 'team_invite_received': return { icon: Users, message: `${teamName} has invited you to join them.` };
+      case 'team_invite_received': return { icon: Users, message: `${fromTeamName} has invited you to join them.` };
       case 'team_invite_accepted': return { icon: UserCheck, message: `${fromName} has joined your team.` };
       case 'team_application_received': return { icon: LogIn, message: `${applicantName} has applied to join your team.` };
-      case 'team_application_accepted': return { icon: UserCheck, message: `Congratulations! You've been accepted to ${teamName}.` };
-      case 'team_application_rejected': return { icon: X, message: `Your application to ${teamName} was declined.` };
+      case 'team_application_accepted': return { icon: UserCheck, message: `Congratulations! You've been accepted to ${fromTeamName}.` };
+      case 'team_application_rejected': return { icon: X, message: `Your application to ${fromTeamName} was declined.` };
       case 'scrim_challenged': return { icon: Swords, message: `${fromTeamName} challenged you to a scrim.` };
       case 'scrim_challenge_accepted': return { icon: Check, message: `${creatorTeamName} accepted your scrim challenge.` };
       case 'scrim_challenge_rejected': return { icon: X, message: `${creatorTeamName} rejected your scrim challenge.` };
@@ -204,7 +203,7 @@ export function NotificationItem({
   }
 
   const { icon: Icon, message } = getNotificationDetails();
-  const avatarUrl = fromUser?.avatarUrl || fromTeam?.avatarUrl || notification.extraData?.challengerTeamAvatarUrl || notification.extraData?.applicantAvatarUrl;
+  const avatarUrl = fromUser?.avatarUrl || fromTeam?.avatarUrl || notification.extraData?.applicantAvatarUrl;
   const fallbackName = fromUser?.name || fromTeam?.name || '?';
 
   return (

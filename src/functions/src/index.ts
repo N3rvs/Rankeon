@@ -12,7 +12,7 @@ import { addInboxNotification, markNotificationsAsRead, deleteNotifications, cle
 import { cleanUpOldData } from './cleanup';
 import { createGameRoom, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
 import { createScrim, challengeScrim, respondToScrimChallenge, cancelScrim, reportScrimResult } from './scrims';
-import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL, getTeamMembers } from './teams';
+import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL, getTeamMembers, sendTeamInvite, respondToTeamInvite, applyToTeam, respondToTeamApplication } from './teams';
 import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
 import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
 import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence, getManagedUsers } from './users';
@@ -51,6 +51,10 @@ export {
   kickTeamMember,
   setTeamIGL,
   getTeamMembers,
+  sendTeamInvite,
+  respondToTeamInvite,
+  applyToTeam,
+  respondToTeamApplication,
   proposeTournament,
   reviewTournamentProposal,
   editTournament,
