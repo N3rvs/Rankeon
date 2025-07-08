@@ -63,9 +63,7 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
           setStatus(result.data.status);
           setRequestId(result.data.requestId || null);
         } else {
-          setStatus('not_friends'); 
-          console.error("Failed to get friendship status:", result.message);
-          toast({ title: 'Error', description: 'Could not check friendship status.', variant: 'destructive'});
+          setStatus('not_friends');
         }
       }
     };
@@ -75,7 +73,7 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
     return () => {
       isMounted = false;
     };
-  }, [user, userProfile, targetUser.id, toast]);
+  }, [user, userProfile, targetUser.id]);
 
 
   const handleSendRequest = () => {

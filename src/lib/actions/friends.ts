@@ -4,6 +4,7 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 import type { UserProfile } from '../types';
+import { Timestamp } from 'firebase/firestore';
 
 type ActionResponse = {
   success: boolean;
@@ -115,9 +116,16 @@ export async function unblockUser(userId: string): Promise<ActionResponse> {
 
 export async function getFriends(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
   try {
-    const getFriendsFunc = httpsCallable<void, UserProfile[]>(functions, 'getFriendProfiles');
+    const getFriendsFunc = httpsCallable<void, any[]>(functions, 'getFriendProfiles');
     const result = await getFriendsFunc();
-    return { success: true, data: result.data, message: 'Friends fetched.' };
+    // Deserialize timestamps
+    const profiles = result.data.map(p => ({
+      ...p,
+      createdAt: p.createdAt ? Timestamp.fromDate(new Date(p.createdAt)) : undefined,
+      banUntil: p.banUntil ? Timestamp.fromDate(new Date(p.banUntil)) : undefined,
+      _claimsRefreshedAt: p._claimsRefreshedAt ? Timestamp.fromDate(new Date(p._claimsRefreshedAt)) : undefined,
+    }));
+    return { success: true, data: profiles as UserProfile[], message: 'Friends fetched.' };
   } catch (error: any) {
     console.error('Error getting friends:', error);
     return {

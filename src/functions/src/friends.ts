@@ -96,10 +96,17 @@ export const getFriendProfiles = onCall(async ({ auth: callerAuth }) => {
 
         const friendDocs = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', friendIds).get();
         
-        const friendProfiles = friendDocs.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        }));
+        const friendProfiles = friendDocs.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                 // Serialize Timestamps
+                createdAt: data.createdAt?.toDate().toISOString() || null,
+                banUntil: data.banUntil?.toDate().toISOString() || null,
+                _claimsRefreshedAt: data._claimsRefreshedAt?.toDate().toISOString() || null,
+            };
+        });
 
         return friendProfiles;
 
