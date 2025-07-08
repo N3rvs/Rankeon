@@ -8,8 +8,6 @@ import type { Metadata } from 'next';
 import { CookieConsentProvider } from '@/contexts/cookie-consent-context';
 import { CookieConsentBanner } from '@/components/cookies/cookie-consent-banner';
 import { cookies } from 'next/headers';
-import { match as matchLocale } from '@formatjs/intl-localematcher';
-import Negotiator from 'negotiator';
 import { i18nConfig } from '@/i18n-config';
 
 
@@ -29,14 +27,25 @@ export const metadata: Metadata = {
   title: 'Rankeon',
   description: 'Find your team, conquer the game.',
 };
+
+function getLocale(requestHeaders: Headers): Locale {
+    // Reading the cookie
+    const cookieStore = cookies();
+    const localeCookie = cookieStore.get('NEXT_LOCALE')?.value;
+    if (localeCookie && i18nConfig.locales.includes(localeCookie as Locale)) {
+        return localeCookie as Locale;
+    }
+    
+    // Fallback to default if no valid cookie
+    return i18nConfig.defaultLocale;
+}
  
 export default function RootLayout({
   children
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = cookies();
-  const locale = (cookieStore.get('NEXT_LOCALE')?.value || i18nConfig.defaultLocale) as Locale;
+  const locale = getLocale(new Headers());
   
   return (
     <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
