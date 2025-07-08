@@ -80,10 +80,11 @@ export const getScrimRankings = onCall(async () => {
                 ...teamData,
                 winRate,
                 played,
+                won,
                 createdAt: teamData.createdAt?.toDate().toISOString(),
             };
         })
-        .sort((a, b) => b.winRate - a.winRate || (b.stats?.scrimsWon || 0) - (a.stats?.scrimsWon || 0))
+        .sort((a, b) => b.winRate - a.winRate || (b.won || 0) - (a.won || 0))
         .slice(0, 50);
 });
 
