@@ -18,12 +18,12 @@ function Header() {
     <header className="h-28 w-full z-20 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={100} height={100} />
+                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={120} height={120} />
             </Link>
             <nav className="hidden md:flex items-center gap-6">
-                <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
-                <Link href="/games" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.games')}</Link>
-                <Link href="/support" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('Footer.support_title')}</Link>
+                <Link href="/about" className="text-base font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
+                <Link href="/games" className="text-base font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.games')}</Link>
+                <Link href="/support" className="text-base font-medium text-muted-foreground hover:text-foreground">{t('Footer.support_title')}</Link>
             </nav>
             <div className="flex items-center gap-2">
                 <LanguageSwitcher />
