@@ -55,7 +55,6 @@ import Image from 'next/image';
 import ScrimlyLogo from '@/assets/logo.png';
 import { CreateTicketDialog } from './support/create-ticket-dialog';
 import { AssistantWidget } from './ai/assistant-widget';
-import { Footer } from './layout/footer';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -113,7 +112,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader className="flex h-16 items-center justify-center border-b p-0">
           <Link href="/" className="flex items-center gap-2">
-            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={50} height={50} />
+            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
           </Link>
         </SidebarHeader>
         <SidebarContent className="pt-4">
@@ -350,7 +349,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>
-        <Footer />
         <AssistantWidget />
       </SidebarInset>
     </SidebarProvider>
