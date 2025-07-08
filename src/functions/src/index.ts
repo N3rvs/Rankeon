@@ -16,7 +16,7 @@ import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMembe
 import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
 import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
 import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence, getManagedUsers } from './users';
-import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings } from './public';
+import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings, getFeaturedScrims } from './public';
 
 export {
   getChats,
@@ -71,5 +71,6 @@ export {
   getHonorRankings,
   getScrimRankings,
   getTournamentRankings,
+  getFeaturedScrims,
   getManagedUsers
 };

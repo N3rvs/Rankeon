@@ -10,6 +10,30 @@ const calculateTotalHonors = (userData: admin.firestore.DocumentData): number =>
     return Object.values(userData.honorCounts).reduce((sum: number, count: any) => sum + count, 0);
 };
 
+export const getFeaturedScrims = onCall(async () => {
+    try {
+        const scrimsSnapshot = await db.collection('scrims')
+            .where('status', '==', 'confirmed')
+            .orderBy('date', 'desc')
+            .limit(10)
+            .get();
+        
+        return scrimsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                id: doc.id,
+                date: data.date?.toDate().toISOString(),
+                createdAt: data.createdAt?.toDate().toISOString(),
+            };
+        });
+    } catch (error) {
+        console.error("Error fetching featured scrims:", error);
+        throw new HttpsError("internal", "Failed to retrieve featured scrims.");
+    }
+});
+
+
 export const getMarketPlayers = onCall(async ({ auth }) => {
     if (!auth) {
         throw new HttpsError('unauthenticated', 'Authentication is required.');

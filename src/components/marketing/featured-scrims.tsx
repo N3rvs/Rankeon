@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 import type { Scrim } from '@/lib/types';
 import { PublicScrimCard } from './PublicScrimCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useI18n } from '@/contexts/i18n-context';
+import { getFeaturedScrims } from '@/lib/actions/public';
 
 export function FeaturedScrims() {
   const { t } = useI18n();
@@ -15,22 +14,15 @@ export function FeaturedScrims() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'scrims'),
-      where('status', '==', 'confirmed'),
-      orderBy('date', 'desc'),
-      limit(10)
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scrim));
-      setScrims(data);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching confirmed scrims:", error);
+    setLoading(true);
+    getFeaturedScrims().then(result => {
+      if (result.success && result.data) {
+        setScrims(result.data);
+      } else {
+        console.error("Failed to load featured scrims:", result.message);
+      }
       setLoading(false);
     });
-
-    return () => unsubscribe();
   }, []);
 
   if (loading) {

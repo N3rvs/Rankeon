@@ -2,13 +2,15 @@
 'use client';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
-import type { UserProfile, Team, Tournament } from '../types';
+import type { UserProfile, Team, Tournament, Scrim } from '../types';
 
 const functions = getFunctions(app);
 
 // Market Data
 type PlayerDataResponse = { success: boolean; data?: UserProfile[]; message: string; }
 type TeamDataResponse = { success: boolean; data?: Team[]; message: string; }
+type ScrimDataResponse = { success: boolean; data?: Scrim[]; message: string; }
+
 
 export async function getMarketPlayers(): Promise<PlayerDataResponse> {
   try {
@@ -36,6 +38,24 @@ export async function getMarketTeams(): Promise<TeamDataResponse> {
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function getFeaturedScrims(): Promise<ScrimDataResponse> {
+  try {
+    const getScrimsFunc = httpsCallable<void, any[]>(functions, 'getFeaturedScrims');
+    const result = await getScrimsFunc();
+    // Re-hydrate Firestore Timestamps
+    const scrims = result.data.map(s => ({
+        ...s,
+        date: new Date(s.date),
+        createdAt: new Date(s.createdAt),
+    }))
+    return { success: true, data: scrims, message: 'Scrims fetched.' };
+  } catch (error: any) {
+    console.error('Error fetching featured scrims:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}
+
 
 // Rankings Data
 type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl'> & { totalHonors: number };
