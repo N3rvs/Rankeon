@@ -490,7 +490,15 @@
     "remove_friend_title": "¿Eliminar a {name} de tus amigos?",
     "remove_friend_desc": "Esta acción eliminará a este usuario de tu lista de amigos y el historial de chat se borrará permanentemente. Para volver a chatear, tendrás que enviar una nueva solicitud de amistad.",
     "confirm_remove": "Sí, eliminar amigo",
-    "removing": "Eliminando..."
+    "removing": "Eliminando...",
+    "say_hello": "Chat creado. ¡Saluda!",
+    "user_blocked_title": "Usuario Bloqueado",
+    "user_blocked_desc": "{name} ha sido bloqueado. No podrás enviarle mensajes.",
+    "friend_removed_title": "Amigo Eliminado",
+    "friend_removed_desc": "Ya no eres amigo de {name}.",
+    "history_deleted_title": "Historial Eliminado",
+    "history_deleted_desc": "El historial de este chat ha sido eliminado para ambos.",
+    "error_title": "Error"
   },
   "FriendshipButton": {
     "add_friend": "Añadir Amigo",

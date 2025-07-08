@@ -173,7 +173,7 @@ function ChatList() {
                                                 {chat.lastMessage.content}
                                             </>
                                         ) : (
-                                            'Chat created. Say hello!'
+                                            t('MessagesPage.say_hello')
                                         )}
                                     </p>
                                 </div>

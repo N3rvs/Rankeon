@@ -289,13 +289,13 @@ export default function ChatPage() {
                     setLoading(false);
                 }, (error) => {
                     console.error('Error fetching chat messages:', error);
-                    toast({ title: 'Error', description: 'Could not load messages.', variant: 'destructive' });
+                    toast({ title: t('MessagesPage.error_title'), description: 'Could not load messages.', variant: 'destructive' });
                     setLoading(false);
                 });
 
             } catch (error: any) {
                 console.error('Failed to setup chat page:', error);
-                toast({ title: 'Error', description: error.message || 'Could not load chat.', variant: 'destructive' });
+                toast({ title: t('MessagesPage.error_title'), description: error.message || 'Could not load chat.', variant: 'destructive' });
                 router.push('/messages');
             }
         };
@@ -307,14 +307,14 @@ export default function ChatPage() {
                 unsubscribe();
             }
         };
-    }, [chatId, user, router, toast]);
+    }, [chatId, user, router, toast, t]);
 
 
     const handleSendMessage = async (content: string) => {
         if (!recipient) return;
         const result = await sendMessageToFriend({ to: recipient.id, content });
         if (!result.success) {
-            toast({ title: 'Error', description: result.message, variant: 'destructive' });
+            toast({ title: t('MessagesPage.error_title'), description: result.message, variant: 'destructive' });
         }
     };
 
@@ -323,10 +323,10 @@ export default function ChatPage() {
         startTransition(async () => {
             const result = await blockUser(recipient.id);
             if (result.success) {
-                toast({ title: 'Usuario Bloqueado', description: `${recipient.name} ha sido bloqueado. No podrás enviarle mensajes.` });
+                toast({ title: t('MessagesPage.user_blocked_title'), description: t('MessagesPage.user_blocked_desc', { name: recipient.name }) });
                 router.push('/messages');
             } else {
-                toast({ title: 'Error', description: result.message, variant: 'destructive' });
+                toast({ title: t('MessagesPage.error_title'), description: result.message, variant: 'destructive' });
             }
             setIsBlockAlertOpen(false);
         });
@@ -337,10 +337,10 @@ export default function ChatPage() {
         startTransition(async () => {
             const result = await removeFriend(recipient.id);
             if (result.success) {
-                toast({ title: 'Amigo Eliminado', description: `${recipient.name} ya no es tu amigo.` });
+                toast({ title: t('MessagesPage.friend_removed_title'), description: t('MessagesPage.friend_removed_desc', { name: recipient.name }) });
                 router.push('/messages');
             } else {
-                toast({ title: 'Error', description: result.message, variant: 'destructive' });
+                toast({ title: t('MessagesPage.error_title'), description: result.message, variant: 'destructive' });
             }
             setIsRemoveFriendAlertOpen(false);
         });
@@ -351,9 +351,9 @@ export default function ChatPage() {
         startTransition(async () => {
             const result = await deleteChatHistory({ chatId });
             if (result.success) {
-                toast({ title: 'Historial Eliminado', description: 'El historial de este chat ha sido eliminado para ambos.' });
+                toast({ title: t('MessagesPage.history_deleted_title'), description: t('MessagesPage.history_deleted_desc') });
             } else {
-                toast({ title: 'Error', description: result.message, variant: 'destructive' });
+                toast({ title: t('MessagesPage.error_title'), description: result.message, variant: 'destructive' });
             }
             setIsDeleteAlertOpen(false);
         });

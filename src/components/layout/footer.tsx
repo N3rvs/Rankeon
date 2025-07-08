@@ -2,10 +2,8 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/contexts/i18n-context';
-import ScrimlyLogo from '@/assets/logo.png';
 import { Twitter, Twitch } from 'lucide-react';
 
 const DiscordIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -22,8 +20,8 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Brand & Socials */}
                     <div className="md:col-span-1 space-y-4">
-                        <Link href="/" className="flex items-center gap-2">
-                            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
+                        <Link href="/" className="font-headline text-2xl font-bold text-primary">
+                            Scrimly
                         </Link>
                         <p className="text-sm text-muted-foreground">{t('Footer.tagline')}</p>
                         <div className="flex items-center gap-2">

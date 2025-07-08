@@ -489,7 +489,15 @@
     "remove_friend_title": "{name} aus deinen Freunden entfernen?",
     "remove_friend_desc": "Dies entfernt diesen Benutzer aus deiner Freundesliste und der Chatverlauf wird dauerhaft gelöscht. Um erneut zu chatten, musst du eine neue Freundschaftsanfrage senden.",
     "confirm_remove": "Ja, Freund entfernen",
-    "removing": "Entfernen..."
+    "removing": "Entfernen...",
+    "say_hello": "Chat erstellt. Sag Hallo!",
+    "user_blocked_title": "Benutzer gesperrt",
+    "user_blocked_desc": "{name} wurde gesperrt. Sie können ihm keine Nachrichten mehr senden.",
+    "friend_removed_title": "Freund entfernt",
+    "friend_removed_desc": "Sie sind nicht mehr mit {name} befreundet.",
+    "history_deleted_title": "Verlauf gelöscht",
+    "history_deleted_desc": "Der Chatverlauf wurde für euch beide gelöscht.",
+    "error_title": "Fehler"
   },
   "FriendshipButton": {
     "add_friend": "Freund hinzufügen",

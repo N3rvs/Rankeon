@@ -489,7 +489,15 @@
     "remove_friend_title": "Retirer {name} de vos amis ?",
     "remove_friend_desc": "Cela retirera cet utilisateur de votre liste d'amis et l'historique des discussions sera définitivement supprimé. Pour discuter à nouveau, vous devrez envoyer une nouvelle demande d'ami.",
     "confirm_remove": "Oui, retirer l'ami",
-    "removing": "Retrait..."
+    "removing": "Retrait...",
+    "say_hello": "Discussion créée. Dites bonjour !",
+    "user_blocked_title": "Utilisateur bloqué",
+    "user_blocked_desc": "{name} a été bloqué. Vous ne pourrez pas lui envoyer de messages.",
+    "friend_removed_title": "Ami supprimé",
+    "friend_removed_desc": "Vous n'êtes plus ami avec {name}.",
+    "history_deleted_title": "Historique supprimé",
+    "history_deleted_desc": "L'historique de la discussion a été effacé pour vous deux.",
+    "error_title": "Erreur"
   },
   "FriendshipButton": {
     "add_friend": "Ajouter un ami",

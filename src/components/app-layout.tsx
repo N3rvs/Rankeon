@@ -53,8 +53,6 @@ import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import type { UserStatus } from '@/lib/types';
 import { updateUserPresence } from '@/lib/actions/users';
-import Image from 'next/image';
-import ScrimlyLogo from '@/assets/logo.png';
 import { CreateTicketDialog } from './support/create-ticket-dialog';
 import { AssistantWidget } from './ai/assistant-widget';
 
@@ -113,8 +111,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader className="flex h-16 items-center justify-center border-b p-0">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
+          <Link href="/" className="font-headline text-2xl font-bold text-primary">
+            Scrimly
           </Link>
         </SidebarHeader>
         <SidebarContent className="pt-4">

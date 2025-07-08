@@ -489,7 +489,15 @@
     "remove_friend_title": "Rimuovere {name} dai tuoi amici?",
     "remove_friend_desc": "Questo rimuoverà questo utente dalla tua lista di amici e la cronologia della chat verrà eliminata permanentemente. Per chattare di nuovo, dovrai inviare una nuova richiesta di amicizia.",
     "confirm_remove": "Sì, rimuovi amico",
-    "removing": "Rimozione..."
+    "removing": "Rimozione...",
+    "say_hello": "Chat creata. Saluta!",
+    "user_blocked_title": "Utente bloccato",
+    "user_blocked_desc": "{name} è stato bloccato. Non potrai inviargli messaggi.",
+    "friend_removed_title": "Amico rimosso",
+    "friend_removed_desc": "Non sei più amico di {name}.",
+    "history_deleted_title": "Cronologia eliminata",
+    "history_deleted_desc": "La cronologia della chat è stata cancellata per entrambi.",
+    "error_title": "Errore"
   },
   "FriendshipButton": {
     "add_friend": "Aggiungi amico",

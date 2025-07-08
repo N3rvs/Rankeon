@@ -489,7 +489,15 @@
     "remove_friend_title": "Remove {name} from your friends?",
     "remove_friend_desc": "This will remove this user from your friends list and the chat history will be permanently deleted. To chat again, you will need to send a new friend request.",
     "confirm_remove": "Yes, remove friend",
-    "removing": "Removing..."
+    "removing": "Removing...",
+    "say_hello": "Chat created. Say hello!",
+    "user_blocked_title": "User Blocked",
+    "user_blocked_desc": "{name} has been blocked. You will not be able to message them.",
+    "friend_removed_title": "Friend Removed",
+    "friend_removed_desc": "You are no longer friends with {name}.",
+    "history_deleted_title": "History Deleted",
+    "history_deleted_desc": "The chat history has been cleared for both of you.",
+    "error_title": "Error"
   },
   "FriendshipButton": {
     "add_friend": "Add Friend",
