@@ -16,6 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useI18n } from '@/contexts/i18n-context';
 import { getFriends } from '@/lib/actions/friends';
 import { useToast } from '@/hooks/use-toast';
+import { getChats } from '@/lib/actions/messages';
 
 interface EnrichedChat extends Chat {
     partner: UserProfile | null;
@@ -71,19 +72,26 @@ function ChatList() {
         });
     }, [user, userProfile?.friends, toast]);
 
-    // Effect 2: Listen for all chat updates for the current user
+    // Effect 2: Fetch all chats for the current user securely
     useEffect(() => {
-        if (!user) return;
-        const q = query(collection(db, 'chats'), where('members', 'array-contains', user.uid));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const newChatsMap = new Map<string, Chat>();
-            snapshot.forEach(doc => {
-                newChatsMap.set(doc.id, { id: doc.id, ...doc.data() } as Chat);
-            });
-            setChatsMap(newChatsMap);
+        if (!user) {
+            setChatsMap(new Map());
+            return;
+        }
+
+        getChats().then(result => {
+            if (result.success && result.data) {
+                const newChatsMap = new Map<string, Chat>();
+                result.data.forEach(chat => {
+                    newChatsMap.set(chat.id, chat);
+                });
+                setChatsMap(newChatsMap);
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+                setChatsMap(new Map());
+            }
         });
-        return () => unsubscribe();
-    }, [user]);
+    }, [user, toast]);
 
     // Effect 3: Combine friend profiles and chat data, and categorize them
     useEffect(() => {

@@ -3,6 +3,8 @@
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
+import type { Chat } from '../types';
+import { Timestamp } from 'firebase/firestore';
 
 type ActionResponse = {
   success: boolean;
@@ -10,6 +12,22 @@ type ActionResponse = {
 };
 
 const functions = getFunctions(app);
+
+export async function getChats(): Promise<{ success: boolean; data?: Chat[]; message: string; }> {
+  try {
+    const getChatsFunc = httpsCallable<void, any[]>(functions, 'getChats');
+    const result = await getChatsFunc();
+    const chats = result.data.map(c => ({
+      ...c,
+      lastMessageAt: c.lastMessageAt ? Timestamp.fromDate(new Date(c.lastMessageAt)) : null,
+      createdAt: c.createdAt ? Timestamp.fromDate(new Date(c.createdAt)) : null,
+    }));
+    return { success: true, data: chats as Chat[], message: 'Chats fetched.' };
+  } catch (error: any) {
+    console.error('Error fetching chats:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}
 
 export async function deleteMessage({
   chatId,
