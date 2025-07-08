@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { match as matchLocale } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
-import { i18nConfig } from './i18n-config';
+
+const i18nConfig = {
+    defaultLocale: 'es',
+    locales: ['en', 'es', 'de', 'fr', 'it', 'pt']
+};
 
 function getLocale(request: NextRequest): string {
     const negotiatorHeaders: Record<string, string> = {};
@@ -9,7 +13,13 @@ function getLocale(request: NextRequest): string {
     
     const languages = new Negotiator({ headers: negotiatorHeaders }).languages();
     const locales = i18nConfig.locales;
-    return matchLocale(languages, locales, i18nConfig.defaultLocale);
+    
+    try {
+        return matchLocale(languages, locales, i18nConfig.defaultLocale);
+    } catch (e) {
+        // Fallback to default if matching fails
+        return i18nConfig.defaultLocale;
+    }
 }
 
 export function middleware(request: NextRequest) {
@@ -22,7 +32,7 @@ export function middleware(request: NextRequest) {
     if (pathnameIsMissingLocale) {
         const locale = getLocale(request);
         return NextResponse.redirect(
-            new URL(`/${locale}${pathname}`, request.url)
+            new URL(`/${locale}${pathname.startsWith('/') ? '' : '/'}${pathname}`, request.url)
         );
     }
 }

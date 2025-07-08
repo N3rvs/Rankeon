@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { i18nConfig, type Locale } from '@/i18n-config';
 
 // Import all message files
 import enMessages from '../messages/en.json';
@@ -10,6 +9,13 @@ import deMessages from '../messages/de.json';
 import frMessages from '../messages/fr.json';
 import itMessages from '../messages/it.json';
 import ptMessages from '../messages/pt.json';
+
+export type Locale = 'en' | 'es' | 'de' | 'fr' | 'it' | 'pt';
+
+const i18nConfig = {
+    defaultLocale: 'es' as Locale,
+    locales: ['en', 'es', 'de', 'fr', 'it', 'pt'] as Locale[]
+};
 
 const messages: Record<Locale, any> = {
   en: enMessages,
