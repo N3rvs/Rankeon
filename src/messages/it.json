@@ -250,7 +250,8 @@
   "GamesPage": {
     "title": "Giochi Supportati",
     "subtitle": "Esplora i giochi disponibili su Rankeon.",
-    "valorant_desc": "Uno sparatutto tattico 5v5 basato su personaggi in cui la mira precisa si unisce ad abilità uniche degli agenti. Lavoro di squadra, strategia e giocate decisive sono la chiave per la vittoria."
+    "valorant_desc": "Uno sparatutto tattico 5v5 basato su personaggi in cui la mira precisa si unisce ad abilità uniche degli agenti. Lavoro di squadra, strategia e giocate decisive sono la chiave per la vittoria.",
+    "league_of_legends_desc": "League of Legends è un MOBA 5v5 in cui due squadre competono per distruggere il nexus nemico. Ogni giocatore controlla un campione con abilità uniche e il gioco combina strategia, riflessi e lavoro di squadra."
   },
   "Status": {
     "title": "Stato",

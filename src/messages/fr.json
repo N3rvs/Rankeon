@@ -250,7 +250,8 @@
   "GamesPage": {
     "title": "Jeux Supportés",
     "subtitle": "Explorez les jeux proposés sur Rankeon.",
-    "valorant_desc": "Un jeu de tir tactique 5v5 basé sur des personnages où la précision des tirs rencontre des capacités d'agent uniques. Le travail d'équipe, la stratégie et les actions décisives sont la clé de la victoire."
+    "valorant_desc": "Un jeu de tir tactique 5v5 basé sur des personnages où la précision des tirs rencontre des capacités d'agent uniques. Le travail d'équipe, la stratégie et les actions décisives sont la clé de la victoire.",
+    "league_of_legends_desc": "League of Legends est un MOBA 5v5 où deux équipes s'affrontent pour détruire le nexus ennemi. Chaque joueur contrôle un champion avec des capacités uniques, et le jeu combine stratégie, réflexes et travail d'équipe."
   },
   "Status": {
     "title": "Statut",

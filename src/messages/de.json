@@ -250,7 +250,8 @@
   "GamesPage": {
     "title": "Unterstützte Spiele",
     "subtitle": "Entdecken Sie die auf Rankeon verfügbaren Spiele.",
-    "valorant_desc": "Ein 5v5-charakterbasierter taktischer Shooter, bei dem präzises Schießen auf einzigartige Agentenfähigkeiten trifft. Teamwork, Strategie und entscheidende Spielzüge sind der Schlüssel zum Sieg."
+    "valorant_desc": "Ein 5v5-charakterbasierter taktischer Shooter, bei dem präzises Schießen auf einzigartige Agentenfähigkeiten trifft. Teamwork, Strategie und entscheidende Spielzüge sind der Schlüssel zum Sieg.",
+    "league_of_legends_desc": "League of Legends ist ein 5v5 MOBA, in dem zwei Teams gegeneinander antreten, um den feindlichen Nexus zu zerstören. Jeder Spieler steuert einen Champion mit einzigartigen Fähigkeiten, und das Spiel kombiniert Strategie, Reflexe und Teamwork."
   },
   "Status": {
     "title": "Status",
