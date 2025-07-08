@@ -1,4 +1,3 @@
-
 // src/lib/actions/friends.ts
 // Client-side actions that call Firebase Functions
 
@@ -11,7 +10,39 @@ type ActionResponse = {
   message: string;
 };
 
+export type FriendshipStatus =
+  | 'loading'
+  | 'not_friends'
+  | 'request_sent'
+  | 'request_received'
+  | 'friends'
+  | 'self';
+
+type GetFriendshipStatusResponse = {
+  status: FriendshipStatus;
+  requestId?: string | null;
+}
+
+type FriendshipStatusActionResponse = {
+    success: boolean;
+    data?: GetFriendshipStatusResponse;
+    message: string;
+}
+
 const functions = getFunctions(app);
+
+
+export async function getFriendshipStatus(targetUserId: string): Promise<FriendshipStatusActionResponse> {
+  try {
+    const getStatusFunc = httpsCallable< { targetUserId: string }, GetFriendshipStatusResponse>(functions, 'getFriendshipStatus');
+    const result = await getStatusFunc({ targetUserId });
+    return { success: true, data: result.data, message: "Status fetched successfully." };
+  } catch (error: any)
+  {
+    console.error('Error fetching friendship status:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred while fetching friendship status.' };
+  }
+}
 
 export async function sendFriendRequest(
   recipientId: string

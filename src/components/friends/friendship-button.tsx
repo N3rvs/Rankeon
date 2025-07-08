@@ -1,17 +1,9 @@
-
 // src/components/friends/friendship-button.tsx
 'use client';
 
 import { useState, useEffect, useTransition, useRef } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import type { UserProfile } from '@/lib/types';
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 import { Button } from '../ui/button';
 import {
   UserPlus,
@@ -26,6 +18,8 @@ import {
   sendFriendRequest,
   respondToFriendRequest,
   removeFriend,
+  getFriendshipStatus,
+  type FriendshipStatus,
 } from '@/lib/actions/friends';
 import {
   DropdownMenu,
@@ -41,14 +35,6 @@ interface FriendshipButtonProps {
   variant?: 'default' | 'icon';
 }
 
-type FriendshipStatus =
-  | 'loading'
-  | 'not_friends'
-  | 'request_sent'
-  | 'request_received'
-  | 'friends'
-  | 'self';
-
 export function FriendshipButton({ targetUser, variant = 'default' }: FriendshipButtonProps) {
   const { user, userProfile } = useAuth();
   const { toast } = useToast();
@@ -61,72 +47,35 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
   useEffect(() => {
     let isMounted = true;
 
-    const determineStatus = async () => {
-        if (!user || !userProfile) {
-            if (isMounted) setStatus('loading');
-            return;
+    const checkStatus = async () => {
+      if (!user) {
+        if (isMounted) setStatus('loading');
+        return;
+      }
+      if (user.uid === targetUser.id) {
+        if (isMounted) setStatus('self');
+        return;
+      }
+      
+      const result = await getFriendshipStatus(targetUser.id);
+      if (isMounted) {
+        if (result.success && result.data?.status) {
+          setStatus(result.data.status);
+          setRequestId(result.data.requestId || null);
+        } else {
+          setStatus('not_friends'); 
+          console.error("Failed to get friendship status:", result.message);
+          toast({ title: 'Error', description: 'Could not check friendship status.', variant: 'destructive'});
         }
-
-        if (user.uid === targetUser.id) {
-            if (isMounted) setStatus('self');
-            return;
-        }
-        
-        if (userProfile.friends?.includes(targetUser.id)) {
-            if (isMounted) setStatus('friends');
-            return;
-        }
-
-        try {
-            const sentQuery = query(
-                collection(db, 'friendRequests'),
-                where('from', '==', user.uid),
-                where('to', '==', targetUser.id),
-                where('status', '==', 'pending')
-            );
-            const sentSnapshot = await getDocs(sentQuery);
-            
-            if (!sentSnapshot.empty) {
-                if (isMounted) {
-                    setRequestId(sentSnapshot.docs[0].id);
-                    setStatus('request_sent');
-                }
-                return;
-            }
-            
-            const receivedQuery = query(
-                collection(db, 'friendRequests'),
-                where('from', '==', targetUser.id),
-                where('to', '==', user.uid),
-                where('status', '==', 'pending')
-            );
-            const receivedSnapshot = await getDocs(receivedQuery);
-
-            if (!receivedSnapshot.empty) {
-                if (isMounted) {
-                    setRequestId(receivedSnapshot.docs[0].id);
-                    setStatus('request_received');
-                }
-                return;
-            }
-
-            if (isMounted) {
-              setStatus('not_friends');
-              setRequestId(null);
-            }
-
-        } catch (error) {
-            console.error("Error checking friendship status:", error);
-            if (isMounted) setStatus('not_friends');
-        }
+      }
     };
 
-    determineStatus();
+    checkStatus();
 
     return () => {
-        isMounted = false;
+      isMounted = false;
     };
-  }, [user, userProfile, targetUser.id]);
+  }, [user, userProfile, targetUser.id, toast]);
 
 
   const handleSendRequest = () => {
@@ -141,7 +90,11 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
             title: 'Success',
             description: 'Friend request sent.',
           });
-          setStatus('request_sent');
+          const newStatus = await getFriendshipStatus(targetUser.id);
+          if(newStatus.success && newStatus.data){
+            setStatus(newStatus.data.status);
+            setRequestId(newStatus.data.requestId || null);
+          }
         } else {
           if (result.message.includes('already-exists') || result.message.includes('already sent')) {
               toast({
@@ -166,7 +119,11 @@ export function FriendshipButton({ targetUser, variant = 'default' }: Friendship
   };
 
   const handleResponse = (accept: boolean) => {
-    if (!requestId) return;
+    if (!requestId) {
+        toast({ title: "Request Unavailable", description: 'This friend request may have been resolved already.' });
+        setStatus('not_friends');
+        return;
+    };
     startTransition(async () => {
       const result = await respondToFriendRequest({ requestId, accept });
       if (result.success) {

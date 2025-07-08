@@ -6,7 +6,7 @@ admin.initializeApp();
 
 // Now import the functions that use the initialized admin SDK.
 import { deleteChatHistory, sendMessageToFriend } from './chat';
-import { getFriendProfiles, sendFriendRequest, respondToFriendRequest, removeFriend } from './friends';
+import { getFriendProfiles, sendFriendRequest, respondToFriendRequest, removeFriend, getFriendshipStatus } from './friends';
 import { giveHonor } from './honors';
 import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
@@ -25,6 +25,7 @@ export {
   sendFriendRequest,
   respondToFriendRequest,
   removeFriend,
+  getFriendshipStatus,
   giveHonor,
   addInboxNotification,
   markNotificationsAsRead,

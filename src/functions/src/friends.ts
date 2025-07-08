@@ -1,4 +1,3 @@
-
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -16,6 +15,65 @@ interface RespondToFriendRequestData {
 interface RemoveFriendData {
   friendUid: string;
 }
+
+interface GetFriendshipStatusData {
+    targetUserId: string;
+}
+
+export const getFriendshipStatus = onCall(async ({ auth, data }: { auth?: any, data: GetFriendshipStatusData }) => {
+    const uid = auth?.uid;
+    const { targetUserId } = data;
+
+    if (!uid) {
+        throw new HttpsError('unauthenticated', 'You must be logged in.');
+    }
+    if (!targetUserId) {
+        throw new HttpsError('invalid-argument', 'Target user ID is required.');
+    }
+    if (uid === targetUserId) {
+        return { status: 'self' };
+    }
+
+    try {
+        const userDoc = await db.collection('users').doc(uid).get();
+        const userData = userDoc.data();
+
+        if (userData?.friends?.includes(targetUserId)) {
+            return { status: 'friends' };
+        }
+
+        // Check for sent request
+        const sentReqSnap = await db.collection("friendRequests")
+            .where("from", "==", uid)
+            .where("to", "==", targetUserId)
+            .where("status", "==", "pending")
+            .limit(1)
+            .get();
+
+        if (!sentReqSnap.empty) {
+            return { status: 'request_sent', requestId: sentReqSnap.docs[0].id };
+        }
+
+        // Check for received request
+        const receivedReqSnap = await db.collection("friendRequests")
+            .where("from", "==", targetUserId)
+            .where("to", "==", uid)
+            .where("status", "==", "pending")
+            .limit(1)
+            .get();
+
+        if (!receivedReqSnap.empty) {
+            return { status: 'request_received', requestId: receivedReqSnap.docs[0].id };
+        }
+
+        return { status: 'not_friends' };
+
+    } catch (error) {
+        console.error('Error getting friendship status:', error);
+        throw new HttpsError('internal', 'An unexpected error occurred while checking friendship status.');
+    }
+});
+
 
 export const getFriendProfiles = onCall(async ({ auth: callerAuth }) => {
     if (!callerAuth) {
