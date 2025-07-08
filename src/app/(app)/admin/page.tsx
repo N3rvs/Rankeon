@@ -1,47 +1,14 @@
 
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowRight, LayoutGrid, Settings, ShieldCheck, Swords, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/contexts/i18n-context';
 
 export default function AdminPage() {
-    const { claims, loading } = useAuth();
-    const router = useRouter();
     const { t } = useI18n();
-
-    const isAdmin = claims?.role === 'admin';
-
-    useEffect(() => {
-        if (!loading && !isAdmin) {
-            router.replace('/dashboard');
-        }
-    }, [isAdmin, loading, router]);
-
-    if (loading || !isAdmin) {
-        return (
-             <div className="space-y-6">
-                 <div className="flex items-center gap-4">
-                    <Skeleton className="h-8 w-8" />
-                    <div>
-                        <Skeleton className="h-8 w-64 mb-2" />
-                        <Skeleton className="h-4 w-80" />
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Skeleton className="h-48 w-full" />
-                    <Skeleton className="h-48 w-full" />
-                    <Skeleton className="h-48 w-full" />
-                </div>
-            </div>
-        );
-    }
 
     const managementCards = [
         {

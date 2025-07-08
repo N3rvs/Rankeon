@@ -2,7 +2,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from '@/contexts/auth-context';
-import { I18nProvider } from '@/contexts/i18n-context';
+import { I18nProvider, type Locale } from '@/contexts/i18n-context';
 import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
 import type { Metadata } from 'next';
 import { CookieConsentProvider } from '@/contexts/cookie-consent-context';
@@ -27,13 +27,15 @@ export const metadata: Metadata = {
  
 export default function RootLayout({
   children,
+  params: { locale }
 }: {
   children: React.ReactNode;
+  params: { locale: Locale };
 }) {
   return (
-    <html lang="es" className={cn("dark", inter.variable, spaceGrotesk.variable)}>
-      <body className={cn("font-body antialiased")}>
-          <I18nProvider>
+    <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
+      <body>
+          <I18nProvider locale={locale}>
             <CookieConsentProvider>
               <AuthProvider>
                 {children}

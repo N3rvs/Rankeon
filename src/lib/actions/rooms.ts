@@ -20,7 +20,6 @@ type ActionResponse = {
   success: boolean;
   message: string;
   roomId?: string;
-  discordChannelId?: string;
 };
 
 export async function createRoom(
@@ -35,7 +34,7 @@ export async function createRoom(
 
     const createRoomFunc = httpsCallable<CreateRoomData, ActionResponse>(
       functions,
-      'createGameRoomWithDiscord'
+      'createGameRoom'
     );
     const result = await createRoomFunc(validatedFields.data);
 
@@ -44,9 +43,8 @@ export async function createRoom(
     if (responseData.success) {
       return {
         success: true,
-        message: 'Sala y canal de Discord creados con éxito.',
+        message: 'Sala creada con éxito.',
         roomId: responseData.roomId,
-        discordChannelId: responseData.discordChannelId,
       };
     } else {
       return {

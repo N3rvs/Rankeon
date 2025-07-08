@@ -12,6 +12,11 @@ import ptMessages from '../messages/pt.json';
 
 export type Locale = 'en' | 'es' | 'de' | 'fr' | 'it' | 'pt';
 
+export const i18nConfig = {
+    defaultLocale: 'es' as Locale,
+    locales: ['en', 'es', 'de', 'fr', 'it', 'pt'] as Locale[]
+};
+
 const messages: Record<Locale, any> = {
   en: enMessages,
   es: esMessages,
@@ -29,8 +34,8 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>('es');
+export function I18nProvider({ children, locale: initialLocale }: { children: ReactNode, locale: Locale }) {
+  const [locale, setLocale] = useState<Locale>(initialLocale);
 
   const t = (key: string, values?: { [key: string]: string | number }): string => {
     const keys = key.split('.');
