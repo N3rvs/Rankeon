@@ -8,8 +8,7 @@ import { useI18n } from '@/contexts/i18n-context';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/i18n/language-switcher';
 import { Footer } from './layout/footer';
-import Image from 'next/image';
-import ScrimlyLogo from '@/assets/logo.png';
+import { Gamepad2 } from 'lucide-react';
 
 function Header() {
   const { user, loading } = useAuth();
@@ -19,7 +18,7 @@ function Header() {
     <header className="h-28 w-full z-20 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 text-3xl font-bold font-headline text-primary">
-                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={40} height={40} />
+                <Gamepad2 className="h-8 w-8" />
                 <span>Scrimly</span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
