@@ -1,4 +1,3 @@
-
 // src/functions/index.ts
 import * as admin from 'firebase-admin';
 
@@ -17,6 +16,7 @@ import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMembe
 import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
 import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
 import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence } from './users';
+import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings } from './public';
 
 export {
   deleteChatHistory,
@@ -58,5 +58,10 @@ export {
   updateUserRole,
   updateUserStatus,
   updateUserCertification,
-  updateUserPresence
+  updateUserPresence,
+  getMarketPlayers,
+  getMarketTeams,
+  getHonorRankings,
+  getScrimRankings,
+  getTournamentRankings
 };

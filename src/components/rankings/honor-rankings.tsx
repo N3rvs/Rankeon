@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -10,42 +8,28 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Award, Medal } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
+import { getHonorRankings } from '@/lib/actions/public';
+import { useToast } from '@/hooks/use-toast';
 
-function calculateTotalHonors(user: UserProfile): number {
-    if (!user.honorCounts) {
-        return 0;
-    }
-    return Object.values(user.honorCounts).reduce((sum, count) => sum + count, 0);
-}
+type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl'> & { totalHonors: number };
 
 export function HonorRankings() {
   const { t } = useI18n();
-  const [rankedPlayers, setRankedPlayers] = useState<UserProfile[]>([]);
+  const [rankedPlayers, setRankedPlayers] = useState<HonorRankingPlayer[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const q = query(collection(db, 'users'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
-      
-      const sortedUsers = usersData
-        .map(user => ({
-          ...user,
-          totalHonors: calculateTotalHonors(user),
-        }))
-        .filter(user => user.totalHonors > 0)
-        .sort((a, b) => b.totalHonors - a.totalHonors);
-      
-      setRankedPlayers(sortedUsers.slice(0, 50));
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching users for honor rankings:", error);
-      setLoading(false);
+    setLoading(true);
+    getHonorRankings().then(result => {
+        if (result.success && result.data) {
+            setRankedPlayers(result.data);
+        } else {
+            toast({ title: 'Error', description: 'Could not load honor rankings.', variant: 'destructive'});
+        }
+        setLoading(false);
     });
-
-    return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
   if (loading) {
     return (
@@ -104,7 +88,7 @@ export function HonorRankings() {
                             </Link>
                         </TableCell>
                         <TableCell className="text-right font-bold text-lg">
-                            {calculateTotalHonors(player)}
+                            {player.totalHonors}
                         </TableCell>
                     </TableRow>
                 ))}

@@ -13,13 +13,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { useState, useEffect, useMemo, useTransition } from 'react';
-import {
-  collection,
-  query,
-  onSnapshot,
-  Unsubscribe,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 import type { UserProfile, Team } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
@@ -36,6 +29,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { sendTeamInvite } from '@/lib/actions/teams';
 import { useI18n } from '@/contexts/i18n-context';
+import { getMarketPlayers, getMarketTeams } from '@/lib/actions/public';
 
 function PlayerTable({
   players,
@@ -309,6 +303,7 @@ function TeamTable({
 export function MarketTabs() {
   const { user, userProfile } = useAuth();
   const { t } = useI18n();
+  const { toast } = useToast();
   
   const [players, setPlayers] = useState<UserProfile[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
@@ -405,44 +400,43 @@ export function MarketTabs() {
   ];
 
   useEffect(() => {
-    let unsubscribe: Unsubscribe | undefined;
-    if (user && userProfile) {
-      setLoadingPlayers(true);
-      const playersQuery = query(collection(db, 'users'));
-      unsubscribe = onSnapshot(playersQuery, (snapshot) => {
-        const playersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as UserProfile));
-        const filteredPlayers = playersData.filter((p) => {
-          if (userProfile.blocked?.includes(p.id)) return false;
-          if (p.blocked?.includes(user.uid)) return false;
-          return true;
-        });
-        setPlayers(filteredPlayers);
+    if (!user) {
         setLoadingPlayers(false);
-      }, (error) => {
-        console.error('Error fetching players:', error);
-        setLoadingPlayers(false);
-      });
-    } else {
-      setPlayers([]);
-      setLoadingPlayers(false);
+        setLoadingTeams(false);
+        return;
     }
-    return () => unsubscribe?.();
-  }, [user, userProfile]);
 
-  useEffect(() => {
-    let unsubscribe: Unsubscribe | undefined;
-    setLoadingTeams(true);
-    const teamsQuery = query(collection(db, 'teams'));
-    unsubscribe = onSnapshot(teamsQuery, (snapshot) => {
-      const teamsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Team));
-      setTeams(teamsData);
-      setLoadingTeams(false);
-    }, (error) => {
-      console.error('Error fetching teams:', error);
-      setLoadingTeams(false);
-    });
-    return () => unsubscribe?.();
-  }, []);
+    const fetchData = async () => {
+        setLoadingPlayers(true);
+        setLoadingTeams(true);
+
+        const [playersResult, teamsResult] = await Promise.all([
+            getMarketPlayers(),
+            getMarketTeams()
+        ]);
+
+        if (playersResult.success && playersResult.data) {
+            const filtered = playersResult.data.filter(p => {
+                if (userProfile?.blocked?.includes(p.id)) return false;
+                if (p.blocked?.includes(user.uid)) return false;
+                return true;
+            });
+            setPlayers(filtered);
+        } else {
+            toast({ title: "Error", description: `Could not load players: ${playersResult.message}`, variant: "destructive"});
+        }
+        setLoadingPlayers(false);
+
+        if (teamsResult.success && teamsResult.data) {
+            setTeams(teamsResult.data);
+        } else {
+            toast({ title: "Error", description: `Could not load teams: ${teamsResult.message}`, variant: "destructive"});
+        }
+        setLoadingTeams(false);
+    };
+
+    fetchData();
+  }, [user, userProfile?.blocked, toast]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
@@ -470,12 +464,12 @@ export function MarketTabs() {
         const countryMatch = countryFilter === 'all' || t.country === countryFilter;
         const rankMatch = rankFilter === 'all' || (
             t.rankMin && t.rankMax && rankOrder[rankFilter] &&
-            rankOrder[rankFilter] >= rankOrder[t.rankMin] &&
-            rankOrder[rankFilter] <= rankOrder[t.rankMax]
+            rankOrder[rankFilter] >= rankOrder[t.rankMin as keyof typeof rankOrder] &&
+            rankOrder[rankFilter] <= rankOrder[t.rankMax as keyof typeof rankOrder]
         );
         return gameMatch && searchMatch && roleMatch && countryMatch && rankMatch;
     });
-  }, [teams, primaryGame, searchQuery, roleFilter, countryFilter, rankFilter]);
+  }, [teams, primaryGame, searchQuery, roleFilter, countryFilter, rankFilter, rankOrder]);
 
   return (
     <div className="space-y-6">
@@ -530,7 +524,6 @@ export function MarketTabs() {
         </div>
          <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={handleResetFilters}>{t('Market.reset_button')}</Button>
-            <Button>{t('Market.search_button')}</Button>
         </div>
       </div>
 

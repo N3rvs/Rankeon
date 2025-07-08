@@ -2,8 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 import type { Team } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,6 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Flame, Medal } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
+import { useToast } from '@/hooks/use-toast';
+import { getScrimRankings } from '@/lib/actions/public';
 
 type RankedTeam = Team & {
     winRate: number;
@@ -21,31 +21,19 @@ export function ScrimRankings() {
   const { t } = useI18n();
   const [rankedTeams, setRankedTeams] = useState<RankedTeam[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const q = query(collection(db, 'teams'), where('stats.scrimsPlayed', '>', 0));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const teamsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
-      
-      const rankedData = teamsData
-        .map(team => {
-            const played = team.stats?.scrimsPlayed || 0;
-            const won = team.stats?.scrimsWon || 0;
-            const winRate = played > 0 ? (won / played) * 100 : 0;
-            return { ...team, winRate, played };
-        })
-        .sort((a, b) => b.winRate - a.winRate || (b.stats?.scrimsWon || 0) - (a.stats?.scrimsWon || 0));
-      
-      setRankedTeams(rankedData);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching teams for scrim rankings:", error);
+    setLoading(true);
+    getScrimRankings().then(result => {
+      if (result.success && result.data) {
+        setRankedTeams(result.data);
+      } else {
+        toast({ title: 'Error', description: 'Could not load scrim rankings.', variant: 'destructive'});
+      }
       setLoading(false);
     });
-
-    return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
   if (loading) {
     return (

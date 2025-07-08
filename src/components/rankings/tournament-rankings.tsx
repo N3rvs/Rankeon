@@ -2,8 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 import type { Tournament } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,32 +10,26 @@ import { Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useI18n } from '@/contexts/i18n-context';
+import { getTournamentRankings } from '@/lib/actions/public';
+import { useToast } from '@/hooks/use-toast';
 
 export function TournamentRankings() {
   const { t } = useI18n();
+  const { toast } = useToast();
   const [completedTournaments, setCompletedTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'tournaments'),
-      where('status', '==', 'completed'),
-      where('winnerId', '!=', null),
-      orderBy('winnerId'),
-      orderBy('startDate', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tournament));
-      setCompletedTournaments(data);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching completed tournaments:", error);
-      setLoading(false);
+    setLoading(true);
+    getTournamentRankings().then(result => {
+        if (result.success && result.data) {
+            setCompletedTournaments(result.data);
+        } else {
+            toast({ title: "Error", description: "Could not load tournament rankings.", variant: "destructive"});
+        }
+        setLoading(false);
     });
-
-    return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
   if (loading) {
     return (
@@ -75,7 +67,7 @@ export function TournamentRankings() {
                 <div>
                   <Link href={`/tournaments/${tournament.id}`} className="font-semibold hover:underline">{tournament.name}</Link>
                   <p className="text-sm text-muted-foreground">
-                    {t('RankingsPage.tournament_won_on', { date: format(tournament.startDate.toDate(), "PPP") })}
+                    {t('RankingsPage.tournament_won_on', { date: format(tournament.startDate, "PPP") })}
                   </p>
                 </div>
               </div>
