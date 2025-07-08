@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -28,7 +29,10 @@ function ChatList() {
 
     const [friendProfiles, setFriendProfiles] = useState<UserProfile[]>([]);
     const [chatsMap, setChatsMap] = useState<Map<string, Chat>>(new Map());
-    const [enrichedChats, setEnrichedChats] = useState<EnrichedChat[]>([]);
+    
+    const [onlineFriends, setOnlineFriends] = useState<EnrichedChat[]>([]);
+    const [offlineFriends, setOfflineFriends] = useState<EnrichedChat[]>([]);
+
 
     useEffect(() => {
         if (!user) {
@@ -54,25 +58,43 @@ function ChatList() {
             setLoading(false);
             return;
         }
+
         setLoading(true);
-        const fetchFriends = async () => {
-            const friendIds = userProfile.friends || [];
-            if (friendIds.length === 0) {
-                setFriendProfiles([]);
-                setLoading(false);
-                return;
-            }
-            const friendPromises = friendIds.map(id => getDoc(doc(db, 'users', id)));
-            const friendDocs = await Promise.all(friendPromises);
-            setFriendProfiles(
-                friendDocs
-                    .filter(d => d.exists())
-                    .map(d => ({ id: d.id, ...d.data() } as UserProfile))
-            );
+
+        const friendIds = userProfile.friends || [];
+        if (friendIds.length === 0) {
+            setFriendProfiles([]);
             setLoading(false);
+            return;
+        }
+        
+        const unsubscribes = friendIds.map(id => {
+            const docRef = doc(db, 'users', id);
+            return onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const friendData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
+                    setFriendProfiles(currentFriends => {
+                        const existingFriendIndex = currentFriends.findIndex(f => f.id === id);
+                        if (existingFriendIndex > -1) {
+                            const updatedFriends = [...currentFriends];
+                            updatedFriends[existingFriendIndex] = friendData;
+                            return updatedFriends;
+                        } else {
+                            return [...currentFriends, friendData];
+                        }
+                    });
+                } else {
+                     setFriendProfiles(currentFriends => currentFriends.filter(f => f.id !== id));
+                }
+            });
+        });
+        
+        setLoading(false);
+
+        return () => {
+            unsubscribes.forEach(unsub => unsub());
         };
-        fetchFriends();
-    }, [userProfile, JSON.stringify(userProfile?.friends)]);
+    }, [JSON.stringify(userProfile?.friends)]);
 
     // Effect 2: Listen for all chat updates for the current user
     useEffect(() => {
@@ -88,7 +110,7 @@ function ChatList() {
         return () => unsubscribe();
     }, [user]);
 
-    // Effect 3: Combine friend profiles and chat data
+    // Effect 3: Combine friend profiles and chat data, and categorize them
     useEffect(() => {
         if (!user) return;
 
@@ -108,8 +130,15 @@ function ChatList() {
             const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
             return timeB - timeA;
         });
-        setEnrichedChats(combined);
+        
+        const online = combined.filter(c => c.partner?.status && ['available', 'busy', 'away'].includes(c.partner.status));
+        const offline = combined.filter(c => !c.partner?.status || !['available', 'busy', 'away'].includes(c.partner.status));
+
+        setOnlineFriends(online);
+        setOfflineFriends(offline);
+
     }, [friendProfiles, chatsMap, user]);
+
 
     if (authLoading || loading) {
         return (
@@ -127,58 +156,81 @@ function ChatList() {
         )
     }
 
+    const ChatLink = ({ chat }: { chat: EnrichedChat }) => {
+        const { partner } = chat;
+        if (!partner) return null;
+
+        const isUnread = unreadChatIds.has(chat.id);
+        const isLastMessageFromMe = chat.lastMessage?.sender === user?.uid;
+
+        return (
+            <Link
+                key={chat.id}
+                href={`/messages/${chat.id}`}
+                className={cn(
+                    "flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-muted",
+                    pathname.endsWith(`/messages/${chat.id}`) && "bg-muted"
+                )}
+            >
+                <Avatar className="h-10 w-10 relative">
+                    <AvatarImage src={partner.avatarUrl} data-ai-hint="person avatar"/>
+                    <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
+                     <span className={cn(
+                        "absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-card",
+                        partner.status === 'available' && 'bg-green-500',
+                        partner.status === 'busy' && 'bg-red-500',
+                        partner.status === 'away' && 'bg-yellow-400',
+                        (!partner.status || !['available', 'busy', 'away'].includes(partner.status)) && 'bg-gray-400'
+                    )} />
+                </Avatar>
+                <div className="flex-1 overflow-hidden">
+                    <div className="flex justify-between items-center">
+                        <div className={cn("font-semibold text-sm truncate", isUnread && "text-primary")}>
+                            {partner.name}
+                        </div>
+                        {(chat.lastMessageAt || chat.createdAt) && (
+                            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">
+                                {formatDistanceToNow((chat.lastMessageAt || chat.createdAt)!.toDate(), { addSuffix: true })}
+                            </p>
+                        )}
+                    </div>
+                    <p className={cn(
+                        "text-sm text-muted-foreground truncate",
+                        isUnread && !isLastMessageFromMe && "text-foreground font-medium"
+                    )}>
+                        {chat.lastMessage ? (
+                            <>
+                                {isLastMessageFromMe && t('MessagesPage.you_prefix')}
+                                {chat.lastMessage.content}
+                            </>
+                        ) : (
+                            t('MessagesPage.say_hello')
+                        )}
+                    </p>
+                </div>
+            </Link>
+        )
+    };
+
     return (
         <ScrollArea className="flex-1">
             <nav className="p-2 space-y-1">
-                {enrichedChats.length > 0 ? (
-                    enrichedChats.map(chat => {
-                        const { partner } = chat;
-                        if (!partner) return null; // Should not happen with new logic
-                        
-                        const isUnread = unreadChatIds.has(chat.id);
-                        const isLastMessageFromMe = chat.lastMessage?.sender === user?.uid;
+                {(onlineFriends.length + offlineFriends.length) > 0 ? (
+                    <>
+                        {onlineFriends.length > 0 && (
+                            <div>
+                                <h3 className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Online — {onlineFriends.length}</h3>
+                                {onlineFriends.map(chat => <ChatLink key={chat.id} chat={chat} />)}
+                            </div>
+                        )}
 
-                        return (
-                            <Link
-                                key={chat.id}
-                                href={`/messages/${chat.id}`}
-                                className={cn(
-                                    "flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-muted",
-                                    pathname.endsWith(`/messages/${chat.id}`) && "bg-muted"
-                                )}
-                            >
-                                <Avatar className="h-10 w-10">
-                                    <AvatarImage src={partner.avatarUrl} data-ai-hint="person avatar"/>
-                                    <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 overflow-hidden">
-                                    <div className="flex justify-between items-center">
-                                        <div className={cn("font-semibold text-sm truncate", isUnread && "text-primary")}>
-                                            {partner.name}
-                                        </div>
-                                        {(chat.lastMessageAt || chat.createdAt) && (
-                                            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">
-                                                {formatDistanceToNow((chat.lastMessageAt || chat.createdAt)!.toDate(), { addSuffix: true })}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <p className={cn(
-                                        "text-sm text-muted-foreground truncate",
-                                        isUnread && !isLastMessageFromMe && "text-foreground font-medium"
-                                    )}>
-                                        {chat.lastMessage ? (
-                                            <>
-                                                {isLastMessageFromMe && t('MessagesPage.you_prefix')}
-                                                {chat.lastMessage.content}
-                                            </>
-                                        ) : (
-                                            t('MessagesPage.say_hello')
-                                        )}
-                                    </p>
-                                </div>
-                            </Link>
-                        )
-                    })
+                        {offlineFriends.length > 0 && (
+                            <div className="pt-2">
+                                <h3 className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Offline — {offlineFriends.length}</h3>
+                                {offlineFriends.map(chat => <ChatLink key={chat.id} chat={chat} />)}
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <p className="p-4 text-sm text-center text-muted-foreground">{t('MessagesPage.no_conversations')}</p>
                 )}
@@ -208,3 +260,4 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
         </div>
     );
 }
+
