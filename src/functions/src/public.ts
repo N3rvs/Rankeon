@@ -129,18 +129,18 @@ export const getTournamentRankings = onCall(async ({ auth }) => {
     }
     const tourneySnapshot = await db.collection('tournaments')
         .where('status', '==', 'completed')
-        .where('winnerId', '!=', null)
-        .orderBy('winnerId')
         .orderBy('startDate', 'desc')
         .get();
         
-    return tourneySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            ...data,
-            id: doc.id,
-            startDate: data.startDate?.toDate().toISOString(),
-            createdAt: data.createdAt?.toDate().toISOString(),
-        };
-    });
+    return tourneySnapshot.docs
+        .filter(doc => !!doc.data().winnerId)
+        .map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                id: doc.id,
+                startDate: data.startDate?.toDate().toISOString(),
+                createdAt: data.createdAt?.toDate().toISOString(),
+            };
+        });
 });
