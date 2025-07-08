@@ -53,13 +53,15 @@ export const getMarketTeams = onCall(async ({ auth }) => {
 export const getHonorRankings = onCall(async () => {
     const usersSnapshot = await db.collection('users').get();
     return usersSnapshot.docs
-        .map(doc => ({ ...doc.data(), id: doc.id }))
-        .map(user => ({
-            id: user.id,
-            name: user.name,
-            avatarUrl: user.avatarUrl,
-            totalHonors: calculateTotalHonors(user),
-        }))
+        .map(doc => {
+            const user = doc.data();
+            return {
+                id: doc.id,
+                name: user.name,
+                avatarUrl: user.avatarUrl,
+                totalHonors: calculateTotalHonors(user),
+            };
+        })
         .filter(user => user.totalHonors > 0)
         .sort((a, b) => b.totalHonors - a.totalHonors)
         .slice(0, 50);
@@ -68,17 +70,18 @@ export const getHonorRankings = onCall(async () => {
 export const getScrimRankings = onCall(async () => {
     const teamsSnapshot = await db.collection('teams').where('stats.scrimsPlayed', '>', 0).get();
     return teamsSnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .map(team => {
-            const played = team.stats?.scrimsPlayed || 0;
-            const won = team.stats?.scrimsWon || 0;
+        .map(doc => {
+            const teamData = doc.data();
+            const played = teamData.stats?.scrimsPlayed || 0;
+            const won = teamData.stats?.scrimsWon || 0;
             const winRate = played > 0 ? (won / played) * 100 : 0;
             return {
-                ...team,
+                id: doc.id,
+                ...teamData,
                 winRate,
                 played,
-                createdAt: team.createdAt?.toDate().toISOString(),
-             };
+                createdAt: teamData.createdAt?.toDate().toISOString(),
+            };
         })
         .sort((a, b) => b.winRate - a.winRate || (b.stats?.scrimsWon || 0) - (a.stats?.scrimsWon || 0))
         .slice(0, 50);
