@@ -39,7 +39,7 @@ export const getTeamMembers = onCall(async ({ auth: callerAuth, data }) => {
                 return {
                     id: memberDoc.id,
                     role: memberData.role,
-                    joinedAt: memberData.joinedAt.toDate().toISOString(), // Serialize timestamp
+                    joinedAt: memberData.joinedAt?.toDate().toISOString() || null, // Safely handle missing timestamp
                     isIGL: memberData.isIGL || false,
                     name: userData.name || '',
                     avatarUrl: userData.avatarUrl || '',
@@ -392,5 +392,228 @@ export const setTeamIGL = onCall(async ({ auth: requestAuth, data }) => {
         }
 
         return { success: true, message: "Rol de IGL actualizado."};
+    });
+});
+
+interface SendTeamInviteData {
+  toUserId: string;
+  teamId: string;
+}
+
+export const sendTeamInvite = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: SendTeamInviteData }) => {
+    if (!callerAuth) throw new HttpsError("unauthenticated", "Debes iniciar sesión para invitar a jugadores.");
+    const { toUserId, teamId } = data;
+    if (!toUserId || !teamId) throw new HttpsError("invalid-argument", "Faltan datos (ID de usuario o equipo).");
+    if (toUserId === callerAuth.uid) throw new HttpsError("invalid-argument", "No puedes invitarte a ti mismo.");
+
+    const teamDoc = await db.collection("teams").doc(teamId).get();
+    if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
+
+    const teamData = teamDoc.data()!;
+    const isStaff = teamData.founder === callerAuth.uid || (await db.collection(`teams/${teamId}/members`).doc(callerAuth.uid).get()).data()?.role === 'coach';
+
+    if (!isStaff) {
+        throw new HttpsError("permission-denied", "Solo el staff del equipo puede enviar invitaciones.");
+    }
+    
+    const targetUserDoc = await db.collection("users").doc(toUserId).get();
+    if (!targetUserDoc.exists || targetUserDoc.data()?.teamId) {
+        throw new HttpsError("failed-precondition", "El jugador no existe o ya está en un equipo.");
+    }
+
+    const existingInviteQuery = await db.collection("teamInvitations")
+        .where("fromTeamId", "==", teamId)
+        .where("toUserId", "==", toUserId)
+        .where("status", "==", "pending")
+        .get();
+
+    if (!existingInviteQuery.empty) {
+        throw new HttpsError("already-exists", "Ya se ha enviado una invitación a este jugador.");
+    }
+    
+    const batch = db.batch();
+    const inviteRef = db.collection("teamInvitations").doc();
+    batch.set(inviteRef, {
+        fromTeamId: teamId,
+        fromTeamName: teamData.name,
+        toUserId: toUserId,
+        status: "pending",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const notificationRef = db.collection(`inbox/${toUserId}/notifications`).doc();
+    batch.set(notificationRef, {
+        type: "team_invite_received",
+        from: teamId,
+        read: false,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        extraData: { inviteId: inviteRef.id, teamName: teamData.name }
+    });
+    
+    await batch.commit();
+    return { success: true, message: "Invitación enviada con éxito." };
+});
+
+
+interface RespondToTeamInviteData {
+    inviteId: string;
+    accept: boolean;
+}
+
+export const respondToTeamInvite = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: RespondToTeamInviteData }) => {
+    if (!callerAuth) throw new HttpsError("unauthenticated", "Debes iniciar sesión para responder.");
+    const { inviteId, accept } = data;
+    if (!inviteId) throw new HttpsError("invalid-argument", "Falta el ID de la invitación.");
+
+    const inviteRef = db.collection("teamInvitations").doc(inviteId);
+    
+    return db.runTransaction(async (transaction) => {
+        const inviteSnap = await transaction.get(inviteRef);
+        if (!inviteSnap.exists) throw new HttpsError("not-found", "Invitación no encontrada.");
+
+        const inviteData = inviteSnap.data()!;
+        if (inviteData.toUserId !== callerAuth.uid) throw new HttpsError("permission-denied", "Esta invitación no es para ti.");
+        if (inviteData.status !== 'pending') throw new HttpsError("failed-precondition", "Esta invitación ya ha sido respondida.");
+
+        const userRef = db.collection("users").doc(callerAuth.uid);
+        const userSnap = await transaction.get(userRef);
+        if (userSnap.data()?.teamId) throw new HttpsError("failed-precondition", "Ya estás en un equipo.");
+
+        transaction.update(inviteRef, { status: accept ? 'accepted' : 'rejected' });
+        
+        if (accept) {
+            const teamRef = db.collection("teams").doc(inviteData.fromTeamId);
+            const memberRef = teamRef.collection("members").doc(callerAuth.uid);
+            
+            transaction.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayUnion(callerAuth.uid) });
+            transaction.set(memberRef, {
+                role: "member",
+                joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            transaction.update(userRef, { teamId: inviteData.fromTeamId });
+        }
+        return { success: true, message: `Invitación ${accept ? 'aceptada' : 'rechazada'}` };
+    });
+});
+
+interface ApplyToTeamData {
+    teamId: string;
+    message?: string;
+}
+
+export const applyToTeam = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: ApplyToTeamData }) => {
+    if (!callerAuth) throw new HttpsError("unauthenticated", "Debes iniciar sesión para aplicar.");
+    const { teamId, message } = data;
+    if (!teamId) throw new HttpsError("invalid-argument", "Falta el ID del equipo.");
+
+    const userSnap = await db.collection("users").doc(callerAuth.uid).get();
+    const teamSnap = await db.collection("teams").doc(teamId).get();
+
+    if (!userSnap.exists) throw new HttpsError("not-found", "No se encontró tu perfil de usuario.");
+    if (userSnap.data()?.teamId) throw new HttpsError("failed-precondition", "Ya estás en un equipo.");
+    if (!teamSnap.exists || !teamSnap.data()?.lookingForPlayers) {
+        throw new HttpsError("failed-precondition", "Este equipo no está buscando jugadores actualmente.");
+    }
+    
+    const existingApplicationQuery = await db.collection("teamApplications")
+        .where("teamId", "==", teamId)
+        .where("applicantId", "==", callerAuth.uid)
+        .where("status", "==", "pending")
+        .get();
+
+    if (!existingApplicationQuery.empty) {
+        throw new HttpsError("already-exists", "Ya has solicitado unirte a este equipo.");
+    }
+
+    const applicationRef = db.collection("teamApplications").doc();
+    const founderId = teamSnap.data()!.founder;
+
+    const batch = db.batch();
+    batch.set(applicationRef, {
+        teamId,
+        applicantId: callerAuth.uid,
+        applicantName: userSnap.data()!.name,
+        applicantAvatarUrl: userSnap.data()!.avatarUrl,
+        message: message || "¡Me gustaría unirme a vuestro equipo!",
+        status: "pending",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const notificationRef = db.collection(`inbox/${founderId}/notifications`).doc();
+    batch.set(notificationRef, {
+        type: "team_application_received",
+        from: callerAuth.uid,
+        read: false,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        extraData: { applicantName: userSnap.data()!.name }
+    });
+
+    await batch.commit();
+
+    return { success: true, message: "Solicitud enviada con éxito." };
+});
+
+interface RespondToApplicationData {
+    applicationId: string;
+    accept: boolean;
+}
+
+export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: RespondToApplicationData }) => {
+    if (!callerAuth) throw new HttpsError("unauthenticated", "Debes iniciar sesión para responder.");
+    const { applicationId, accept } = data;
+    if (!applicationId) throw new HttpsError("invalid-argument", "Falta el ID de la solicitud.");
+    
+    const applicationRef = db.collection("teamApplications").doc(applicationId);
+
+    return db.runTransaction(async (transaction) => {
+        const appSnap = await transaction.get(applicationRef);
+        if (!appSnap.exists) throw new HttpsError("not-found", "Solicitud no encontrada.");
+
+        const appData = appSnap.data()!;
+        if (appData.status !== 'pending') throw new HttpsError("failed-precondition", "Esta solicitud ya ha sido respondida.");
+        
+        const teamRef = db.collection("teams").doc(appData.teamId);
+        const teamSnap = await transaction.get(teamRef);
+        if(!teamSnap.exists) throw new HttpsError("not-found", "El equipo ya no existe.");
+        
+        if (teamSnap.data()!.founder !== callerAuth.uid) {
+            throw new HttpsError("permission-denied", "Solo el fundador puede responder a las solicitudes.");
+        }
+
+        transaction.update(applicationRef, { status: accept ? 'accepted' : 'rejected' });
+        
+        if (accept) {
+            const userRef = db.collection("users").doc(appData.applicantId);
+            const memberRef = teamRef.collection("members").doc(appData.applicantId);
+
+            transaction.update(userRef, { teamId: appData.teamId });
+            transaction.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayUnion(appData.applicantId) });
+            transaction.set(memberRef, {
+                role: "member",
+                joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Notify user of acceptance
+            const userNotifRef = db.collection(`inbox/${appData.applicantId}/notifications`).doc();
+            transaction.set(userNotifRef, {
+                type: "team_application_accepted",
+                from: appData.teamId,
+                read: false,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                extraData: { teamName: teamSnap.data()!.name, teamId: appData.teamId }
+            });
+
+        } else {
+             // Notify user of rejection
+            const userNotifRef = db.collection(`inbox/${appData.applicantId}/notifications`).doc();
+            transaction.set(userNotifRef, {
+                type: "team_application_rejected",
+                from: appData.teamId,
+                read: false,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                extraData: { teamName: teamSnap.data()!.name, teamId: appData.teamId }
+            });
+        }
+        return { success: true, message: `Solicitud ${accept ? 'aceptada' : 'rechazada'}.` };
     });
 });
