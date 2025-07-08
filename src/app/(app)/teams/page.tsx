@@ -8,12 +8,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
-import { collection, query, onSnapshot, Unsubscribe, doc, getDoc, where, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, Unsubscribe, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { deleteTeam, kickTeamMember, updateTeamMemberRole, setTeamIGL } from '@/lib/actions/teams';
+import { deleteTeam, kickTeamMember, updateTeamMemberRole, setTeamIGL, getTeamMembers } from '@/lib/actions/teams';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
             return;
         }
         startTransition(async () => {
+            // This is a safe client-side fetch because it's getting public profile data
             const userDoc = await getDoc(doc(db, 'users', member.id));
             if (userDoc.exists()) {
                 setSelectedMemberProfile({ id: userDoc.id, ...userDoc.data() } as UserProfile);
@@ -68,7 +69,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
         startTransition(async () => {
             const result = await kickTeamMember(team.id, member.id);
              if (result.success) {
-                toast({ title: t('MemberManager.kick_confirm_title', {name:''}), description: `${member.name} has been kicked from the team.` });
+                toast({ title: 'Member Kicked', description: `${member.name} has been kicked from the team.` });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -486,69 +487,60 @@ export default function TeamsPage() {
     const [team, setTeam] = useState<Team | null>(null);
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loadingTeam, setLoadingTeam] = useState(true);
+    const { toast } = useToast();
 
     useEffect(() => {
-        let teamUnsubscribe: Unsubscribe | undefined;
-        let membersUnsubscribe: Unsubscribe | undefined;
-
-        const cleanup = () => {
-            if (teamUnsubscribe) teamUnsubscribe();
-            if (membersUnsubscribe) membersUnsubscribe();
-        };
-    
-        if (userProfile?.teamId) {
-          setLoadingTeam(true);
-          const teamRef = doc(db, 'teams', userProfile.teamId);
-          
-          teamUnsubscribe = onSnapshot(teamRef, (teamDoc) => {
-            if (membersUnsubscribe) membersUnsubscribe();
-
-            if (teamDoc.exists()) {
-              const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
-              setTeam(teamData);
-
-              const membersQuery = query(collection(db, `teams/${teamData.id}/members`));
-              membersUnsubscribe = onSnapshot(membersQuery, async (membersSnapshot) => {
-                  const memberPromises = membersSnapshot.docs.map(async (memberDoc) => {
-                      const memberData = memberDoc.data();
-                      const userDocSnap = await getDoc(doc(db, 'users', memberDoc.id));
-                      if (userDocSnap.exists()) {
-                          const userData = userDocSnap.data();
-                          return {
-                              id: memberDoc.id,
-                              role: memberData.role,
-                              joinedAt: memberData.joinedAt,
-                              isIGL: memberData.isIGL || false,
-                              name: userData.name,
-                              avatarUrl: userData.avatarUrl,
-                              skills: userData.skills || [],
-                          } as TeamMember
-                      }
-                      return null;
-                  });
-                  const memberDocs = await Promise.all(memberPromises);
-                  setMembers(memberDocs.filter(Boolean) as TeamMember[]);
-                  setLoadingTeam(false);
-              });
-
-            } else {
-              setTeam(null);
-              setMembers([]);
-              setLoadingTeam(false);
-            }
-          }, (error) => {
-            console.error("Error fetching team: ", error);
-            setLoadingTeam(false);
-          });
-    
-        } else if (!authLoading) {
-          setTeam(null);
-          setMembers([]);
-          setLoadingTeam(false);
+        if (authLoading) {
+            setLoadingTeam(true);
+            return;
         }
-    
-        return cleanup;
-      }, [userProfile?.teamId, authLoading]);
+
+        let teamUnsubscribe: Unsubscribe | undefined;
+
+        if (userProfile?.teamId) {
+            setLoadingTeam(true);
+            const teamId = userProfile.teamId;
+            const teamRef = doc(db, 'teams', teamId);
+            
+            teamUnsubscribe = onSnapshot(teamRef, (teamDoc) => {
+                if (teamDoc.exists()) {
+                const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
+                setTeam(teamData);
+                
+                // Now fetch members securely
+                getTeamMembers(teamId).then(result => {
+                    if (result.success && result.data) {
+                    setMembers(result.data);
+                    } else {
+                    setMembers([]);
+                    toast({ title: 'Error', description: `Failed to load team members: ${result.message}`, variant: 'destructive' });
+                    }
+                    setLoadingTeam(false); // Set loading to false after members are fetched
+                });
+
+                } else {
+                setTeam(null);
+                setMembers([]);
+                setLoadingTeam(false);
+                }
+            }, (error) => {
+                console.error("Error fetching team: ", error);
+                toast({ title: 'Error', description: "Could not load your team's data.", variant: 'destructive' });
+                setTeam(null);
+                setMembers([]);
+                setLoadingTeam(false);
+            });
+
+        } else {
+            setTeam(null);
+            setMembers([]);
+            setLoadingTeam(false);
+        }
+
+        return () => {
+            if (teamUnsubscribe) teamUnsubscribe();
+        };
+    }, [userProfile?.teamId, authLoading, toast]);
 
     if (authLoading || loadingTeam) {
         return (
