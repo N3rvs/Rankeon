@@ -3,7 +3,8 @@
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
-import type { UserRole, UserStatus } from '../types';
+import type { UserProfile, UserRole, UserStatus } from '../types';
+import { Timestamp } from 'firebase/firestore';
 
 const functions = getFunctions(app);
 
@@ -74,4 +75,21 @@ export async function updateUserPresence(status: UserStatus): Promise<ActionResp
     console.error('Error updating user presence:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
+}
+
+export async function getManagedUsers(): Promise<{ success: boolean; data?: UserProfile[]; message: string; }> {
+    try {
+        const getManagedUsersFunc = httpsCallable<void, any[]>(functions, 'getManagedUsers');
+        const result = await getManagedUsersFunc();
+        // The function will return Timestamps as objects, we need to convert them back
+        const users = result.data.map(u => ({
+            ...u,
+            createdAt: u.createdAt ? new Timestamp(u.createdAt._seconds, u.createdAt._nanoseconds) : undefined,
+            banUntil: u.banUntil ? new Timestamp(u.banUntil._seconds, u.banUntil._nanoseconds) : undefined,
+        }));
+        return { success: true, data: users as UserProfile[], message: 'Users fetched.' };
+    } catch (error: any) {
+        console.error('Error getting managed users:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
 }

@@ -121,16 +121,16 @@
         "decline": "Recusar Todos",
         "customize": "Personalizar"
     },
-    "CookieCustomize": {
-        "title": "Personalizar Preferências de Cookies",
-        "description": "Gerencie suas configurações de cookies. Você pode ativar ou desativar diferentes tipos de cookies abaixo. Cookies necessários não podem ser desativados.",
-        "necessary_title": "Cookies Estritamente Necessários",
-        "necessary_desc": "Esses cookies são essenciais para o funcionamento do site e não podem ser desativados. Eles são usados para segurança, gerenciamento de sessão e outros recursos essenciais.",
-        "always_on": "Sempre Ativados",
-        "analytics_title": "Cookies de Análise",
-        "analytics_desc": "Esses cookies nos ajudam a entender como você usa nosso site, coletando dados anônimos (por exemplo, usando o Firebase Analytics). Isso nos permite melhorar a experiência do usuário.",
-        "save": "Salvar Preferências"
-    },
+  "CookieCustomize": {
+    "title": "Personalizar Preferências de Cookies",
+    "description": "Gerencie suas configurações de cookies. Você pode ativar ou desativar diferentes tipos de cookies abaixo. Cookies necessários não podem ser desativados.",
+    "necessary_title": "Cookies Estritamente Necessários",
+    "necessary_desc": "Esses cookies são essenciais para o funcionamento do site e não podem ser desativados. Eles são usados para segurança, gerenciamento de sessão e outros recursos essenciais.",
+    "always_on": "Sempre Ativados",
+    "analytics_title": "Cookies de Análise",
+    "analytics_desc": "Esses cookies nos ajudam a entender como você usa nosso site, coletando dados anônimos (por exemplo, usando o Firebase Analytics). Isso nos permite melhorar a experiência do usuário.",
+    "save": "Salvar Preferências"
+  },
   "LanguageSwitcher": {
     "change_language": "Mudar idioma"
   },

@@ -2,8 +2,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, onSnapshot, query, Unsubscribe } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
 import type { UserProfile, UserRole } from '@/lib/types';
 import {
   Table,
@@ -23,6 +21,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { Twitch } from 'lucide-react';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { getManagedUsers } from '@/lib/actions/users';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserManagementTableProps {
   currentUserRole: 'admin' | 'moderator';
@@ -69,32 +69,34 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
-    let unsubscribe: Unsubscribe | undefined;
-
-    if (currentUser) {
-      setLoading(true);
-      const usersQuery = query(collection(db, 'users'));
-      unsubscribe = onSnapshot(usersQuery, (snapshot) => {
-        const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) } as UserProfile));
-        setUsers(usersData);
+    if (!currentUser) {
         setLoading(false);
-      }, (error) => {
-        console.error("Error fetching users:", error);
-        setLoading(false);
-      });
-    } else {
-      setUsers([]);
-      setLoading(false);
+        return;
     }
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [currentUser]);
+    setLoading(true);
+    getManagedUsers().then(result => {
+        if (result.success && result.data) {
+            setUsers(result.data);
+        } else {
+            toast({
+                title: 'Error fetching users',
+                description: result.message,
+                variant: 'destructive',
+            });
+        }
+        setLoading(false);
+    }).catch(error => {
+        toast({
+            title: 'Error',
+            description: 'Failed to load user data.',
+            variant: 'destructive',
+        });
+        setLoading(false);
+    })
+  }, [currentUser, toast]);
 
   const filteredUsers = useMemo(() => {
     if (!filter) return users;

@@ -5,6 +5,7 @@
 
 
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -169,4 +170,30 @@ export const updateUserPresence = onCall(async ({ auth, data }: { auth?: any, da
         console.error('Error updating presence:', error);
         throw new HttpsError('internal', 'Failed to update user presence.');
     }
+});
+
+export const getManagedUsers = onCall(async ({ auth: callerAuth }) => {
+    checkModOrAdmin(callerAuth);
+
+    const listUsersResult = await auth.listUsers(1000);
+    const firestoreUsers = await db.collection('users').get();
+    const firestoreUsersMap = new Map(firestoreUsers.docs.map(doc => [doc.id, doc.data()]));
+
+    const users = listUsersResult.users.map(userRecord => {
+        const firestoreData = firestoreUsersMap.get(userRecord.uid) || {};
+        return {
+            id: userRecord.uid,
+            email: userRecord.email,
+            disabled: userRecord.disabled,
+            name: firestoreData.name || '',
+            avatarUrl: firestoreData.avatarUrl || '',
+            role: firestoreData.role || 'player',
+            country: firestoreData.country || '',
+            createdAt: firestoreData.createdAt,
+            isCertifiedStreamer: firestoreData.isCertifiedStreamer || false,
+            banUntil: firestoreData.banUntil || null
+        };
+    });
+
+    return users;
 });

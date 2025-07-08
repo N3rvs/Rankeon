@@ -15,7 +15,7 @@ import { createScrim, challengeScrim, respondToScrimChallenge, cancelScrim, repo
 import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL } from './teams';
 import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
 import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
-import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence } from './users';
+import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence, getManagedUsers } from './users';
 import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings } from './public';
 
 export {
@@ -63,5 +63,6 @@ export {
   getMarketTeams,
   getHonorRankings,
   getScrimRankings,
-  getTournamentRankings
+  getTournamentRankings,
+  getManagedUsers
 };
