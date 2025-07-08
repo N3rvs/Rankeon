@@ -4,6 +4,7 @@
 
 
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -148,6 +149,7 @@ export const updateUserCertification = onCall(async ({ auth: callerAuth, data }:
         throw new HttpsError('internal', `Failed to update certification: ${error.message}`);
     }
 });
+
 
 export const updateUserPresence = onCall(async ({ auth, data }: { auth?: any, data: { status: UserStatus }}) => {
     if (!auth) {

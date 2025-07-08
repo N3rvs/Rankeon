@@ -163,7 +163,7 @@ export const respondToScrimChallenge = onCall(async ({ auth, data }: { auth?: an
         }
 
         const challengerTeamSnap = await transaction.get(db.collection("teams").doc(challengerTeamId));
-        if (!challengerTeamSnap.exists()) {
+        if (!challengerTeamSnap.exists) {
              throw new HttpsError("not-found", "Challenger team could not be found.");
         }
         const challengerTeamData = challengerTeamSnap.data()!;
