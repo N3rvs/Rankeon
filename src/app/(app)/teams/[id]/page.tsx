@@ -18,6 +18,9 @@ import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[] }) {
     const { t } = useI18n();
@@ -165,7 +168,7 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                             <div className="flex items-center gap-2 shrink-0">
                                 {canApply && (
                                     <Button onClick={handleApply} disabled={isPending || authLoading}>
-                                        {isPending ? t('TeamsPage.applying') : t('TeamsPage.apply_to_join')}
+                                        {t('TeamsPage.apply_to_join')}
                                     </Button>
                                 )}
                                 {userProfile?.teamId === team.id && (
