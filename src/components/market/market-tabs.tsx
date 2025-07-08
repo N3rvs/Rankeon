@@ -19,7 +19,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { FriendshipButton } from '../friends/friendship-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
-import { Search, MailPlus } from 'lucide-react';
+import { Search, MailPlus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getFlagEmoji } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
@@ -315,6 +315,10 @@ export function MarketTabs() {
   const [countryFilter, setCountryFilter] = useState('all');
   const [rankFilter, setRankFilter] = useState('all');
   
+  const [currentPagePlayers, setCurrentPagePlayers] = useState(1);
+  const [currentPageTeams, setCurrentPageTeams] = useState(1);
+  const PAGE_SIZE = 5;
+
   const primaryGame = userProfile?.primaryGame || 'Valorant';
   
   const rankOrder: { [key: string]: number } = {
@@ -471,6 +475,31 @@ export function MarketTabs() {
     });
   }, [teams, primaryGame, searchQuery, roleFilter, countryFilter, rankFilter, rankOrder]);
 
+  // Reset page number when filters change
+  useEffect(() => {
+    setCurrentPagePlayers(1);
+    setCurrentPageTeams(1);
+  }, [searchQuery, roleFilter, countryFilter, rankFilter]);
+
+  // Player pagination logic
+  const totalPlayers = filteredPlayers.length;
+  const totalPlayerPages = Math.ceil(totalPlayers / PAGE_SIZE) || 1;
+  const paginatedPlayers = useMemo(() => {
+      const startIndex = (currentPagePlayers - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+      return filteredPlayers.slice(startIndex, endIndex);
+  }, [filteredPlayers, currentPagePlayers]);
+
+  // Team pagination logic
+  const totalTeams = filteredTeams.length;
+  const totalTeamPages = Math.ceil(totalTeams / PAGE_SIZE) || 1;
+  const paginatedTeams = useMemo(() => {
+      const startIndex = (currentPageTeams - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+      return filteredTeams.slice(startIndex, endIndex);
+  }, [filteredTeams, currentPageTeams]);
+
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border bg-card p-4 space-y-4">
@@ -533,10 +562,56 @@ export function MarketTabs() {
           <TabsTrigger value="players">{t('Market.players_tab')}</TabsTrigger>
         </TabsList>
         <TabsContent value="teams" className="mt-6">
-            <TeamTable teams={filteredTeams} loading={loadingTeams} isOwnTeam={(teamId) => teamId === userProfile?.teamId} />
+            <TeamTable teams={paginatedTeams} loading={loadingTeams} isOwnTeam={(teamId) => teamId === userProfile?.teamId} />
+            <div className="flex items-center justify-end space-x-2 py-4">
+                <span className="text-sm text-muted-foreground">
+                    Página {currentPageTeams} de {totalTeamPages}
+                </span>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Ir a la página anterior"
+                    onClick={() => setCurrentPageTeams(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPageTeams === 1}
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Ir a la página siguiente"
+                    onClick={() => setCurrentPageTeams(prev => Math.min(prev + 1, totalTeamPages))}
+                    disabled={currentPageTeams >= totalTeamPages}
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
         </TabsContent>
         <TabsContent value="players" className="mt-6">
-            <PlayerTable players={filteredPlayers} loading={loadingPlayers} />
+            <PlayerTable players={paginatedPlayers} loading={loadingPlayers} />
+             <div className="flex items-center justify-end space-x-2 py-4">
+                 <span className="text-sm text-muted-foreground">
+                    Página {currentPagePlayers} de {totalPlayerPages}
+                </span>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Ir a la página anterior"
+                    onClick={() => setCurrentPagePlayers(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPagePlayers === 1}
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Ir a la página siguiente"
+                    onClick={() => setCurrentPagePlayers(prev => Math.min(prev + 1, totalPlayerPages))}
+                    disabled={currentPagePlayers >= totalPlayerPages}
+                >
+                   <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
         </TabsContent>
       </Tabs>
     </div>
