@@ -352,7 +352,11 @@
     "management_title": "Panneau de gestion",
     "management_desc": "Actions pour le personnel de l'équipe.",
     "edit_team_button": "Modifier le profil de l'équipe",
-    "upcoming_matches": "Matchs à venir"
+    "upcoming_matches": "Matchs à venir",
+    "apply_to_join": "Postuler",
+    "applying": "Envoi en cours...",
+    "application_sent_title": "Candidature envoyée",
+    "application_sent_desc": "Votre candidature a été envoyée au fondateur de l'équipe."
   },
   "MemberManager": {
     "role_updated": "Rôle mis à jour",

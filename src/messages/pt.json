@@ -352,7 +352,11 @@
     "management_title": "Painel de Gerenciamento",
     "management_desc": "Ações para a equipe técnica.",
     "edit_team_button": "Editar Perfil da Equipe",
-    "upcoming_matches": "Próximas Partidas"
+    "upcoming_matches": "Próximas Partidas",
+    "apply_to_join": "Candidatar-se para entrar",
+    "applying": "Candidatando...",
+    "application_sent_title": "Candidatura Enviada",
+    "application_sent_desc": "Sua candidatura foi enviada para o fundador da equipe."
   },
   "MemberManager": {
     "role_updated": "Função Atualizada",

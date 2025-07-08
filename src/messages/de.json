@@ -352,7 +352,11 @@
     "management_title": "Verwaltungspanel",
     "management_desc": "Aktionen für Teammitarbeiter.",
     "edit_team_button": "Teamprofil bearbeiten",
-    "upcoming_matches": "Anstehende Spiele"
+    "upcoming_matches": "Anstehende Spiele",
+    "apply_to_join": "Bewerben",
+    "applying": "Bewerbung wird gesendet...",
+    "application_sent_title": "Bewerbung gesendet",
+    "application_sent_desc": "Deine Bewerbung wurde an den Teamgründer gesendet."
   },
   "MemberManager": {
     "role_updated": "Rolle aktualisiert",

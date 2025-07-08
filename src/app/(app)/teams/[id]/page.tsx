@@ -12,9 +12,6 @@ import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import Link from 'next/link';
 import { applyToTeam, getTeamMembers } from '@/lib/actions/teams';
 import { useParams, useRouter } from 'next/navigation';
 import { useI18n } from '@/contexts/i18n-context';
@@ -57,7 +54,7 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
         startTransition(async () => {
             const result = await applyToTeam(team.id);
             if (result.success) {
-                toast({ title: "Application Sent", description: "Your application has been sent to the team founder." });
+                toast({ title: t('TeamsPage.application_sent_title'), description: t('TeamsPage.application_sent_desc') });
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -168,8 +165,7 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                             <div className="flex items-center gap-2 shrink-0">
                                 {canApply && (
                                     <Button onClick={handleApply} disabled={isPending || authLoading}>
-                                        <UserPlus className="mr-2 h-4 w-4" />
-                                        {isPending ? "Applying..." : "Apply to Join"}
+                                        {isPending ? t('TeamsPage.applying') : t('TeamsPage.apply_to_join')}
                                     </Button>
                                 )}
                                 {userProfile?.teamId === team.id && (

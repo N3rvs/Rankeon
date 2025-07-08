@@ -352,7 +352,11 @@
     "management_title": "Pannello di gestione",
     "management_desc": "Azioni per lo staff della squadra.",
     "edit_team_button": "Modifica profilo squadra",
-    "upcoming_matches": "Incontri in arrivo"
+    "upcoming_matches": "Incontri in arrivo",
+    "apply_to_join": "Candidati per unirti",
+    "applying": "Candidatura in corso...",
+    "application_sent_title": "Candidatura Inviata",
+    "application_sent_desc": "La tua candidatura è stata inviata al fondatore del team."
   },
   "MemberManager": {
     "role_updated": "Ruolo aggiornato",
@@ -645,6 +649,7 @@
     "subject_bug": "Segnalazione di bug",
     "subject_feature": "Richiesta di funzionalità",
     "subject_account": "Problema con l'account",
+    "describe_issue": "Descrivi il tuo problema",
     "submit": "Invia ticket",
     "submitting": "Invio in corso..."
   },

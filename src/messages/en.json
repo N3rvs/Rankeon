@@ -352,7 +352,11 @@
     "management_title": "Management Panel",
     "management_desc": "Actions for team staff.",
     "edit_team_button": "Edit Team Profile",
-    "upcoming_matches": "Upcoming Matches"
+    "upcoming_matches": "Upcoming Matches",
+    "apply_to_join": "Apply to Join",
+    "applying": "Applying...",
+    "application_sent_title": "Application Sent",
+    "application_sent_desc": "Your application has been sent to the team founder."
   },
   "MemberManager": {
     "role_updated": "Role Updated",
