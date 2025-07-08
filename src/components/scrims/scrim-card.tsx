@@ -15,6 +15,7 @@ import { challengeScrimAction, cancelScrimAction, reportScrimResultAction, respo
 import { useI18n } from '@/contexts/i18n-context';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '../ui/alert-dialog';
+import Link from 'next/link';
 
 function ReportResultDialog({ scrim, onOpenChange }: { scrim: Scrim; onOpenChange: (open: boolean) => void; }) {
     const { toast } = useToast();
@@ -148,23 +149,36 @@ export function ScrimCard({ scrim }: { scrim: Scrim }) {
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
         <div className="flex justify-around items-center">
-          <div className="flex flex-col items-center gap-2 text-center w-28">
+          <Link href={`/teams/${scrim.teamAId}`} className="flex flex-col items-center gap-2 text-center w-28 group">
             <Avatar className="h-16 w-16">
               <AvatarImage src={scrim.teamAAvatarUrl} data-ai-hint="team logo" />
               <AvatarFallback>{scrim.teamAName.slice(0, 2)}</AvatarFallback>
             </Avatar>
-            <p className="font-semibold text-sm truncate w-full">{scrim.teamAName}</p>
-          </div>
+            <p className="font-semibold text-sm truncate w-full group-hover:underline">{scrim.teamAName}</p>
+          </Link>
           <Swords className="h-6 w-6 text-muted-foreground shrink-0 mx-2" />
           <div className="flex flex-col items-center gap-2 text-center w-28">
-              <Avatar className={cn("h-16 w-16", scrim.status === 'challenged' && 'opacity-50')}>
-                {opponent ? <AvatarImage src={opponent.avatar} data-ai-hint="team logo" /> : <div className="h-full w-full rounded-full bg-muted border-dashed border-2 flex items-center justify-center"><p className="text-3xl font-bold text-muted-foreground">?</p></div> }
-                {opponent && <AvatarFallback>{opponent.name.slice(0, 2)}</AvatarFallback>}
-              </Avatar>
-              <p className={cn("font-semibold text-sm truncate w-full", !opponent && "text-xs text-muted-foreground")}>
-                {opponent ? opponent.name : t('ScrimsPage.looking_for_match')}
-              </p>
-            </div>
+            {opponent ? (
+              <Link href={`/teams/${opponent.id}`} className="flex flex-col items-center gap-2 text-center w-full group">
+                <Avatar className={cn("h-16 w-16", scrim.status === 'challenged' && 'opacity-50')}>
+                  <AvatarImage src={opponent.avatar} data-ai-hint="team logo" />
+                  <AvatarFallback>{opponent.name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <p className="font-semibold text-sm truncate w-full group-hover:underline">
+                  {opponent.name}
+                </p>
+              </Link>
+            ) : (
+              <>
+                <Avatar className="h-16 w-16">
+                  <div className="h-full w-full rounded-full bg-muted border-dashed border-2 flex items-center justify-center"><p className="text-3xl font-bold text-muted-foreground">?</p></div>
+                </Avatar>
+                <p className="text-xs text-muted-foreground">
+                  {t('ScrimsPage.looking_for_match')}
+                </p>
+              </>
+            )}
+          </div>
         </div>
         <div className="text-center text-xs text-muted-foreground space-y-1 pt-2 border-t border-dashed">
             {scrim.country && <p className="flex items-center justify-center gap-2"><Flag className="h-3 w-3" />{scrim.country}</p>}
