@@ -182,14 +182,16 @@ function ChatList() {
                     pathname.endsWith(`/messages/${chat.id}`) && "bg-muted"
                 )}
             >
-                <Avatar className="h-10 w-10 relative">
-                    <AvatarImage src={partner.avatarUrl} data-ai-hint="person avatar"/>
-                    <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
+                 <div className="relative flex-shrink-0">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={partner.avatarUrl} data-ai-hint="person avatar"/>
+                        <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
+                    </Avatar>
                      <span className={cn(
                         "absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-card",
                         statusColor
                     )} />
-                </Avatar>
+                </div>
                 <div className="flex-1 overflow-hidden">
                     <div className="flex justify-between items-center">
                         <div className={cn("font-semibold text-sm truncate", isUnread && "text-primary")}>

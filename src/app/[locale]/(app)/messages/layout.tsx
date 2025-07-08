@@ -166,7 +166,7 @@ function ChatList() {
                         <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
                     </Avatar>
                      <span className={cn(
-                        "absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-background",
+                        "absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-card",
                         statusColor
                     )} />
                 </div>
