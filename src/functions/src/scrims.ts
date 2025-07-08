@@ -97,7 +97,7 @@ export const challengeScrim = onCall(async ({ auth, data }: { auth?: any, data: 
         
         // Explicitly check for creator team's existence
         const creatorTeamSnap = await transaction.get(db.collection("teams").doc(scrimData.teamAId));
-        if (!creatorTeamSnap.exists()) {
+        if (!creatorTeamSnap.exists) {
             throw new HttpsError("not-found", "The team that created this scrim could not be found.");
         }
         const creatorTeamData = creatorTeamSnap.data()!;

@@ -12,9 +12,8 @@ import { addInboxNotification, markNotificationsAsRead, deleteNotifications, cle
 import { cleanUpOldData } from './cleanup';
 import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
 import { createScrim, challengeScrim, respondToScrimChallenge, cancelScrim, reportScrimResult } from './scrims';
-import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
 import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL } from './teams';
-import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
+import { proposeTournament, reviewTournamentProposal } from './tournaments';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
 
 export {
@@ -40,9 +39,6 @@ export {
   respondToScrimChallenge,
   cancelScrim,
   reportScrimResult,
-  createSupportTicket,
-  respondToTicket,
-  resolveTicket,
   createTeam,
   updateTeam,
   deleteTeam,
@@ -51,8 +47,6 @@ export {
   setTeamIGL,
   proposeTournament,
   reviewTournamentProposal,
-  editTournament,
-  deleteTournament,
   updateUserRole,
   updateUserStatus,
   updateUserCertification
