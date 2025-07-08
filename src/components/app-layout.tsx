@@ -295,8 +295,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             ) : (
                <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
-                    <Avatar className="h-10 w-10 relative">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                    <Avatar className="h-10 w-10">
                       <AvatarImage
                         src={userProfile?.avatarUrl}
                         alt={userProfile?.name}
@@ -305,14 +305,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       <AvatarFallback>
                         {userProfile?.name?.charAt(0) || user?.email?.charAt(0)}
                       </AvatarFallback>
-                       <span className={cn(
-                          "absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-background",
-                          userProfile?.status === 'available' && 'bg-green-500',
-                          userProfile?.status === 'busy' && 'bg-red-500',
-                          userProfile?.status === 'away' && 'bg-yellow-400',
-                          (!userProfile?.status || userProfile.status === 'offline') && 'bg-gray-400'
-                      )} />
                     </Avatar>
+                     <span className={cn(
+                        "absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-background",
+                        userProfile?.status === 'available' && 'bg-green-500',
+                        userProfile?.status === 'busy' && 'bg-red-500',
+                        userProfile?.status === 'away' && 'bg-yellow-400',
+                        (!userProfile?.status || userProfile.status === 'offline') && 'bg-gray-400'
+                    )} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
