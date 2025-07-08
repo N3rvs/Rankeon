@@ -572,7 +572,7 @@ export default function TeamsPage() {
 
     return (
         <div>
-            <div className="relative -mx-4 md:-mx-6 -mt-4 md:-mt-6">
+            <div className="relative -mx-4 md:-mx-6">
                 <div className="h-48 md:h-64 bg-muted overflow-hidden">
                     {team && (
                         <Image
