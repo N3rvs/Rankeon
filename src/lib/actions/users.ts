@@ -81,11 +81,11 @@ export async function getManagedUsers(): Promise<{ success: boolean; data?: User
     try {
         const getManagedUsersFunc = httpsCallable<void, any[]>(functions, 'getManagedUsers');
         const result = await getManagedUsersFunc();
-        // The function will return Timestamps as objects, we need to convert them back
+        // The function returns Timestamps as ISO strings, we need to convert them back
         const users = result.data.map(u => ({
             ...u,
-            createdAt: u.createdAt ? new Timestamp(u.createdAt._seconds, u.createdAt._nanoseconds) : undefined,
-            banUntil: u.banUntil ? new Timestamp(u.banUntil._seconds, u.banUntil._nanoseconds) : undefined,
+            createdAt: u.createdAt ? Timestamp.fromDate(new Date(u.createdAt)) : undefined,
+            banUntil: u.banUntil ? Timestamp.fromDate(new Date(u.banUntil)) : undefined,
         }));
         return { success: true, data: users as UserProfile[], message: 'Users fetched.' };
     } catch (error: any) {

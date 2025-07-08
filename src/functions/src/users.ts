@@ -6,6 +6,7 @@
 
 
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -189,9 +190,9 @@ export const getManagedUsers = onCall(async ({ auth: callerAuth }) => {
             avatarUrl: firestoreData.avatarUrl || '',
             role: firestoreData.role || 'player',
             country: firestoreData.country || '',
-            createdAt: firestoreData.createdAt,
+            createdAt: firestoreData.createdAt?.toDate().toISOString() || null,
             isCertifiedStreamer: firestoreData.isCertifiedStreamer || false,
-            banUntil: firestoreData.banUntil || null
+            banUntil: firestoreData.banUntil?.toDate().toISOString() || null,
         };
     });
 

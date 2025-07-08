@@ -17,7 +17,7 @@ export const getMarketPlayers = onCall(async ({ auth }) => {
     const usersSnapshot = await db.collection('users').get();
     const players = usersSnapshot.docs.map(doc => {
         const data = doc.data();
-        // Return only public-safe fields
+        // Return only public-safe, serializable fields
         return {
             id: doc.id,
             name: data.name || '',
@@ -50,7 +50,10 @@ export const getMarketTeams = onCall(async ({ auth }) => {
     });
 });
 
-export const getHonorRankings = onCall(async () => {
+export const getHonorRankings = onCall(async ({ auth }) => {
+    if (!auth) {
+        throw new HttpsError('unauthenticated', 'Authentication is required.');
+    }
     const usersSnapshot = await db.collection('users').get();
     return usersSnapshot.docs
         .map(doc => {
@@ -67,7 +70,10 @@ export const getHonorRankings = onCall(async () => {
         .slice(0, 50);
 });
 
-export const getScrimRankings = onCall(async () => {
+export const getScrimRankings = onCall(async ({ auth }) => {
+    if (!auth) {
+        throw new HttpsError('unauthenticated', 'Authentication is required.');
+    }
     const teamsSnapshot = await db.collection('teams').where('stats.scrimsPlayed', '>', 0).get();
     return teamsSnapshot.docs
         .map(doc => {
@@ -84,11 +90,14 @@ export const getScrimRankings = onCall(async () => {
                 createdAt: teamData.createdAt?.toDate().toISOString(),
             };
         })
-        .sort((a, b) => b.winRate - a.winRate || (b.won || 0) - (a.won || 0))
+        .sort((a, b) => b.winRate - (a.winRate || 0) || (b.won || 0) - (a.won || 0))
         .slice(0, 50);
 });
 
-export const getTournamentRankings = onCall(async () => {
+export const getTournamentRankings = onCall(async ({ auth }) => {
+    if (!auth) {
+        throw new HttpsError('unauthenticated', 'Authentication is required.');
+    }
     const tourneySnapshot = await db.collection('tournaments')
         .where('status', '==', 'completed')
         .where('winnerId', '!=', null)
