@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ReactNode } from 'react';
@@ -15,13 +16,13 @@ function Header() {
   return (
     <header className="h-28 w-full z-20 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-            <Link href="/" className="font-headline text-3xl font-bold text-primary">
+            <Link href="/" className="text-3xl font-bold font-headline text-primary">
                 Scrimly
             </Link>
-            <nav className="hidden md:flex items-center gap-6">
-                <Link href="/about" className="text-base font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
-                <Link href="/games" className="text-base font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.games')}</Link>
-                <Link href="/support" className="text-base font-medium text-muted-foreground hover:text-foreground">{t('Footer.support_title')}</Link>
+            <nav className="hidden md:flex items-center gap-8">
+                <Link href="/about" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
+                <Link href="/games" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.games')}</Link>
+                <Link href="/support" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('Footer.support_title')}</Link>
             </nav>
             <div className="flex items-center gap-2">
                 <LanguageSwitcher />

@@ -1,3 +1,4 @@
+
 // src/components/layout/footer.tsx
 'use client';
 
@@ -20,7 +21,7 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Brand & Socials */}
                     <div className="md:col-span-1 space-y-4">
-                        <Link href="/" className="font-headline text-2xl font-bold text-primary">
+                        <Link href="/" className="text-2xl font-bold font-headline text-primary">
                             Scrimly
                         </Link>
                         <p className="text-sm text-muted-foreground">{t('Footer.tagline')}</p>

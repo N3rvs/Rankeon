@@ -111,8 +111,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader className="flex h-16 items-center justify-center border-b p-0">
-          <Link href="/" className="font-headline text-2xl font-bold text-primary">
-            Scrimly
+          <Link href="/" className="text-2xl font-bold font-headline text-primary px-4">
+              Scrimly
           </Link>
         </SidebarHeader>
         <SidebarContent className="pt-4">
