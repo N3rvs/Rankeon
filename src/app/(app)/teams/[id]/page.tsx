@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
-import { applyToTeam } from '@/lib/actions/teams';
+import { applyToTeam, getTeamMembers } from '@/lib/actions/teams';
 import { useParams, useRouter } from 'next/navigation';
 import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
@@ -246,6 +246,7 @@ export default function TeamPage() {
     const [team, setTeam] = useState<Team | null>(null);
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
 
     useEffect(() => {
       if (!authLoading && userProfile && userProfile.teamId === teamId) {
@@ -254,61 +255,48 @@ export default function TeamPage() {
     }, [teamId, userProfile, authLoading, router]);
 
     useEffect(() => {
-        if (!teamId) return;
-
-        let teamUnsubscribe: Unsubscribe | undefined;
-        let membersUnsubscribe: Unsubscribe | undefined;
-
-        const cleanup = () => {
-            if (teamUnsubscribe) teamUnsubscribe();
-            if (membersUnsubscribe) membersUnsubscribe();
-        };
-    
-        setLoading(true);
-        const teamRef = doc(db, 'teams', teamId);
-        
-        teamUnsubscribe = onSnapshot(teamRef, (teamDoc) => {
-          if (membersUnsubscribe) membersUnsubscribe();
-
-          if (teamDoc.exists()) {
-            const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
-            setTeam(teamData);
-
-            const membersQuery = query(collection(db, `teams/${teamData.id}/members`));
-            membersUnsubscribe = onSnapshot(membersQuery, async (membersSnapshot) => {
-                const memberPromises = membersSnapshot.docs.map(async (memberDoc) => {
-                    const memberData = memberDoc.data();
-                    const userDocSnap = await getDoc(doc(db, 'users', memberDoc.id));
-                    if (userDocSnap.exists()) {
-                        const userData = userDocSnap.data();
-                        return {
-                            id: memberDoc.id,
-                            role: memberData.role,
-                            joinedAt: memberData.joinedAt,
-                            isIGL: memberData.isIGL || false,
-                            name: userData.name,
-                            avatarUrl: userData.avatarUrl,
-                            skills: userData.skills || [],
-                        } as TeamMember
-                    }
-                    return null;
-                });
-                const memberDocs = await Promise.all(memberPromises);
-                setMembers(memberDocs.filter(Boolean) as TeamMember[]);
-                setLoading(false);
-            });
-          } else {
-            setTeam(null);
-            setMembers([]);
+        if (!teamId) {
             setLoading(false);
-          }
+            return;
+        }
+
+        setLoading(true);
+        let teamUnsubscribe: Unsubscribe | undefined;
+
+        // Fetch team members securely, once.
+        const fetchAndSetMembers = async () => {
+            const result = await getTeamMembers(teamId);
+            if (result.success && result.data) {
+                setMembers(result.data);
+            } else {
+                setMembers([]);
+                toast({ title: 'Error', description: `Failed to load team members: ${result.message}`, variant: 'destructive' });
+            }
+        };
+
+        fetchAndSetMembers();
+
+        // Listen for real-time updates on the public team document
+        const teamRef = doc(db, 'teams', teamId);
+        teamUnsubscribe = onSnapshot(teamRef, (teamDoc) => {
+            if (teamDoc.exists()) {
+                const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
+                setTeam(teamData);
+            } else {
+                setTeam(null);
+            }
+            // We can consider loading done when team data arrives
+            setLoading(false); 
         }, (error) => {
-          console.error("Error fetching team: ", error);
-          setLoading(false);
+            console.error("Error fetching team: ", error);
+            setTeam(null);
+            setLoading(false);
         });
-    
-        return cleanup;
-      }, [teamId]);
+
+        return () => {
+            if (teamUnsubscribe) teamUnsubscribe();
+        };
+    }, [teamId, toast]);
 
     if (loading || authLoading) {
         return (

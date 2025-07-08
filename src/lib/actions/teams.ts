@@ -4,6 +4,8 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { z } from 'zod';
 import { app } from '../firebase/client';
+import type { TeamMember } from '../types';
+import { Timestamp } from 'firebase/firestore';
 
 const functions = getFunctions(app);
 
@@ -196,5 +198,24 @@ export async function respondToTeamApplication(values: { applicationId: string; 
   } catch (error: any) {
     console.error('Error calling respondToTeamApplication function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+  }
+}
+
+export async function getTeamMembers(teamId: string): Promise<{ success: boolean; data?: TeamMember[]; message: string; }> {
+  try {
+    const getMembersFunc = httpsCallable<{ teamId: string }, any[]>(functions, 'getTeamMembers');
+    const result = await getMembersFunc({ teamId });
+    // Re-hydrate timestamps
+    const members = result.data.map(m => ({
+        ...m,
+        joinedAt: Timestamp.fromDate(new Date(m.joinedAt)),
+    }))
+    return { success: true, data: members as TeamMember[], message: 'Members fetched.' };
+  } catch (error: any) {
+    console.error('Error getting team members:', error);
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
   }
 }
