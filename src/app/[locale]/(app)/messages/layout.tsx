@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase/client';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
-import type { UserProfile, Chat } from '@/lib/types';
+import { collection, query, where, orderBy, onSnapshot, getDoc, doc } from 'firebase/firestore';
+import type { UserProfile, Chat, UserStatus } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -140,6 +140,17 @@ function ChatList() {
         const isUnread = unreadChatIds.has(chat.id);
         const isLastMessageFromMe = chat.lastMessage?.sender === user?.uid;
 
+        const statusConfig: { [key in UserStatus | 'default']: string } = {
+            available: 'bg-green-500',
+            busy: 'bg-red-500',
+            away: 'bg-yellow-400',
+            offline: 'bg-gray-400',
+            default: 'bg-gray-400'
+        };
+
+        const statusColor = statusConfig[partner.status || 'offline'] || statusConfig.default;
+
+
         return (
             <Link
                 key={chat.id}
@@ -154,10 +165,7 @@ function ChatList() {
                     <AvatarFallback>{partner.name.slice(0,2)}</AvatarFallback>
                      <span className={cn(
                         "absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-card",
-                        partner.status === 'available' && 'bg-green-500',
-                        partner.status === 'busy' && 'bg-red-500',
-                        partner.status === 'away' && 'bg-yellow-400',
-                        (!partner.status || !['available', 'busy', 'away'].includes(partner.status)) && 'bg-gray-400'
+                        statusColor
                     )} />
                 </Avatar>
                 <div className="flex-1 overflow-hidden">
