@@ -230,7 +230,13 @@
     "admin_panel": "Panel Admin",
     "mod_panel": "Panel Mod",
     "logout": "Cerrar Sesión",
-    "support": "Soporte"
+    "support": "Soporte",
+    "games": "Juegos"
+  },
+  "GamesPage": {
+    "title": "Juegos Soportados",
+    "subtitle": "Explora los juegos disponibles en Scrimly.",
+    "valorant_desc": "Un shooter táctico 5v5 basado en personajes donde la puntería precisa se encuentra con habilidades de agente únicas. El trabajo en equipo, la estrategia y las jugadas clave son la clave de la victoria."
   },
   "Status": {
     "title": "Estado",
@@ -668,7 +674,7 @@
     "title": "Política de Reembolsos",
     "subtitle": "Información sobre cómo solicitar un reembolso para tus suscripciones.",
     "eligibility_title": "Elegibilidad para Reembolsos",
-    "eligibility_desc": "Ofrecemos reembolsos para suscripciones de Fundador y Coach dentro de los 14 días posteriores a la compra, siempre y cuando no se hayan utilizado las funciones principales (como crear un equipo o aceptar una invitación como coach).",
+    "eligibility_desc": "Ofrecemos reembolsos para suscripciones de Fundador y Coach dentro de los 7 días posteriores a la compra, siempre y cuando no se hayan utilizado las funciones principales (como crear un equipo o aceptar una invitación como coach).",
     "process_title": "Cómo Solicitar un Reembolso",
     "process_step1": "Abre un ticket de soporte utilizando el botón de abajo.",
     "process_step2": "Selecciona 'Problema con la Cuenta' o 'Pregunta General' como asunto.",

@@ -27,6 +27,7 @@ import {
   Flame,
   Medal,
   LifeBuoy,
+  Gamepad2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -213,6 +214,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/rankings">
                   <Medal />
                   <span>{t('Sidebar.rankings')}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive('/games')}
+                tooltip={t('Sidebar.games')}
+                size="lg"
+              >
+                <Link href="/games">
+                  <Gamepad2 />
+                  <span>{t('Sidebar.games')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

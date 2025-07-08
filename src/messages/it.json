@@ -230,7 +230,13 @@
     "admin_panel": "Pannello Admin",
     "mod_panel": "Pannello Mod",
     "logout": "Esci",
-    "support": "Supporto"
+    "support": "Supporto",
+    "games": "Giochi"
+  },
+  "GamesPage": {
+    "title": "Giochi Supportati",
+    "subtitle": "Esplora i giochi disponibili su Scrimly.",
+    "valorant_desc": "Uno sparatutto tattico 5v5 basato su personaggi in cui la mira precisa si unisce ad abilità uniche degli agenti. Lavoro di squadra, strategia e giocate decisive sono la chiave per la vittoria."
   },
   "Status": {
     "title": "Stato",
@@ -668,7 +674,7 @@
     "title": "Politica di Rimborso",
     "subtitle": "Informazioni su come richiedere un rimborso per i tuoi abbonamenti.",
     "eligibility_title": "Idoneità al Rimborso",
-    "eligibility_desc": "Offriamo rimborsi per gli abbonamenti Fondatore e Allenatore entro 14 giorni dall'acquisto, a condizione che le funzionalità principali (come la creazione di una squadra o l'accettazione di un invito come allenatore) non siano state utilizzate.",
+    "eligibility_desc": "Offriamo rimborsi per gli abbonamenti Fondatore e Allenatore entro 7 giorni dall'acquisto, a condizione che le funzionalità principali (come la creazione di una squadra o l'accettazione di un invito come allenatore) non siano state utilizzate.",
     "process_title": "Come Richiedere un Rimborso",
     "process_step1": "Apri un ticket di supporto utilizzando il pulsante qui sotto.",
     "process_step2": "Seleziona 'Problema Account' o 'Domanda Generale' come oggetto.",

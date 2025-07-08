@@ -230,7 +230,13 @@
     "admin_panel": "Admin Panel",
     "mod_panel": "Mod Panel",
     "logout": "Logout",
-    "support": "Support"
+    "support": "Support",
+    "games": "Games"
+  },
+  "GamesPage": {
+      "title": "Supported Games",
+      "subtitle": "Explore the games featured on Scrimly.",
+      "valorant_desc": "A 5v5 character-based tactical shooter where precise gunplay meets unique agent abilities. Teamwork, strategy, and clutch plays are key to victory."
   },
   "Status": {
     "title": "Status",
@@ -668,7 +674,7 @@
     "title": "Refund Policy",
     "subtitle": "Information on how to request a refund for your subscriptions.",
     "eligibility_title": "Refund Eligibility",
-    "eligibility_desc": "We offer refunds for Founder and Coach subscriptions within 14 days of purchase, provided the core features (like creating a team or accepting a coach invite) have not been used.",
+    "eligibility_desc": "We offer refunds for Founder and Coach subscriptions within 7 days of purchase, provided the core features (like creating a team or accepting a coach invite) have not been used.",
     "process_title": "How to Request a Refund",
     "process_step1": "Open a support ticket using the button below.",
     "process_step2": "Select 'Account Issue' or 'General Question' as the subject.",

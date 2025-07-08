@@ -230,7 +230,13 @@
     "admin_panel": "Panneau Admin",
     "mod_panel": "Panneau Mod",
     "logout": "Déconnexion",
-    "support": "Soutien"
+    "support": "Soutien",
+    "games": "Jeux"
+  },
+  "GamesPage": {
+    "title": "Jeux Supportés",
+    "subtitle": "Explorez les jeux proposés sur Scrimly.",
+    "valorant_desc": "Un jeu de tir tactique 5v5 basé sur des personnages où la précision des tirs rencontre des capacités d'agent uniques. Le travail d'équipe, la stratégie et les actions décisives sont la clé de la victoire."
   },
   "Status": {
     "title": "Statut",
@@ -668,7 +674,7 @@
     "title": "Politique de remboursement",
     "subtitle": "Informations sur la manière de demander un remboursement pour vos abonnements.",
     "eligibility_title": "Éligibilité au remboursement",
-    "eligibility_desc": "Nous proposons des remboursements pour les abonnements Fondateur et Coach dans les 14 jours suivant l'achat, à condition que les fonctionnalités principales (comme la création d'une équipe ou l'acceptation d'une invitation en tant que coach) n'aient pas été utilisées.",
+    "eligibility_desc": "Nous proposons des remboursements pour les abonnements Fondateur et Coach dans les 7 jours suivant l'achat, à condition que les fonctionnalités principales (comme la création d'une équipe ou l'acceptation d'une invitation en tant que coach) n'aient pas été utilisées.",
     "process_title": "Comment demander un remboursement",
     "process_step1": "Ouvrez un ticket de support en utilisant le bouton ci-dessous.",
     "process_step2": "Sélectionnez 'Problème de compte' ou 'Question générale' comme sujet.",

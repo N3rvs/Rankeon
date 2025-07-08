@@ -230,7 +230,13 @@
     "admin_panel": "Admin-Panel",
     "mod_panel": "Mod-Panel",
     "logout": "Abmelden",
-    "support": "Unterstützung"
+    "support": "Unterstützung",
+    "games": "Spiele"
+  },
+  "GamesPage": {
+    "title": "Unterstützte Spiele",
+    "subtitle": "Entdecken Sie die auf Scrimly verfügbaren Spiele.",
+    "valorant_desc": "Ein 5v5-charakterbasierter taktischer Shooter, bei dem präzises Schießen auf einzigartige Agentenfähigkeiten trifft. Teamwork, Strategie und entscheidende Spielzüge sind der Schlüssel zum Sieg."
   },
   "Status": {
     "title": "Status",
@@ -665,14 +671,14 @@
     "faq_a3": "Teams can post open scrims (practice matches) for other teams to challenge. Once a challenge is accepted, the match is confirmed. After the match, either team can report the result to update the stats."
   },
   "RefundPage": {
-    "title": "Refund Policy",
-    "subtitle": "Information on how to request a refund for your subscriptions.",
-    "eligibility_title": "Refund Eligibility",
-    "eligibility_desc": "We offer refunds for Founder and Coach subscriptions within 14 days of purchase, provided the core features (like creating a team or accepting a coach invite) have not been used.",
-    "process_title": "How to Request a Refund",
-    "process_step1": "Open a support ticket using the button below.",
-    "process_step2": "Select 'Account Issue' or 'General Question' as the subject.",
-    "process_step3": "In your message, please include your purchase date and the reason for your refund request. Our team will review your request and get back to you.",
-    "cta": "Open a Support Ticket"
+    "title": "Rückerstattungsrichtlinie",
+    "subtitle": "Informationen zur Beantragung einer Rückerstattung für Ihre Abonnements.",
+    "eligibility_title": "Rückerstattungsberechtigung",
+    "eligibility_desc": "Wir bieten Rückerstattungen für Gründer- und Coach-Abonnements innerhalb von 7 Tagen nach dem Kauf an, vorausgesetzt, die Kernfunktionen (wie das Erstellen eines Teams oder das Annehmen einer Coach-Einladung) wurden nicht genutzt.",
+    "process_title": "So beantragen Sie eine Rückerstattung",
+    "process_step1": "Öffnen Sie ein Support-Ticket über die Schaltfläche unten.",
+    "process_step2": "Wählen Sie 'Kontoproblem' oder 'Allgemeine Frage' als Betreff.",
+    "process_step3": "Geben Sie in Ihrer Nachricht Ihr Kaufdatum und den Grund für Ihre Rückerstattungsanfrage an. Unser Team wird Ihre Anfrage prüfen und sich bei Ihnen melden.",
+    "cta": "Support-Ticket öffnen"
   }
 }
