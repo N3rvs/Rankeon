@@ -64,15 +64,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (docSnap.exists()) {
               const newProfileData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
               
-              const claimsRefreshedAt = newProfileData._claimsRefreshedAt?.toMillis();
-              const tokenIssuedAt = tokenResult.claims.iat * 1000;
-
-              if (claimsRefreshedAt && claimsRefreshedAt > tokenIssuedAt) {
-                // Role changed, force token refresh.
-                // This triggers `onIdTokenChanged` again with new claims.
-                await authUser.getIdToken(true);
-                return; // Exit, listener will re-run.
-              }
+              // This logic is removed to prevent potential infinite loops causing crashes.
+              // The user's token will refresh on the next login or after an hour.
+              // const claimsRefreshedAt = newProfileData._claimsRefreshedAt?.toMillis();
+              // const tokenIssuedAt = tokenResult.claims.iat * 1000;
+              // if (claimsRefreshedAt && claimsRefreshedAt > tokenIssuedAt) {
+              //   await authUser.getIdToken(true);
+              //   return;
+              // }
               
               setUserProfile(newProfileData);
               setLoading(false);
@@ -84,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   id: authUser.uid,
                   email: authUser.email,
                   role: 'player', // Default role
+                  status: "available",
                   name: authUser.displayName || authUser.email?.split('@')[0] || 'New Player',
                   avatarUrl: authUser.photoURL || `https://placehold.co/100x100.png`,
                   bio: '',
