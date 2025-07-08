@@ -20,7 +20,9 @@
         "tournaments_desc": "Inscrivez-vous à des tournois organisés par la communauté et battez-vous pour la gloire et les prix.",
         "footer_rights": "Tous droits réservés. Conçu pour l'avenir de l'esport.",
         "terms": "Conditions d'utilisation",
-        "privacy": "Politique de confidentialité"
+        "privacy": "Politique de confidentialité",
+        "upcoming_matches": "Matchs à venir",
+        "community_matches": "Matchs confirmés par la communauté."
     },
     "AboutPage": {
         "title": "À propos de Scrimly",
@@ -100,9 +102,20 @@
         "accept_error": "Vous devez accepter les conditions et la politique de confidentialité pour continuer."
     },
     "CookieBanner": {
-        "message": "Nous utilisons des cookies pour améliorer votre expérience. En continuant, vous acceptez notre utilisation des cookies.",
-        "accept": "Accepter",
-        "decline": "Refuser"
+        "message": "Nous utilisons des cookies pour améliorer votre expérience. Pour nous conformer à la réglementation sur la confidentialité, nous avons besoin de votre consentement pour configurer ces cookies.",
+        "accept": "Accepter tout",
+        "decline": "Refuser tout",
+        "customize": "Personnaliser"
+    },
+    "CookieCustomize": {
+        "title": "Personnaliser les préférences de cookies",
+        "description": "Gérez vos paramètres de cookies. Vous pouvez activer ou désactiver différents types de cookies ci-dessous. Les cookies nécessaires ne peuvent pas être désactivés.",
+        "necessary_title": "Cookies strictly nécessaires",
+        "necessary_desc": "Ces cookies sont essentiels au fonctionnement du site Web et ne peuvent pas être désactivés. Ils sont utilisés pour la sécurité, la gestion des sessions et d'autres fonctionnalités de base.",
+        "always_on": "Toujours activé",
+        "analytics_title": "Cookies d'analyse",
+        "analytics_desc": "Ces cookies nous aident à comprendre comment vous utilisez notre site en collectant des données anonymes (par exemple, en utilisant Firebase Analytics). Cela nous permet d'améliorer l'expérience utilisateur.",
+        "save": "Enregistrer les préférences"
     },
   "LanguageSwitcher": {
     "change_language": "Changer de langue"
@@ -216,7 +229,8 @@
     "friends": "Amis",
     "admin_panel": "Panneau Admin",
     "mod_panel": "Panneau Mod",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "support": "Soutien"
   },
   "Status": {
     "title": "Statut",
@@ -316,7 +330,8 @@
     "scrim_record_soon": "Les résultats et statistiques des scrims seront bientôt disponibles.",
     "management_title": "Panneau de gestion",
     "management_desc": "Actions pour le personnel de l'équipe.",
-    "edit_team_button": "Modifier le profil de l'équipe"
+    "edit_team_button": "Modifier le profil de l'équipe",
+    "upcoming_matches": "Matchs à venir"
   },
   "MemberManager": {
     "role_updated": "Rôle mis à jour",
@@ -567,7 +582,10 @@
     "status_pending": "En attente",
     "status_confirmed": "Confirmé",
     "status_cancelled": "Annulé",
-    "status_completed": "Terminé"
+    "status_completed": "Terminé",
+    "available_scrims_tab": "Scrims Disponibles",
+    "my_scrims_tab": "Mes Scrims",
+    "confirmed_matches_tab": "Matchs Confirmés"
   },
   "RankingsPage": {
     "title": "Classements de la Plateforme",
@@ -588,5 +606,73 @@
     "rank_header": "Rang",
     "player_header": "Joueur",
     "honors_header": "Honneurs Totals"
+  },
+  "SupportDialog": {
+    "title": "Contacter le support",
+    "description": "Vous avez un problème ou une question ? Faites-le nous savoir.",
+    "subject": "Sujet",
+    "select_subject": "Sélectionnez un sujet...",
+    "subject_general": "Question générale",
+    "subject_bug": "Signaler un bug",
+    "subject_feature": "Demande de fonctionnalité",
+    "subject_account": "Problème de compte",
+    "describe_issue": "Décrivez votre problème",
+    "submit": "Soumettre le ticket",
+    "submitting": "Soumission en cours..."
+  },
+  "Assistant": {
+    "title": "Assistant Scrimly",
+    "placeholder": "Posez une question sur Scrimly..."
+  },
+  "SupportTicketsList": {
+    "no_tickets_title": "Tout est clair !",
+    "no_tickets_desc": "Il n'y a pas de tickets de support ouverts.",
+    "status_open": "Ouvert",
+    "status_closed": "Fermé"
+  },
+  "Footer": {
+    "tagline": "Votre plateforme pour le jeu compétitif.",
+    "support_title": "Support",
+    "help_center": "Centre d'aide",
+    "refunds": "Remboursements",
+    "legal_title": "Légal",
+    "terms": "Termes et Conditions",
+    "privacy": "Politique de confidentialité",
+    "company_title": "Entreprise",
+    "about_us": "À propos de nous",
+    "pricing": "Tarifs"
+  },
+  "SupportPage": {
+    "title": "Centre d'aide",
+    "subtitle": "Besoin d'un coup de main ? Vous êtes au bon endroit.",
+    "ai_title": "Assistant IA",
+    "ai_desc": "Obtenez des réponses instantanées à vos questions sur la plateforme.",
+    "ai_cta": "Démarrer le chat",
+    "ai_note": "Le widget se trouve dans le coin inférieur droit.",
+    "faq_title": "Questions fréquemment posées",
+    "faq_desc": "Trouvez les réponses aux questions les plus courantes.",
+    "refund_title": "Politique de remboursement",
+    "refund_desc": "Consultez nos politiques et comment demander un remboursement.",
+    "refund_cta": "Voir la politique de remboursement",
+    "contact_title": "Vous ne trouvez pas ce que vous cherchez ?",
+    "contact_desc": "Notre équipe de support est là pour vous aider.",
+    "contact_cta": "Contacter le support",
+    "faq_q1": "Comment créer une équipe ?",
+    "faq_a1": "Pour créer une équipe, vous devez avoir le rôle de 'Fondateur'. Vous pouvez obtenir ce rôle via nos plans tarifaires. Une fois que vous avez le rôle, allez sur la page 'Mon Équipe' et suivez les étapes pour créer votre équipe.",
+    "faq_q2": "Comment puis-je proposer un tournoi ?",
+    "faq_a2": "La proposition de tournois est disponible pour les streamers vérifiés, les modérateurs et les administrateurs. Si vous remplissez les conditions, vous trouverez un bouton 'Proposer un tournoi' sur la page des tournois.",
+    "faq_q3": "Comment fonctionnent les scrims ?",
+    "faq_a3": "Les équipes peuvent poster des scrims ouverts (matchs d'entraînement) que d'autres équipes peuvent défier. Une fois qu'un défi est accepté, le match est confirmé. Après le match, l'une ou l'autre équipe peut rapporter le résultat pour mettre à jour les statistiques."
+  },
+  "RefundPage": {
+    "title": "Politique de remboursement",
+    "subtitle": "Informations sur la manière de demander un remboursement pour vos abonnements.",
+    "eligibility_title": "Éligibilité au remboursement",
+    "eligibility_desc": "Nous proposons des remboursements pour les abonnements Fondateur et Coach dans les 7 jours suivant l'achat, à condition que les fonctionnalités principales (comme la création d'une équipe ou l'acceptation d'une invitation en tant que coach) n'aient pas été utilisées.",
+    "process_title": "Comment demander un remboursement",
+    "process_step1": "Ouvrez un ticket de support en utilisant le bouton ci-dessous.",
+    "process_step2": "Sélectionnez 'Problème de compte' ou 'Question générale' comme sujet.",
+    "process_step3": "Dans votre message, veuillez inclure votre date d'achat et la raison de votre demande de remboursement. Notre équipe examinera votre demande et vous répondra.",
+    "cta": "Ouvrir un ticket de support"
   }
 }

@@ -20,7 +20,9 @@
     "tournaments_desc": "Inscríbete en torneos de la comunidad y compite por la gloria y los premios.",
     "footer_rights": "Todos los derechos reservados. Construido para el futuro de los esports.",
     "terms": "Términos de Servicio",
-    "privacy": "Política de Privacidad"
+    "privacy": "Política de Privacidad",
+    "upcoming_matches": "Próximos Encuentros",
+    "community_matches": "Partidas confirmadas por la comunidad."
   },
   "AboutPage": {
     "title": "Sobre Scrimly",
@@ -99,10 +101,21 @@
     "privacy_policy": "Política de Privacidad",
     "accept_error": "Debes aceptar los Términos y la Política de Privacidad para continuar."
   },
-   "CookieBanner": {
-    "message": "Utilizamos cookies para mejorar tu experiencia. Al continuar, aceptas nuestro uso de cookies.",
-    "accept": "Aceptar",
-    "decline": "Rechazar"
+  "CookieBanner": {
+    "message": "Utilizamos cookies para mejorar tu experiencia. Para cumplir con las normativas de privacidad, necesitamos tu consentimiento para usar estas cookies.",
+    "accept": "Aceptar Todas",
+    "decline": "Rechazar Todas",
+    "customize": "Personalizar"
+  },
+  "CookieCustomize": {
+    "title": "Personalizar Preferencias de Cookies",
+    "description": "Gestiona tu configuración de cookies. Puedes habilitar o deshabilitar diferentes tipos de cookies a continuación. Las cookies necesarias no se pueden deshabilitar.",
+    "necessary_title": "Cookies Estrictamente Necesarias",
+    "necessary_desc": "Estas cookies son esenciales para que el sitio web funcione y no se pueden desactivar. Se utilizan para seguridad, gestión de sesiones y otras funciones básicas.",
+    "always_on": "Siempre Activas",
+    "analytics_title": "Cookies de Análisis",
+    "analytics_desc": "Estas cookies nos ayudan a entender cómo usas nuestro sitio recopilando datos anónimos (p. ej., usando Firebase Analytics). Esto nos permite mejorar la experiencia del usuario.",
+    "save": "Guardar Preferencias"
   },
   "LanguageSwitcher": {
     "change_language": "Cambiar idioma"
@@ -216,7 +229,8 @@
     "friends": "Amigos",
     "admin_panel": "Panel Admin",
     "mod_panel": "Panel Mod",
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "support": "Soporte"
   },
   "Status": {
     "title": "Estado",
@@ -316,7 +330,8 @@
     "scrim_record_soon": "Los resultados y estadísticas de las scrims estarán disponibles pronto.",
     "management_title": "Panel de Gestión",
     "management_desc": "Acciones para el staff del equipo.",
-    "edit_team_button": "Editar Perfil del Equipo"
+    "edit_team_button": "Editar Perfil del Equipo",
+    "upcoming_matches": "Próximos Encuentros"
   },
   "MemberManager": {
     "role_updated": "Rol Actualizado",
@@ -567,7 +582,10 @@
     "status_pending": "Pendiente",
     "status_confirmed": "Confirmado",
     "status_cancelled": "Cancelado",
-    "status_completed": "Completado"
+    "status_completed": "Completado",
+    "available_scrims_tab": "Scrims Disponibles",
+    "my_scrims_tab": "Mis Scrims",
+    "confirmed_matches_tab": "Partidas Confirmadas"
   },
   "RankingsPage": {
     "title": "Clasificaciones de la Plataforma",
@@ -588,5 +606,73 @@
     "rank_header": "Rango",
     "player_header": "Jugador",
     "honors_header": "Honores Totales"
+  },
+  "SupportDialog": {
+    "title": "Contactar con Soporte",
+    "description": "¿Tienes un problema o una pregunta? Háznoslo saber.",
+    "subject": "Asunto",
+    "select_subject": "Selecciona un asunto...",
+    "subject_general": "Pregunta General",
+    "subject_bug": "Reportar un Bug",
+    "subject_feature": "Sugerencia de Función",
+    "subject_account": "Problema con la Cuenta",
+    "describe_issue": "Describe tu problema",
+    "submit": "Enviar Ticket",
+    "submitting": "Enviando..."
+  },
+  "Assistant": {
+    "title": "Asistente Scrimly",
+    "placeholder": "Pregunta sobre Scrimly..."
+  },
+  "SupportTicketsList": {
+    "no_tickets_title": "¡Todo en orden!",
+    "no_tickets_desc": "No hay tickets de soporte abiertos.",
+    "status_open": "Abierto",
+    "status_closed": "Cerrado"
+  },
+  "Footer": {
+    "tagline": "Tu plataforma para el juego competitivo.",
+    "support_title": "Soporte",
+    "help_center": "Centro de Ayuda",
+    "refunds": "Reembolsos",
+    "legal_title": "Legal",
+    "terms": "Términos y Condiciones",
+    "privacy": "Política de Privacidad",
+    "company_title": "Empresa",
+    "about_us": "Sobre Nosotros",
+    "pricing": "Precios"
+  },
+  "SupportPage": {
+    "title": "Centro de Ayuda",
+    "subtitle": "¿Necesitas ayuda? Has venido al lugar correcto.",
+    "ai_title": "Asistente de IA",
+    "ai_desc": "Obtén respuestas instantáneas a tus preguntas sobre la plataforma.",
+    "ai_cta": "Iniciar Chat",
+    "ai_note": "El widget está en la esquina inferior derecha.",
+    "faq_title": "Preguntas Frecuentes",
+    "faq_desc": "Encuentra respuestas a las preguntas más comunes.",
+    "refund_title": "Política de Reembolso",
+    "refund_desc": "Revisa nuestras políticas y cómo solicitar un reembolso.",
+    "refund_cta": "Ver Política de Reembolso",
+    "contact_title": "¿No encuentras lo que buscas?",
+    "contact_desc": "Nuestro equipo de soporte está aquí para ayudarte.",
+    "contact_cta": "Contactar con Soporte",
+    "faq_q1": "¿Cómo creo un equipo?",
+    "faq_a1": "Para crear un equipo, debes tener el rol de 'Fundador'. Puedes adquirir este rol a través de nuestros planes de suscripción en la página de precios. Una vez que tengas el rol, ve a la página 'Mi Equipo' y sigue los pasos para crear tu equipo.",
+    "faq_q2": "¿Cómo puedo proponer un torneo?",
+    "faq_a2": "La propuesta de torneos está disponible para streamers verificados, moderadores y administradores. Si cumples con los requisitos, encontrarás un botón de 'Proponer Torneo' en la página de torneos.",
+    "faq_q3": "¿Cómo funcionan los scrims?",
+    "faq_a3": "Los equipos pueden publicar scrims abiertos (partidas de práctica) que otros equipos pueden desafiar. Una vez que se acepta un desafío, la partida se confirma. Después de la partida, cualquiera de los equipos puede reportar el resultado para que se actualicen las estadísticas."
+  },
+  "RefundPage": {
+    "title": "Política de Reembolsos",
+    "subtitle": "Información sobre cómo solicitar un reembolso para tus suscripciones.",
+    "eligibility_title": "Elegibilidad para Reembolsos",
+    "eligibility_desc": "Ofrecemos reembolsos para suscripciones de Fundador y Coach dentro de los 7 días posteriores a la compra, siempre y cuando no se hayan utilizado las funciones principales (como crear un equipo o aceptar una invitación como coach).",
+    "process_title": "Cómo Solicitar un Reembolso",
+    "process_step1": "Abre un ticket de soporte utilizando el botón de abajo.",
+    "process_step2": "Selecciona 'Problema con la Cuenta' o 'Pregunta General' como asunto.",
+    "process_step3": "En tu mensaje, incluye la fecha de tu compra y la razón de tu solicitud de reembolso. Nuestro equipo revisará tu solicitud y se pondrá en contacto contigo.",
+    "cta": "Abrir un Ticket de Soporte"
   }
 }

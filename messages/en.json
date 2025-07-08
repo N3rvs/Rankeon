@@ -20,7 +20,9 @@
     "tournaments_desc": "Sign up for community-run tournaments and compete for glory and prizes.",
     "footer_rights": "All rights reserved. Built for the future of esports.",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "upcoming_matches": "Upcoming Matches",
+    "community_matches": "Community-confirmed matches."
   },
   "AboutPage": {
     "title": "About Scrimly",
@@ -100,9 +102,20 @@
     "accept_error": "You must accept the Terms and Privacy Policy to continue."
   },
   "CookieBanner": {
-    "message": "We use cookies to enhance your experience. By continuing, you agree to our use of cookies.",
-    "accept": "Accept",
-    "decline": "Decline"
+    "message": "We use cookies to enhance your experience. To comply with privacy regulations, we need your consent to set these cookies.",
+    "accept": "Accept All",
+    "decline": "Decline All",
+    "customize": "Customize"
+  },
+  "CookieCustomize": {
+    "title": "Customize Cookie Preferences",
+    "description": "Manage your cookie settings. You can enable or disable different types of cookies below. Necessary cookies cannot be disabled.",
+    "necessary_title": "Strictly Necessary Cookies",
+    "necessary_desc": "These cookies are essential for the website to function and cannot be disabled. They are used for security, session management, and other core features.",
+    "always_on": "Always On",
+    "analytics_title": "Analytics Cookies",
+    "analytics_desc": "These cookies help us understand how you use our site by collecting anonymous data (e.g., using Firebase Analytics). This allows us to improve the user experience.",
+    "save": "Save Preferences"
   },
   "LanguageSwitcher": {
     "change_language": "Change language"
@@ -216,7 +229,8 @@
     "friends": "Friends",
     "admin_panel": "Admin Panel",
     "mod_panel": "Mod Panel",
-    "logout": "Logout"
+    "logout": "Logout",
+    "support": "Support"
   },
   "Status": {
     "title": "Status",
@@ -316,7 +330,8 @@
     "scrim_record_soon": "Scrim results and stats are coming soon.",
     "management_title": "Management Panel",
     "management_desc": "Actions for team staff.",
-    "edit_team_button": "Edit Team Profile"
+    "edit_team_button": "Edit Team Profile",
+    "upcoming_matches": "Upcoming Matches"
   },
   "MemberManager": {
     "role_updated": "Role Updated",
@@ -567,7 +582,10 @@
     "status_pending": "Pending",
     "status_confirmed": "Confirmed",
     "status_cancelled": "Cancelled",
-    "status_completed": "Completed"
+    "status_completed": "Completed",
+    "available_scrims_tab": "Available Scrims",
+    "my_scrims_tab": "My Scrims",
+    "confirmed_matches_tab": "Confirmed Matches"
   },
   "RankingsPage": {
     "title": "Platform Rankings",
@@ -588,5 +606,73 @@
     "rank_header": "Rank",
     "player_header": "Player",
     "honors_header": "Total Honors"
+  },
+  "SupportDialog": {
+    "title": "Contact Support",
+    "description": "Have an issue or a question? Let us know.",
+    "subject": "Subject",
+    "select_subject": "Select a subject...",
+    "subject_general": "General Question",
+    "subject_bug": "Bug Report",
+    "subject_feature": "Feature Request",
+    "subject_account": "Account Issue",
+    "describe_issue": "Describe your issue",
+    "submit": "Submit Ticket",
+    "submitting": "Submitting..."
+  },
+  "Assistant": {
+    "title": "Scrimly Assistant",
+    "placeholder": "Ask about Scrimly..."
+  },
+  "SupportTicketsList": {
+    "no_tickets_title": "All Clear!",
+    "no_tickets_desc": "There are no open support tickets.",
+    "status_open": "Open",
+    "status_closed": "Closed"
+  },
+  "Footer": {
+    "tagline": "Your platform for competitive gaming.",
+    "support_title": "Support",
+    "help_center": "Help Center",
+    "refunds": "Refunds",
+    "legal_title": "Legal",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "company_title": "Company",
+    "about_us": "About Us",
+    "pricing": "Pricing"
+  },
+  "SupportPage": {
+    "title": "Help Center",
+    "subtitle": "Need a hand? You've come to the right place.",
+    "ai_title": "AI Assistant",
+    "ai_desc": "Get instant answers to your questions about the platform.",
+    "ai_cta": "Start Chat",
+    "ai_note": "Widget is in the bottom-right corner.",
+    "faq_title": "Frequently Asked Questions",
+    "faq_desc": "Find answers to the most common questions.",
+    "refund_title": "Refund Policy",
+    "refund_desc": "Review our policies and how to request a refund.",
+    "refund_cta": "View Refund Policy",
+    "contact_title": "Can't find what you're looking for?",
+    "contact_desc": "Our support team is here to help you out.",
+    "contact_cta": "Contact Support",
+    "faq_q1": "How do I create a team?",
+    "faq_a1": "To create a team, you need the 'Founder' role. You can get this role from our pricing plans. Once you have the role, go to the 'My Team' page and follow the steps to create your team.",
+    "faq_q2": "How can I propose a tournament?",
+    "faq_a2": "Proposing tournaments is available to verified streamers, moderators, and admins. If you meet the criteria, you will find a 'Propose Tournament' button on the tournaments page.",
+    "faq_q3": "How do scrims work?",
+    "faq_a3": "Teams can post open scrims (practice matches) for other teams to challenge. Once a challenge is accepted, the match is confirmed. After the match, either team can report the result to update the stats."
+  },
+  "RefundPage": {
+    "title": "Refund Policy",
+    "subtitle": "Information on how to request a refund for your subscriptions.",
+    "eligibility_title": "Refund Eligibility",
+    "eligibility_desc": "We offer refunds for Founder and Coach subscriptions within 7 days of purchase, provided the core features (like creating a team or accepting a coach invite) have not been used.",
+    "process_title": "How to Request a Refund",
+    "process_step1": "Open a support ticket using the button below.",
+    "process_step2": "Select 'Account Issue' or 'General Question' as the subject.",
+    "process_step3": "In your message, please include your purchase date and the reason for your refund request. Our team will review your request and get back to you.",
+    "cta": "Open a Support Ticket"
   }
 }
