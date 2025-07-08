@@ -63,6 +63,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [isPending, startTransition] = useTransition();
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
+  const showAssistant = !pathname.startsWith('/messages');
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -350,7 +351,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>
-        <AssistantWidget />
+        {showAssistant && <AssistantWidget />}
       </SidebarInset>
     </SidebarProvider>
     </>

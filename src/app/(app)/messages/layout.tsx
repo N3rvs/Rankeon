@@ -19,7 +19,7 @@ interface EnrichedChat extends Chat {
 }
 
 function ChatList() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, userProfile, loading: authLoading } = useAuth();
     const { t } = useI18n();
     const [enrichedChats, setEnrichedChats] = useState<EnrichedChat[]>([]);
     const [unreadChatIds, setUnreadChatIds] = useState<Set<string>>(new Set());
@@ -44,59 +44,58 @@ function ChatList() {
     }, [user]);
 
     useEffect(() => {
-        if (!user) {
+        if (!user || !userProfile) {
             setLoading(false);
             setEnrichedChats([]);
             return;
         }
         setLoading(true);
+
+        const friendsIds = userProfile.friends || [];
+
+        if (friendsIds.length === 0) {
+            setLoading(false);
+            setEnrichedChats([]);
+            return;
+        }
+
         const q = query(
             collection(db, 'chats'),
             where('members', 'array-contains', user.uid)
         );
 
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
-            const chatsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chat));
+        const unsubscribe = onSnapshot(q, async (chatsSnapshot) => {
+            const chatsMap = new Map<string, Chat>();
+            chatsSnapshot.forEach(doc => {
+                chatsMap.set(doc.id, { id: doc.id, ...doc.data() } as Chat);
+            });
 
-            // Create a map to ensure we only have one entry per partner, preventing duplicates.
-            const partnerChatMap = new Map<string, Chat>();
-            chatsData.forEach(chat => {
-                const partnerId = chat.members.find(id => id !== user.uid);
-                if (partnerId) {
-                    const deterministicChatId = [user.uid, partnerId].sort().join('_');
-                    const existingChat = partnerChatMap.get(deterministicChatId);
-                    
-                    if (existingChat) {
-                        const existingTime = existingChat.lastMessageAt?.toMillis() || existingChat.createdAt?.toMillis() || 0;
-                        const newTime = chat.lastMessageAt?.toMillis() || chat.createdAt?.toMillis() || 0;
-                        if (newTime > existingTime) {
-                            partnerChatMap.set(deterministicChatId, chat);
-                        }
-                    } else {
-                        partnerChatMap.set(deterministicChatId, chat);
-                    }
+            const enrichedChatPromises = friendsIds.map(async (friendId): Promise<EnrichedChat | null> => {
+                try {
+                    const friendDoc = await getDoc(doc(db, 'users', friendId));
+                    if (!friendDoc.exists()) return null;
+
+                    const partner = { id: friendDoc.id, ...friendDoc.data() } as UserProfile;
+                    const chatId = [user.uid, friendId].sort().join('_');
+                    const existingChat = chatsMap.get(chatId);
+
+                    return {
+                        id: chatId,
+                        members: [user.uid, friendId],
+                        lastMessage: existingChat?.lastMessage,
+                        lastMessageAt: existingChat?.lastMessageAt,
+                        createdAt: existingChat?.createdAt,
+                        partner: partner,
+                    };
+                } catch (e) {
+                    console.error("Error processing friend for chat list:", e);
+                    return null;
                 }
             });
-    
-            const uniqueChats = Array.from(partnerChatMap.values());
 
-            const enrichedChatsData: EnrichedChat[] = await Promise.all(
-                uniqueChats.map(async (chat) => {
-                    const partnerId = chat.members.find(id => id !== user.uid);
-                    let partner: UserProfile | null = null;
-                    if (partnerId) {
-                        try {
-                            const userDoc = await getDoc(doc(db, 'users', partnerId));
-                            if (userDoc.exists()) {
-                                partner = { id: userDoc.id, ...userDoc.data() } as UserProfile;
-                            }
-                        } catch (e) { console.error("Error fetching partner", e); }
-                    }
-                    return { ...chat, partner };
-                })
-            );
+            const resolvedEnrichedChats = (await Promise.all(enrichedChatPromises)).filter(Boolean) as EnrichedChat[];
 
-            const sortedChats = enrichedChatsData.sort((a, b) => {
+            const sortedChats = resolvedEnrichedChats.sort((a, b) => {
                 const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
                 const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
                 return timeB - timeA;
@@ -110,7 +109,7 @@ function ChatList() {
         });
 
         return () => unsubscribe();
-    }, [user]);
+    }, [user, userProfile]);
 
     if (authLoading || loading) {
         return (
