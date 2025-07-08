@@ -555,7 +555,7 @@ export default function TeamsPage() {
     if (authLoading || loadingTeam) {
         return (
             <div className="space-y-6">
-                 <div className="relative -mx-4 md:-mx-6">
+                 <div className="relative -mx-4 md:-mx-6 -mt-4 md:-mt-6">
                     <Skeleton className="h-48 md:h-64 bg-muted" />
                     <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
                         <Skeleton className="h-28 w-28 md:h-36 md:w-36 rounded-full border-4 border-background" />
@@ -572,7 +572,7 @@ export default function TeamsPage() {
 
     return (
         <div>
-            <div className="relative -mx-4 md:-mx-6">
+            <div className="relative -mx-4 md:-mx-6 -mt-4 md:-mt-6">
                 <div className="h-48 md:h-64 bg-muted overflow-hidden">
                     {team && (
                         <Image
