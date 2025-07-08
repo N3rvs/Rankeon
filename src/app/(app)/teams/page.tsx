@@ -579,7 +579,7 @@ export default function TeamsPage() {
                             src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
                             alt={`${team.name} banner`}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             data-ai-hint="team banner"
                         />
                     )}
