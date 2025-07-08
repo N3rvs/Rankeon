@@ -90,6 +90,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const handleLogout = async () => {
+    await updateUserPresence('offline');
     await auth.signOut();
     window.location.assign('/login');
   };
@@ -311,7 +312,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         userProfile?.status === 'available' && 'bg-green-500',
                         userProfile?.status === 'busy' && 'bg-red-500',
                         userProfile?.status === 'away' && 'bg-yellow-400',
-                        !userProfile?.status && 'bg-gray-400'
+                        (!userProfile?.status || userProfile.status === 'offline') && 'bg-gray-400'
                     )} />
                   </Button>
                 </DropdownMenuTrigger>

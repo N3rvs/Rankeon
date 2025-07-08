@@ -60,19 +60,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const userDocRef = doc(db, 'users', authUser.uid);
         
+        // Set status to available on login. Use merge to avoid overwriting during creation.
+        try {
+          await setDoc(userDocRef, { status: 'available' }, { merge: true });
+        } catch (error) {
+          console.error("Auth-context: Failed to set user as available:", error);
+        }
+        
         unsubscribeProfile = onSnapshot(userDocRef, async (docSnap) => {
             if (docSnap.exists()) {
               const newProfileData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
-              
-              // This logic is removed to prevent potential infinite loops causing crashes.
-              // The user's token will refresh on the next login or after an hour.
-              // const claimsRefreshedAt = newProfileData._claimsRefreshedAt?.toMillis();
-              // const tokenIssuedAt = tokenResult.claims.iat * 1000;
-              // if (claimsRefreshedAt && claimsRefreshedAt > tokenIssuedAt) {
-              //   await authUser.getIdToken(true);
-              //   return;
-              // }
-              
               setUserProfile(newProfileData);
               setLoading(false);
             } else {

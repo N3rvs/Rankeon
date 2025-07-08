@@ -2,7 +2,7 @@
 import { Timestamp } from 'firebase/firestore';
 
 export type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
-export type UserStatus = 'available' | 'busy' | 'away';
+export type UserStatus = 'available' | 'busy' | 'away' | 'offline';
 
 export interface UserProfile {
   id: string;
