@@ -563,7 +563,7 @@ export function MarketTabs() {
         </TabsList>
         <TabsContent value="teams" className="mt-6">
             <TeamTable teams={paginatedTeams} loading={loadingTeams} isOwnTeam={(teamId) => teamId === userProfile?.teamId} />
-            <div className="flex items-center justify-start space-x-2 py-4">
+            <div className="flex items-center justify-center space-x-2 py-4">
                 <span className="text-sm text-muted-foreground">
                     Página {currentPageTeams} de {totalTeamPages}
                 </span>
@@ -589,7 +589,7 @@ export function MarketTabs() {
         </TabsContent>
         <TabsContent value="players" className="mt-6">
             <PlayerTable players={paginatedPlayers} loading={loadingPlayers} />
-             <div className="flex items-center justify-start space-x-2 py-4">
+             <div className="flex items-center justify-center space-x-2 py-4">
                  <span className="text-sm text-muted-foreground">
                     Página {currentPagePlayers} de {totalPlayerPages}
                 </span>
