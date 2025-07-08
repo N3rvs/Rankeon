@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { UserProfile } from '@/lib/types';
+import { updateUserPresence } from '@/lib/actions/users';
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -60,17 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const userDocRef = doc(db, 'users', authUser.uid);
         
-        // Set status to available on login. Use merge to avoid overwriting during creation.
-        try {
-          await setDoc(userDocRef, { status: 'available' }, { merge: true });
-        } catch (error) {
-          console.error("Auth-context: Failed to set user as available:", error);
-        }
-        
         unsubscribeProfile = onSnapshot(userDocRef, async (docSnap) => {
             if (docSnap.exists()) {
               const newProfileData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
               setUserProfile(newProfileData);
+              // If status is 'offline', they just logged in, so set to 'available'.
+              // This fixes race conditions from the previous session's logout.
+              if (newProfileData.status === 'offline') {
+                updateUserPresence('available');
+              }
               setLoading(false);
             } else {
               // User exists in Auth but not Firestore. Create the document.
