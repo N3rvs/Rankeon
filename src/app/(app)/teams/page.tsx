@@ -261,10 +261,8 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pt-20">
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
-            
-            <div className="pt-14 md:pt-8" />
             
              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 {/* LEFT/MAIN COLUMN */}

@@ -115,8 +115,7 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
     };
 
     return (
-        <div className="space-y-6">
-            <div className="pt-14 md:pt-8" />
+        <div className="space-y-6 pt-20">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 <div className="lg:col-span-3 space-y-6">
                    {renderVideo(team.videoUrl)}
