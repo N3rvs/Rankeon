@@ -21,6 +21,7 @@ import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[] }) {
     const { t } = useI18n();
@@ -167,9 +168,19 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                                 {canApply && (
-                                    <Button onClick={handleApply} disabled={isPending || authLoading}>
-                                        {t('TeamsPage.apply_to_join')}
-                                    </Button>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" onClick={handleApply} disabled={isPending || authLoading}>
+                                                    <UserPlus className="h-5 w-5" />
+                                                    <span className="sr-only">{t('TeamsPage.apply_to_join')}</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{t('TeamsPage.apply_to_join')}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 )}
                                 {userProfile?.teamId === team.id && (
                                      <Badge variant="secondary"><CheckCircle className="mr-2 h-4 w-4"/>Your Team</Badge>
@@ -332,7 +343,7 @@ export default function TeamPage() {
                             alt={`${team.name} banner`}
                             fill
                             className="object-cover"
-                            data-ai-hint="team banner"
+                            data-ai-hint="team banner abstract"
                         />
                     )}
                 </div>
