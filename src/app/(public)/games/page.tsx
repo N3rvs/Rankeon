@@ -39,7 +39,7 @@ export default function GamesPage() {
                         {t('GamesPage.subtitle')}
                     </p>
                 </div>
-                <div className="flex flex-wrap gap-8 justify-center md:justify-start">
+                <div className="flex flex-wrap gap-8 justify-center">
                     {games.map(game => (
                         <GameCard 
                             key={game.title}

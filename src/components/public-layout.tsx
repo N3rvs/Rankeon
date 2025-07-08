@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ReactNode } from 'react';
@@ -19,7 +18,7 @@ function Header() {
     <header className="h-28 w-full z-20 sticky top-0 bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
+                <Image src={ScrimlyLogo} alt="Scrimly Logo" width={100} height={100} />
             </Link>
             <nav className="hidden md:flex items-center gap-6">
                 <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
