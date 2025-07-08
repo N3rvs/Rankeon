@@ -561,7 +561,7 @@ export default function TeamsPage() {
     const currentUserMembership = members.find(m => m.id === userProfile?.id);
 
     return (
-        <div>
+        <div className="-mt-4 md:-mt-6">
             <div className="relative -mx-4 md:-mx-6">
                 <div className="h-48 md:h-64 bg-muted overflow-hidden">
                     {team && (
