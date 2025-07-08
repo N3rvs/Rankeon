@@ -1,6 +1,8 @@
+
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 // Import all message files
 import enMessages from '../messages/en.json';
@@ -9,13 +11,9 @@ import deMessages from '../messages/de.json';
 import frMessages from '../messages/fr.json';
 import itMessages from '../messages/it.json';
 import ptMessages from '../messages/pt.json';
+import { i18nConfig } from '@/i18n-config';
 
 export type Locale = 'en' | 'es' | 'de' | 'fr' | 'it' | 'pt';
-
-const i18nConfig = {
-    defaultLocale: 'es' as Locale,
-    locales: ['en', 'es', 'de', 'fr', 'it', 'pt'] as Locale[]
-};
 
 const messages: Record<Locale, any> = {
   en: enMessages,
@@ -35,7 +33,17 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children, locale: initialLocale }: { children: ReactNode, locale: Locale }) {
-  const [locale, setLocale] = useState<Locale>(initialLocale);
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
+  
+  // Ensure client-side state is in sync with the server-provided initial locale
+  useEffect(() => {
+    setLocaleState(initialLocale);
+  }, [initialLocale]);
+
+  const setLocale = (newLocale: Locale) => {
+    Cookies.set('NEXT_LOCALE', newLocale, { expires: 365 });
+    setLocaleState(newLocale);
+  };
 
   const t = (key: string, values?: { [key: string]: string | number }): string => {
     const keys = key.split('.');
@@ -43,17 +51,17 @@ export function I18nProvider({ children, locale: initialLocale }: { children: Re
     for (const k of keys) {
       result = result?.[k];
       if (result === undefined) {
-        // Fallback to English if key not found in current locale
-        let fallbackResult: any = messages['en'];
+        // Fallback to default locale if key not found
+        let fallbackResult: any = messages[i18nConfig.defaultLocale];
         for (const fk of keys) {
           fallbackResult = fallbackResult?.[fk];
         }
-        result = fallbackResult || key;
+        result = fallbackResult || key; // Fallback to the key itself if not found in default either
         break;
       }
     }
 
-    let str = result || key;
+    let str = String(result || key);
 
     if (values) {
       Object.keys(values).forEach(valueKey => {

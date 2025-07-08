@@ -7,6 +7,11 @@ import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
 import type { Metadata } from 'next';
 import { CookieConsentProvider } from '@/contexts/cookie-consent-context';
 import { CookieConsentBanner } from '@/components/cookies/cookie-consent-banner';
+import { cookies } from 'next/headers';
+import { match as matchLocale } from '@formatjs/intl-localematcher';
+import Negotiator from 'negotiator';
+import { i18nConfig } from '@/i18n-config';
+
 
 const inter = Inter({
   subsets: ['latin'],
@@ -26,12 +31,13 @@ export const metadata: Metadata = {
 };
  
 export default function RootLayout({
-  children,
-  params: { locale }
+  children
 }: {
   children: React.ReactNode;
-  params: { locale: Locale };
 }) {
+  const cookieStore = cookies();
+  const locale = (cookieStore.get('NEXT_LOCALE')?.value || i18nConfig.defaultLocale) as Locale;
+  
   return (
     <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <body>

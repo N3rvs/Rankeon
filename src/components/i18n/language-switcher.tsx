@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n, type Locale } from "@/contexts/i18n-context";
 import { Globe } from 'lucide-react';
+import { useRouter } from "next/navigation";
 
 const languages: { code: Locale, name: string }[] = [
   { code: 'en', name: 'English' },
@@ -20,7 +22,15 @@ const languages: { code: Locale, name: string }[] = [
 ];
 
 export function LanguageSwitcher() {
-  const { setLocale, t } = useI18n();
+  const { t, setLocale } = useI18n();
+  const router = useRouter();
+
+  const handleLocaleChange = (newLocale: Locale) => {
+    // Set the cookie via the context provider which handles it
+    setLocale(newLocale);
+    // Refresh the page to re-render server components with the new locale
+    router.refresh();
+  };
 
   return (
     <DropdownMenu>
@@ -31,7 +41,7 @@ export function LanguageSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {languages.map((lang) => (
-          <DropdownMenuItem key={lang.code} onSelect={() => setLocale(lang.code)}>
+          <DropdownMenuItem key={lang.code} onSelect={() => handleLocaleChange(lang.code)}>
             {lang.name}
           </DropdownMenuItem>
         ))}

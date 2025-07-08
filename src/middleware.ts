@@ -23,18 +23,23 @@ function getLocale(request: NextRequest): string {
 }
 
 export function middleware(request: NextRequest) {
-    const pathname = request.nextUrl.pathname;
-    const pathnameIsMissingLocale = i18nConfig.locales.every(
-        (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+    const { pathname } = request.nextUrl;
+    
+    // Step 1: Check if the pathname already has a supported locale prefix
+    const pathnameHasLocale = i18nConfig.locales.some(
+        (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
     );
 
-    // Redirect if there is no locale
-    if (pathnameIsMissingLocale) {
-        const locale = getLocale(request);
-        return NextResponse.redirect(
-            new URL(`/${locale}${pathname.startsWith('/') ? '' : '/'}${pathname}`, request.url)
-        );
+    // If it does, redirect to the same path without the locale prefix
+    if (pathnameHasLocale) {
+        const localeToRemove = pathname.split('/')[1];
+        const newPath = pathname.replace(`/${localeToRemove}`, '') || '/';
+        return NextResponse.redirect(new URL(newPath, request.url));
     }
+    
+    // Step 2: If no locale prefix, proceed with normal handling
+    // The locale will be determined by the root layout from the cookie or browser headers.
+    return NextResponse.next();
 }
 
 export const config = {
