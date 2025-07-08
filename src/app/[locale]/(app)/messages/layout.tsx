@@ -21,10 +21,14 @@ interface EnrichedChat extends Chat {
 function ChatList() {
     const { user, userProfile, loading: authLoading } = useAuth();
     const { t } = useI18n();
-    const [enrichedChats, setEnrichedChats] = useState<EnrichedChat[]>([]);
+    const pathname = usePathname();
+
     const [unreadChatIds, setUnreadChatIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
-    const pathname = usePathname();
+
+    const [friendProfiles, setFriendProfiles] = useState<UserProfile[]>([]);
+    const [chatsMap, setChatsMap] = useState<Map<string, Chat>>(new Map());
+    const [enrichedChats, setEnrichedChats] = useState<EnrichedChat[]>([]);
 
     useEffect(() => {
         if (!user) {
@@ -43,73 +47,69 @@ function ChatList() {
         return () => unsubscribe();
     }, [user]);
 
+    // Effect 1: Fetch and update friend profiles when the friends list changes
     useEffect(() => {
-        if (!user || !userProfile) {
+        if (!userProfile?.friends) {
+            setFriendProfiles([]);
             setLoading(false);
-            setEnrichedChats([]);
             return;
         }
         setLoading(true);
-
-        const friendsIds = userProfile.friends || [];
-
-        if (friendsIds.length === 0) {
+        const fetchFriends = async () => {
+            const friendIds = userProfile.friends || [];
+            if (friendIds.length === 0) {
+                setFriendProfiles([]);
+                setLoading(false);
+                return;
+            }
+            const friendPromises = friendIds.map(id => getDoc(doc(db, 'users', id)));
+            const friendDocs = await Promise.all(friendPromises);
+            setFriendProfiles(
+                friendDocs
+                    .filter(d => d.exists())
+                    .map(d => ({ id: d.id, ...d.data() } as UserProfile))
+            );
             setLoading(false);
-            setEnrichedChats([]);
-            return;
-        }
+        };
+        fetchFriends();
+    }, [userProfile, JSON.stringify(userProfile?.friends)]);
 
-        const q = query(
-            collection(db, 'chats'),
-            where('members', 'array-contains', user.uid)
-        );
-
-        const unsubscribe = onSnapshot(q, async (chatsSnapshot) => {
-            const chatsMap = new Map<string, Chat>();
-            chatsSnapshot.forEach(doc => {
-                chatsMap.set(doc.id, { id: doc.id, ...doc.data() } as Chat);
+    // Effect 2: Listen for all chat updates for the current user
+    useEffect(() => {
+        if (!user) return;
+        const q = query(collection(db, 'chats'), where('members', 'array-contains', user.uid));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const newChatsMap = new Map<string, Chat>();
+            snapshot.forEach(doc => {
+                newChatsMap.set(doc.id, { id: doc.id, ...doc.data() } as Chat);
             });
-
-            const enrichedChatPromises = friendsIds.map(async (friendId): Promise<EnrichedChat | null> => {
-                try {
-                    const friendDoc = await getDoc(doc(db, 'users', friendId));
-                    if (!friendDoc.exists()) return null;
-
-                    const partner = { id: friendDoc.id, ...friendDoc.data() } as UserProfile;
-                    const chatId = [user.uid, friendId].sort().join('_');
-                    const existingChat = chatsMap.get(chatId);
-
-                    return {
-                        id: chatId,
-                        members: [user.uid, friendId],
-                        lastMessage: existingChat?.lastMessage,
-                        lastMessageAt: existingChat?.lastMessageAt,
-                        createdAt: existingChat?.createdAt,
-                        partner: partner,
-                    };
-                } catch (e) {
-                    console.error("Error processing friend for chat list:", e);
-                    return null;
-                }
-            });
-
-            const resolvedEnrichedChats = (await Promise.all(enrichedChatPromises)).filter(Boolean) as EnrichedChat[];
-
-            const sortedChats = resolvedEnrichedChats.sort((a, b) => {
-                const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
-                const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
-                return timeB - timeA;
-            });
-
-            setEnrichedChats(sortedChats);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching chats:", error);
-            setLoading(false);
+            setChatsMap(newChatsMap);
         });
-
         return () => unsubscribe();
-    }, [user, userProfile, JSON.stringify(userProfile?.friends)]);
+    }, [user]);
+
+    // Effect 3: Combine friend profiles and chat data
+    useEffect(() => {
+        if (!user) return;
+
+        const combined = friendProfiles.map(friend => {
+            const chatId = [user.uid, friend.id].sort().join('_');
+            const chatData = chatsMap.get(chatId);
+            return {
+                id: chatId,
+                partner: friend,
+                members: [user.uid, friend.id],
+                lastMessage: chatData?.lastMessage,
+                lastMessageAt: chatData?.lastMessageAt,
+                createdAt: chatData?.createdAt,
+            };
+        }).sort((a, b) => {
+            const timeA = a.lastMessageAt?.toMillis() || a.createdAt?.toMillis() || 0;
+            const timeB = b.lastMessageAt?.toMillis() || b.createdAt?.toMillis() || 0;
+            return timeB - timeA;
+        });
+        setEnrichedChats(combined);
+    }, [friendProfiles, chatsMap, user]);
 
     if (authLoading || loading) {
         return (
@@ -133,7 +133,7 @@ function ChatList() {
                 {enrichedChats.length > 0 ? (
                     enrichedChats.map(chat => {
                         const { partner } = chat;
-                        if (!partner) return null; // Don't render if partner data isn't loaded yet
+                        if (!partner) return null; // Should not happen with new logic
                         
                         const isUnread = unreadChatIds.has(chat.id);
                         const isLastMessageFromMe = chat.lastMessage?.sender === user?.uid;
