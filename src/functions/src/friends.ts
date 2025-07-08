@@ -1,5 +1,4 @@
 
-
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -17,6 +16,40 @@ interface RespondToFriendRequestData {
 interface RemoveFriendData {
   friendUid: string;
 }
+
+export const getFriendProfiles = onCall(async ({ auth: callerAuth }) => {
+    if (!callerAuth) {
+        throw new HttpsError('unauthenticated', 'Authentication is required.');
+    }
+    const uid = callerAuth.uid;
+
+    try {
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (!userDoc.exists) {
+            throw new HttpsError('not-found', 'Current user not found.');
+        }
+
+        const userData = userDoc.data()!;
+        const friendIds: string[] = userData.friends || [];
+
+        if (friendIds.length === 0) {
+            return [];
+        }
+
+        const friendDocs = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', friendIds).get();
+        
+        const friendProfiles = friendDocs.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+
+        return friendProfiles;
+
+    } catch (error: any) {
+        console.error('Error fetching friend profiles:', error);
+        throw new HttpsError('internal', 'An unexpected error occurred while fetching friends.');
+    }
+});
 
 export const sendFriendRequest = onCall(async ({ auth, data }: { auth?: any, data: FriendRequestData }) => {
   const from = auth?.uid;
@@ -187,38 +220,4 @@ export const removeFriend = onCall(async ({ auth, data }: { auth?: any, data: Re
   }
 
   return { success: true };
-});
-
-export const getFriendProfiles = onCall(async ({ auth: callerAuth }) => {
-    if (!callerAuth) {
-        throw new HttpsError('unauthenticated', 'Authentication is required.');
-    }
-    const uid = callerAuth.uid;
-
-    try {
-        const userDoc = await db.collection('users').doc(uid).get();
-        if (!userDoc.exists) {
-            throw new HttpsError('not-found', 'Current user not found.');
-        }
-
-        const userData = userDoc.data()!;
-        const friendIds: string[] = userData.friends || [];
-
-        if (friendIds.length === 0) {
-            return [];
-        }
-
-        const friendDocs = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', friendIds).get();
-        
-        const friendProfiles = friendDocs.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        }));
-
-        return friendProfiles;
-
-    } catch (error: any) {
-        console.error('Error fetching friend profiles:', error);
-        throw new HttpsError('internal', 'An unexpected error occurred while fetching friends.');
-    }
 });
