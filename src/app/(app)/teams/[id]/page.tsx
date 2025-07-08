@@ -313,7 +313,7 @@ export default function TeamPage() {
     if (loading || authLoading) {
         return (
             <div className="space-y-6">
-                 <div className="relative -mx-4 md:-mx-6 -mt-4 md:-mt-6">
+                 <div className="relative -mx-4 md:-mx-6">
                     <Skeleton className="h-48 md:h-64 bg-muted" />
                     <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
                         <Skeleton className="h-28 w-28 md:h-36 md:w-36 rounded-full border-4 border-background" />
@@ -338,14 +338,14 @@ export default function TeamPage() {
     
     return (
         <div>
-            <div className="relative -mx-4 md:-mx-6 -mt-4 md:-mt-6">
+            <div className="relative -mx-4 md:-mx-6">
                 <div className="h-48 md:h-64 bg-muted overflow-hidden">
                     {team && (
                         <Image
                             src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
                             alt={`${team.name} banner`}
                             fill
-                            className="object-contain"
+                            className="object-cover"
                             data-ai-hint="team banner"
                         />
                     )}
