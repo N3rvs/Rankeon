@@ -23,8 +23,7 @@ export function Footer() {
                     {/* Brand & Socials */}
                     <div className="md:col-span-1 space-y-4">
                         <Link href="/" className="flex items-center gap-2">
-                            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={40} height={40} />
-                            <span className="font-bold text-lg font-headline">Scrimly</span>
+                            <Image src={ScrimlyLogo} alt="Scrimly Logo" width={80} height={80} />
                         </Link>
                         <p className="text-sm text-muted-foreground">{t('Footer.tagline')}</p>
                         <div className="flex items-center gap-2">
