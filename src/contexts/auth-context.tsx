@@ -15,6 +15,7 @@ import {
   setDoc,
   serverTimestamp,
   Unsubscribe,
+  getDoc,
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
 import { UserProfile } from '@/lib/types';
@@ -61,15 +62,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const userDocRef = doc(db, 'users', authUser.uid);
         
+        // Get the doc once to handle initial presence on login
+        const initialDocSnap = await getDoc(userDocRef);
+        if (initialDocSnap.exists()) {
+          if (initialDocSnap.data().status === 'offline') {
+            await updateUserPresence('available');
+          }
+        }
+        
         unsubscribeProfile = onSnapshot(userDocRef, async (docSnap) => {
             if (docSnap.exists()) {
               const newProfileData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
               setUserProfile(newProfileData);
-              // If status is 'offline', they just logged in, so set to 'available'.
-              // This fixes race conditions from the previous session's logout.
-              if (newProfileData.status === 'offline') {
-                updateUserPresence('available');
-              }
               setLoading(false);
             } else {
               // User exists in Auth but not Firestore. Create the document.
