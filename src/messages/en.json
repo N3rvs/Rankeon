@@ -39,55 +39,55 @@
     "success_description": "If an account with {email} exists, a password reset link has been sent."
   },
   "AboutPage": {
-    "title": "About Scrimly",
+    "title": "About Rankeon",
     "subtitle": "Connecting players, forging champions.",
     "community_title": "Our Community",
     "community_desc": "We are a hub for passionate gamers looking to take their play to the next level. We believe in the power of teamwork and healthy competition.",
     "mission_title": "Our Mission",
     "mission_desc": "Our mission is simple: to provide the best platform for players to find teammates, compete in scrims and tournaments, and grow as competitors.",
     "values_title": "Our Values",
-    "values_desc": "Integrity, sportsmanship, and a relentless dedication to improvement are at the core of everything we do at Scrimly.",
+    "values_desc": "Integrity, sportsmanship, and a relentless dedication to improvement are at the core of everything we do at Rankeon.",
     "join_us_title": "Join the Arena",
-    "join_us_desc": "Whether you're looking for your first team or you're a seasoned veteran, Scrimly is your proving ground. Sign up today and unleash your potential."
+    "join_us_desc": "Whether you're looking for your first team or you're a seasoned veteran, Rankeon is your proving ground. Sign up today and unleash your potential."
   },
   "PrivacyPage": {
     "title": "Privacy Policy",
     "last_updated": "Last updated: July 24, 2024",
     "introduction_title": "Introduction",
-    "introduction_text": "Welcome to Scrimly. Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our web application.",
+    "introduction_text": "Welcome to Rankeon. Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our web application.",
     "data_collected_title": "What Data We Collect",
     "data_collected_list": "Account Information: When you register, we collect your email address and username.|Riot Games Data: With your consent, we access data from your Riot Games account, including your Riot ID, summoner name, match history, game stats, and rank. **We do not store your Riot Games password.**|Usage Data: We collect information on how you interact with our application, such as pages visited and actions taken.|Cookies and Tracking: We use cookies to maintain your session and understand site usage. We may use analytics services like Google Analytics to help us improve.",
     "how_data_is_used_title": "How We Use Your Data",
     "how_data_is_used_list": "To provide and improve our services: Display your profile, match history, and statistics.|To personalize your experience: Connect you with other players and teams.|To communicate with you: Send you notifications about the application.|For analytics: Understand how our service is used so we can improve it.",
     "data_sharing_title": "Sharing Your Data",
-    "data_sharing_text": "We do not sell your personal data. We may share your information as follows: With other users: Your game profile (summoner name, rank, stats) is visible to other Scrimly users. With service providers: We use third-party services (like Firebase for hosting and database) that process data on our behalf. With legal requirements: If required by law.",
+    "data_sharing_text": "We do not sell your personal data. We may share your information as follows: With other users: Your game profile (summoner name, rank, stats) is visible to other Rankeon users. With service providers: We use third-party services (like Firebase for hosting and database) that process data on our behalf. With legal requirements: If required by law.",
     "data_security_title": "Data Security",
     "data_security_text": "We take reasonable measures to protect your information, but no security system is impenetrable. We cannot guarantee the absolute security of your data.",
     "your_rights_title": "Your Rights",
     "your_rights_text": "You have the right to access, correct, or delete your personal information. You can update your profile information directly in the application. For other requests, please contact us.",
     "cookies_title": "Cookies and Tracking Technologies",
-    "cookies_text_intro": "Scrimly uses cookies and similar technologies to enhance your experience on the platform. A cookie is a small data file stored on your device. Below are the types of cookies we use:",
-    "cookies_list": "Essential Cookies: Fundamental for the platform's operation. They are used to keep your session logged in, manage security, and remember your cookie consent. They cannot be disabled.|Analytics Cookies: We use tools like Google Analytics to collect anonymous data on how users interact with Scrimly. This helps us identify issues, understand usage patterns, and improve the application. You can opt-out via your browser settings.|Preference Cookies: Used to remember your choices, such as language or theme (light/dark), so you don't have to set them each time you visit.|Managing Cookies: Most browsers allow you to control cookies through their settings. However, restricting cookies may impact the functionality of our website.",
+    "cookies_text_intro": "Rankeon uses cookies and similar technologies to enhance your experience on the platform. A cookie is a small data file stored on your device. Below are the types of cookies we use:",
+    "cookies_list": "Essential Cookies: Fundamental for the platform's operation. They are used to keep your session logged in, manage security, and remember your cookie consent. They cannot be disabled.|Analytics Cookies: We use tools like Google Analytics to collect anonymous data on how users interact with Rankeon. This helps us identify issues, understand usage patterns, and improve the application. You can opt-out via your browser settings.|Preference Cookies: Used to remember your choices, such as language or theme (light/dark), so you don't have to set them each time you visit.|Managing Cookies: Most browsers allow you to control cookies through their settings. However, restricting cookies may impact the functionality of our website.",
     "contact_title": "Contact",
-    "contact_text": "If you have questions about this Privacy Policy, please contact us at: support@scrimly.app"
+    "contact_text": "If you have questions about this Privacy Policy, please contact us at: support@rankeon.app"
   },
   "TermsPage": {
     "title": "Terms of Service",
     "last_updated": "Last updated: July 24, 2024",
     "agreement_title": "Agreement to Terms",
-    "agreement_text": "By using the Scrimly application ('Service'), you agree to be bound by these Terms of Service. If you disagree with any part of the terms, then you may not access the Service.",
+    "agreement_text": "By using the Rankeon application ('Service'), you agree to be bound by these Terms of Service. If you disagree with any part of the terms, then you may not access the Service.",
     "service_desc_title": "Service Description",
-    "service_desc_text": "Scrimly is a platform to help gamers find teams and compete. We use the Riot Games API to provide game-related data but are not affiliated with or endorsed by Riot Games.",
+    "service_desc_text": "Rankeon is a platform to help gamers find teams and compete. We use the Riot Games API to provide game-related data but are not affiliated with or endorsed by Riot Games.",
     "user_responsibilities_title": "User Responsibilities",
     "user_responsibilities_list": "You must be at least 13 years old to use the Service.|You are responsible for maintaining the security of your account.|You must not use the Service for any illegal or unauthorized purpose.|You agree to comply with Riot Games' Terms of Service at all times.",
     "disclaimer_title": "Disclaimer of Warranty",
     "disclaimer_text": "The Service is provided 'as is'. We make no warranty that the service will be uninterrupted, secure, or error-free. Data provided via the Riot Games API is for informational purposes only.",
     "limitation_liability_title": "Limitation of Liability",
-    "limitation_liability_text": "In no event shall Scrimly be liable for any indirect, incidental, special, consequential or punitive damages arising out of your use of the Service.",
+    "limitation_liability_text": "In no event shall Rankeon be liable for any indirect, incidental, special, consequential or punitive damages arising out of your use of the Service.",
     "changes_terms_title": "Changes to Terms",
     "changes_terms_text": "We reserve the right to modify these terms at any time. We will notify you of any changes by posting the new terms on this page.",
     "contact_title": "Contact",
-    "contact_text": "If you have any questions about these Terms of Service, please contact us at: support@scrimly.app"
+    "contact_text": "If you have any questions about these Terms of Service, please contact us at: support@rankeon.app"
   },
   "Pricing": {
     "title": "Choose Your Path to Glory",
@@ -249,7 +249,7 @@
   },
   "GamesPage": {
       "title": "Supported Games",
-      "subtitle": "Explore the games featured on Scrimly.",
+      "subtitle": "Explore the games featured on Rankeon.",
       "valorant_desc": "A 5v5 character-based tactical shooter where precise gunplay meets unique agent abilities. Teamwork, strategy, and clutch plays are key to victory."
   },
   "Status": {
@@ -266,7 +266,7 @@
   },
   "ProfilePage": {
     "edit_profile": "Edit Profile",
-    "bio_placeholder": "I'm new to Scrimly! Ready to find a team and compete.",
+    "bio_placeholder": "I'm new to Rankeon! Ready to find a team and compete.",
     "current_team": "Current Team",
     "honors": "Honors",
     "performance_analysis": "Performance Analysis",
@@ -436,7 +436,7 @@
     "title": "Propose a New Tournament",
     "description": "Fill out the details for your tournament idea. Our staff will review it for approval.",
     "name": "Tournament Name",
-    "name_placeholder": "e.g., Scrimly Summer Skirmish",
+    "name_placeholder": "e.g., Rankeon Summer Skirmish",
     "game": "Game",
     "game_placeholder": "e.g., Valorant",
     "prize_amount": "Prize Amount",
@@ -511,7 +511,7 @@
   },
   "AdminPanel": {
     "title": "Admin Dashboard",
-    "subtitle": "Global control panel for Scrimly platform management.",
+    "subtitle": "Global control panel for Rankeon platform management.",
     "user_management_title": "User Management",
     "user_management_desc": "View, edit, ban, and manage all users.",
     "team_management_title": "Team Management",
@@ -649,8 +649,8 @@
     "submitting": "Submitting..."
   },
   "Assistant": {
-    "title": "Scrimly Assistant",
-    "placeholder": "Ask about Scrimly..."
+    "title": "Rankeon Assistant",
+    "placeholder": "Ask about Rankeon..."
   },
   "SupportTicketsList": {
     "no_tickets_title": "All Clear!",

@@ -113,7 +113,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader className="flex h-16 items-center justify-center border-b p-0">
           <Link href="/" className="flex items-center gap-2 text-2xl font-bold font-headline text-primary px-4">
               <Gamepad2 className="shrink-0" />
-              <span className="group-data-[collapsible=icon]:hidden">Scrimly</span>
+              <span className="group-data-[collapsible=icon]:hidden">Rankeon</span>
           </Link>
         </SidebarHeader>
         <SidebarContent className="pt-4">

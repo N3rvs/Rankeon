@@ -21,7 +21,7 @@ const spaceGrotesk = SpaceGrotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'Scrimly MVP',
+  title: 'Rankeon',
   description: 'Find your team, conquer the game.',
 };
  

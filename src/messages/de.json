@@ -39,55 +39,55 @@
         "success_description": "Wenn ein Konto mit der E-Mail {email} existiert, wurde ein Link zum Zurücksetzen des Passworts gesendet."
     },
     "AboutPage": {
-        "title": "Über Scrimly",
+        "title": "Über Rankeon",
         "subtitle": "Spieler verbinden, Champions schmieden.",
         "community_title": "Unsere Gemeinschaft",
         "community_desc": "Wir sind ein Zentrum für leidenschaftliche Gamer, die ihr Spiel auf die nächste Stufe heben wollen. Wir glauben an die Kraft von Teamwork und gesundem Wettbewerb.",
         "mission_title": "Unsere Mission",
         "mission_desc": "Unsere Mission ist einfach: die beste Plattform für Spieler bereitzustellen, um Teamkollegen zu finden, in Scrims und Turnieren anzutreten und als Wettkämpfer zu wachsen.",
         "values_title": "Unsere Werte",
-        "values_desc": "Integrität, Sportsgeist und ein unermüdliches Engagement für Verbesserungen sind der Kern von allem, was wir bei Scrimly tun.",
+        "values_desc": "Integrität, Sportsgeist und ein unermüdliches Engagement für Verbesserungen sind der Kern von allem, was wir bei Rankeon tun.",
         "join_us_title": "Tritt der Arena bei",
-        "join_us_desc": "Egal, ob du dein erstes Team suchst oder ein erfahrener Veteran bist, Scrimly ist dein Testgelände. Melde dich noch heute an und entfessle dein Potenzial."
+        "join_us_desc": "Egal, ob du dein erstes Team suchst oder ein erfahrener Veteran bist, Rankeon ist dein Testgelände. Melde dich noch heute an und entfessle dein Potenzial."
     },
      "PrivacyPage": {
         "title": "Datenschutz-Bestimmungen",
         "last_updated": "Zuletzt aktualisiert: 24. Juli 2024",
         "introduction_title": "Einführung",
-        "introduction_text": "Willkommen bei Scrimly. Ihre Privatsphäre ist uns wichtig. Diese Datenschutzrichtlinie erläutert, wie wir Ihre Informationen sammeln, verwenden, offenlegen und schützen, wenn Sie unsere Webanwendung nutzen.",
+        "introduction_text": "Willkommen bei Rankeon. Ihre Privatsphäre ist uns wichtig. Diese Datenschutzrichtlinie erläutert, wie wir Ihre Informationen sammeln, verwenden, offenlegen und schützen, wenn Sie unsere Webanwendung nutzen.",
         "data_collected_title": "Welche Daten wir sammeln",
         "data_collected_list": "Kontoinformationen: Wenn Sie sich registrieren, erfassen wir Ihre E-Mail-Adresse und Ihren Benutzernamen.|Riot Games-Daten: Mit Ihrer Zustimmung greifen wir auf Daten aus Ihrem Riot Games-Konto zu, einschließlich Ihrer Riot ID, Ihres Beschwörernamens, Ihres Spielverlaufs, Ihrer Spielstatistiken und Ihres Rangs. **Wir speichern Ihr Riot Games-Passwort nicht.**|Nutzungsdaten: Wir sammeln Informationen darüber, wie Sie mit unserer Anwendung interagieren, z. B. besuchte Seiten und durchgeführte Aktionen.|Cookies und Tracking: Wir verwenden Cookies, um Ihre Sitzung aufrechtzuerhalten und die Nutzung der Website zu verstehen. Wir können Analysedienste wie Google Analytics verwenden, um uns zu verbessern.",
         "how_data_is_used_title": "Wie wir Ihre Daten verwenden",
         "how_data_is_used_list": "Um unsere Dienste bereitzustellen und zu verbessern: Anzeige Ihres Profils, Ihres Spielverlaufs und Ihrer Statistiken.|Um Ihre Erfahrung zu personalisieren: Verbinden Sie sich mit anderen Spielern und Teams.|Um mit Ihnen zu kommunizieren: Senden Sie Ihnen Benachrichtigungen über die Anwendung.|Für Analysen: Verstehen, wie unser Dienst genutzt wird, damit wir ihn verbessern können.",
         "data_sharing_title": "Weitergabe Ihrer Daten",
-        "data_sharing_text": "Wir verkaufen Ihre personenbezogenen Daten nicht. Wir können Ihre Informationen wie folgt weitergeben: An andere Benutzer: Ihr Spielprofil (Beschwörername, Rang, Statistiken) ist für andere Scrimly-Benutzer sichtbar. An Dienstanbieter: Wir nutzen Drittanbieter (wie Firebase für Hosting und Datenbank), die Daten in unserem Auftrag verarbeiten. Bei gesetzlichen Anforderungen: Wenn gesetzlich vorgeschrieben.",
+        "data_sharing_text": "Wir verkaufen Ihre personenbezogenen Daten nicht. Wir können Ihre Informationen wie folgt weitergeben: An andere Benutzer: Ihr Spielprofil (Beschwörername, Rang, Statistiken) ist für andere Rankeon-Benutzer sichtbar. An Dienstanbieter: Wir nutzen Drittanbieter (wie Firebase für Hosting und Datenbank), die Daten in unserem Auftrag verarbeiten. Bei gesetzlichen Anforderungen: Wenn gesetzlich vorgeschrieben.",
         "data_security_title": "Datensicherheit",
         "data_security_text": "Wir ergreifen angemessene Maßnahmen zum Schutz Ihrer Daten, aber kein Sicherheitssystem ist undurchdringlich. Wir können die absolute Sicherheit Ihrer Daten nicht garantieren.",
         "your_rights_title": "Ihre Rechte",
         "your_rights_text": "Sie haben das Recht, auf Ihre personenbezogenen Daten zuzugreifen, sie zu korrigieren oder zu löschen. Sie können Ihre Profilinformationen direkt in der Anwendung aktualisieren. Für andere Anfragen kontaktieren Sie uns bitte.",
         "cookies_title": "Cookies und Tracking-Technologien",
-        "cookies_text_intro": "Scrimly verwendet Cookies und ähnliche Technologien, um Ihre Erfahrung auf der Plattform zu verbessern. Ein Cookie ist eine kleine Datendatei, die auf Ihrem Gerät gespeichert wird. Nachfolgend sind die Arten von Cookies aufgeführt, die wir verwenden:",
-        "cookies_list": "Notwendige Cookies: Grundlegend für den Betrieb der Plattform. Sie werden verwendet, um Ihre Sitzung angemeldet zu halten, die Sicherheit zu verwalten und Ihre Cookie-Zustimmung zu speichern. Sie können nicht deaktiviert werden.|Analyse-Cookies: Wir verwenden Tools wie Google Analytics, um anonyme Daten darüber zu sammeln, wie Benutzer mit Scrimly interagieren. Dies hilft uns, Probleme zu identifizieren, Nutzungsmuster zu verstehen und die Anwendung zu verbessern. Sie können dies über Ihre Browsereinstellungen deaktivieren.|Einstellungs-Cookies: Werden verwendet, um Ihre Auswahl wie Sprache oder Thema (hell/dunkel) zu speichern, damit Sie sie nicht bei jedem Besuch neu einstellen müssen.|Cookies verwalten: Die meisten Browser ermöglichen es Ihnen, Cookies über ihre Einstellungen zu steuern. Das Einschränken von Cookies kann jedoch die Funktionalität unserer Website beeinträchtigen.",
+        "cookies_text_intro": "Rankeon verwendet Cookies und ähnliche Technologien, um Ihre Erfahrung auf der Plattform zu verbessern. Ein Cookie ist eine kleine Datendatei, die auf Ihrem Gerät gespeichert wird. Nachfolgend sind die Arten von Cookies aufgeführt, die wir verwenden:",
+        "cookies_list": "Notwendige Cookies: Grundlegend für den Betrieb der Plattform. Sie werden verwendet, um Ihre Sitzung angemeldet zu halten, die Sicherheit zu verwalten und Ihre Cookie-Zustimmung zu speichern. Sie können nicht deaktiviert werden.|Analyse-Cookies: Wir verwenden Tools wie Google Analytics, um anonyme Daten darüber zu sammeln, wie Benutzer mit Rankeon interagieren. Dies hilft uns, Probleme zu identifizieren, Nutzungsmuster zu verstehen und die Anwendung zu verbessern. Sie können dies über Ihre Browsereinstellungen deaktivieren.|Einstellungs-Cookies: Werden verwendet, um Ihre Auswahl wie Sprache oder Thema (hell/dunkel) zu speichern, damit Sie sie nicht bei jedem Besuch neu einstellen müssen.|Cookies verwalten: Die meisten Browser ermöglichen es Ihnen, Cookies über ihre Einstellungen zu steuern. Das Einschränken von Cookies kann jedoch die Funktionalität unserer Website beeinträchtigen.",
         "contact_title": "Kontakt",
-        "contact_text": "Wenn Sie Fragen zu dieser Datenschutzrichtlinie haben, kontaktieren Sie uns bitte unter: support@scrimly.app"
+        "contact_text": "Wenn Sie Fragen zu dieser Datenschutzrichtlinie haben, kontaktieren Sie uns bitte unter: support@rankeon.app"
     },
     "TermsPage": {
         "title": "Nutzungsbedingungen",
         "last_updated": "Zuletzt aktualisiert: 24. Juli 2024",
         "agreement_title": "Zustimmung zu den Bedingungen",
-        "agreement_text": "Durch die Nutzung der Scrimly-Anwendung ('Dienst') erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Wenn Sie mit einem Teil der Bedingungen nicht einverstanden sind, dürfen Sie den Dienst nicht nutzen.",
+        "agreement_text": "Durch die Nutzung der Rankeon-Anwendung ('Dienst') erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Wenn Sie mit einem Teil der Bedingungen nicht einverstanden sind, dürfen Sie den Dienst nicht nutzen.",
         "service_desc_title": "Dienstbeschreibung",
-        "service_desc_text": "Scrimly ist eine Plattform, die Spielern hilft, Teams zu finden und an Wettkämpfen teilzunehmen. Wir verwenden die Riot Games API, um spielbezogene Daten bereitzustellen, sind aber nicht mit Riot Games verbunden oder von Riot Games unterstützt.",
+        "service_desc_text": "Rankeon ist eine Plattform, die Spielern hilft, Teams zu finden und an Wettkämpfen teilzunehmen. Wir verwenden die Riot Games API, um spielbezogene Daten bereitzustellen, sind aber nicht mit Riot Games verbunden oder von Riot Games unterstützt.",
         "user_responsibilities_title": "Benutzerverantwortlichkeiten",
         "user_responsibilities_list": "Sie müssen mindestens 13 Jahre alt sein, um den Dienst zu nutzen.|Sie sind für die Aufrechterhaltung der Sicherheit Ihres Kontos verantwortlich.|Sie dürfen den Dienst nicht für illegale oder nicht autorisierte Zwecke nutzen.|Sie erklären sich damit einverstanden, die Nutzungsbedingungen von Riot Games jederzeit einzuhalten.",
         "disclaimer_title": "Gewährleistungsausschluss",
         "disclaimer_text": "Der Dienst wird 'wie besehen' bereitgestellt. Wir geben keine Garantie, dass der Dienst ununterbrochen, sicher oder fehlerfrei ist. Die über die Riot Games API bereitgestellten Daten dienen nur zu Informationszwecken.",
         "limitation_liability_title": "Haftungsbeschränkung",
-        "limitation_liability_text": "In keinem Fall haftet Scrimly für indirekte, zufällige, besondere, Folge- oder Strafschäden, die sich aus Ihrer Nutzung des Dienstes ergeben.",
+        "limitation_liability_text": "In keinem Fall haftet Rankeon für indirekte, zufällige, besondere, Folge- oder Strafschäden, die sich aus Ihrer Nutzung des Dienstes ergeben.",
         "changes_terms_title": "Änderungen der Bedingungen",
         "changes_terms_text": "Wir behalten uns das Recht vor, diese Bedingungen jederzeit zu ändern. Wir werden Sie über alle Änderungen informieren, indem wir die neuen Bedingungen auf dieser Seite veröffentlichen.",
         "contact_title": "Kontakt",
-        "contact_text": "Wenn Sie Fragen zu diesen Nutzungsbedingungen haben, kontaktieren Sie uns bitte unter: support@scrimly.app"
+        "contact_text": "Wenn Sie Fragen zu diesen Nutzungsbedingungen haben, kontaktieren Sie uns bitte unter: support@rankeon.app"
     },
     "Pricing": {
         "title": "Wählen Sie Ihren Weg zum Ruhm",
@@ -249,7 +249,7 @@
   },
   "GamesPage": {
     "title": "Unterstützte Spiele",
-    "subtitle": "Entdecken Sie die auf Scrimly verfügbaren Spiele.",
+    "subtitle": "Entdecken Sie die auf Rankeon verfügbaren Spiele.",
     "valorant_desc": "Ein 5v5-charakterbasierter taktischer Shooter, bei dem präzises Schießen auf einzigartige Agentenfähigkeiten trifft. Teamwork, Strategie und entscheidende Spielzüge sind der Schlüssel zum Sieg."
   },
   "Status": {
@@ -266,7 +266,7 @@
   },
   "ProfilePage": {
     "edit_profile": "Profil bearbeiten",
-    "bio_placeholder": "Ich bin neu bei Scrimly! Bereit, ein Team zu finden und anzutreten.",
+    "bio_placeholder": "Ich bin neu bei Rankeon! Bereit, ein Team zu finden und anzutreten.",
     "current_team": "Aktuelles Team",
     "honors": "Ehrungen",
     "performance_analysis": "Leistungsanalyse",
@@ -436,7 +436,7 @@
     "title": "Ein neues Turnier vorschlagen",
     "description": "Fülle die Details für deine Turnieridee aus. Unser Personal wird sie zur Genehmigung prüfen.",
     "name": "Turniername",
-    "name_placeholder": "z.B., Scrimly Summer Skirmish",
+    "name_placeholder": "z.B., Rankeon Summer Skirmish",
     "game": "Spiel",
     "game_placeholder": "z.B., Valorant",
     "prize_amount": "Preisbetrag",
@@ -511,7 +511,7 @@
   },
   "AdminPanel": {
     "title": "Admin-Dashboard",
-    "subtitle": "Globales Kontrollpanel für die Verwaltung der Scrimly-Plattform.",
+    "subtitle": "Globales Kontrollpanel für die Verwaltung der Rankeon-Plattform.",
     "user_management_title": "Benutzerverwaltung",
     "user_management_desc": "Alle Benutzer anzeigen, bearbeiten, sperren und verwalten.",
     "team_management_title": "Teamverwaltung",
@@ -649,8 +649,8 @@
     "submitting": "Wird gesendet..."
   },
   "Assistant": {
-    "title": "Scrimly Assistent",
-    "placeholder": "Fragen Sie nach Scrimly..."
+    "title": "Rankeon Assistent",
+    "placeholder": "Fragen Sie nach Rankeon..."
   },
   "SupportTicketsList": {
     "no_tickets_title": "Alles klar!",
