@@ -1,3 +1,4 @@
+
 {
     "LandingPage": {
         "about_us": "Chi Siamo",
@@ -620,8 +621,8 @@
     "submitting": "Invio in corso..."
   },
   "Assistant": {
-    "title": "Assistente SquadUp",
-    "placeholder": "Chiedi informazioni su SquadUp..."
+    "title": "Assistente Scrimly",
+    "placeholder": "Chiedi informazioni su Scrimly..."
   },
   "SupportTicketsList": {
     "no_tickets_title": "Tutto a posto!",

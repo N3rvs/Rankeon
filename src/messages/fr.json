@@ -1,3 +1,4 @@
+
 {
     "LandingPage": {
         "about_us": "À Propos",
@@ -109,7 +110,7 @@
     "CookieCustomize": {
         "title": "Personnaliser les préférences de cookies",
         "description": "Gérez vos paramètres de cookies. Vous pouvez activer ou désactiver différents types de cookies ci-dessous. Les cookies nécessaires ne peuvent pas être désactivés.",
-        "necessary_title": "Cookies strictement nécessaires",
+        "necessary_title": "Cookies strictly nécessaires",
         "necessary_desc": "Ces cookies sont essentiels au fonctionnement du site Web et ne peuvent pas être désactivés. Ils sont utilisés pour la sécurité, la gestion des sessions et d'autres fonctionnalités de base.",
         "always_on": "Toujours activé",
         "analytics_title": "Cookies d'analyse",
@@ -620,8 +621,8 @@
     "submitting": "Soumission en cours..."
   },
   "Assistant": {
-    "title": "Assistant SquadUp",
-    "placeholder": "Posez une question sur SquadUp..."
+    "title": "Assistant Scrimly",
+    "placeholder": "Posez une question sur Scrimly..."
   },
   "SupportTicketsList": {
     "no_tickets_title": "Tout est clair !",
