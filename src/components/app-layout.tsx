@@ -92,7 +92,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const handleLogout = async () => {
     await updateUserPresence('offline');
     await auth.signOut();
-    window.location.assign('/login');
   };
 
   const handleStatusChange = (status: UserStatus) => {
