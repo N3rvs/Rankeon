@@ -13,6 +13,18 @@ export default function GamesPage() {
             imageUrl: "https://placehold.co/720x960.png",
             imageHint: "valorant game art",
             description: t('GamesPage.valorant_desc'),
+        },
+        {
+            title: "League of Legends",
+            imageUrl: "https://cdn1.epicgames.com/offer/24b9b5e323bc40eea252a10cdd3b2f10/EGS_LeagueofLegends_RiotGames_S2_1200x1600-905a96cea329205358868f5871393042",
+            imageHint: "LeagoeOfLegends game art",
+            description: t('GamesPage.valorant_desc'),
+        },
+        {
+            title: "Csgo2",
+            imageUrl: "https://static.wikia.nocookie.net/cswikia/images/3/37/Cs2_boxart.jpg/revision/latest?cb=20230930151452",
+            imageHint: "Csgo2 game art",
+            description: t('GamesPage.valorant_desc'),
         }
     ];
 
