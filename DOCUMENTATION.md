@@ -1,48 +1,79 @@
-# Rankeon: Tu Plataforma Definitiva para el Gaming Competitivo
+# Guía de la Plataforma Rankeon
 
-## ¿Qué problema soluciona Rankeon?
+Este documento sirve como una guía completa de las características, secciones y roles de usuario dentro de la aplicación Rankeon.
 
-En el mundo de los videojuegos competitivos, el éxito de un jugador a menudo depende de la calidad de su equipo. Sin embargo, encontrar compañeros de equipo compatibles, comprometidos y con un nivel de habilidad similar es un desafío constante.
+## 🗺️ Navegación Principal (Menú Lateral)
 
-Los jugadores se enfrentan a:
-*   **Incertidumbre del "Solo Queue"**: Jugar con desconocidos es una lotería. La falta de comunicación, la diferencia de objetivos y las actitudes negativas pueden arruinar la experiencia y frenar el progreso.
-*   **Dificultad para encontrar jugadores serios**: Las plataformas existentes son a menudo demasiado generales, lo que dificulta filtrar y encontrar jugadores que realmente quieran competir y mejorar.
-*   **Falta de herramientas de organización**: Una vez que encuentras jugadores, organizar entrenamientos (`scrims`), gestionar horarios y seguir el progreso del equipo es complicado y se hace en múltiples plataformas (Discord, hojas de cálculo, etc.).
-*   **Acceso limitado a la competición**: Participar en torneos puede ser un proceso opaco y difícil, reservado solo para equipos ya establecidos.
+El menú lateral es tu centro de comando para moverte por Rankeon. Aquí tienes un desglose de cada sección:
 
-**Rankeon nace para resolver estos problemas.** Ofrecemos una plataforma centralizada y especializada para que los jugadores y equipos competitivos se encuentren, crezcan y compitan al más alto nivel.
+| Icono | Sección | ¿Para qué sirve? |
+| :--- | :--- | :--- |
+| 👤 | **Perfil** | Tu página personal. Aquí puedes editar tu información, ver tus estadísticas de juego, tus honores recibidos y el equipo al que perteneces. |
+| 🛡️ | **Mi Equipo** | Si eres fundador o miembro de un equipo, esta es tu base de operaciones. Gestiona miembros, edita el perfil del equipo, revisa solicitudes y planea vuestros próximos movimientos. |
+| 🛒 | **Mercado** | El corazón de Rankeon. Busca equipos que necesiten jugadores o encuentra a los jugadores perfectos para tu plantilla usando filtros por país, rango y rol. |
+| 🎲 | **Salas de Juego** | ¿Quieres jugar ahora mismo? Crea una sala de juego temporal para una partida rápida o únete a una existente. Es ideal para jugar con gente nueva sin compromisos. |
+| 🔥 | **Scrims** | La zona de entrenamiento. Aquí puedes publicar una oferta de partida de práctica (`scrim`) para que otros equipos te reten, o aceptar los desafíos de otros. |
+| 🏆 | **Torneos** | El escenario principal. Apúntate a los torneos organizados por la comunidad o la plataforma, sigue el bracket en tiempo real y compite por la gloria. |
+| 📈 | **Clasificaciones** | ¿Quieres saber quién manda? En esta sección puedes ver los rankings de los mejores equipos y jugadores en torneos, scrims y honores. |
+| 👥 | **Amigos** | Tu lista de contactos. Desde aquí puedes gestionar tus amigos, aceptar solicitudes y acceder a los chats privados para hablar con ellos. |
+| 🛠️ | **Panel Admin** | (Solo visible para Administradores) El panel de control total de la plataforma. Permite gestionar usuarios, equipos, ajustes globales y más. |
+| ⚖️ | **Panel Mod** | (Visible para Moderadores y Admins) Herramientas para mantener el orden. Gestionar usuarios, aprobar torneos y resolver tickets de soporte. |
+| 🆘 | **Soporte** | ¿Necesitas ayuda? Desde el menú de tu perfil puedes acceder al Centro de Ayuda para contactar con soporte o hablar con nuestro asistente de IA. |
 
-## ¿Cómo te ayuda Rankeon?
+---
 
-Rankeon es tu centro de mando para todo lo relacionado con el juego competitivo. Te proporcionamos las herramientas necesarias para que dejes de preocuparte por la logística y te centres en lo que más importa: **jugar y ganar**.
+## 🎭 Roles de Usuario
 
-### Nuestras Características Clave
+Cada usuario en Rankeon tiene un rol específico que define sus permisos y capacidades.
 
-#### 1. 🔎 Mercado de Jugadores y Equipos
-*   **Para Jugadores**: Crea tu perfil, muestra tus habilidades, tu rango y tus roles preferidos. Hazte visible para que los equipos te encuentren o busca activamente un equipo que se ajuste a tus objetivos.
-*   **Para Equipos**: ¿Necesitas un "Controller" en Diamante que hable español? Usa nuestros filtros avanzados para encontrar exactamente al jugador que tu plantilla necesita. Revisa perfiles detallados y envía invitaciones directamente.
+### 👑 Administrador (Admin)
+El rol con el máximo poder. Los administradores tienen control total sobre la plataforma.
+- **Permisos:**
+  - Todo lo que puede hacer un Moderador.
+  - Asignar y cambiar roles a cualquier usuario (incluyendo otros Admins).
+  - Acceder a los ajustes globales de la plataforma.
+  - Eliminar equipos y contenido sensible.
+  - Ver paneles de analíticas.
 
-#### 2. ⚔️ Sistema de Scrims (Partidas de Práctica)
-*   Olvídate de buscar `scrims` en servidores de Discord interminables. Publica una oferta de `scrim` con la fecha, hora y formato que desees, y deja que otros equipos te desafíen.
-*   Acepta desafíos y prepara a tu equipo para la verdadera competición.
+### ⚖️ Moderador (Mod)
+Los guardianes de la comunidad. Se aseguran de que todo funcione correctamente y de que se respeten las normas.
+- **Permisos:**
+  - Gestionar usuarios: banear (temporal o permanentemente) y desbanear.
+  - Revisar y aprobar/rechazar las propuestas de torneos enviadas por la comunidad.
+  - Gestionar y responder a los tickets de soporte de los usuarios.
+  - Certificar a streamers para que puedan proponer torneos.
 
-#### 3. 🏆 Torneos al Alcance de Todos
-*   Participa en torneos organizados por la comunidad y la propia plataforma.
-*   Sigue el progreso de tu equipo en un cuadro de torneo (`bracket`) visual y compite por la gloria y los premios.
+### 🚀 Fundador (Founder)
+El líder de un equipo. Este rol se asigna automáticamente al jugador que crea un equipo.
+- **Permisos:**
+  - Crear y eliminar su propio equipo.
+  - Editar el perfil completo del equipo (logo, banner, descripción, redes sociales).
+  - Gestionar a los miembros del equipo: invitar, expulsar, ascender a Coach y asignar IGL.
+  - Revisar y aceptar/rechazar las solicitudes de jugadores para unirse al equipo.
+  - Publicar y aceptar `scrims`.
+  - Inscribir al equipo en torneos.
 
-#### 4. 📈 Gestión de Equipos Profesional
-*   Crea y personaliza la página de tu equipo con tu logo, banner, descripción y redes sociales.
-*   Gestiona a tus miembros: asigna roles como "Coach" o "IGL" (In-Game Leader), y mantén tu plantilla organizada.
+### 👨‍🏫 Entrenador (Coach)
+La mano derecha del Fundador. Un rol de gestión dentro de un equipo.
+- **Permisos:**
+  - Ayudar en la gestión de miembros (excepto al Fundador).
+  - Publicar y aceptar `scrims`.
+  - Asignar el rol de IGL (In-Game Leader).
+  - No puede editar el perfil principal del equipo ni eliminarlo.
 
-#### 5. 🤖 Asistente de IA y Soporte
-*   ¿Tienes dudas sobre cómo funciona la plataforma? Nuestro **Asistente Rankeon**, un bot de IA, está disponible 24/7 para responder a tus preguntas al instante.
-*   Si necesitas ayuda más específica, nuestro sistema de tickets de soporte te conecta con nuestro equipo.
+### 🎮 Jugador (Player)
+El rol base para todos los usuarios. ¡El corazón de Rankeon!
+- **Permisos:**
+  - Crear y personalizar su perfil de jugador.
+  - Buscar equipos y jugadores en el mercado.
+  - Enviar solicitudes para unirse a equipos que estén reclutando.
+  - Aceptar o rechazar invitaciones de equipos.
+  - Añadir amigos y chatear con ellos.
+  - Otorgar honores a otros jugadores.
+  - Participar en `scrims` y torneos como miembro de un equipo.
+  - Crear un equipo (lo que le convertiría en Fundador).
 
-## ¿Para quién es Rankeon?
-
-*   **Jugadores Individuales** que están cansados de jugar solos y quieren encontrar un equipo comprometido para subir de rango.
-*   **Líderes de Equipo (Fundadores)** que necesitan herramientas para reclutar a los mejores talentos y gestionar su equipo de manera eficiente.
-*   **Coaches y Analistas** que buscan unirse a un proyecto y aportar su visión estratégica.
-*   **Comunidades y Organizadores** que quieren una plataforma robusta para crear y gestionar sus propios torneos.
-
-**En resumen, Rankeon es el lugar donde los jugadores serios se convierten en equipos legendarios.**
+### ✨ Streamer Certificado
+Un permiso especial que se puede añadir a cualquier rol.
+- **Permisos:**
+  - Proponer la creación de nuevos torneos para que sean revisados por los Moderadores.

@@ -39,9 +39,14 @@ La aplicación estará disponible en `http://localhost:3000`.
 
 ## 📚 Documentación
 
-Para una guía detallada sobre **qué es Rankeon, qué problemas soluciona y cómo puedes sacarle el máximo partido**, consulta nuestra documentación completa.
+Para una guía detallada sobre **qué problema soluciona la plataforma y cómo puedes sacarle el máximo partido**, consulta nuestra documentación para usuarios y clientes:
 
-➡️ **[Lee la Documentación Completa](./DOCUMENTATION.md)**
+➡️ **[¿Qué es Rankeon?](./DOCUMENTATION.md)**
+
+Para una guía técnica sobre **las características, los roles de usuario y cómo funciona cada sección**, consulta nuestra guía de la plataforma:
+
+➡️ **[Guía de la Plataforma](./DOCUMENTATION.md)**
+
 
 ## ✨ Características Principales
 
