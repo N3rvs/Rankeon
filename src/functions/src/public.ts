@@ -12,10 +12,10 @@ const calculateTotalHonors = (userData: admin.firestore.DocumentData): number =>
 
 export const getFeaturedScrims = onCall(async () => {
     try {
-        // Fetch recent scrims and filter in-memory to avoid needing a composite index.
+        // Fetch confirmed scrims and sort in memory to avoid needing a composite index.
         const scrimsSnapshot = await db.collection('scrims')
-            .orderBy('date', 'desc')
-            .limit(50) // Fetch more to have a good pool for filtering
+            .where('status', '==', 'confirmed')
+            .limit(50)
             .get();
 
         const confirmedScrims = scrimsSnapshot.docs
@@ -24,12 +24,19 @@ export const getFeaturedScrims = onCall(async () => {
                 return {
                     ...data,
                     id: doc.id,
-                    date: data.date?.toDate().toISOString(),
-                    createdAt: data.createdAt?.toDate().toISOString(),
+                    date: data.date?.toDate(), // Keep as Date object for sorting
+                    createdAt: data.createdAt?.toDate(),
                 };
             })
-            .filter(scrim => scrim.status === 'confirmed')
-            .slice(0, 10); // Take the first 10 confirmed ones
+            // Sort by date descending in memory
+            .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0))
+            .slice(0, 10) // Take the top 10 most recent
+            // Now convert to ISO string for serialization
+            .map(scrim => ({
+                ...scrim,
+                date: scrim.date?.toISOString(),
+                createdAt: scrim.createdAt?.toISOString(),
+            }));
         
         return confirmedScrims;
     } catch (error) {
