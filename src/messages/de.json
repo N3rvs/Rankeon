@@ -244,9 +244,7 @@
     "admin_panel": "Admin-Panel",
     "mod_panel": "Mod-Panel",
     "logout": "Abmelden",
-    "support": "Unterstützung",
-    "games": "Spiele",
-    "assistant": "Assistent"
+    "games": "Spiele"
   },
   "GamesPage": {
     "title": "Unterstützte Spiele",

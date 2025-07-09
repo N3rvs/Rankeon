@@ -55,6 +55,7 @@ import { cn } from '@/lib/utils';
 import type { UserStatus } from '@/lib/types';
 import { updateUserPresence } from '@/lib/actions/users';
 import { CreateTicketDialog } from './support/create-ticket-dialog';
+import { AssistantWidget } from './ai/assistant-widget';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -221,20 +222,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={isActive('/assistant')}
-                tooltip={t('Sidebar.assistant')}
-                size="lg"
-              >
-                <Link href="/assistant">
-                  <Bot />
-                  <span>{t('Sidebar.assistant')}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
                 isActive={isActive('/messages')}
                 tooltip={t('Sidebar.friends')}
                  size="lg"
@@ -286,12 +273,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
           <SidebarMenu className="gap-2">
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => setIsTicketDialogOpen(true)} tooltip={t('Sidebar.support')} size="lg">
-                <LifeBuoy />
-                <span>{t('Sidebar.support')}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
               <SidebarMenuButton onClick={handleLogout} tooltip={t('Sidebar.logout')} size="lg">
                 <LogOut />
                 <span>{t('Sidebar.logout')}</span>
@@ -308,6 +289,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
+            <AssistantWidget />
             <InboxIcon />
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />

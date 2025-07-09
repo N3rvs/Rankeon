@@ -244,9 +244,8 @@
     "admin_panel": "Panel Admin",
     "mod_panel": "Panel Mod",
     "logout": "Cerrar Sesión",
-    "support": "Soporte",
     "games": "Juegos",
-    "assistant": "Asistente"
+    "support": "Soporte"
   },
   "GamesPage": {
     "title": "Juegos Soportados",
