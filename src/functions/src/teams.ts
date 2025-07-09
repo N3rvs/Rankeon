@@ -293,21 +293,13 @@ export const kickTeamMember = onCall(async ({ auth: requestAuth, data }) => {
         // The member is already not in the team. Succeed silently.
         return { success: true, message: "El miembro ya no estaba en el equipo." };
     }
-    const memberToKickRole = memberToKickDoc.data()?.role;
-
+    
     if (memberId === teamDoc.data()?.founder) {
         throw new HttpsError("permission-denied", "El fundador no puede ser expulsado.");
     }
 
-    if (callerRole === 'founder') {
-        // Founder can kick anyone (except themselves, checked above).
-    } else if (callerRole === 'coach') {
-        // Coach can only kick members.
-        if (memberToKickRole !== 'member') {
-            throw new HttpsError("permission-denied", "Un entrenador solo puede expulsar a los miembros.");
-        }
-    } else {
-        throw new HttpsError("permission-denied", "Solo el fundador o un entrenador pueden expulsar miembros.");
+    if (callerRole !== 'founder') {
+        throw new HttpsError("permission-denied", "Solo el fundador puede expulsar miembros.");
     }
 
     const batch = db.batch();
@@ -627,3 +619,4 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
     
 
     
+

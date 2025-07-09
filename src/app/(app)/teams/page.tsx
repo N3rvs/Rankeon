@@ -79,7 +79,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     };
 
     const canEditProfile = currentUserRole === 'founder' || currentUserRole === 'coach';
-    const canKick = currentUserRole === 'founder' || (currentUserRole === 'coach' && member.role === 'member');
+    const canKick = currentUserRole === 'founder';
     const canSetIGL = currentUserRole === 'founder' || currentUserRole === 'coach';
 
     if (member.role === 'founder' || (!canKick && !canEditProfile && !canSetIGL)) {
