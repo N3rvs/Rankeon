@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/i18n/language-switcher';
 import { Footer } from './layout/footer';
 import { Gamepad2 } from 'lucide-react';
+import { Spinner } from './ui/spinner';
 
 function Header() {
   const { user, loading } = useAuth();
@@ -29,10 +30,7 @@ function Header() {
             <div className="flex items-center gap-2">
                 <LanguageSwitcher />
                 {loading ? (
-                <div className="flex items-center gap-2">
-                    <div className="h-9 w-20 rounded-md bg-muted animate-pulse" />
-                    <div className="h-9 w-24 rounded-md bg-muted animate-pulse" />
-                </div>
+                  <Spinner className="h-6 w-6" />
                 ) : user ? (
                 <Button asChild>
                     <Link href="/dashboard">{t('LandingPage.go_to_app')}</Link>

@@ -27,6 +27,7 @@ import { format } from 'date-fns';
 import { CreateScrimDialog } from '@/components/scrims/create-scrim-dialog';
 import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
 import { UpcomingScrimsCard } from '@/components/teams/upcoming-scrims-card';
+import { Spinner } from '@/components/ui/spinner';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
@@ -544,16 +545,8 @@ export default function TeamsPage() {
 
     if (authLoading || loadingTeam) {
         return (
-            <div className="space-y-6">
-                 <div className="relative -mx-4 md:-mx-6">
-                    <Skeleton className="h-48 md:h-64 bg-muted" />
-                    <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
-                        <Skeleton className="h-28 w-28 md:h-36 md:w-36 rounded-full border-4 border-background" />
-                    </div>
-                </div>
-                 <div className="pt-20">
-                    <Skeleton className="h-48 w-full" />
-                </div>
+            <div className="flex items-center justify-center h-full">
+                <Spinner className="h-12 w-12" />
             </div>
         );
     }

@@ -12,6 +12,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
 import { TournamentDashboard } from '@/components/tournaments/TournamentDashboard';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function TournamentPage() {
   const params = useParams();
@@ -39,16 +40,8 @@ export default function TournamentPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-9 w-40" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Skeleton className="h-[500px] w-full" />
-          </div>
-          <div className="lg:col-span-1">
-            <Skeleton className="h-96 w-full" />
-          </div>
-        </div>
+      <div className="flex h-96 items-center justify-center">
+        <Spinner className="h-12 w-12" />
       </div>
     );
   }

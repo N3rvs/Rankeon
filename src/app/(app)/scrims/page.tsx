@@ -17,13 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { getFlagEmoji } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Spinner } from '@/components/ui/spinner';
 
 function ScrimList({ scrims, loading }: { scrims: Scrim[], loading: boolean }) {
     const { t } = useI18n();
     if (loading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />)}
+            <div className="flex h-80 items-center justify-center">
+                <Spinner className="h-12 w-12" />
             </div>
         );
     }

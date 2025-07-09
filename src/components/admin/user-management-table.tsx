@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { getManagedUsers } from '@/lib/actions/users';
 import { useToast } from '@/hooks/use-toast';
+import { Spinner } from '../ui/spinner';
 
 interface UserManagementTableProps {
   currentUserRole: 'admin' | 'moderator';
@@ -117,11 +118,36 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
 
   if (loading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-1/3" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
+      <div className="space-y-4">
+        <Input
+          placeholder="Filter by name, email, or country..."
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="max-w-sm"
+          disabled
+        />
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Certified</TableHead>
+                <TableHead>Country</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={7} className="h-48">
+                  <Spinner />
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
       </div>
     );
   }

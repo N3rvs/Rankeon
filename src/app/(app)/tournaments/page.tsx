@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { getFlagEmoji } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function TournamentsPage() {
   const { claims } = useAuth();
@@ -190,8 +191,8 @@ export default function TournamentsPage() {
       </Card>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
+        <div className="flex h-96 items-center justify-center">
+          <Spinner className="h-12 w-12" />
         </div>
       ) : filteredTournaments.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

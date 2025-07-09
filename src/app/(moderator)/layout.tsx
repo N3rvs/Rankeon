@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, claims, loading } = useAuth();
@@ -26,7 +26,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   if (loading || !user || !isModerator) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Skeleton className="h-12 w-12 rounded-full" />
+        <Spinner className="h-12 w-12" />
       </div>
     );
   }
