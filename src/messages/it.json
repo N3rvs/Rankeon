@@ -244,14 +244,8 @@
     "admin_panel": "Pannello Admin",
     "mod_panel": "Pannello Mod",
     "logout": "Esci",
-    "games": "Giochi",
-    "support": "Supporto"
-  },
-  "GamesPage": {
-    "title": "Giochi Supportati",
-    "subtitle": "Esplora i giochi disponibili su Rankeon.",
-    "valorant_desc": "Uno sparatutto tattico 5v5 basato su personaggi in cui la mira precisa si unisce ad abilità uniche degli agenti. Lavoro di squadra, strategia e giocate decisive sono la chiave per la vittoria.",
-    "league_of_legends_desc": "League of Legends è un MOBA 5v5 in cui due squadre competono per distruggere il nexus nemico. Ogni giocatore controlla un campione con abilità uniche e il gioco combina strategia, riflessi e lavoro di squadra."
+    "support": "Supporto",
+    "install_app": "Installa App"
   },
   "Status": {
     "title": "Stato",
@@ -286,11 +280,8 @@
     "leader": "Leader",
     "good_communicator": "Buon comunicatore",
     "positive_attitude": "Atteggiamento positivo",
-    "bad_behavior": "Cattivo Comportamento",
     "honor_awarded": "Onorificenza assegnata!",
-    "honor_awarded_desc": "Hai riconosciuto {name} per la sua abilità.",
-    "honor_revoked_title": "Onore Revocato",
-    "honor_revoked_desc": "Il tuo onore per {name} è stato revocato."
+    "honor_awarded_desc": "Hai riconosciuto {name} per la sua abilità."
   },
   "EditProfileDialog": {
     "title_self": "Modifica il tuo profilo",
@@ -355,11 +346,7 @@
     "management_title": "Pannello di gestione",
     "management_desc": "Azioni per lo staff della squadra.",
     "edit_team_button": "Modifica profilo squadra",
-    "upcoming_matches": "Incontri in arrivo",
-    "apply_to_join": "Candidati per unirti",
-    "applying": "Candidatura in corso...",
-    "application_sent_title": "Candidatura Inviata",
-    "application_sent_desc": "La tua candidatura è stata inviata al fondatore del team."
+    "upcoming_matches": "Incontri in arrivo"
   },
   "MemberManager": {
     "role_updated": "Ruolo aggiornato",
@@ -497,15 +484,7 @@
     "remove_friend_title": "Rimuovere {name} dai tuoi amici?",
     "remove_friend_desc": "Questo rimuoverà questo utente dalla tua lista di amici e la cronologia della chat verrà eliminata permanentemente. Per chattare di nuovo, dovrai inviare una nuova richiesta di amicizia.",
     "confirm_remove": "Sì, rimuovi amico",
-    "removing": "Rimozione...",
-    "say_hello": "Chat creata. Saluta!",
-    "user_blocked_title": "Utente bloccato",
-    "user_blocked_desc": "{name} è stato bloccato. Non potrai inviargli messaggi.",
-    "friend_removed_title": "Amico rimosso",
-    "friend_removed_desc": "Non sei più amico di {name}.",
-    "history_deleted_title": "Cronologia eliminata",
-    "history_deleted_desc": "La cronologia della chat è stata cancellata per entrambi.",
-    "error_title": "Errore"
+    "removing": "Rimozione..."
   },
   "FriendshipButton": {
     "add_friend": "Aggiungi amico",

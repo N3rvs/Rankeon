@@ -244,14 +244,8 @@
     "admin_panel": "Admin Panel",
     "mod_panel": "Mod Panel",
     "logout": "Logout",
-    "games": "Games",
-    "support": "Support"
-  },
-  "GamesPage": {
-      "title": "Supported Games",
-      "subtitle": "Explore the games featured on Rankeon.",
-      "valorant_desc": "A 5v5 character-based tactical shooter where precise gunplay meets unique agent abilities. Teamwork, strategy, and clutch plays are key to victory.",
-      "league_of_legends_desc": "League of Legends is a 5v5 MOBA where two teams compete to destroy the enemy nexus. Each player controls a champion with unique abilities, and the game combines strategy, reflexes, and teamwork."
+    "support": "Support",
+    "install_app": "Install App"
   },
   "Status": {
     "title": "Status",
@@ -286,11 +280,8 @@
     "leader": "Leader",
     "good_communicator": "Good Communicator",
     "positive_attitude": "Positive Attitude",
-    "bad_behavior": "Bad Behavior",
     "honor_awarded": "Honor Awarded!",
-    "honor_awarded_desc": "You've recognized {name} for their skill.",
-    "honor_revoked_title": "Honor Revoked",
-    "honor_revoked_desc": "Your honor for {name} has been revoked."
+    "honor_awarded_desc": "You've recognized {name} for their skill."
   },
   "EditProfileDialog": {
     "title_self": "Edit Your Profile",
@@ -355,11 +346,7 @@
     "management_title": "Management Panel",
     "management_desc": "Actions for team staff.",
     "edit_team_button": "Edit Team Profile",
-    "upcoming_matches": "Upcoming Matches",
-    "apply_to_join": "Apply to Join",
-    "applying": "Applying...",
-    "application_sent_title": "Application Sent",
-    "application_sent_desc": "Your application has been sent to the team founder."
+    "upcoming_matches": "Upcoming Matches"
   },
   "MemberManager": {
     "role_updated": "Role Updated",
@@ -497,15 +484,7 @@
     "remove_friend_title": "Remove {name} from your friends?",
     "remove_friend_desc": "This will remove this user from your friends list and the chat history will be permanently deleted. To chat again, you will need to send a new friend request.",
     "confirm_remove": "Yes, remove friend",
-    "removing": "Removing...",
-    "say_hello": "Chat created. Say hello!",
-    "user_blocked_title": "User Blocked",
-    "user_blocked_desc": "{name} has been blocked. You will not be able to message them.",
-    "friend_removed_title": "Friend Removed",
-    "friend_removed_desc": "You are no longer friends with {name}.",
-    "history_deleted_title": "History Deleted",
-    "history_deleted_desc": "The chat history has been cleared for both of you.",
-    "error_title": "Error"
+    "removing": "Removing..."
   },
   "FriendshipButton": {
     "add_friend": "Add Friend",

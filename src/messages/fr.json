@@ -244,14 +244,8 @@
     "admin_panel": "Panneau Admin",
     "mod_panel": "Panneau Mod",
     "logout": "Déconnexion",
-    "games": "Jeux",
-    "support": "Soutien"
-  },
-  "GamesPage": {
-    "title": "Jeux Supportés",
-    "subtitle": "Explorez les jeux proposés sur Rankeon.",
-    "valorant_desc": "Un jeu de tir tactique 5v5 basé sur des personnages où la précision des tirs rencontre des capacités d'agent uniques. Le travail d'équipe, la stratégie et les actions décisives sont la clé de la victoire.",
-    "league_of_legends_desc": "League of Legends est un MOBA 5v5 où deux équipes s'affrontent pour détruire le nexus ennemi. Chaque joueur contrôle un champion avec des capacités uniques, et le jeu combine stratégie, réflexes et travail d'équipe."
+    "support": "Soutien",
+    "install_app": "Installer l'application"
   },
   "Status": {
     "title": "Statut",
@@ -286,11 +280,8 @@
     "leader": "Leader",
     "good_communicator": "Bon communicateur",
     "positive_attitude": "Attitude positive",
-    "bad_behavior": "Mauvais Comportement",
     "honor_awarded": "Honneur décerné !",
-    "honor_awarded_desc": "Vous avez reconnu {name} pour son talent.",
-    "honor_revoked_title": "Honneur Révoqué",
-    "honor_revoked_desc": "Votre honneur pour {name} a été révoqué."
+    "honor_awarded_desc": "Vous avez reconnu {name} pour son talent."
   },
   "EditProfileDialog": {
     "title_self": "Modifier votre profil",
@@ -355,11 +346,7 @@
     "management_title": "Panneau de gestion",
     "management_desc": "Actions pour le personnel de l'équipe.",
     "edit_team_button": "Modifier le profil de l'équipe",
-    "upcoming_matches": "Matchs à venir",
-    "apply_to_join": "Postuler",
-    "applying": "Envoi en cours...",
-    "application_sent_title": "Candidature envoyée",
-    "application_sent_desc": "Votre candidature a été envoyée au fondateur de l'équipe."
+    "upcoming_matches": "Matchs à venir"
   },
   "MemberManager": {
     "role_updated": "Rôle mis à jour",
@@ -497,15 +484,7 @@
     "remove_friend_title": "Retirer {name} de vos amis ?",
     "remove_friend_desc": "Cela retirera cet utilisateur de votre liste d'amis et l'historique des discussions sera définitivement supprimé. Pour discuter à nouveau, vous devrez envoyer une nouvelle demande d'ami.",
     "confirm_remove": "Oui, retirer l'ami",
-    "removing": "Retrait...",
-    "say_hello": "Discussion créée. Dites bonjour !",
-    "user_blocked_title": "Utilisateur bloqué",
-    "user_blocked_desc": "{name} a été bloqué. Vous ne pourrez pas lui envoyer de messages.",
-    "friend_removed_title": "Ami supprimé",
-    "friend_removed_desc": "Vous n'êtes plus ami avec {name}.",
-    "history_deleted_title": "Historique supprimé",
-    "history_deleted_desc": "L'historique de la discussion a été effacé pour vous deux.",
-    "error_title": "Erreur"
+    "removing": "Retrait..."
   },
   "FriendshipButton": {
     "add_friend": "Ajouter un ami",

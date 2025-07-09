@@ -244,14 +244,8 @@
     "admin_panel": "Admin-Panel",
     "mod_panel": "Mod-Panel",
     "logout": "Abmelden",
-    "games": "Spiele",
-    "support": "Unterstützung"
-  },
-  "GamesPage": {
-    "title": "Unterstützte Spiele",
-    "subtitle": "Entdecken Sie die auf Rankeon verfügbaren Spiele.",
-    "valorant_desc": "Ein 5v5-charakterbasierter taktischer Shooter, bei dem präzises Schießen auf einzigartige Agentenfähigkeiten trifft. Teamwork, Strategie und entscheidende Spielzüge sind der Schlüssel zum Sieg.",
-    "league_of_legends_desc": "League of Legends ist ein 5v5 MOBA, in dem zwei Teams gegeneinander antreten, um den feindlichen Nexus zu zerstören. Jeder Spieler steuert einen Champion mit einzigartigen Fähigkeiten, und das Spiel kombiniert Strategie, Reflexe und Teamwork."
+    "support": "Unterstützung",
+    "install_app": "App Installieren"
   },
   "Status": {
     "title": "Status",
@@ -286,11 +280,8 @@
     "leader": "Anführer",
     "good_communicator": "Guter Kommunikator",
     "positive_attitude": "Positive Einstellung",
-    "bad_behavior": "Schlechtes Verhalten",
     "honor_awarded": "Ehre verliehen!",
-    "honor_awarded_desc": "Du hast {name} für seine Fähigkeit ausgezeichnet.",
-    "honor_revoked_title": "Ehre Widerrufen",
-    "honor_revoked_desc": "Deine Ehre für {name} wurde widerrufen."
+    "honor_awarded_desc": "Du hast {name} für seine Fähigkeit ausgezeichnet."
   },
   "EditProfileDialog": {
     "title_self": "Dein Profil bearbeiten",
@@ -355,11 +346,7 @@
     "management_title": "Verwaltungspanel",
     "management_desc": "Aktionen für Teammitarbeiter.",
     "edit_team_button": "Teamprofil bearbeiten",
-    "upcoming_matches": "Anstehende Spiele",
-    "apply_to_join": "Bewerben",
-    "applying": "Bewerbung wird gesendet...",
-    "application_sent_title": "Bewerbung gesendet",
-    "application_sent_desc": "Deine Bewerbung wurde an den Teamgründer gesendet."
+    "upcoming_matches": "Anstehende Spiele"
   },
   "MemberManager": {
     "role_updated": "Rolle aktualisiert",
@@ -497,15 +484,7 @@
     "remove_friend_title": "{name} aus deinen Freunden entfernen?",
     "remove_friend_desc": "Dies entfernt diesen Benutzer aus deiner Freundesliste und der Chatverlauf wird dauerhaft gelöscht. Um erneut zu chatten, musst du eine neue Freundschaftsanfrage senden.",
     "confirm_remove": "Ja, Freund entfernen",
-    "removing": "Entfernen...",
-    "say_hello": "Chat erstellt. Sag Hallo!",
-    "user_blocked_title": "Benutzer gesperrt",
-    "user_blocked_desc": "{name} wurde gesperrt. Sie können ihm keine Nachrichten mehr senden.",
-    "friend_removed_title": "Freund entfernt",
-    "friend_removed_desc": "Sie sind nicht mehr mit {name} befreundet.",
-    "history_deleted_title": "Verlauf gelöscht",
-    "history_deleted_desc": "Der Chatverlauf wurde für euch beide gelöscht.",
-    "error_title": "Fehler"
+    "removing": "Entfernen..."
   },
   "FriendshipButton": {
     "add_friend": "Freund hinzufügen",

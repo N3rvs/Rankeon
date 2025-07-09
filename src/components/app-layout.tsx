@@ -55,6 +55,7 @@ import type { UserStatus } from '@/lib/types';
 import { updateUserPresence } from '@/lib/actions/users';
 import { CreateTicketDialog } from './support/create-ticket-dialog';
 import { AssistantWidget } from './ai/assistant-widget';
+import { InstallPwaButton } from './pwa/install-button';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -333,6 +334,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
+                  <InstallPwaButton />
                   <DropdownMenuItem onSelect={() => setIsTicketDialogOpen(true)}>
                     <LifeBuoy className="mr-2 h-4 w-4" />
                     <span>{t('Sidebar.support')}</span>
