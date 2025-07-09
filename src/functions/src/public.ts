@@ -136,18 +136,25 @@ export const getTournamentRankings = onCall(async ({ auth }) => {
     }
     const tourneySnapshot = await db.collection('tournaments')
         .where('status', '==', 'completed')
-        .orderBy('startDate', 'desc')
         .get();
         
-    return tourneySnapshot.docs
+    const tournaments = tourneySnapshot.docs
         .filter(doc => !!doc.data().winnerId)
         .map(doc => {
             const data = doc.data();
             return {
                 ...data,
                 id: doc.id,
-                startDate: data.startDate?.toDate().toISOString(),
-                createdAt: data.createdAt?.toDate().toISOString(),
+                startDate: data.startDate?.toDate(),
+                createdAt: data.createdAt?.toDate(),
             };
-        });
+        })
+        .sort((a, b) => (b.startDate?.getTime() || 0) - (a.startDate?.getTime() || 0))
+        .map(t => ({
+            ...t,
+            startDate: t.startDate?.toISOString(),
+            createdAt: t.createdAt?.toISOString(),
+        }));
+    
+    return tournaments;
 });
