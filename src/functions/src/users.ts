@@ -1,5 +1,6 @@
 
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -48,16 +49,17 @@ export const updateUserRole = onCall(async ({ auth: callerAuth, data }: { auth?:
         if (userData && userData.teamId) {
             const teamId = userData.teamId;
             const memberRef = db.collection('teams').doc(teamId).collection('members').doc(uid);
-            
-            // Determine the role within the team.
-            // A global coach is a 'coach' in the team.
-            // A global player is a 'member'.
-            const teamRole = role === 'coach' ? 'coach' : 'member';
-
             const memberDoc = await memberRef.get();
-            // Only update if they are not the founder of the team.
+
+            // Only update team role if they are not the founder.
             if (memberDoc.exists && memberDoc.data()?.role !== 'founder') {
-                await memberRef.update({ role: teamRole });
+                // Only update for 'coach' or 'player' role changes. Admins/Mods retain their current team role.
+                if (role === 'coach') {
+                    await memberRef.update({ role: 'coach' });
+                } else if (role === 'player') {
+                     // If a user becomes a 'player', their team role should be 'member'.
+                    await memberRef.update({ role: 'member' });
+                }
             }
         }
 

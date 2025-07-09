@@ -1,4 +1,5 @@
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -37,13 +38,9 @@ export const getTeamMembers = onCall(async ({ auth: callerAuth, data }) => {
             if (userDocSnap.exists()) {
                 const userData = userDocSnap.data()!;
                 
-                // Prioritize the global role from the user's main document.
-                // This ensures that if a user is a global 'coach', it's reflected here.
-                const authoritativeRole = userData.role || memberData.role;
-                
                 return {
                     id: memberDoc.id,
-                    role: authoritativeRole, // Use the authoritative role.
+                    role: memberData.role, // Use the team-specific role
                     joinedAt: memberData.joinedAt?.toDate().toISOString() || null,
                     isIGL: memberData.isIGL || false,
                     name: userData.name || '',
