@@ -56,7 +56,7 @@ export function AssistantWidget() {
     <div className="fixed bottom-4 right-4 z-50">
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
-                 <Button size="icon" className="rounded-full w-14 h-14 shadow-lg">
+                 <Button size="icon" className="rounded-full w-14 h-14 shadow-lg bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.9)]">
                     <Bot className="h-7 w-7" />
                     <span className="sr-only">Open Assistant</span>
                 </Button>
