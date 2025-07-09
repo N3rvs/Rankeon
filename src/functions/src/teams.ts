@@ -382,7 +382,8 @@ export const sendTeamInvite = onCall(async ({ auth: callerAuth, data }: { auth?:
     if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
 
     const teamData = teamDoc.data()!;
-    const isStaff = teamData.founder === callerAuth.uid || (await db.collection(`teams/${teamId}/members`).doc(callerAuth.uid).get()).data()?.role === 'coach';
+    const memberDoc = await db.collection(`teams/${teamId}/members`).doc(callerAuth.uid).get();
+    const isStaff = teamData.founder === callerAuth.uid || memberDoc.data()?.role === 'coach';
 
     if (!isStaff) {
         throw new HttpsError("permission-denied", "Solo el staff del equipo puede enviar invitaciones.");
@@ -566,8 +567,11 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
         const teamSnap = await transaction.get(teamRef);
         if(!teamSnap.exists) throw new HttpsError("not-found", "El equipo ya no existe.");
         
-        if (teamSnap.data()!.founder !== callerAuth.uid) {
-            throw new HttpsError("permission-denied", "Solo el fundador puede responder a las solicitudes.");
+        const memberDoc = await transaction.get(teamRef.collection('members').doc(callerAuth.uid));
+        const callerRole = memberDoc.data()?.role;
+
+        if (callerRole !== 'founder' && callerRole !== 'coach') {
+            throw new HttpsError("permission-denied", "Solo el staff del equipo puede responder a las solicitudes.");
         }
 
         transaction.update(applicationRef, { status: accept ? 'accepted' : 'rejected' });
