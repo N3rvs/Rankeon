@@ -39,7 +39,7 @@ La aplicación estará disponible en `http://localhost:3000`.
 
 ## 📚 Documentación
 
-Para una guía detallada sobre la arquitectura del proyecto, la estructura de carpetas, las tecnologías utilizadas y las características clave, consulta nuestra documentación completa.
+Para una guía detallada sobre **qué es Rankeon, qué problemas soluciona y cómo puedes sacarle el máximo partido**, consulta nuestra documentación completa.
 
 ➡️ **[Lee la Documentación Completa](./DOCUMENTATION.md)**
 
