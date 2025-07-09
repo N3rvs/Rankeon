@@ -354,7 +354,11 @@
     "upcoming_matches": "Incontri in arrivo",
     "apply_to_join": "Candidati per unirti",
     "application_sent_title": "Candidatura inviata!",
-    "application_sent_desc": "La tua richiesta di unirti al team è stata inviata al fondatore."
+    "application_sent_desc": "La tua richiesta di unirti al team è stata inviata al fondatore.",
+    "strategy_board": "Lavagna strategica",
+    "strategy_board_desc": "Disegna tattiche e pianifica giocate sulle mappe di Valorant.",
+    "select_map": "Seleziona una mappa",
+    "clear_board": "Pulisci lavagna"
   },
   "MemberManager": {
     "role_updated": "Ruolo aggiornato",

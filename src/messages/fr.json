@@ -354,7 +354,11 @@
     "upcoming_matches": "Matchs à venir",
     "apply_to_join": "Postuler pour rejoindre",
     "application_sent_title": "Candidature envoyée !",
-    "application_sent_desc": "Votre demande pour rejoindre l'équipe a été envoyée au fondateur."
+    "application_sent_desc": "Votre demande pour rejoindre l'équipe a été envoyée au fondateur.",
+    "strategy_board": "Tableau Stratégique",
+    "strategy_board_desc": "Dessinez des tactiques et planifiez des actions sur les cartes de Valorant.",
+    "select_map": "Sélectionner une carte",
+    "clear_board": "Nettoyer le tableau"
   },
   "MemberManager": {
     "role_updated": "Rôle mis à jour",

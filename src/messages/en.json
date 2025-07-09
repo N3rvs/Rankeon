@@ -354,7 +354,11 @@
     "upcoming_matches": "Upcoming Matches",
     "apply_to_join": "Apply to Join",
     "application_sent_title": "Application Sent!",
-    "application_sent_desc": "Your request to join the team has been sent to the founder."
+    "application_sent_desc": "Your request to join the team has been sent to the founder.",
+    "strategy_board": "Strategy Board",
+    "strategy_board_desc": "Draw tactics and plan plays on Valorant maps.",
+    "select_map": "Select a map",
+    "clear_board": "Clear Board"
   },
   "MemberManager": {
     "role_updated": "Role Updated",

@@ -354,7 +354,11 @@
     "upcoming_matches": "Próximos Encuentros",
     "apply_to_join": "Solicitar Unirse",
     "application_sent_title": "¡Solicitud Enviada!",
-    "application_sent_desc": "Tu solicitud para unirte al equipo ha sido enviada al fundador."
+    "application_sent_desc": "Tu solicitud para unirte al equipo ha sido enviada al fundador.",
+    "strategy_board": "Pizarra de Estrategias",
+    "strategy_board_desc": "Dibuja tácticas y planea jugadas en los mapas de Valorant.",
+    "select_map": "Selecciona un mapa",
+    "clear_board": "Limpiar Pizarra"
   },
   "MemberManager": {
     "role_updated": "Rol Actualizado",
