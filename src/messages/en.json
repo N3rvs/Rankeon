@@ -313,7 +313,8 @@
     "skills_roles": "Roles / Skills",
     "skills_roles_desc": "Select up to 2 roles for your primary game.",
     "save_changes": "Save Changes",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "title_game_skills_other": "Edit Game Skills for {name}"
   },
   "TeamsPage": {
     "playing": "Playing",
@@ -371,7 +372,7 @@
     "kicking": "Kicking...",
     "set_igl": "Set as IGL",
     "remove_igl": "Remove IGL Role",
-    "edit_profile": "Edit Profile",
+    "edit_game_roles": "Edit Game Role",
     "kick_from_team": "Kick from Team"
   },
   "EditTeamDialog": {

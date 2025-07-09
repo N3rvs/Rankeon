@@ -313,7 +313,8 @@
     "skills_roles": "Funções / Habilidades",
     "skills_roles_desc": "Selecione até 2 funções para o seu jogo principal.",
     "save_changes": "Salvar Alterações",
-    "saving": "Salvando..."
+    "saving": "Salvando...",
+    "title_game_skills_other": "Editar Habilidades de Jogo de {name}"
   },
   "TeamsPage": {
     "playing": "Jogando",
@@ -371,7 +372,7 @@
     "kicking": "Expulsando...",
     "set_igl": "Definir como IGL",
     "remove_igl": "Remover Função de IGL",
-    "edit_profile": "Editar Perfil",
+    "edit_game_roles": "Editar Função de Jogo",
     "kick_from_team": "Expulsar da Equipe"
   },
   "EditTeamDialog": {

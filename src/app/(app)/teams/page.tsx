@@ -93,6 +93,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                     userProfile={selectedMemberProfile}
                     open={isEditDialogOpen}
                     onOpenChange={setIsEditDialogOpen}
+                    isManagerEditing={true}
                 />
             )}
             <AlertDialog open={isKickAlertOpen} onOpenChange={setKickAlertOpen}>
@@ -121,7 +122,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 <DropdownMenuContent align="end">
                     {canEditProfile && (
                         <DropdownMenuItem onSelect={handleOpenEditDialog} disabled={isPending}>
-                            <Edit className="mr-2 h-4 w-4" /> {t('MemberManager.edit_profile')}
+                            <Edit className="mr-2 h-4 w-4" /> {t('MemberManager.edit_game_roles')}
                         </DropdownMenuItem>
                     )}
                     {(canEditProfile || canSetIGL) && <DropdownMenuSeparator />}

@@ -313,7 +313,8 @@
     "skills_roles": "Rollen / Fähigkeiten",
     "skills_roles_desc": "Wähle bis zu 2 Rollen für dein Hauptspiel.",
     "save_changes": "Änderungen speichern",
-    "saving": "Speichern..."
+    "saving": "Speichern...",
+    "title_game_skills_other": "Spielfertigkeiten für {name} bearbeiten"
   },
   "TeamsPage": {
     "playing": "Spielt",
@@ -371,7 +372,7 @@
     "kicking": "Wird rausgeworfen...",
     "set_igl": "Als IGL festlegen",
     "remove_igl": "IGL-Rolle entfernen",
-    "edit_profile": "Profil bearbeiten",
+    "edit_game_roles": "Spielrolle bearbeiten",
     "kick_from_team": "Aus dem Team werfen"
   },
   "EditTeamDialog": {

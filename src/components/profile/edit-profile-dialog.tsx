@@ -21,9 +21,10 @@ interface EditProfileDialogProps {
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     children?: React.ReactNode;
+    isManagerEditing?: boolean;
 }
 
-export function EditProfileDialog({ userProfile, open, onOpenChange, children }: EditProfileDialogProps) {
+export function EditProfileDialog({ userProfile, open, onOpenChange, children, isManagerEditing = false }: EditProfileDialogProps) {
   const { userProfile: loggedInUserProfile } = useAuth();
   const { t } = useI18n();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -33,6 +34,12 @@ export function EditProfileDialog({ userProfile, open, onOpenChange, children }:
   const setCurrentOpen = isControlled ? onOpenChange! : setInternalOpen;
 
   const isEditingSelf = loggedInUserProfile?.id === userProfile.id;
+
+  const getTitle = () => {
+    if (isEditingSelf) return t('EditProfileDialog.title_self');
+    if (isManagerEditing) return t('EditProfileDialog.title_game_skills_other', { name: userProfile.name });
+    return t('EditProfileDialog.title_other', { name: userProfile.name });
+  }
 
   return (
     <Dialog open={currentOpen} onOpenChange={setCurrentOpen}>
@@ -49,13 +56,13 @@ export function EditProfileDialog({ userProfile, open, onOpenChange, children }:
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditingSelf ? t('EditProfileDialog.title_self') : t('EditProfileDialog.title_other', { name: userProfile.name })}
+            {getTitle()}
           </DialogTitle>
           <DialogDescription>
             {t('EditProfileDialog.description')}
           </DialogDescription>
         </DialogHeader>
-        <EditProfileForm userProfile={userProfile} onFinished={() => setCurrentOpen(false)} />
+        <EditProfileForm userProfile={userProfile} onFinished={() => setCurrentOpen(false)} isManagerEditing={isManagerEditing} />
       </DialogContent>
     </Dialog>
   );
