@@ -24,6 +24,7 @@ function Header() {
             </Link>
             <nav className="hidden md:flex items-center gap-8">
                 <Link href="/about" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
+                <Link href="/guide" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.guide')}</Link>
                 <Link href="/games" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.games')}</Link>
                 <Link href="/support" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('Footer.support_title')}</Link>
             </nav>
