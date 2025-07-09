@@ -290,12 +290,6 @@ export const kickTeamMember = onCall(async ({ auth: requestAuth, data }) => {
         throw new HttpsError("permission-denied", "No eres miembro de este equipo.");
     }
     const callerRole = callerMemberDoc.data()?.role;
-
-    const memberToKickDoc = await teamRef.collection("members").doc(memberId).get();
-    if (!memberToKickDoc.exists) {
-        // The member is already not in the team. Succeed silently.
-        return { success: true, message: "El miembro ya no estaba en el equipo." };
-    }
     
     if (memberId === teamDoc.data()?.founder) {
         throw new HttpsError("permission-denied", "El fundador no puede ser expulsado.");
@@ -393,17 +387,33 @@ export const sendTeamInvite = onCall(async ({ auth: callerAuth, data }: { auth?:
         throw new HttpsError("failed-precondition", "El jugador no existe o ya está en un equipo.");
     }
 
-    const existingInviteQuery = await db.collection("teamInvitations")
+    const batch = db.batch();
+
+    // Atomically find and delete any previous invitations (pending, rejected, etc.)
+    // to ensure a fresh invite can always be sent if the player is not in the team.
+    const existingInvitesQuery = await db.collection("teamInvitations")
         .where("fromTeamId", "==", teamId)
         .where("toUserId", "==", toUserId)
-        .where("status", "==", "pending")
         .get();
 
-    if (!existingInviteQuery.empty) {
-        throw new HttpsError("already-exists", "Ya se ha enviado una invitación a este jugador.");
+    if (!existingInvitesQuery.empty) {
+        existingInvitesQuery.forEach(doc => {
+            batch.delete(doc.ref);
+        });
     }
+
+    // Also clean up any applications from the user to the team.
+    const existingAppsQuery = await db.collection("teamApplications")
+        .where("teamId", "==", teamId)
+        .where("applicantId", "==", toUserId)
+        .get();
     
-    const batch = db.batch();
+    if (!existingAppsQuery.empty) {
+        existingAppsQuery.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+    }
+
     const inviteRef = db.collection("teamInvitations").doc();
     batch.set(inviteRef, {
         fromTeamId: teamId,
@@ -657,6 +667,7 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
     
 
     
+
 
 
 
