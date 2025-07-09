@@ -23,7 +23,7 @@ export function Footer() {
                     <div className="md:col-span-1 space-y-4">
                         <Link href="/" className="flex items-center gap-2 text-2xl font-bold font-headline text-primary">
                              <Gamepad2 className="h-8 w-8" />
-                            <span>Rankeon</span>
+                            <span>Scrimly</span>
                         </Link>
                         <p className="text-sm text-muted-foreground">{t('Footer.tagline')}</p>
                         <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export function Footer() {
                 </div>
 
                 <div className="mt-12 border-t pt-6 text-center text-xs text-muted-foreground">
-                    <p>© {currentYear} Rankeon. {t('LandingPage.footer_rights')}</p>
+                    <p>© {currentYear} Scrimly. {t('LandingPage.footer_rights')}</p>
                     <p className="mt-1">Version 0.1.0</p>
                 </div>
             </div>

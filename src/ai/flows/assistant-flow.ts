@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI assistant for the Rankeon platform.
+ * @fileOverview An AI assistant for the Scrimly platform.
  * - askAssistant - A function that handles user queries about the platform.
  */
 
@@ -8,7 +8,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const AssistantInputSchema = z.object({
-  query: z.string().describe('The user\'s question about the Rankeon platform.'),
+  query: z.string().describe("The user's question about the Scrimly platform."),
   history: z.array(z.object({
       role: z.enum(['user', 'model']),
       content: z.array(z.object({text: z.string()}))
@@ -17,7 +17,7 @@ const AssistantInputSchema = z.object({
 export type AssistantInput = z.infer<typeof AssistantInputSchema>;
 
 const AssistantOutputSchema = z.object({
-  response: z.string().describe('The helpful and concise answer to the user\'s question.'),
+  response: z.string().describe("The helpful and concise answer to the user's question."),
 });
 export type AssistantOutput = z.infer<typeof AssistantOutputSchema>;
 
@@ -25,11 +25,11 @@ export async function askAssistant(input: AssistantInput): Promise<AssistantOutp
   return assistantFlow(input);
 }
 
-const systemPrompt = `You are "Rankeon Assistant", a friendly and helpful AI designed to assist users of the Rankeon application. Your goal is to provide clear, concise, and accurate answers about how to use the platform.
+const systemPrompt = `You are "Scrimly Assistant", a friendly and helpful AI designed to assist users of the Scrimly application. Your goal is to provide clear, concise, and accurate answers about how to use the platform.
 
-**Rankeon Platform Overview:**
+**Scrimly Platform Overview:**
 
-Rankeon is a platform for competitive gamers to find teammates, create teams, and compete in scrims (practice matches) and tournaments.
+Scrimly is a platform for competitive gamers to find teammates, create teams, and compete in scrims (practice matches) and tournaments.
 
 **Core Features & How-To Guide:**
 

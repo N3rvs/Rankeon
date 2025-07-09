@@ -29,7 +29,6 @@ import {
   Medal,
   LifeBuoy,
   Gamepad2,
-  Bot,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -114,7 +113,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader className="flex h-16 items-center justify-center border-b p-0">
           <Link href="/" className="flex items-center gap-2 text-2xl font-bold font-headline text-primary px-4">
               <Gamepad2 className="shrink-0" />
-              <span className="group-data-[collapsible=icon]:hidden">Rankeon</span>
+              <span className="group-data-[collapsible=icon]:hidden">Scrimly</span>
           </Link>
         </SidebarHeader>
         <SidebarContent className="pt-4">
@@ -289,7 +288,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
-            <AssistantWidget />
             <InboxIcon />
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />
@@ -352,6 +350,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>
+        <AssistantWidget />
       </SidebarInset>
     </SidebarProvider>
     </>

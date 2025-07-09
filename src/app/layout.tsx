@@ -25,12 +25,13 @@ const spaceGrotesk = SpaceGrotesk({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Rankeon',
-    default: 'Rankeon - Find your team, conquer the game.',
+    template: '%s | Scrimly',
+    default: 'Scrimly - Find your team, conquer the game.',
   },
   description: 'Find your team, conquer the game.',
+  manifest: '/manifest.json',
   icons: {
-    icon: "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3e%3crect width='100' height='100' rx='20' fill='hsl(180, 80%25, 50%25)'%3e%3c/rect%3e%3ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='70' font-weight='bold' fill='hsl(180, 100%25, 10%25)' font-family='sans-serif'%3eR%3c/text%3e%3c/svg%3e",
+    icon: "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3e%3crect width='100' height='100' rx='20' fill='hsl(180, 80%25, 50%25)'%3e%3c/rect%3e%3ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='70' font-weight='bold' fill='hsl(180, 100%25, 10%25)' font-family='sans-serif'%3eS%3c/text%3e%3c/svg%3e",
   }
 };
 
@@ -56,7 +57,6 @@ export default function RootLayout({
   return (
     <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
       <head>
-        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1AD1D1" />
       </head>
       <body>

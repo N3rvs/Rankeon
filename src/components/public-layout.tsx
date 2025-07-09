@@ -20,7 +20,7 @@ function Header() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 text-3xl font-bold font-headline text-primary">
                 <Gamepad2 className="h-8 w-8" />
-                <span>Rankeon</span>
+                <span>Scrimly</span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
                 <Link href="/about" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('LandingPage.about_us')}</Link>
