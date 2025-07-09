@@ -27,6 +27,13 @@
     "community_matches": "Community-confirmed matches.",
     "download_app": "Download App"
   },
+  "GamesPage": {
+    "title": "Supported Games",
+    "subtitle": "Discover the arenas where you can compete.",
+    "valorant_desc": "A 5v5 character-based tactical shooter where creativity is your greatest weapon.",
+    "league_of_legends_title": "League of Legends (coming soon)",
+    "league_of_legends_desc": "A team-based strategy game where two teams of five powerful champions face off to destroy the other’s base."
+  },
   "LoginPage": {
     "forgot_password": "Forgot your password?"
   },

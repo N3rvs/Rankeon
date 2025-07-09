@@ -27,6 +27,13 @@
         "community_matches": "Partite confermate dalla community.",
         "download_app": "Scarica l'app"
     },
+    "GamesPage": {
+        "title": "Giochi Supportati",
+        "subtitle": "Scopri le arene in cui puoi competere.",
+        "valorant_desc": "Uno sparatutto tattico 5v5 basato su personaggi in cui la creatività è la tua arma più grande.",
+        "league_of_legends_title": "League of Legends (in arrivo)",
+        "league_of_legends_desc": "Un gioco di strategia a squadre in cui due squadre di cinque potenti campioni si affrontano per distruggere la base dell'altro."
+    },
     "LoginPage": {
         "forgot_password": "Password dimenticata?"
     },

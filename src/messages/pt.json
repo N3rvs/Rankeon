@@ -27,6 +27,13 @@
         "community_matches": "Partidas confirmadas pela comunidade.",
         "download_app": "Baixar App"
     },
+    "GamesPage": {
+        "title": "Jogos Suportados",
+        "subtitle": "Descubra as arenas onde você pode competir.",
+        "valorant_desc": "Um jogo de tiro tático 5v5 baseado em personagens onde a criatividade é sua maior arma.",
+        "league_of_legends_title": "League of Legends (em breve)",
+        "league_of_legends_desc": "Um jogo de estratégia em equipe onde duas equipes de cinco campeões poderosos se enfrentam para destruir a base do outro."
+    },
     "LoginPage": {
         "forgot_password": "Esqueceu a senha?"
     },
