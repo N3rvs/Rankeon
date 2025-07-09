@@ -69,6 +69,7 @@ export interface TeamMember {
   id: string;
   isIGL?: boolean;
   skills?: string[];
+  isCertifiedStreamer?: boolean;
 }
 
 export interface ChatMessage {

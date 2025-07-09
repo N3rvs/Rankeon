@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import type { UserProfile } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Award, Medal } from 'lucide-react';
+import { Award, Medal, Twitch } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
 import { getHonorRankings } from '@/lib/actions/public';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '../ui/spinner';
 
-type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl'> & { totalHonors: number };
+type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl' | 'isCertifiedStreamer'> & { totalHonors: number };
 
 export function HonorRankings() {
   const { t } = useI18n();
@@ -81,7 +81,10 @@ export function HonorRankings() {
                                     <AvatarFallback>{player.name?.slice(0, 2)}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <h3 className="font-semibold group-hover:underline">{player.name}</h3>
+                                    <h3 className="font-semibold group-hover:underline flex items-center gap-2">
+                                      {player.name}
+                                      {player.isCertifiedStreamer && <Twitch className="h-4 w-4 text-purple-500" />}
+                                    </h3>
                                 </div>
                             </Link>
                         </TableCell>

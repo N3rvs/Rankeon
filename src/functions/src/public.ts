@@ -99,6 +99,7 @@ export const getHonorRankings = onCall(async ({ auth }) => {
                 name: user.name,
                 avatarUrl: user.avatarUrl,
                 totalHonors: calculateTotalHonors(user),
+                isCertifiedStreamer: user.isCertifiedStreamer || false,
             };
         })
         .filter(user => user.totalHonors > 0)

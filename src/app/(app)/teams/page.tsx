@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield } from 'lucide-react';
+import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield, Twitch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy } from 'firebase/firestore';
@@ -153,7 +153,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     const [loadingTrophies, setLoadingTrophies] = useState(true);
 
     const staff = members.filter(m => m.role === 'founder' || m.role === 'coach').sort((a, b) => a.role === 'founder' ? -1 : 1);
-    const players = members.filter(m => m.role !== 'founder' && m.role !== 'coach');
+    const players = members.filter(m => m.role === 'member');
 
     useEffect(() => {
         if (!team?.id) {
@@ -189,6 +189,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     };
     
     const isStaff = currentUserRole === 'founder' || currentUserRole === 'coach';
+    const isFounder = currentUserRole === 'founder';
     
     const rankRange = team.rankMin && team.rankMax
         ? team.rankMin === team.rankMax
@@ -247,7 +248,10 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                         <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col items-start">
-                        <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
+                        <span className="font-semibold text-sm group-hover:underline flex items-center gap-1.5">
+                            {member.name}
+                            {member.isCertifiedStreamer && <Twitch className="h-4 w-4 text-purple-500" />}
+                        </span>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             {roleIcons[member.role] || null}
                             <span className="capitalize">{member.role}</span>
@@ -336,7 +340,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                     )}
                                 </CardDescription>
                             </div>
-                            {currentUserRole === 'founder' && (
+                            {isFounder && (
                                 <div className="flex items-center gap-2 shrink-0">
                                     <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary">
                                         <Edit className="h-4 w-4" />

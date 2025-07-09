@@ -1,4 +1,5 @@
 
+
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -44,6 +45,7 @@ export const getTeamMembers = onCall(async ({ auth: callerAuth, data }) => {
                     name: userData.name || '',
                     avatarUrl: userData.avatarUrl || '',
                     skills: userData.skills || [],
+                    isCertifiedStreamer: userData.isCertifiedStreamer || false,
                 };
             }
             return null;
@@ -604,3 +606,4 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
         return { success: true, message: `Solicitud ${accept ? 'aceptada' : 'rechazada'}.` };
     });
 });
+
