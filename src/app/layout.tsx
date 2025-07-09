@@ -55,12 +55,17 @@ export default function RootLayout({
   
   return (
     <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#1AD1D1" />
+      </head>
       <body>
           <I18nProvider locale={locale}>
             <CookieConsentProvider>
               <AuthProvider>
                 {children}
                 <Toaster />
+                <CookieConsentBanner />
               </AuthProvider>
             </CookieConsentProvider>
           </I18nProvider>
