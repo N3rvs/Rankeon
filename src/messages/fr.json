@@ -245,7 +245,8 @@
     "mod_panel": "Panneau Mod",
     "logout": "Déconnexion",
     "support": "Soutien",
-    "games": "Jeux"
+    "games": "Jeux",
+    "assistant": "Assistant"
   },
   "GamesPage": {
     "title": "Jeux Supportés",

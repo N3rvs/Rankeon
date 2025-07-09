@@ -245,7 +245,8 @@
     "mod_panel": "Pannello Mod",
     "logout": "Esci",
     "support": "Supporto",
-    "games": "Giochi"
+    "games": "Giochi",
+    "assistant": "Assistente"
   },
   "GamesPage": {
     "title": "Giochi Supportati",

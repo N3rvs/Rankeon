@@ -245,7 +245,8 @@
     "mod_panel": "Mod Panel",
     "logout": "Logout",
     "support": "Support",
-    "games": "Games"
+    "games": "Games",
+    "assistant": "Assistant"
   },
   "GamesPage": {
       "title": "Supported Games",

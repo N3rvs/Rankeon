@@ -29,6 +29,7 @@ import {
   Medal,
   LifeBuoy,
   Gamepad2,
+  Bot,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -54,7 +55,6 @@ import { cn } from '@/lib/utils';
 import type { UserStatus } from '@/lib/types';
 import { updateUserPresence } from '@/lib/actions/users';
 import { CreateTicketDialog } from './support/create-ticket-dialog';
-import { AssistantWidget } from './ai/assistant-widget';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -63,7 +63,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [isPending, startTransition] = useTransition();
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
-  const showAssistant = !pathname.startsWith('/messages');
 
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
@@ -222,6 +221,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
+                isActive={isActive('/assistant')}
+                tooltip={t('Sidebar.assistant')}
+                size="lg"
+              >
+                <Link href="/assistant">
+                  <Bot />
+                  <span>{t('Sidebar.assistant')}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
                 isActive={isActive('/messages')}
                 tooltip={t('Sidebar.friends')}
                  size="lg"
@@ -272,6 +285,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu className="gap-2">
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={() => setIsTicketDialogOpen(true)} tooltip={t('Sidebar.support')} size="lg">
+                <LifeBuoy />
+                <span>{t('Sidebar.support')}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={handleLogout} tooltip={t('Sidebar.logout')} size="lg">
                 <LogOut />
@@ -351,7 +370,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>
-        {showAssistant && <AssistantWidget />}
       </SidebarInset>
     </SidebarProvider>
     </>

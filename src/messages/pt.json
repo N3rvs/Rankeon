@@ -245,7 +245,8 @@
     "mod_panel": "Painel Mod",
     "logout": "Sair",
     "support": "Suporte",
-    "games": "Jogos"
+    "games": "Jogos",
+    "assistant": "Assistente"
   },
   "GamesPage": {
     "title": "Jogos Suportados",
