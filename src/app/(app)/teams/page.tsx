@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield, Twitch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
-import { collection, query, onSnapshot, Unsubscribe, doc, getDoc, where, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
@@ -18,9 +18,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent, DropdownMenuLabel, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 import { TeamApplications } from '@/components/teams/team-applications';
 import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
@@ -35,22 +34,40 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     const { toast } = useToast();
     const [isKickAlertOpen, setKickAlertOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [selectedMemberProfile, setSelectedMemberProfile] = useState<UserProfile | null>(null);
 
-    const handleOpenEditDialog = async () => {
-        if (selectedMemberProfile && selectedMemberProfile.id === member.id) {
-            setIsEditDialogOpen(true);
-            return;
-        }
+    const valorantRoles = ["Controlador", "Iniciador", "Duelista", "Centinela"];
+
+    const handleRoleToggle = (toggledRole: string) => {
         startTransition(async () => {
-            // This is a safe client-side fetch because it's getting public profile data
-            const userDoc = await getDoc(doc(db, 'users', member.id));
-            if (userDoc.exists()) {
-                setSelectedMemberProfile({ id: userDoc.id, ...userDoc.data() } as UserProfile);
-                setIsEditDialogOpen(true);
+            const currentSkills = member.skills || [];
+            let newSkills;
+            if (currentSkills.includes(toggledRole)) {
+                newSkills = currentSkills.filter((skill) => skill !== toggledRole);
             } else {
-                toast({ title: "Error", description: t('MemberManager.error_user_not_found'), variant: "destructive" });
+                if (currentSkills.length >= 2) {
+                    toast({
+                        title: "No se pueden añadir más roles",
+                        description: "Un jugador puede tener como máximo 2 roles.",
+                        variant: "destructive"
+                    });
+                    return;
+                }
+                newSkills = [...currentSkills, toggledRole];
+            }
+
+            try {
+                const userDocRef = doc(db, 'users', member.id);
+                await updateDoc(userDocRef, { skills: newSkills });
+                toast({
+                    title: 'Roles actualizados',
+                    description: `Se han actualizado los roles de ${member.name}.`
+                });
+            } catch (error: any) {
+                toast({
+                    title: 'Error',
+                    description: `No se pudieron actualizar los roles: ${error.message}`,
+                    variant: 'destructive',
+                });
             }
         });
     };
@@ -88,14 +105,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
 
     return (
         <>
-            {selectedMemberProfile && (
-                <EditProfileDialog
-                    userProfile={selectedMemberProfile}
-                    open={isEditDialogOpen}
-                    onOpenChange={setIsEditDialogOpen}
-                    isManagerEditing={true}
-                />
-            )}
             <AlertDialog open={isKickAlertOpen} onOpenChange={setKickAlertOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -121,9 +130,31 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     {canEditProfile && (
-                        <DropdownMenuItem onSelect={handleOpenEditDialog} disabled={isPending}>
-                            <Edit className="mr-2 h-4 w-4" /> {t('MemberManager.edit_game_roles')}
-                        </DropdownMenuItem>
+                       <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>{t('MemberManager.edit_game_roles')}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                                <DropdownMenuSubContent>
+                                    <DropdownMenuLabel>Roles</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {valorantRoles.map(role => (
+                                        <DropdownMenuCheckboxItem
+                                            key={role}
+                                            checked={member.skills?.includes(role)}
+                                            onSelect={(e) => {
+                                                e.preventDefault();
+                                                handleRoleToggle(role);
+                                            }}
+                                            disabled={isPending}
+                                        >
+                                            {role}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
+                                </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuSub>
                     )}
                     {(canEditProfile || canSetIGL) && <DropdownMenuSeparator />}
                     {canSetIGL && (
