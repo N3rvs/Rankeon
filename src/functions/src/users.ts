@@ -1,12 +1,4 @@
 
-
-
-
-
-
-
-
-
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -40,11 +32,33 @@ export const updateUserRole = onCall(async ({ auth: callerAuth, data }: { auth?:
     try {
         const userToUpdate = await auth.getUser(uid);
         const existingClaims = userToUpdate.customClaims || {};
+        const userDocRef = db.collection('users').doc(uid);
 
-        // Step 1: Set the secure custom claim. This is the source of truth.
+        // Step 1: Set the secure custom claim. This is the source of truth for permissions.
         await auth.setCustomUserClaims(uid, { ...existingClaims, role });
-        // Step 2: Update the denormalized role in Firestore for client display and add refresh timestamp.
-        await db.collection('users').doc(uid).set({ role, _claimsRefreshedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        
+        // Step 2: Update the denormalized role in Firestore for client display.
+        await userDocRef.set({ role, _claimsRefreshedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+
+        // --- NEW LOGIC ---
+        // If the user is in a team, update their role in the team's subcollection as well to keep data in sync.
+        const userDoc = await userDocRef.get();
+        const userData = userDoc.data();
+        if (userData && userData.teamId) {
+            const teamId = userData.teamId;
+            const memberRef = db.collection('teams').doc(teamId).collection('members').doc(uid);
+            
+            // Determine the role within the team.
+            // A global coach is a 'coach' in the team.
+            // A global player is a 'member'.
+            const teamRole = role === 'coach' ? 'coach' : 'member';
+
+            const memberDoc = await memberRef.get();
+            // Only update if they are not the founder of the team.
+            if (memberDoc.exists && memberDoc.data()?.role !== 'founder') {
+                await memberRef.update({ role: teamRole });
+            }
+        }
 
         return { success: true, message: `Role "${role}" assigned to user ${uid}` };
     } catch (error: any) {

@@ -1,5 +1,4 @@
 
-
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -38,15 +37,11 @@ export const getTeamMembers = onCall(async ({ auth: callerAuth, data }) => {
             if (userDocSnap.exists()) {
                 const userData = userDocSnap.data()!;
                 
-                // Determine the authoritative role. The global role takes precedence for staff.
-                let authoritativeRole = memberData.role;
-                if (userData.role === 'founder' || userData.role === 'coach') {
-                    authoritativeRole = userData.role;
-                }
-                
+                // The member subcollection is now the source of truth for the role *within the team*.
+                // The updateUserRole function is responsible for keeping this in sync.
                 return {
                     id: memberDoc.id,
-                    role: authoritativeRole, // Use the authoritative role.
+                    role: memberData.role,
                     joinedAt: memberData.joinedAt?.toDate().toISOString() || null,
                     isIGL: memberData.isIGL || false,
                     name: userData.name || '',
