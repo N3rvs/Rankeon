@@ -11,13 +11,13 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { TournamentProposal } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { format } from 'date-fns';
 import { Button } from '../ui/button';
 import { Check, Gavel, X } from 'lucide-react';
 import { reviewTournamentProposal } from '@/lib/actions/tournaments';
+import { Spinner } from '../ui/spinner';
 
 function ProposalCard({ proposal }: { proposal: TournamentProposal }) {
     const { toast } = useToast();
@@ -107,9 +107,8 @@ export function TournamentProposalsList() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
+      <div className="h-48 flex items-center justify-center">
+        <Spinner />
       </div>
     );
   }

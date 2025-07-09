@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import type { UserProfile } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Award, Medal } from 'lucide-react';
@@ -10,6 +9,7 @@ import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
 import { getHonorRankings } from '@/lib/actions/public';
 import { useToast } from '@/hooks/use-toast';
+import { Spinner } from '../ui/spinner';
 
 type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl'> & { totalHonors: number };
 
@@ -33,10 +33,8 @@ export function HonorRankings() {
 
   if (loading) {
     return (
-      <div className="space-y-2">
-        {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-        ))}
+      <div className="flex items-center justify-center h-48">
+        <Spinner />
       </div>
     );
   }

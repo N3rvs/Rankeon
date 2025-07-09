@@ -13,6 +13,7 @@ import { Check, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { respondToTeamApplication } from '@/lib/actions/teams';
+import { Spinner } from '../ui/spinner';
 
 function ApplicationCard({ application }: { application: TeamApplication }) {
     const { toast } = useToast();
@@ -96,9 +97,8 @@ export function TeamApplications({ teamId }: { teamId: string }) {
                     <Skeleton className="h-6 w-48" />
                     <Skeleton className="h-4 w-64" />
                 </CardHeader>
-                <CardContent className="space-y-3">
-                    <Skeleton className="h-16 w-full" />
-                    <Skeleton className="h-16 w-full" />
+                <CardContent className="h-24 flex items-center justify-center">
+                   <Spinner />
                 </CardContent>
             </Card>
         );

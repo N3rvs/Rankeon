@@ -10,7 +10,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Tournament } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { format } from 'date-fns';
@@ -32,6 +31,7 @@ import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
 import { EditTournamentDialog } from '@/components/tournaments/edit-tournament-dialog';
+import { Spinner } from '../ui/spinner';
 
 
 function getStatusBadgeVariant(status: Tournament['status']) {
@@ -161,10 +161,8 @@ export function TournamentManagementList() {
 
   if (loading) {
     return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
+      <div className="h-48 flex items-center justify-center">
+        <Spinner />
       </div>
     );
   }

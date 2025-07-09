@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { sendTeamInvite } from '@/lib/actions/teams';
 import { useI18n } from '@/contexts/i18n-context';
 import { getMarketPlayers, getMarketTeams } from '@/lib/actions/public';
+import { Spinner } from '../ui/spinner';
 
 function PlayerTable({
   players,
@@ -79,8 +80,8 @@ function PlayerTable({
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={5} className="h-48 text-center">
-                <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+              <TableCell colSpan={5} className="h-48">
+                <Spinner />
               </TableCell>
             </TableRow>
           ) : players.length > 0 ? (
@@ -203,8 +204,8 @@ function TeamTable({
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={4} className="h-48 text-center">
-                <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+              <TableCell colSpan={4} className="h-48">
+                <Spinner />
               </TableCell>
             </TableRow>
           ) : teams.length > 0 ? (

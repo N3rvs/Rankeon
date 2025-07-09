@@ -30,6 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../ui/tooltip';
+import { Spinner } from '../ui/spinner';
 
 export function InboxContent() {
   const { user } = useAuth();
@@ -155,10 +156,8 @@ export function InboxContent() {
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
             {loading ? (
-              <div className="space-y-2 p-2">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
+              <div className="flex items-center justify-center p-6">
+                <Spinner />
               </div>
             ) : notifications.length === 0 ? (
               <div className="flex min-h-[200px] flex-col items-center justify-center text-center p-6 text-muted-foreground">

@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Spinner } from '@/components/ui/spinner';
 
 function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[] }) {
     const { t } = useI18n();
@@ -309,16 +310,8 @@ export default function TeamPage() {
 
     if (loading || authLoading) {
         return (
-            <div className="space-y-6">
-                 <div className="relative -mx-4 md:-mx-6">
-                    <Skeleton className="h-48 md:h-64 bg-muted" />
-                    <div className="absolute top-full -translate-y-1/2 left-6 md:left-8 z-10">
-                        <Skeleton className="h-28 w-28 md:h-36 md:w-36 rounded-full border-4 border-background" />
-                    </div>
-                </div>
-                 <div className="pt-20">
-                    <Skeleton className="h-48 w-full" />
-                </div>
+            <div className="flex items-center justify-center h-full pt-20">
+                <Spinner />
             </div>
         );
     }
@@ -343,7 +336,7 @@ export default function TeamPage() {
                             alt={`${team.name} banner`}
                             fill
                             className="object-cover"
-                            data-ai-hint="team banner abstract"
+                            data-ai-hint="team banner"
                         />
                     )}
                 </div>

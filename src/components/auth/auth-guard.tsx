@@ -3,7 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -18,7 +18,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   if (loading || !user) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Skeleton className="h-12 w-12 rounded-full" />
+        <Spinner className="h-12 w-12"/>
       </div>
     );
   }

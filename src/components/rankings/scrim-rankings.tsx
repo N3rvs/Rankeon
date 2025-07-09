@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import type { Team } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Flame, Medal } from 'lucide-react';
@@ -11,6 +10,7 @@ import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
 import { useToast } from '@/hooks/use-toast';
 import { getScrimRankings } from '@/lib/actions/public';
+import { Spinner } from '../ui/spinner';
 
 type RankedTeam = Team & {
     winRate: number;
@@ -37,10 +37,8 @@ export function ScrimRankings() {
 
   if (loading) {
     return (
-      <div className="space-y-2">
-        {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-        ))}
+      <div className="flex items-center justify-center h-48">
+        <Spinner />
       </div>
     );
   }

@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import type { Tournament } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trophy } from 'lucide-react';
@@ -12,6 +11,7 @@ import { format } from 'date-fns';
 import { useI18n } from '@/contexts/i18n-context';
 import { getTournamentRankings } from '@/lib/actions/public';
 import { useToast } from '@/hooks/use-toast';
+import { Spinner } from '../ui/spinner';
 
 export function TournamentRankings() {
   const { t } = useI18n();
@@ -33,10 +33,8 @@ export function TournamentRankings() {
 
   if (loading) {
     return (
-        <div className="space-y-4">
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-20 w-full" />
+        <div className="flex items-center justify-center h-48">
+            <Spinner />
         </div>
     );
   }

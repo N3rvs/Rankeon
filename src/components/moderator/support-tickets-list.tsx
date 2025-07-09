@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { SupportTicket } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '../ui/button';
@@ -13,6 +12,7 @@ import { Ticket as TicketIcon } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useI18n } from '@/contexts/i18n-context';
 import { RespondToTicketDialog } from './RespondToTicketDialog';
+import { Spinner } from '../ui/spinner';
 
 function TicketCard({ ticket }: { ticket: SupportTicket }) {
   const { t } = useI18n();
@@ -71,9 +71,8 @@ export function SupportTicketsList() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-40 w-full" />
-        <Skeleton className="h-40 w-full" />
+      <div className="h-40 flex items-center justify-center">
+        <Spinner />
       </div>
     );
   }

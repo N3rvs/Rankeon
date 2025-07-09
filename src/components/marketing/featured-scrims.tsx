@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useI18n } from '@/contexts/i18n-context';
 import { getFeaturedScrims } from '@/lib/actions/public';
+import { Spinner } from '../ui/spinner';
 
 export function FeaturedScrims() {
   const { t } = useI18n();
@@ -33,8 +34,8 @@ export function FeaturedScrims() {
                     <h2 className="text-3xl md:text-4xl font-bold font-headline">{t('LandingPage.upcoming_matches')}</h2>
                     <p className="text-lg text-muted-foreground mt-2">{t('LandingPage.community_matches')}</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-80 w-full" />)}
+                <div className="h-80 flex items-center justify-center">
+                    <Spinner />
                 </div>
             </div>
         </section>

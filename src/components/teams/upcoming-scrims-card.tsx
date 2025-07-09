@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Spinner } from '../ui/spinner';
 
 function UpcomingScrimsCard({ teamId }: { teamId: string }) {
     const { t } = useI18n();
@@ -56,7 +57,9 @@ function UpcomingScrimsCard({ teamId }: { teamId: string }) {
             </CardHeader>
             <CardContent className="space-y-3">
                 {loading ? (
-                    <Skeleton className="h-24 w-full" />
+                    <div className="h-24 flex items-center justify-center">
+                        <Spinner />
+                    </div>
                 ) : scrims.length > 0 ? (
                     scrims.map(scrim => (
                          <Link href={`/scrims`} key={scrim.id} className="block p-3 rounded-md hover:bg-muted border">

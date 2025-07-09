@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Swords } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
+import { Spinner } from '../ui/spinner';
 
 interface TeamInfoCardProps {
   teamId: string;
@@ -48,12 +49,8 @@ export function TeamInfoCard({ teamId }: TeamInfoCardProps) {
         <CardHeader>
           <Skeleton className="h-5 w-32" />
         </CardHeader>
-        <CardContent className="flex items-center gap-4">
-          <Skeleton className="h-12 w-12 rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-4 w-24" />
-          </div>
+        <CardContent className="flex items-center justify-center h-16">
+          <Spinner />
         </CardContent>
       </Card>
     );
