@@ -37,10 +37,17 @@ export const getTeamMembers = onCall(async ({ auth: callerAuth, data }) => {
             const userDocSnap = await db.collection('users').doc(memberDoc.id).get();
             if (userDocSnap.exists()) {
                 const userData = userDocSnap.data()!;
+                
+                // Determine the authoritative role. The global role takes precedence for staff.
+                let authoritativeRole = memberData.role;
+                if (userData.role === 'founder' || userData.role === 'coach') {
+                    authoritativeRole = userData.role;
+                }
+                
                 return {
                     id: memberDoc.id,
-                    role: memberData.role,
-                    joinedAt: memberData.joinedAt?.toDate().toISOString() || null, // Safely handle missing timestamp
+                    role: authoritativeRole, // Use the authoritative role.
+                    joinedAt: memberData.joinedAt?.toDate().toISOString() || null,
                     isIGL: memberData.isIGL || false,
                     name: userData.name || '',
                     avatarUrl: userData.avatarUrl || '',
@@ -617,3 +624,5 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
         return { success: true, message: `Solicitud ${accept ? 'aceptada' : 'rechazada'}.` };
     });
 });
+
+    
