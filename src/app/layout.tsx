@@ -61,7 +61,6 @@ export default function RootLayout({
               <AuthProvider>
                 {children}
                 <Toaster />
-                <CookieConsentBanner />
               </AuthProvider>
             </CookieConsentProvider>
           </I18nProvider>

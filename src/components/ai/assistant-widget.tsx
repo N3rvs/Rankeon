@@ -68,6 +68,13 @@ export function AssistantWidget() {
             <div className="flex-1 p-0 flex flex-col min-h-0">
                 <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                 <div className="space-y-4">
+                    {messages.length === 0 && (
+                        <div className="text-center text-muted-foreground pt-10">
+                            <MessageSquare className="mx-auto h-12 w-12 mb-4" />
+                            <h3 className="font-semibold">{t('Assistant.title')}</h3>
+                            <p className="text-sm">{t('Assistant.placeholder')}</p>
+                        </div>
+                    )}
                     {messages.map((msg, index) => (
                     <div key={index} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
                         <div className={cn(

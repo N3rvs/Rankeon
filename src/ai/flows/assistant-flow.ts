@@ -81,6 +81,7 @@ const assistantFlow = ai.defineFlow(
     ];
 
     const result = await ai.generate({
+      model: 'googleai/gemini-1.5-flash',
       system: systemPrompt,
       messages: messages,
       output: {

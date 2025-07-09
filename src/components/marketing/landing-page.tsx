@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { PublicLayout } from '../public-layout';
 import Image from 'next/image';
 import { FeaturedScrims } from './featured-scrims';
+import { CookieConsentBanner } from '../cookies/cookie-consent-banner';
 
 function PricingSection() {
     const { t } = useI18n();
@@ -167,6 +168,8 @@ export function LandingPage() {
         <FeaturedScrims />
 
         <PricingSection />
+        
+        <CookieConsentBanner />
     </PublicLayout>
   );
 }
