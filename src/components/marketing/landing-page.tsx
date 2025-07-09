@@ -25,7 +25,7 @@ function PricingSection() {
         },
         {
             title: t('Pricing.founder_title'),
-            price: "€4.99",
+            price: "€0",
             period: t('Pricing.monthly'),
             description: t('Pricing.founder_desc'),
             features: t('Pricing.founder_features').split('|'),
@@ -34,7 +34,7 @@ function PricingSection() {
         },
         {
             title: t('Pricing.coach_title'),
-            price: "€1.99",
+            price: "€0",
             period: t('Pricing.monthly'),
             description: t('Pricing.coach_desc'),
             features: t('Pricing.coach_features').split('|'),
