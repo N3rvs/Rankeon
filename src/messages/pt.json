@@ -261,6 +261,36 @@
     "no_rooms_title": "Nenhuma sala de jogo ativa",
     "no_rooms_subtitle": "Seja o primeiro a criar uma para que outros possam entrar."
   },
+  "CreateRoomDialog": {
+    "trigger": "Criar Sala",
+    "title": "Criar uma Nova Sala de Jogo",
+    "description": "Preencha os detalhes para criar uma sala para que outros possam entrar.",
+    "name_label": "Nome da Sala",
+    "name_placeholder": "ex: Rankeada da Madrugada",
+    "target_rank_label": "Rank Alvo",
+    "select_rank_placeholder": "Selecione um rank",
+    "party_size_label": "Tamanho do Grupo",
+    "select_size_placeholder": "Selecione o tamanho",
+    "server_label": "Servidor",
+    "select_server_placeholder": "Selecione um servidor de Valorant",
+    "creating_button": "Criando...",
+    "create_button": "Criar Sala",
+    "success_title": "Sala Criada!",
+    "success_desc": "Sua nova sala \"{name}\" está pronta.",
+    "error_title": "Erro",
+    "errors": {
+      "name_min": "O nome deve ter pelo menos 3 caracteres.",
+      "name_max": "O nome deve ter menos de 50 caracteres.",
+      "server_required": "Por favor, selecione um servidor.",
+      "rank_required": "Por favor, selecione um rank.",
+      "party_size_required": "Por favor, selecione o tamanho do grupo."
+    }
+  },
+  "PartySizes": {
+    "duo": "Duo (2 jogadores)",
+    "trio": "Trio (3 jogadores)",
+    "full_stack": "Full Stack (5 jogadores)"
+  },
   "ProfilePage": {
     "edit_profile": "Editar Perfil",
     "bio_placeholder": "Sou novo no Rankeon! Pronto para encontrar uma equipe e competir.",

@@ -261,6 +261,36 @@
     "no_rooms_title": "Keine aktiven Spielräume",
     "no_rooms_subtitle": "Sei der Erste, der einen erstellt, damit andere beitreten können."
   },
+  "CreateRoomDialog": {
+    "trigger": "Raum erstellen",
+    "title": "Einen neuen Spielraum erstellen",
+    "description": "Füllen Sie die Details aus, um einen Raum zu erstellen, dem andere beitreten können.",
+    "name_label": "Raumname",
+    "name_placeholder": "z.B., Nächtliches Ranked",
+    "target_rank_label": "Zielrang",
+    "select_rank_placeholder": "Einen Rang auswählen",
+    "party_size_label": "Gruppengröße",
+    "select_size_placeholder": "Größe auswählen",
+    "server_label": "Server",
+    "select_server_placeholder": "Einen Valorant-Server auswählen",
+    "creating_button": "Erstellen...",
+    "create_button": "Raum erstellen",
+    "success_title": "Raum erstellt!",
+    "success_desc": "Dein neuer Raum \"{name}\" ist bereit.",
+    "error_title": "Fehler",
+    "errors": {
+      "name_min": "Der Name muss mindestens 3 Zeichen lang sein.",
+      "name_max": "Der Name muss weniger als 50 Zeichen lang sein.",
+      "server_required": "Bitte wählen Sie einen Server aus.",
+      "rank_required": "Bitte wählen Sie einen Rang aus.",
+      "party_size_required": "Bitte wählen Sie eine Gruppengröße aus."
+    }
+  },
+  "PartySizes": {
+    "duo": "Duo (2 Spieler)",
+    "trio": "Trio (3 Spieler)",
+    "full_stack": "Full Stack (5 Spieler)"
+  },
   "ProfilePage": {
     "edit_profile": "Profil bearbeiten",
     "bio_placeholder": "Ich bin neu bei Rankeon! Bereit, ein Team zu finden und anzutreten.",

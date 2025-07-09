@@ -12,42 +12,21 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle } from 'lucide-react';
 import { createRoom } from '@/lib/actions/rooms';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const formSchema = z.object({
-  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50, 'El nombre debe tener menos de 50 caracteres.'),
-  game: z.string().min(1, 'Por favor, introduce un juego.').default('Valorant'),
-  server: z.string().min(1, 'Por favor, selecciona un servidor.'),
-  rank: z.string().min(1, 'Por favor, selecciona un rango.'),
-  partySize: z.string().min(1, 'Por favor, selecciona un tamaño de grupo.'),
-});
-
-const valorantServers = [
-    { value: 'Frankfurt', label: 'Alemania' },
-    { value: 'London', label: 'Londres' },
-    { value: 'Madrid', label: 'España' },
-    { value: 'Paris', label: 'Francia' },
-];
-
-const valorantRanks = [
-    { value: 'Hierro', label: 'Hierro' },
-    { value: 'Bronce', label: 'Bronce' },
-    { value: 'Plata', label: 'Plata' },
-    { value: 'Oro', label: 'Oro' },
-    { value: 'Platino', label: 'Platino' },
-    { value: 'Ascendente', label: 'Ascendente' },
-    { value: 'Inmortal', label: 'Inmortal' },
-];
-
-const partySizes = [
-    { value: 'Dúo', label: 'Dúo (2 jugadores)' },
-    { value: 'Trío', label: 'Trío (3 jugadores)' },
-    { value: 'Full Stack', label: 'Full Stack (5 jugadores)' },
-];
+import { useI18n } from '@/contexts/i18n-context';
 
 export function CreateRoomDialog() {
+  const { t } = useI18n();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  const formSchema = z.object({
+    name: z.string().min(3, t('CreateRoomDialog.errors.name_min')).max(50, t('CreateRoomDialog.errors.name_max')),
+    game: z.string().min(1).default('Valorant'),
+    server: z.string().min(1, t('CreateRoomDialog.errors.server_required')),
+    rank: z.string().min(1, t('CreateRoomDialog.errors.rank_required')),
+    partySize: z.string().min(1, t('CreateRoomDialog.errors.party_size_required')),
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -60,19 +39,42 @@ export function CreateRoomDialog() {
     },
   });
 
+  const valorantServers = [
+      { value: 'Frankfurt', label: t('Countries.germany') },
+      { value: 'London', label: t('Countries.united_kingdom') },
+      { value: 'Madrid', label: t('Countries.spain') },
+      { value: 'Paris', label: t('Countries.france') },
+  ];
+
+  const valorantRanks = [
+      { value: 'Hierro', label: t('Ranks.iron') },
+      { value: 'Bronce', label: t('Ranks.bronze') },
+      { value: 'Plata', label: t('Ranks.silver') },
+      { value: 'Oro', label: t('Ranks.gold') },
+      { value: 'Platino', label: t('Ranks.platinum') },
+      { value: 'Ascendente', label: t('Ranks.ascendant') },
+      { value: 'Inmortal', label: t('Ranks.immortal') },
+  ];
+
+  const partySizes = [
+      { value: 'Duo', label: t('PartySizes.duo') },
+      { value: 'Trio', label: t('PartySizes.trio') },
+      { value: 'Full Stack', label: t('PartySizes.full_stack') },
+  ];
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
       const result = await createRoom(values);
       if (result.success) {
         toast({
-          title: '¡Sala Creada!',
-          description: `Tu nueva sala "${values.name}" está lista.`,
+          title: t('CreateRoomDialog.success_title'),
+          description: t('CreateRoomDialog.success_desc', { name: values.name }),
         });
         setIsOpen(false);
         form.reset();
       } else {
         toast({
-          title: 'Error',
+          title: t('CreateRoomDialog.error_title'),
           description: result.message,
           variant: 'destructive',
         });
@@ -85,14 +87,14 @@ export function CreateRoomDialog() {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Crear Sala
+          {t('CreateRoomDialog.trigger')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Crear una Nueva Sala de Juego</DialogTitle>
+          <DialogTitle>{t('CreateRoomDialog.title')}</DialogTitle>
           <DialogDescription>
-            Rellena los detalles para crear una sala donde otros puedan unirse.
+            {t('CreateRoomDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -102,9 +104,9 @@ export function CreateRoomDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nombre de la Sala</FormLabel>
+                  <FormLabel>{t('CreateRoomDialog.name_label')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Ranked Nocturno" {...field} />
+                    <Input placeholder={t('CreateRoomDialog.name_placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -116,11 +118,11 @@ export function CreateRoomDialog() {
                   name="rank"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Rango Objetivo</FormLabel>
+                      <FormLabel>{t('CreateRoomDialog.target_rank_label')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un rango" />
+                            <SelectValue placeholder={t('CreateRoomDialog.select_rank_placeholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -138,11 +140,11 @@ export function CreateRoomDialog() {
                   name="partySize"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tamaño de Grupo</FormLabel>
+                      <FormLabel>{t('CreateRoomDialog.party_size_label')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecciona el tamaño" />
+                            <SelectValue placeholder={t('CreateRoomDialog.select_size_placeholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -161,11 +163,11 @@ export function CreateRoomDialog() {
               name="server"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Servidor</FormLabel>
+                  <FormLabel>{t('CreateRoomDialog.server_label')}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un servidor de Valorant" />
+                        <SelectValue placeholder={t('CreateRoomDialog.select_server_placeholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -179,7 +181,7 @@ export function CreateRoomDialog() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Creando...' : 'Crear Sala'}
+              {isPending ? t('CreateRoomDialog.creating_button') : t('CreateRoomDialog.create_button')}
             </Button>
           </form>
         </Form>

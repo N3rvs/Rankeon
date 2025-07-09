@@ -261,6 +261,36 @@
     "no_rooms_title": "No active game rooms",
     "no_rooms_subtitle": "Be the first to create one for others to join."
   },
+  "CreateRoomDialog": {
+    "trigger": "Create Room",
+    "title": "Create a New Game Room",
+    "description": "Fill in the details to create a room for others to join.",
+    "name_label": "Room Name",
+    "name_placeholder": "e.g., Late Night Ranked",
+    "target_rank_label": "Target Rank",
+    "select_rank_placeholder": "Select a rank",
+    "party_size_label": "Party Size",
+    "select_size_placeholder": "Select size",
+    "server_label": "Server",
+    "select_server_placeholder": "Select a Valorant server",
+    "creating_button": "Creating...",
+    "create_button": "Create Room",
+    "success_title": "Room Created!",
+    "success_desc": "Your new room \"{name}\" is ready.",
+    "error_title": "Error",
+    "errors": {
+      "name_min": "Name must be at least 3 characters.",
+      "name_max": "Name must be less than 50 characters.",
+      "server_required": "Please select a server.",
+      "rank_required": "Please select a rank.",
+      "party_size_required": "Please select a party size."
+    }
+  },
+  "PartySizes": {
+    "duo": "Duo (2 players)",
+    "trio": "Trio (3 players)",
+    "full_stack": "Full Stack (5 players)"
+  },
   "ProfilePage": {
     "edit_profile": "Edit Profile",
     "bio_placeholder": "I'm new to Rankeon! Ready to find a team and compete.",

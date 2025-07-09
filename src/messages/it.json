@@ -261,6 +261,36 @@
     "no_rooms_title": "Nessuna stanza di gioco attiva",
     "no_rooms_subtitle": "Sii il primo a crearne una perché altri si uniscano."
   },
+  "CreateRoomDialog": {
+    "trigger": "Crea Stanza",
+    "title": "Crea una nuova stanza di gioco",
+    "description": "Compila i dettagli per creare una stanza a cui altri possano unirsi.",
+    "name_label": "Nome Stanza",
+    "name_placeholder": "es. Ranked notturna",
+    "target_rank_label": "Grado Target",
+    "select_rank_placeholder": "Seleziona un grado",
+    "party_size_label": "Dimensione Gruppo",
+    "select_size_placeholder": "Seleziona dimensione",
+    "server_label": "Server",
+    "select_server_placeholder": "Seleziona un server di Valorant",
+    "creating_button": "Creazione...",
+    "create_button": "Crea Stanza",
+    "success_title": "Stanza Creata!",
+    "success_desc": "La tua nuova stanza \"{name}\" è pronta.",
+    "error_title": "Errore",
+    "errors": {
+      "name_min": "Il nome deve contenere almeno 3 caratteri.",
+      "name_max": "Il nome deve contenere meno di 50 caratteri.",
+      "server_required": "Seleziona un server.",
+      "rank_required": "Seleziona un grado.",
+      "party_size_required": "Seleziona una dimensione del gruppo."
+    }
+  },
+  "PartySizes": {
+    "duo": "Duo (2 giocatori)",
+    "trio": "Trio (3 giocatori)",
+    "full_stack": "Full Stack (5 giocatori)"
+  },
   "ProfilePage": {
     "edit_profile": "Modifica profilo",
     "bio_placeholder": "Sono nuovo su Rankeon! Pronto a trovare una squadra e competere.",
