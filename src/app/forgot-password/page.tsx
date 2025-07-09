@@ -2,6 +2,11 @@ import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
 import { Button } from '@/components/ui/button';
 import { Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Forgot Password',
+};
 
 export default function ForgotPasswordPage() {
   return (

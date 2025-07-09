@@ -2,6 +2,11 @@ import { LoginForm } from '@/components/auth/login-form';
 import { Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Login',
+};
 
 export default function LoginPage() {
   return (
