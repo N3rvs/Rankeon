@@ -484,6 +484,7 @@
     "block_user": "Block User",
     "delete_history": "Delete History",
     "type_message": "Type a message...",
+    "say_hello": "Say hello to start chatting.",
     "block_confirm_title": "Block {name}?",
     "block_confirm_desc": "This action is irreversible. You will not be able to send or receive messages from this user and they will be removed from your friends list.",
     "confirm_block": "Yes, block",

@@ -484,6 +484,7 @@
     "block_user": "Bloquer l'utilisateur",
     "delete_history": "Supprimer l'historique",
     "type_message": "Tapez un message...",
+    "say_hello": "Dites bonjour pour commencer à discuter.",
     "block_confirm_title": "Bloquer {name} ?",
     "block_confirm_desc": "Cette action est irréversible. Vous ne pourrez plus envoyer ni recevoir de messages de cet utilisateur et il sera retiré de votre liste d'amis.",
     "confirm_block": "Oui, bloquer",

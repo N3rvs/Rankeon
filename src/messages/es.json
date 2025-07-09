@@ -484,6 +484,7 @@
     "block_user": "Bloquear Usuario",
     "delete_history": "Eliminar Historial",
     "type_message": "Escribe un mensaje...",
+    "say_hello": "Saluda para empezar a chatear.",
     "block_confirm_title": "¿Bloquear a {name}?",
     "block_confirm_desc": "Esta acción es irreversible. No podrás enviar ni recibir mensajes de este usuario y será eliminado de tu lista de amigos.",
     "confirm_block": "Sí, bloquear",
