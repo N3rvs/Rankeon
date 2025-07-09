@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +6,6 @@ import { db } from '@/lib/firebase/client';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import type { UserProfile, Chat, UserStatus } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
