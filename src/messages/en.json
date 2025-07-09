@@ -325,7 +325,7 @@
     "deleting": "Deleting...",
     "about_the_team": "About the Team",
     "no_description": "No description provided.",
-    "team_members": "Team Members ({count})",
+    "team_members": "Team Members ({count}/8)",
     "recruitment_status": "Recruitment Status",
     "recruiting": "Actively Recruiting",
     "team_full": "Team Full",
@@ -368,8 +368,6 @@
     "set_igl": "Set as IGL",
     "remove_igl": "Remove IGL Role",
     "edit_profile": "Edit Profile",
-    "promote_coach": "Promote to Coach",
-    "demote_member": "Demote to Member",
     "kick_from_team": "Kick from Team"
   },
   "EditTeamDialog": {

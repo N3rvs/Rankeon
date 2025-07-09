@@ -263,38 +263,6 @@ export const deleteTeam = onCall(async ({ auth: requestAuth, data }) => {
 });
 
 
-interface MemberRoleData {
-    teamId: string;
-    memberId: string;
-    role: 'coach' | 'member';
-}
-
-export const updateTeamMemberRole = onCall(async ({ auth: requestAuth, data }) => {
-    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
-    const { teamId, memberId, role } = data as MemberRoleData;
-    if (!teamId || !memberId || !role) throw new HttpsError("invalid-argument", "Faltan datos.");
-
-    const teamRef = db.collection("teams").doc(teamId);
-    const teamDoc = await teamRef.get();
-    if (!teamDoc.exists) throw new HttpsError("not-found", "El equipo no existe.");
-    
-    const teamData = teamDoc.data();
-    const callerRoleDoc = await teamRef.collection('members').doc(requestAuth.uid).get();
-    const callerRole = callerRoleDoc.data()?.role;
-
-    if (teamData?.founder !== requestAuth.uid && callerRole !== 'coach') {
-        throw new HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar roles.");
-    }
-
-    if (teamData?.founder === memberId) {
-         throw new HttpsError("permission-denied", "No puedes cambiar el rol del fundador.");
-    }
-
-    await teamRef.collection('members').doc(memberId).update({ role });
-    return { success: true, message: "Rol del miembro actualizado." };
-});
-
-
 interface KickMemberData {
     teamId: string;
     memberId: string;
@@ -415,6 +383,10 @@ export const sendTeamInvite = onCall(async ({ auth: callerAuth, data }: { auth?:
     if (!isStaff) {
         throw new HttpsError("permission-denied", "Solo el staff del equipo puede enviar invitaciones.");
     }
+
+    if (teamData.memberIds && teamData.memberIds.length >= 8) {
+      throw new HttpsError("failed-precondition", "Tu equipo está lleno y no puedes enviar más invitaciones.");
+    }
     
     const targetUserDoc = await db.collection("users").doc(toUserId).get();
     if (!targetUserDoc.exists || targetUserDoc.data()?.teamId) {
@@ -483,6 +455,16 @@ export const respondToTeamInvite = onCall(async ({ auth: callerAuth, data }: { a
         
         if (accept) {
             const teamRef = db.collection("teams").doc(inviteData.fromTeamId);
+            const teamSnap = await transaction.get(teamRef);
+            if (!teamSnap.exists) {
+              throw new HttpsError("not-found", "The team you're trying to join no longer exists.");
+            }
+            const teamData = teamSnap.data()!;
+
+            if (teamData.memberIds && teamData.memberIds.length >= 8) {
+              throw new HttpsError("failed-precondition", "El equipo está lleno y no puede aceptar nuevos miembros.");
+            }
+            
             const memberRef = teamRef.collection("members").doc(callerAuth.uid);
             
             transaction.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayUnion(callerAuth.uid) });
@@ -583,6 +565,11 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
         transaction.update(applicationRef, { status: accept ? 'accepted' : 'rejected' });
         
         if (accept) {
+            const teamData = teamSnap.data()!;
+            if (teamData.memberIds && teamData.memberIds.length >= 8) {
+              throw new HttpsError("failed-precondition", "El equipo está lleno y no puede aceptar nuevos miembros.");
+            }
+
             const userRef = db.collection("users").doc(appData.applicantId);
             const memberRef = teamRef.collection("members").doc(appData.applicantId);
 

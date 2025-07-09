@@ -319,13 +319,13 @@
     "playing": "Joue à",
     "edit": "Modifier",
     "delete": "Supprimer",
-    "delete_confirm_title": "Êtes-vous absolutely sûr ?",
+    "delete_confirm_title": "Êtes-vous absolument sûr ?",
     "delete_confirm_desc": "Cette action est irréversible. Cela supprimera définitivement votre équipe et toutes ses données. Votre rôle sera ramené à 'joueur'.",
     "delete_confirm_button": "Oui, supprimer l'équipe",
     "deleting": "Suppression...",
     "about_the_team": "À propos de l'équipe",
     "no_description": "Aucune description fournie.",
-    "team_members": "Membres de l'équipe ({count})",
+    "team_members": "Membres de l'équipe ({count}/8)",
     "recruitment_status": "Statut de recrutement",
     "recruiting": "Recrute activement",
     "team_full": "Équipe complète",
@@ -368,8 +368,6 @@
     "set_igl": "Définir comme IGL",
     "remove_igl": "Retirer le rôle d'IGL",
     "edit_profile": "Modifier le profil",
-    "promote_coach": "Promouvoir au rang de Coach",
-    "demote_member": "Rétrograder au rang de Membre",
     "kick_from_team": "Expulser de l'équipe"
   },
   "EditTeamDialog": {
@@ -551,7 +549,7 @@
   },
   "TournamentManagement": {
     "delete_button": "Supprimer",
-    "delete_confirm_title": "Êtes-vous absolutely sûr ?",
+    "delete_confirm_title": "Êtes-vous absolument sûr ?",
     "delete_confirm_desc": "Cette action est irréversible. Cela supprimera définitivement le tournoi \"{name}\".",
     "cancel": "Annuler",
     "confirm_delete": "Oui, supprimer le tournoi",
