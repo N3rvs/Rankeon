@@ -38,9 +38,12 @@ export const getTeamMembers = onCall(async ({ auth: callerAuth, data }) => {
             if (userDocSnap.exists()) {
                 const userData = userDocSnap.data()!;
                 
+                // Prioritize the global role if it's coach or founder for display purposes
+                const displayRole = (userData.role === 'coach' || userData.role === 'founder') ? userData.role : memberData.role;
+
                 return {
                     id: memberDoc.id,
-                    role: memberData.role, // Use the team-specific role
+                    role: displayRole,
                     joinedAt: memberData.joinedAt?.toDate().toISOString() || null,
                     isIGL: memberData.isIGL || false,
                     name: userData.name || '',
@@ -437,33 +440,42 @@ export const respondToTeamInvite = onCall(async ({ auth: callerAuth, data }: { a
     const inviteRef = db.collection("teamInvitations").doc(inviteId);
     
     return db.runTransaction(async (transaction) => {
+        // --- ALL READS FIRST ---
         const inviteSnap = await transaction.get(inviteRef);
-        if (!inviteSnap.exists) throw new HttpsError("not-found", "Invitación no encontrada.");
+        if (!inviteSnap.exists) {
+            throw new HttpsError("not-found", "Invitación no encontrada. Puede que haya sido retirada.");
+        }
 
         const inviteData = inviteSnap.data()!;
-        if (inviteData.toUserId !== callerAuth.uid) throw new HttpsError("permission-denied", "Esta invitación no es para ti.");
-        if (inviteData.status !== 'pending') throw new HttpsError("failed-precondition", "Esta invitación ya ha sido respondida.");
+        if (inviteData.toUserId !== callerAuth.uid) {
+            throw new HttpsError("permission-denied", "Esta invitación no es para ti.");
+        }
+        if (inviteData.status !== 'pending') {
+            throw new HttpsError("failed-precondition", "Esta invitación ya ha sido respondida.");
+        }
 
         const userRef = db.collection("users").doc(callerAuth.uid);
         const userSnap = await transaction.get(userRef);
-
         if (!userSnap.exists) {
             throw new HttpsError("not-found", "No se pudo encontrar tu perfil de usuario.");
         }
         
         const userData = userSnap.data()!;
-        if (userData.teamId) throw new HttpsError("failed-precondition", "Ya estás en un equipo.");
-
+        if (userData.teamId && accept) {
+          throw new HttpsError("failed-precondition", "Ya estás en un equipo. No puedes unirte a otro.");
+        }
+        
+        const teamRef = db.collection("teams").doc(inviteData.fromTeamId);
+        const teamSnap = await transaction.get(teamRef);
+        if (accept && !teamSnap.exists) {
+            throw new HttpsError("not-found", "El equipo al que intentas unirte ya no existe.");
+        }
+        
+        // --- ALL WRITES AFTER ---
         transaction.update(inviteRef, { status: accept ? 'accepted' : 'rejected' });
         
         if (accept) {
-            const teamRef = db.collection("teams").doc(inviteData.fromTeamId);
-            const teamSnap = await transaction.get(teamRef);
-            if (!teamSnap.exists) {
-              throw new HttpsError("not-found", "The team you're trying to join no longer exists.");
-            }
             const teamData = teamSnap.data()!;
-
             if (teamData.memberIds && teamData.memberIds.length >= 8) {
               throw new HttpsError("failed-precondition", "El equipo está lleno y no puede aceptar nuevos miembros.");
             }
@@ -492,7 +504,7 @@ export const respondToTeamInvite = onCall(async ({ auth: callerAuth, data }: { a
                 });
             }
         }
-        return { success: true, message: `Invitación ${accept ? 'aceptada' : 'rechazada'}` };
+        return { success: true, message: `Invitación ${accept ? 'aceptada' : 'rechazada'}.` };
     });
 });
 
@@ -566,15 +578,22 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
     const applicationRef = db.collection("teamApplications").doc(applicationId);
 
     return db.runTransaction(async (transaction) => {
+        // --- ALL READS FIRST ---
         const appSnap = await transaction.get(applicationRef);
-        if (!appSnap.exists) throw new HttpsError("not-found", "Solicitud no encontrada.");
+        if (!appSnap.exists) {
+            throw new HttpsError("not-found", "Solicitud no encontrada.");
+        }
 
         const appData = appSnap.data()!;
-        if (appData.status !== 'pending') throw new HttpsError("failed-precondition", "Esta solicitud ya ha sido respondida.");
+        if (appData.status !== 'pending') {
+            throw new HttpsError("failed-precondition", "Esta solicitud ya ha sido respondida.");
+        }
         
         const teamRef = db.collection("teams").doc(appData.teamId);
         const teamSnap = await transaction.get(teamRef);
-        if(!teamSnap.exists) throw new HttpsError("not-found", "El equipo ya no existe.");
+        if(!teamSnap.exists) {
+            throw new HttpsError("not-found", "El equipo ya no existe.");
+        }
         
         const memberDoc = await transaction.get(teamRef.collection('members').doc(callerAuth.uid));
         const callerRole = memberDoc.data()?.role;
@@ -583,6 +602,13 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
             throw new HttpsError("permission-denied", "Solo el staff del equipo puede responder a las solicitudes.");
         }
 
+        const userRef = db.collection("users").doc(appData.applicantId);
+        const userSnap = await transaction.get(userRef);
+        if (accept && !userSnap.exists) {
+            throw new HttpsError("not-found", "No se pudo encontrar el perfil del solicitante.");
+        }
+
+        // --- ALL WRITES AFTER ---
         transaction.update(applicationRef, { status: accept ? 'accepted' : 'rejected' });
         
         if (accept) {
@@ -591,11 +617,6 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
               throw new HttpsError("failed-precondition", "El equipo está lleno y no puede aceptar nuevos miembros.");
             }
 
-            const userRef = db.collection("users").doc(appData.applicantId);
-            const userSnap = await transaction.get(userRef);
-             if (!userSnap.exists) {
-                throw new HttpsError("not-found", "Applicant's user profile could not be found.");
-            }
             const userRole = userSnap.data()?.role;
             const teamRole = userRole === 'coach' ? 'coach' : 'member';
 
@@ -636,5 +657,6 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
     
 
     
+
 
 
