@@ -446,7 +446,13 @@ export const respondToTeamInvite = onCall(async ({ auth: callerAuth, data }: { a
 
         const userRef = db.collection("users").doc(callerAuth.uid);
         const userSnap = await transaction.get(userRef);
-        if (userSnap.data()?.teamId) throw new HttpsError("failed-precondition", "Ya estás en un equipo.");
+
+        if (!userSnap.exists) {
+            throw new HttpsError("not-found", "No se pudo encontrar tu perfil de usuario.");
+        }
+        
+        const userData = userSnap.data()!;
+        if (userData.teamId) throw new HttpsError("failed-precondition", "Ya estás en un equipo.");
 
         transaction.update(inviteRef, { status: accept ? 'accepted' : 'rejected' });
         
@@ -464,9 +470,7 @@ export const respondToTeamInvite = onCall(async ({ auth: callerAuth, data }: { a
             
             const memberRef = teamRef.collection("members").doc(callerAuth.uid);
             
-            // Determine user's role in the team
-            const userRole = userSnap.data()?.role;
-            const teamRole = userRole === 'coach' ? 'coach' : 'member';
+            const teamRole = userData.role === 'coach' ? 'coach' : 'member';
             
             transaction.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayUnion(callerAuth.uid) });
             transaction.set(memberRef, {
@@ -474,6 +478,19 @@ export const respondToTeamInvite = onCall(async ({ auth: callerAuth, data }: { a
                 joinedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
             transaction.update(userRef, { teamId: inviteData.fromTeamId });
+
+            // Notify team founder
+            const teamFounderId = teamData.founder;
+            if (teamFounderId) {
+                const notificationRef = db.collection(`inbox/${teamFounderId}/notifications`).doc();
+                transaction.set(notificationRef, {
+                    type: "team_invite_accepted",
+                    from: callerAuth.uid,
+                    read: false,
+                    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    extraData: { userName: userData.name, teamId: teamRef.id }
+                });
+            }
         }
         return { success: true, message: `Invitación ${accept ? 'aceptada' : 'rechazada'}` };
     });
@@ -619,4 +636,5 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
     
 
     
+
 
