@@ -14,12 +14,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { useState, useEffect, useMemo, useTransition } from 'react';
 import type { UserProfile, Team } from '@/lib/types';
-import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
 import { FriendshipButton } from '../friends/friendship-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '../ui/button';
-import { Search, MailPlus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, MailPlus, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getFlagEmoji } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
@@ -65,35 +64,6 @@ function PlayerTable({
     });
   };
 
-  const loadingSkeletons = [...Array(5)].map((_, i) => (
-    <TableRow key={i}>
-      <TableCell className="w-1/3">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-        </div>
-      </TableCell>
-       <TableCell>
-        <Skeleton className="h-6 w-16" />
-      </TableCell>
-      <TableCell>
-        <Skeleton className="h-6 w-20" />
-      </TableCell>
-      <TableCell>
-        <Skeleton className="h-6 w-32" />
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex items-center justify-end gap-1">
-            <Skeleton className="h-9 w-9 rounded-md" />
-            <Skeleton className="h-9 w-9 rounded-md" />
-        </div>
-      </TableCell>
-    </TableRow>
-  ));
-
   return (
     <div className="rounded-md border bg-card">
       <Table>
@@ -108,7 +78,11 @@ function PlayerTable({
         </TableHeader>
         <TableBody>
           {loading ? (
-            loadingSkeletons
+            <TableRow>
+              <TableCell colSpan={5} className="h-48 text-center">
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+              </TableCell>
+            </TableRow>
           ) : players.length > 0 ? (
             players.map((player) => (
               <TableRow key={player.id}>
@@ -215,23 +189,6 @@ function TeamTable({
 }) {
   const { t } = useI18n();
 
-  const loadingSkeletons = [...Array(5)].map((_, i) => (
-    <TableRow key={i}>
-      <TableCell className="w-1/3">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-        </div>
-      </TableCell>
-      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-      <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-      <TableCell><Skeleton className="h-6 w-32" /></TableCell>
-    </TableRow>
-  ));
-
   return (
     <div className="rounded-md border bg-card">
       <Table>
@@ -245,7 +202,11 @@ function TeamTable({
         </TableHeader>
         <TableBody>
           {loading ? (
-            loadingSkeletons
+            <TableRow>
+              <TableCell colSpan={4} className="h-48 text-center">
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+              </TableCell>
+            </TableRow>
           ) : teams.length > 0 ? (
             teams.map((team) => (
               <TableRow key={team.id} className={isOwnTeam(team.id) ? 'bg-primary/5' : ''}>
