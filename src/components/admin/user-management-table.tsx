@@ -18,16 +18,19 @@ import { Badge } from '../ui/badge';
 import { format, formatDistanceToNow } from 'date-fns';
 import { UserActions } from './user-actions';
 import { useAuth } from '@/contexts/auth-context';
-import { Twitch } from 'lucide-react';
+import { Twitch, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { getManagedUsers } from '@/lib/actions/users';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '../ui/spinner';
+import { Button } from '../ui/button';
 
 interface UserManagementTableProps {
   currentUserRole: 'admin' | 'moderator';
 }
+
+const PAGE_SIZE = 5;
 
 const getStatusBadge = (user: UserProfile) => {
     if (!user.disabled) {
@@ -70,6 +73,7 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -98,6 +102,10 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
         setLoading(false);
     })
   }, [currentUser, toast]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
 
   const filteredUsers = useMemo(() => {
     if (!filter) return users;
@@ -115,6 +123,12 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
       return timeB - timeA; // Sort by most recent first
     });
   }, [filteredUsers]);
+
+  const totalPages = Math.ceil(sortedUsers.length / PAGE_SIZE) || 1;
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return sortedUsers.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [sortedUsers, currentPage]);
 
   if (loading) {
     return (
@@ -174,8 +188,8 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedUsers.length > 0 ? (
-              sortedUsers.map((user) => (
+            {paginatedUsers.length > 0 ? (
+              paginatedUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -223,6 +237,31 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
           </TableBody>
         </Table>
       </div>
+       {totalPages > 1 && (
+        <div className="flex items-center justify-center space-x-2 py-4">
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Go to previous page"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Go to next page"
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage >= totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
