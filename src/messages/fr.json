@@ -283,7 +283,10 @@
     "good_communicator": "Bon communicateur",
     "positive_attitude": "Attitude positive",
     "honor_awarded": "Honneur décerné !",
-    "honor_awarded_desc": "Vous avez reconnu {name} pour son talent."
+    "honor_awarded_desc": "Vous avez reconnu {name} pour son talent.",
+    "bad_behavior": "Mauvais comportement",
+    "honor_revoked_title": "Honneur révoqué",
+    "honor_revoked_desc": "Vous avez révoqué l'honneur de {name}."
   },
   "EditProfileDialog": {
     "title_self": "Modifier votre profil",
@@ -316,7 +319,7 @@
     "playing": "Joue à",
     "edit": "Modifier",
     "delete": "Supprimer",
-    "delete_confirm_title": "Êtes-vous absolument sûr ?",
+    "delete_confirm_title": "Êtes-vous absolutely sûr ?",
     "delete_confirm_desc": "Cette action est irréversible. Cela supprimera définitivement votre équipe et toutes ses données. Votre rôle sera ramené à 'joueur'.",
     "delete_confirm_button": "Oui, supprimer l'équipe",
     "deleting": "Suppression...",
@@ -348,7 +351,10 @@
     "management_title": "Panneau de gestion",
     "management_desc": "Actions pour le personnel de l'équipe.",
     "edit_team_button": "Modifier le profil de l'équipe",
-    "upcoming_matches": "Matchs à venir"
+    "upcoming_matches": "Matchs à venir",
+    "apply_to_join": "Postuler pour rejoindre",
+    "application_sent_title": "Candidature envoyée !",
+    "application_sent_desc": "Votre demande pour rejoindre l'équipe a été envoyée au fondateur."
   },
   "MemberManager": {
     "role_updated": "Rôle mis à jour",
@@ -545,7 +551,7 @@
   },
   "TournamentManagement": {
     "delete_button": "Supprimer",
-    "delete_confirm_title": "Êtes-vous absolument sûr ?",
+    "delete_confirm_title": "Êtes-vous absolutely sûr ?",
     "delete_confirm_desc": "Cette action est irréversible. Cela supprimera définitivement le tournoi \"{name}\".",
     "cancel": "Annuler",
     "confirm_delete": "Oui, supprimer le tournoi",

@@ -283,7 +283,10 @@
     "good_communicator": "Buon comunicatore",
     "positive_attitude": "Atteggiamento positivo",
     "honor_awarded": "Onorificenza assegnata!",
-    "honor_awarded_desc": "Hai riconosciuto {name} per la sua abilità."
+    "honor_awarded_desc": "Hai riconosciuto {name} per la sua abilità.",
+    "bad_behavior": "Comportamento scorretto",
+    "honor_revoked_title": "Onorificenza revocata",
+    "honor_revoked_desc": "Hai revocato l'onorificenza da {name}."
   },
   "EditProfileDialog": {
     "title_self": "Modifica il tuo profilo",
@@ -348,7 +351,10 @@
     "management_title": "Pannello di gestione",
     "management_desc": "Azioni per lo staff della squadra.",
     "edit_team_button": "Modifica profilo squadra",
-    "upcoming_matches": "Incontri in arrivo"
+    "upcoming_matches": "Incontri in arrivo",
+    "apply_to_join": "Candidati per unirti",
+    "application_sent_title": "Candidatura inviata!",
+    "application_sent_desc": "La tua richiesta di unirti al team è stata inviata al fondatore."
   },
   "MemberManager": {
     "role_updated": "Ruolo aggiornato",

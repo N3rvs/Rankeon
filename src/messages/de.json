@@ -283,7 +283,10 @@
     "good_communicator": "Guter Kommunikator",
     "positive_attitude": "Positive Einstellung",
     "honor_awarded": "Ehre verliehen!",
-    "honor_awarded_desc": "Du hast {name} für seine Fähigkeit ausgezeichnet."
+    "honor_awarded_desc": "Du hast {name} für seine Fähigkeit ausgezeichnet.",
+    "bad_behavior": "Schlechtes Benehmen",
+    "honor_revoked_title": "Ehre widerrufen",
+    "honor_revoked_desc": "Du hast die Ehre von {name} widerrufen."
   },
   "EditProfileDialog": {
     "title_self": "Dein Profil bearbeiten",
@@ -348,7 +351,10 @@
     "management_title": "Verwaltungspanel",
     "management_desc": "Aktionen für Teammitarbeiter.",
     "edit_team_button": "Teamprofil bearbeiten",
-    "upcoming_matches": "Anstehende Spiele"
+    "upcoming_matches": "Anstehende Spiele",
+    "apply_to_join": "Beitrittsanfrage senden",
+    "application_sent_title": "Bewerbung gesendet!",
+    "application_sent_desc": "Deine Anfrage, dem Team beizutreten, wurde an den Gründer gesendet."
   },
   "MemberManager": {
     "role_updated": "Rolle aktualisiert",

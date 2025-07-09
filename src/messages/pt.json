@@ -283,7 +283,10 @@
     "good_communicator": "Bom Comunicador",
     "positive_attitude": "Atitude Positiva",
     "honor_awarded": "Honra Concedida!",
-    "honor_awarded_desc": "Você reconheceu {name} por sua habilidade."
+    "honor_awarded_desc": "Você reconheceu {name} por sua habilidade.",
+    "bad_behavior": "Mau Comportamento",
+    "honor_revoked_title": "Honra Revogada",
+    "honor_revoked_desc": "Você revogou a honra de {name}."
   },
   "EditProfileDialog": {
     "title_self": "Editar Seu Perfil",
@@ -348,7 +351,10 @@
     "management_title": "Painel de Gerenciamento",
     "management_desc": "Ações para a equipe técnica.",
     "edit_team_button": "Editar Perfil da Equipe",
-    "upcoming_matches": "Próximas Partidas"
+    "upcoming_matches": "Próximas Partidas",
+    "apply_to_join": "Candidatar-se",
+    "application_sent_title": "Candidatura Enviada!",
+    "application_sent_desc": "O seu pedido para se juntar à equipa foi enviado ao fundador."
   },
   "MemberManager": {
     "role_updated": "Função Atualizada",
