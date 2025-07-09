@@ -37,11 +37,13 @@ export const getTeamMembers = onCall(async ({ auth: callerAuth, data }) => {
             if (userDocSnap.exists()) {
                 const userData = userDocSnap.data()!;
                 
-                // The member subcollection is now the source of truth for the role *within the team*.
-                // The updateUserRole function is responsible for keeping this in sync.
+                // Prioritize the global role from the user's main document.
+                // This ensures that if a user is a global 'coach', it's reflected here.
+                const authoritativeRole = userData.role || memberData.role;
+                
                 return {
                     id: memberDoc.id,
-                    role: memberData.role,
+                    role: authoritativeRole, // Use the authoritative role.
                     joinedAt: memberData.joinedAt?.toDate().toISOString() || null,
                     isIGL: memberData.isIGL || false,
                     name: userData.name || '',
@@ -61,6 +63,7 @@ export const getTeamMembers = onCall(async ({ auth: callerAuth, data }) => {
         throw new HttpsError('internal', 'An unexpected error occurred while fetching team members.');
     }
 });
+
 
 export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
   if (!requestAuth) {
@@ -623,5 +626,7 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
         return { success: true, message: `Solicitud ${accept ? 'aceptada' : 'rechazada'}.` };
     });
 });
+
+    
 
     
