@@ -28,30 +28,24 @@ import {
   Trophy,
   Medal,
   UserCircle,
-  ShieldCheck,
+  Shield,
   LifeBuoy,
+  Swords
 } from 'lucide-react';
-import type { Metadata } from 'next';
-
-// export const metadata: Metadata = {
-//     title: 'Guía de la Plataforma',
-//     description: 'Una guía completa de las características, secciones y roles de usuario dentro de la aplicación Rankeon.'
-// };
-
 
 export default function GuidePage() {
   const sections = [
-    { icon: '👤', title: 'Perfil', description: 'Tu página personal. Aquí puedes editar tu información, ver tus estadísticas de juego, tus honores recibidos y el equipo al que perteneces.' },
-    { icon: '🛡️', title: 'Mi Equipo', description: 'Si eres fundador o miembro de un equipo, esta es tu base de operaciones. Gestiona miembros, edita el perfil del equipo, revisa solicitudes y planea vuestros próximos movimientos.' },
-    { icon: '🛒', title: 'Mercado', description: 'El corazón de Rankeon. Busca equipos que necesiten jugadores o encuentra a los jugadores perfectos para tu plantilla usando filtros por país, rango y rol.' },
-    { icon: '🎲', title: 'Salas de Juego', description: '¿Quieres jugar ahora mismo? Crea una sala de juego temporal para una partida rápida o únete a una existente. Es ideal para jugar con gente nueva sin compromisos.' },
-    { icon: '🔥', title: 'Scrims', description: 'La zona de entrenamiento. Aquí puedes publicar una oferta de partida de práctica (`scrim`) para que otros equipos te reten, o aceptar los desafíos de otros.' },
-    { icon: '🏆', title: 'Torneos', description: 'El escenario principal. Apúntate a los torneos organizados por la comunidad o la plataforma, sigue el bracket en tiempo real y compite por la gloria.' },
-    { icon: '📈', title: 'Clasificaciones', description: '¿Quieres saber quién manda? En esta sección puedes ver los rankings de los mejores equipos y jugadores en torneos, scrims y honores.' },
-    { icon: '👥', title: 'Amigos', description: 'Tu lista de contactos. Desde aquí puedes gestionar tus amigos, aceptar solicitudes y acceder a los chats privados para hablar con ellos.' },
-    { icon: '🛠️', title: 'Panel Admin', description: '(Solo visible para Administradores) El panel de control total de la plataforma. Permite gestionar usuarios, equipos, ajustes globales y más.' },
-    { icon: '⚖️', title: 'Panel Mod', description: '(Visible para Moderadores y Admins) Herramientas para mantener el orden. Gestionar usuarios, aprobar torneos y resolver tickets de soporte.' },
-    { icon: '🆘', title: 'Soporte', description: '¿Necesitas ayuda? Desde el menú de tu perfil puedes acceder al Centro de Ayuda para contactar con soporte o hablar con nuestro asistente de IA.' },
+    { icon: <UserCircle className="h-6 w-6 mx-auto text-primary" />, title: 'Perfil', description: 'Tu página personal. Aquí puedes editar tu información, ver tus estadísticas de juego, tus honores recibidos y el equipo al que perteneces.' },
+    { icon: <Swords className="h-6 w-6 mx-auto text-primary" />, title: 'Mi Equipo', description: 'Si eres fundador o miembro de un equipo, esta es tu base de operaciones. Gestiona miembros, edita el perfil del equipo, revisa solicitudes y planea vuestros próximos movimientos.' },
+    { icon: <Store className="h-6 w-6 mx-auto text-primary" />, title: 'Mercado', description: 'El corazón de Rankeon. Busca equipos que necesiten jugadores o encuentra a los jugadores perfectos para tu plantilla usando filtros por país, rango y rol.' },
+    { icon: <Dices className="h-6 w-6 mx-auto text-primary" />, title: 'Salas de Juego', description: '¿Quieres jugar ahora mismo? Crea una sala de juego temporal para una partida rápida o únete a una existente. Es ideal para jugar con gente nueva sin compromisos.' },
+    { icon: <Flame className="h-6 w-6 mx-auto text-primary" />, title: 'Scrims', description: 'La zona de entrenamiento. Aquí puedes publicar una oferta de partida de práctica (`scrim`) para que otros equipos te reten, o aceptar los desafíos de otros.' },
+    { icon: <Trophy className="h-6 w-6 mx-auto text-primary" />, title: 'Torneos', description: 'El escenario principal. Apúntate a los torneos organizados por la comunidad o la plataforma, sigue el bracket en tiempo real y compite por la gloria.' },
+    { icon: <Medal className="h-6 w-6 mx-auto text-primary" />, title: 'Clasificaciones', description: '¿Quieres saber quién manda? En esta sección puedes ver los rankings de los mejores equipos y jugadores en torneos, scrims y honores.' },
+    { icon: <Users className="h-6 w-6 mx-auto text-primary" />, title: 'Amigos', description: 'Tu lista de contactos. Desde aquí puedes gestionar tus amigos, aceptar solicitudes y acceder a los chats privados para hablar con ellos.' },
+    { icon: <Shield className="h-6 w-6 mx-auto text-primary" />, title: 'Panel Admin', description: '(Solo visible para Administradores) El panel de control total de la plataforma. Permite gestionar usuarios, equipos, ajustes globales y más.' },
+    { icon: <Gavel className="h-6 w-6 mx-auto text-primary" />, title: 'Panel Mod', description: '(Visible para Moderadores y Admins) Herramientas para mantener el orden. Gestionar usuarios, aprobar torneos y resolver tickets de soporte.' },
+    { icon: <LifeBuoy className="h-6 w-6 mx-auto text-primary" />, title: 'Soporte', description: '¿Necesitas ayuda? Desde el menú de tu perfil puedes acceder al Centro de Ayuda para contactar con soporte o hablar con nuestro asistente de IA.' },
   ];
 
   const roles = [
@@ -140,7 +134,7 @@ export default function GuidePage() {
                 <Table>
                 <TableHeader>
                     <TableRow>
-                    <TableHead className="w-16">Icono</TableHead>
+                    <TableHead className="w-20">Icono</TableHead>
                     <TableHead>Sección</TableHead>
                     <TableHead>¿Para qué sirve?</TableHead>
                     </TableRow>
@@ -148,7 +142,7 @@ export default function GuidePage() {
                 <TableBody>
                     {sections.map((section, index) => (
                     <TableRow key={index}>
-                        <TableCell className="text-2xl text-center">{section.icon}</TableCell>
+                        <TableCell className="text-center">{section.icon}</TableCell>
                         <TableCell className="font-semibold">{section.title}</TableCell>
                         <TableCell>{section.description}</TableCell>
                     </TableRow>
