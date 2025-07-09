@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { AuthProvider } from '@/contexts/auth-context';
 import { I18nProvider, type Locale } from '@/contexts/i18n-context';
 import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { CookieConsentProvider } from '@/contexts/cookie-consent-context';
 import { CookieConsentBanner } from '@/components/cookies/cookie-consent-banner';
 import { cookies } from 'next/headers';
@@ -31,9 +31,14 @@ export const metadata: Metadata = {
   description: 'Find your team, conquer the game.',
   manifest: '/manifest.json',
   icons: {
-    icon: "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3e%3crect width='100' height='100' rx='20' fill='hsl(180, 80%25, 50%25)'%3e%3c/rect%3e%3ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='70' font-weight='bold' fill='hsl(180, 100%25, 10%25)' font-family='sans-serif'%3eR%3c/text%3e%3c/svg%3e",
+    icon: "/icon.svg",
+    apple: "/apple-icon.png", // Recommended to add this file in public
   }
 };
+
+export const viewport: Viewport = {
+  themeColor: "#1AD1D1",
+}
 
 function getLocale(requestHeaders: Headers): Locale {
     // Reading the cookie
@@ -56,9 +61,7 @@ export default function RootLayout({
   
   return (
     <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
-      <head>
-        <meta name="theme-color" content="#1AD1D1" />
-      </head>
+      <head />
       <body>
           <I18nProvider locale={locale}>
             <CookieConsentProvider>
