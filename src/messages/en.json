@@ -286,8 +286,11 @@
     "leader": "Leader",
     "good_communicator": "Good Communicator",
     "positive_attitude": "Positive Attitude",
+    "bad_behavior": "Bad Behavior",
     "honor_awarded": "Honor Awarded!",
-    "honor_awarded_desc": "You've recognized {name} for their skill."
+    "honor_awarded_desc": "You've recognized {name} for their skill.",
+    "honor_revoked_title": "Honor Revoked",
+    "honor_revoked_desc": "Your honor for {name} has been revoked."
   },
   "EditProfileDialog": {
     "title_self": "Edit Your Profile",

@@ -286,8 +286,11 @@
     "leader": "Anführer",
     "good_communicator": "Guter Kommunikator",
     "positive_attitude": "Positive Einstellung",
+    "bad_behavior": "Schlechtes Verhalten",
     "honor_awarded": "Ehre verliehen!",
-    "honor_awarded_desc": "Du hast {name} für seine Fähigkeit ausgezeichnet."
+    "honor_awarded_desc": "Du hast {name} für seine Fähigkeit ausgezeichnet.",
+    "honor_revoked_title": "Ehre Widerrufen",
+    "honor_revoked_desc": "Deine Ehre für {name} wurde widerrufen."
   },
   "EditProfileDialog": {
     "title_self": "Dein Profil bearbeiten",

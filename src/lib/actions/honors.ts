@@ -27,3 +27,19 @@ export async function giveHonorToUser(
     };
   }
 }
+
+export async function revokeHonorFromUser(
+  recipientId: string
+): Promise<ActionResponse> {
+  try {
+    const revokeHonorFunc = httpsCallable(functions, 'revokeHonor');
+    const result = await revokeHonorFunc({ recipientId });
+    return result.data as ActionResponse;
+  } catch (error: any) {
+    console.error('Error revoking honor:', error);
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
+  }
+}

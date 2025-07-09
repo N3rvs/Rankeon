@@ -286,8 +286,11 @@
     "leader": "Leader",
     "good_communicator": "Buon comunicatore",
     "positive_attitude": "Atteggiamento positivo",
+    "bad_behavior": "Cattivo Comportamento",
     "honor_awarded": "Onorificenza assegnata!",
-    "honor_awarded_desc": "Hai riconosciuto {name} per la sua abilità."
+    "honor_awarded_desc": "Hai riconosciuto {name} per la sua abilità.",
+    "honor_revoked_title": "Onore Revocato",
+    "honor_revoked_desc": "Il tuo onore per {name} è stato revocato."
   },
   "EditProfileDialog": {
     "title_self": "Modifica il tuo profilo",
@@ -463,7 +466,7 @@
     "title": "Guida ai formati dei tornei",
     "description": "Scopri i diversi formati di torneo disponibili.",
     "single_elim_title": "Eliminazione singola",
-    "single_elim_desc": "Il modo più veloce per incoronare un campione. In questo formato ad alto rischio, una singola sconfitta significa che la tua squadra è fuori dal torneo. È un sistema a eliminazione diretta puro, perfetto per grandi eventi where il tempo è essenziale.",
+    "single_elim_desc": "Il modo più veloce per incoronare un campione. In questo formato ad alto rischio, una singola sconfitta significa che la tua squadra è fuori dal torneo. È un sistema a eliminazione diretta puro, perfetto per grandi eventi dove il tempo è essenziale.",
     "double_elim_title": "Doppia eliminazione",
     "double_elim_desc": "Un formato che premia la resilienza. Ogni squadra ha una seconda possibilità. Dopo la prima sconfitta, cadi nel 'Girone Inferiore' per combattere e tornare in gioco. Se perdi di nuovo, sei eliminato. I vincitori del Girone Superiore e Inferiore si affrontano nella Gran Finale.",
     "round_robin_title": "Girone all'italiana",
