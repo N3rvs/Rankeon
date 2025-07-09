@@ -135,17 +135,6 @@ export async function kickTeamMember(teamId: string, memberId: string): Promise<
   }
 }
 
-export async function updateTeamMemberRole(teamId: string, memberId: string, role: 'coach' | 'member'): Promise<ActionResponse> {
-  try {
-    const updateRoleFunc = httpsCallable(functions, 'updateTeamMemberRole');
-    const result = await updateRoleFunc({ teamId, memberId, role });
-    return result.data as ActionResponse;
-  } catch (error: any) {
-    console.error('Error calling updateTeamMemberRole function:', error);
-    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
-  }
-}
-
 export async function setTeamIGL(teamId: string, memberId: string | null): Promise<ActionResponse> {
   try {
     const setIglFunc = httpsCallable(functions, 'setTeamIGL');

@@ -469,9 +469,13 @@ export const respondToTeamInvite = onCall(async ({ auth: callerAuth, data }: { a
             
             const memberRef = teamRef.collection("members").doc(callerAuth.uid);
             
+            // Determine user's role in the team
+            const userRole = userSnap.data()?.role;
+            const teamRole = userRole === 'coach' ? 'coach' : 'member';
+            
             transaction.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayUnion(callerAuth.uid) });
             transaction.set(memberRef, {
-                role: "member",
+                role: teamRole,
                 joinedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
             transaction.update(userRef, { teamId: inviteData.fromTeamId });
@@ -573,12 +577,19 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
             }
 
             const userRef = db.collection("users").doc(appData.applicantId);
+            const userSnap = await transaction.get(userRef);
+             if (!userSnap.exists) {
+                throw new HttpsError("not-found", "Applicant's user profile could not be found.");
+            }
+            const userRole = userSnap.data()?.role;
+            const teamRole = userRole === 'coach' ? 'coach' : 'member';
+
             const memberRef = teamRef.collection("members").doc(appData.applicantId);
 
             transaction.update(userRef, { teamId: appData.teamId });
             transaction.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayUnion(appData.applicantId) });
             transaction.set(memberRef, {
-                role: "member",
+                role: teamRole,
                 joinedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
@@ -606,4 +617,3 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
         return { success: true, message: `Solicitud ${accept ? 'aceptada' : 'rechazada'}.` };
     });
 });
-
