@@ -23,7 +23,8 @@
     "terms": "Términos de Servicio",
     "privacy": "Política de Privacidad",
     "upcoming_matches": "Próximos Encuentros",
-    "community_matches": "Partidas confirmadas por la comunidad."
+    "community_matches": "Partidas confirmadas por la comunidad.",
+    "download_app": "Descargar App"
   },
   "LoginPage": {
     "forgot_password": "¿Olvidaste tu contraseña?"

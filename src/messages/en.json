@@ -23,7 +23,8 @@
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "upcoming_matches": "Upcoming Matches",
-    "community_matches": "Community-confirmed matches."
+    "community_matches": "Community-confirmed matches.",
+    "download_app": "Download App"
   },
   "LoginPage": {
     "forgot_password": "Forgot your password?"

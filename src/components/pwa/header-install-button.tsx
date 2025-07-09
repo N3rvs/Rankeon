@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,7 +15,7 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-export function PublicInstallButton() {
+export function HeaderInstallButton() {
   const { t } = useI18n();
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
@@ -43,11 +44,9 @@ export function PublicInstallButton() {
   }
 
   return (
-    <li>
-        <Button variant="ghost" className="text-muted-foreground hover:text-foreground justify-start p-0 h-auto font-normal" onClick={handleInstallClick}>
-            <Download className="mr-2 h-4 w-4" />
-            {t('Sidebar.install_app')}
-        </Button>
-    </li>
+    <Button variant="outline" onClick={handleInstallClick}>
+        <Download className="mr-2 h-4 w-4" />
+        {t('LandingPage.download_app')}
+    </Button>
   );
 }

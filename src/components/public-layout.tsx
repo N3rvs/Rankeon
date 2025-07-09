@@ -10,6 +10,7 @@ import { LanguageSwitcher } from '@/components/i18n/language-switcher';
 import { Footer } from './layout/footer';
 import { Gamepad2 } from 'lucide-react';
 import { Spinner } from './ui/spinner';
+import { HeaderInstallButton } from './pwa/header-install-button';
 
 function Header() {
   const { user, loading } = useAuth();
@@ -28,6 +29,7 @@ function Header() {
                 <Link href="/support" className="text-lg font-medium text-muted-foreground hover:text-foreground">{t('Footer.support_title')}</Link>
             </nav>
             <div className="flex items-center gap-2">
+                <HeaderInstallButton />
                 <LanguageSwitcher />
                 {loading ? (
                   <Spinner className="h-6 w-6" />

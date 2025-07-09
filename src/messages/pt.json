@@ -9,7 +9,7 @@
         "register": "Registrar",
         "go_to_app": "Ir para a App",
         "title": "Monte seu Equipe de Elite",
-        "subtitle": "A plataforma LFG definitiva para Valorant. Pare de jogar sozinho e comece a dominar com la equipe perfeita.",
+        "subtitle": "A plataforma LFG definitiva para Valorant. Pare de jogar sozinho e comece a dominar com a equipe perfeita.",
         "get_started": "Começar",
         "features_title": "Jogue como um Profissional",
         "features_subtitle": "Todas as ferramentas que você precisa para aproveitar o jogo no mais alto nível.",
@@ -23,7 +23,8 @@
         "terms": "Termos de Serviço",
         "privacy": "Política de Privacidade",
         "upcoming_matches": "Próximas Partidas",
-        "community_matches": "Partidas confirmadas pela comunidade."
+        "community_matches": "Partidas confirmadas pela comunidade.",
+        "download_app": "Baixar App"
     },
     "LoginPage": {
         "forgot_password": "Esqueceu a senha?"
@@ -85,7 +86,7 @@
         "limitation_liability_title": "Limitação de Responsabilidade",
         "limitation_liability_text": "Em nenhuma circunstância a Rankeon será responsável por quaisquer danos indiretos, incidentais, especiais, consequenciais ou punitivos decorrentes do seu uso do Serviço.",
         "changes_terms_title": "Alterações aos Termos",
-        "changes_terms_text": "Reservamo-nos o direito de modificar estes termos a qualquer momento. Iremos notificá-lo de quaisquer alterações publicando os novos termos nesta página.",
+        "changes_terms_text": "Reservamo-nos o direito de modificar estes termos a qualquer momento. Iremos notificá-lo de quaisquer alterações publicando os neuenos termos nesta página.",
         "contact_title": "Contato",
         "contact_text": "Se você tiver alguma dúvida sobre estes Termos de Serviço, entre em contato conosco em: support@rankeon.app"
     },

@@ -23,7 +23,8 @@
         "terms": "Conditions d'utilisation",
         "privacy": "Politique de confidentialité",
         "upcoming_matches": "Matchs à venir",
-        "community_matches": "Matchs confirmés par la communauté."
+        "community_matches": "Matchs confirmés par la communauté.",
+        "download_app": "Télécharger l'app"
     },
     "LoginPage": {
         "forgot_password": "Mot de passe oublié ?"
