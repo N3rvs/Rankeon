@@ -13,7 +13,7 @@ import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { deleteTeam, kickTeamMember, updateTeamMemberRole, setTeamIGL, getTeamMembers } from '@/lib/actions/teams';
+import { deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers } from '@/lib/actions/teams';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -54,18 +54,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
         });
     };
 
-    const handleRoleChange = (newRole: 'coach' | 'member') => {
-        if (member.role === newRole) return;
-        startTransition(async () => {
-            const result = await updateTeamMemberRole(team.id, member.id, newRole);
-            if (result.success) {
-                toast({ title: t('MemberManager.role_updated'), description: t('MemberManager.role_updated_desc', { name: member.name, role: newRole }) });
-            } else {
-                toast({ title: "Error", description: result.message, variant: "destructive" });
-            }
-        });
-    }
-
     const handleKick = () => {
         startTransition(async () => {
             const result = await kickTeamMember(team.id, member.id);
@@ -90,11 +78,10 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     };
 
     const canEditProfile = currentUserRole === 'founder' || currentUserRole === 'coach';
-    const canManageRoles = currentUserRole === 'founder' || currentUserRole === 'coach';
     const canKick = currentUserRole === 'founder' || (currentUserRole === 'coach' && member.role === 'member');
     const canSetIGL = currentUserRole === 'founder' || currentUserRole === 'coach';
 
-    if (member.role === 'founder' || (!canManageRoles && !canKick && !canEditProfile)) {
+    if (member.role === 'founder' || (!canKick && !canEditProfile)) {
         return null;
     }
 
@@ -136,21 +123,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                             <Edit className="mr-2 h-4 w-4" /> {t('MemberManager.edit_profile')}
                         </DropdownMenuItem>
                     )}
-                    {(canEditProfile || canManageRoles || canSetIGL) && <DropdownMenuSeparator />}
-                    {canManageRoles && (
-                        <>
-                            {member.role === 'member' && (
-                                <DropdownMenuItem onSelect={() => handleRoleChange('coach')} disabled={isPending}>
-                                    <ShieldCheck className="mr-2 h-4 w-4" /> {t('MemberManager.promote_coach')}
-                                </DropdownMenuItem>
-                            )}
-                            {member.role === 'coach' && (
-                                <DropdownMenuItem onSelect={() => handleRoleChange('member')} disabled={isPending}>
-                                    <UserCog className="mr-2 h-4 w-4" /> {t('MemberManager.demote_member')}
-                                </DropdownMenuItem>
-                            )}
-                        </>
-                    )}
+                    {(canEditProfile || canSetIGL) && <DropdownMenuSeparator />}
                     {canSetIGL && (
                          <DropdownMenuItem onSelect={handleSetIGL} disabled={isPending}>
                             <BrainCircuit className="mr-2 h-4 w-4" />
@@ -178,6 +151,9 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [wonTournaments, setWonTournaments] = useState<Tournament[]>([]);
     const [loadingTrophies, setLoadingTrophies] = useState(true);
+
+    const staff = members.filter(m => m.role === 'founder' || m.role === 'coach').sort((a, b) => a.role === 'founder' ? -1 : 1);
+    const players = members.filter(m => m.role !== 'founder' && m.role !== 'coach');
 
     useEffect(() => {
         if (!team?.id) {
@@ -210,11 +186,6 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
         });
-    };
-
-    const roleIcons: { [key: string]: React.ReactNode } = {
-        founder: <Crown className="h-4 w-4 text-amber-400" />,
-        coach: <ShieldCheck className="h-4 w-4 text-blue-400" />,
     };
     
     const isStaff = currentUserRole === 'founder' || currentUserRole === 'coach';
@@ -262,6 +233,46 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
         );
     };
 
+    const MemberCard = ({ member }: { member: TeamMember }) => {
+        const roleIcons: { [key: string]: React.ReactNode } = {
+            founder: <Crown className="h-4 w-4 text-amber-400" />,
+            coach: <ShieldCheck className="h-4 w-4 text-blue-400" />,
+        };
+
+        return (
+            <div className="p-3 flex items-center justify-between rounded-lg border bg-background">
+                <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
+                    <Avatar>
+                        <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
+                        <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start">
+                        <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            {roleIcons[member.role] || null}
+                            <span className="capitalize">{member.role}</span>
+                            {member.isIGL && (
+                                <>
+                                    <span className="mx-1">·</span>
+                                    <BrainCircuit className="h-4 w-4 text-sky-400" />
+                                    <span>IGL</span>
+                                </>
+                            )}
+                        </div>
+                        {member.skills && member.skills.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                                {member.skills.map(skill => (
+                                    <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </Link>
+                <MemberManager team={team} member={member} currentUserRole={currentUserRole} />
+            </div>
+        )
+    };
+
     return (
         <div className="space-y-6 pt-20">
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
@@ -275,38 +286,20 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                             <CardTitle className="font-headline flex items-center gap-2"><Users className="h-5 w-5" /> {t('TeamsPage.team_members', { count: members.length })}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {members.map(member => (
-                                <div key={member.id} className="p-3 flex items-center justify-between rounded-lg border bg-background">
-                                    <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
-                                        <Avatar>
-                                            <AvatarImage src={member.avatarUrl} data-ai-hint="person avatar" />
-                                            <AvatarFallback>{member.name.slice(0, 2)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-semibold text-sm group-hover:underline">{member.name}</span>
-                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                 {roleIcons[member.role] || null}
-                                                 <span className="capitalize">{member.role}</span>
-                                                 {member.isIGL && (
-                                                    <>
-                                                        <span className="mx-1">·</span>
-                                                        <BrainCircuit className="h-4 w-4 text-sky-400" />
-                                                        <span>IGL</span>
-                                                    </>
-                                                 )}
-                                            </div>
-                                            {member.skills && member.skills.length > 0 && (
-                                                <div className="flex items-center gap-1 mt-1">
-                                                    {member.skills.map(skill => (
-                                                        <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </Link>
-                                    <MemberManager team={team} member={member} currentUserRole={currentUserRole} />
+                             <div>
+                                <h4 className="font-semibold text-sm mb-2 text-muted-foreground">Staff</h4>
+                                <div className="space-y-2">
+                                    {staff.map(member => <MemberCard key={member.id} member={member} />)}
                                 </div>
-                            ))}
+                            </div>
+                            {players.length > 0 && (
+                                <div>
+                                    <h4 className="font-semibold text-sm mt-6 mb-2 text-muted-foreground">Players</h4>
+                                    <div className="space-y-2">
+                                        {players.map(member => <MemberCard key={member.id} member={member} />)}
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                     <UpcomingScrimsCard teamId={team.id} />
@@ -343,34 +336,36 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                     )}
                                 </CardDescription>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                                 <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary">
-                                    <Edit className="h-4 w-4" />
-                                    <span className="sr-only">{t('TeamsPage.edit')}</span>
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="icon">
-                                            <Trash2 className="h-4 w-4" />
-                                            <span className="sr-only">{t('TeamsPage.delete')}</span>
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                {t('TeamsPage.delete_confirm_desc')}
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>{t('MemberManager.cancel')}</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                                {isPending ? t('TeamsPage.deleting') : t('TeamsPage.delete_confirm_button')}
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
+                            {currentUserRole === 'founder' && (
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary">
+                                        <Edit className="h-4 w-4" />
+                                        <span className="sr-only">{t('TeamsPage.edit')}</span>
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="icon">
+                                                <Trash2 className="h-4 w-4" />
+                                                <span className="sr-only">{t('TeamsPage.delete')}</span>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    {t('TeamsPage.delete_confirm_desc')}
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>{t('MemberManager.cancel')}</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                                    {isPending ? t('TeamsPage.deleting') : t('TeamsPage.delete_confirm_button')}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            )}
                         </CardHeader>
                         <CardContent>
                             <h3 className="font-headline font-semibold mb-2 flex items-center gap-2"><Info className="h-5 w-5" /> {t('TeamsPage.about_the_team')}</h3>
