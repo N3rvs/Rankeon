@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase/client';
-import { useTransition, useState } from 'react';
+import { useTransition, useState, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Globe, Shield } from 'lucide-react';
@@ -121,8 +121,12 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
 ];
 
   const isEditingSelf = loggedInUserProfile?.id === userProfile.id;
-  const isGameFieldsLocked = isEditingSelf && !!userProfile.teamId;
+  const isTeamMember = isEditingSelf && !!userProfile.teamId;
 
+  const areSkillsLocked = useMemo(() => {
+    return isTeamMember && loggedInUserProfile?.role !== 'founder' && loggedInUserProfile?.role !== 'coach';
+  }, [isTeamMember, loggedInUserProfile?.role]);
+  
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
 
@@ -152,10 +156,13 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             avatarUrl: newAvatarUrl,
         };
 
-        if (!isGameFieldsLocked) {
-            updatePayload.primaryGame = data.primaryGame;
+        if (isEditingSelf) {
             updatePayload.rank = data.rank;
             updatePayload.lookingForTeam = data.lookingForTeam;
+        }
+
+        if (!areSkillsLocked) {
+            updatePayload.primaryGame = data.primaryGame;
             updatePayload.skills = data.skills;
         }
 
@@ -262,7 +269,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                     form.setValue('skills', []); // Reset skills when game changes
                     }} 
                     defaultValue={field.value}
-                    disabled={isGameFieldsLocked}
+                    disabled={areSkillsLocked}
                 >
                     <FormControl>
                     <SelectTrigger>
@@ -275,7 +282,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                     ))}
                     </SelectContent>
                 </Select>
-                {isGameFieldsLocked && <FormDescription>{t('EditProfileDialog.team_member_alert_desc')}</FormDescription>}
+                {areSkillsLocked && <FormDescription>{t('EditProfileDialog.team_member_alert_desc')}</FormDescription>}
                 <FormMessage />
                 </FormItem>
             )}
@@ -286,7 +293,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>{t('EditProfileDialog.rank')}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGameFieldsLocked}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditingSelf}>
                     <FormControl>
                         <SelectTrigger>
                             <Shield className="mr-2 h-4 w-4" />
@@ -299,6 +306,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                     ))}
                     </SelectContent>
                 </Select>
+                 {!isEditingSelf && <FormDescription>El rango solo puede ser editado por el propio jugador.</FormDescription>}
                 <FormMessage />
                 </FormItem>
             )}
@@ -320,7 +328,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                         <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        disabled={isGameFieldsLocked}
+                        disabled={!isEditingSelf}
                         />
                     </FormControl>
                 </FormItem>
@@ -347,7 +355,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                                 <FormControl>
                                 <Checkbox
                                     checked={field.value?.includes(role)}
-                                    disabled={isGameFieldsLocked || (!field.value?.includes(role) && selectedSkills.length >= 2)}
+                                    disabled={areSkillsLocked || (!field.value?.includes(role) && selectedSkills.length >= 2)}
                                     onCheckedChange={(checked) => {
                                         const currentSkills = field.value || [];
                                         return checked
@@ -362,6 +370,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                         />
                         ))}
                     </div>
+                     {areSkillsLocked && <FormDescription>{t('EditProfileDialog.team_member_alert_desc')}</FormDescription>}
                     <FormMessage />
                 </FormItem>
             )}
