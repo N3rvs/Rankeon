@@ -1,3 +1,4 @@
+
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -27,7 +28,7 @@ import { CreateScrimDialog } from '@/components/scrims/create-scrim-dialog';
 import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
 import { UpcomingScrimsCard } from '@/components/teams/upcoming-scrims-card';
 import { Spinner } from '@/components/ui/spinner';
-import { StrategyBoardDialog } from '@/components/teams/StrategyBoardDialog';
+import { TeamTasksDialog } from '@/components/teams/TeamTasksDialog';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
@@ -95,11 +96,10 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
         });
     };
 
-    const canEditProfile = currentUserRole === 'founder' || currentUserRole === 'coach';
     const canKick = currentUserRole === 'founder';
-    const canSetIGL = currentUserRole === 'founder' || currentUserRole === 'coach';
+    const canManageRoles = currentUserRole === 'founder' || currentUserRole === 'coach';
 
-    if (member.role === 'founder' || (!canKick && !canEditProfile && !canSetIGL)) {
+    if (member.role === 'founder' || !canManageRoles) {
         return null;
     }
 
@@ -129,7 +129,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    {canEditProfile && (
+                    {canManageRoles && (
                        <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
                                 <Edit className="mr-2 h-4 w-4" />
@@ -156,8 +156,8 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                             </DropdownMenuPortal>
                         </DropdownMenuSub>
                     )}
-                    {(canEditProfile || canSetIGL) && <DropdownMenuSeparator />}
-                    {canSetIGL && (
+                    {canManageRoles && <DropdownMenuSeparator />}
+                    {canManageRoles && (
                          <DropdownMenuItem onSelect={handleSetIGL} disabled={isPending}>
                             <BrainCircuit className="mr-2 h-4 w-4" />
                             {member.isIGL ? t('MemberManager.remove_igl') : t('MemberManager.set_igl')}
@@ -182,7 +182,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [isStrategyBoardOpen, setIsStrategyBoardOpen] = useState(false);
+    const [isTasksDialogOpen, setIsTasksDialogOpen] = useState(false);
     const [wonTournaments, setWonTournaments] = useState<Tournament[]>([]);
     const [loadingTrophies, setLoadingTrophies] = useState(true);
 
@@ -314,7 +314,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
     return (
         <div className="space-y-6 pt-20">
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
-            {isStaff && <StrategyBoardDialog open={isStrategyBoardOpen} onOpenChange={setIsStrategyBoardOpen} />}
+            {isStaff && <TeamTasksDialog teamId={team.id} open={isTasksDialogOpen} onOpenChange={setIsTasksDialogOpen} />}
             
              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 {/* LEFT/MAIN COLUMN */}
@@ -471,9 +471,9 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                 <CardDescription>{t('TeamsPage.management_desc')}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-2">
-                                <Button variant="secondary" onClick={() => setIsStrategyBoardOpen(true)}>
+                                <Button variant="secondary" onClick={() => setIsTasksDialogOpen(true)}>
                                     <ClipboardList className="mr-2 h-4 w-4" />
-                                    {t('TeamsPage.strategy_board')}
+                                    {t('TeamsPage.team_tasks')}
                                 </Button>
                                 <CreateScrimDialog teamId={team.id} />
                             </CardContent>
