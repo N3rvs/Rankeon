@@ -25,7 +25,9 @@
         "privacy": "Politique de confidentialité",
         "upcoming_matches": "Matchs à venir",
         "community_matches": "Matchs confirmés par la communauté.",
-        "download_app": "Télécharger l'app"
+        "download_app": "Télécharger l'app",
+        "beta_title": "Bienvenue dans la Bêta de Rankeon !",
+        "beta_description": "La plateforme est actuellement en phase de bêta ouverte. Tous les plans sont gratuits et les rôles sont gérés par les administrateurs. Merci de nous aider à tester !"
     },
     "GamesPage": {
       "title": "Jeux Supportés",

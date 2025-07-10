@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Rocket, Users, Trophy, Check, Swords } from 'lucide-react';
+import { Rocket, Users, Trophy, Check, Swords, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useI18n } from '@/contexts/i18n-context';
@@ -10,6 +10,7 @@ import { PublicLayout } from '../public-layout';
 import Image from 'next/image';
 import { FeaturedScrims } from './featured-scrims';
 import { CookieConsentBanner } from '../cookies/cookie-consent-banner';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 
 function PricingSection() {
     const { t } = useI18n();
@@ -90,8 +91,17 @@ export function LandingPage() {
 
   return (
     <PublicLayout>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <Alert variant="default" className="bg-yellow-500/10 border-yellow-500/30 text-yellow-200">
+                <AlertTriangle className="h-4 w-4 !text-yellow-400" />
+                <AlertTitle className="font-bold !text-yellow-300">{t('LandingPage.beta_title')}</AlertTitle>
+                <AlertDescription>
+                    {t('LandingPage.beta_description')}
+                </AlertDescription>
+            </Alert>
+        </div>
         {/* Hero Section */}
-        <section className="relative pt-20 pb-20 md:pt-32 md:pb-32 flex items-center justify-center text-center -mt-24 overflow-hidden">
+        <section className="relative pt-12 pb-20 md:pt-24 md:pb-32 flex items-center justify-center text-center overflow-hidden">
             <div className="absolute inset-0 -z-10">
                 <Image
                     src="https://placehold.co/1920x1080.png"
