@@ -208,3 +208,35 @@ export async function getTeamMembers(teamId: string): Promise<{ success: boolean
     };
   }
 }
+
+
+// New functions for team tasks
+export async function addTask(teamId: string, title: string): Promise<ActionResponse> {
+  try {
+    const func = httpsCallable(functions, 'addTask');
+    await func({ teamId, title });
+    return { success: true, message: 'Task added' };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
+export async function updateTaskStatus(teamId: string, taskId: string, completed: boolean): Promise<ActionResponse> {
+  try {
+    const func = httpsCallable(functions, 'updateTaskStatus');
+    await func({ teamId, taskId, completed });
+    return { success: true, message: 'Task updated' };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
+export async function deleteTask(teamId: string, taskId: string): Promise<ActionResponse> {
+  try {
+    const func = httpsCallable(functions, 'deleteTask');
+    await func({ teamId, taskId });
+    return { success: true, message: 'Task deleted' };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}

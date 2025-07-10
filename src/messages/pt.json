@@ -393,10 +393,8 @@
     "apply_to_join": "Candidatar-se",
     "application_sent_title": "Candidatura Enviada!",
     "application_sent_desc": "O seu pedido para se juntar à equipa foi enviado ao fundador.",
-    "strategy_board": "Quadro de Estratégia",
-    "strategy_board_desc": "Desenhe táticas e planeje jogadas nos mapas de Valorant.",
-    "select_map": "Selecione um mapa",
-    "clear_board": "Limpar Quadro"
+    "team_tasks": "Tarefas da Equipe",
+    "team_tasks_desc": "Atribua tarefas para treinamento e melhoria."
   },
   "MemberManager": {
     "role_updated": "Função Atualizada",

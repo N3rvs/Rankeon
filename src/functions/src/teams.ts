@@ -1,4 +1,4 @@
-
+// src/functions/src/teams.ts
 
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -664,9 +664,46 @@ export const respondToTeamApplication = onCall(async ({ auth: callerAuth, data }
     });
 });
 
+// New functions for team tasks
+export const addTask = onCall(async ({ auth, data }) => {
+  if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+  const { teamId, title } = data;
+  if (!teamId || !title) throw new HttpsError('invalid-argument', 'Team ID and title are required.');
+  
+  // Permission check could be added here if needed
+  
+  await db.collection(`teams/${teamId}/tasks`).add({
+    title,
+    completed: false,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  return { success: true };
+});
+
+export const updateTaskStatus = onCall(async ({ auth, data }) => {
+  if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+  const { teamId, taskId, completed } = data;
+  if (!teamId || !taskId) throw new HttpsError('invalid-argument', 'Team ID and Task ID are required.');
+  
+  await db.doc(`teams/${teamId}/tasks/${taskId}`).update({ completed });
+  
+  return { success: true };
+});
+
+export const deleteTask = onCall(async ({ auth, data }) => {
+  if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+  const { teamId, taskId } = data;
+  if (!teamId || !taskId) throw new HttpsError('invalid-argument', 'Team ID and Task ID are required.');
+  
+  await db.doc(`teams/${teamId}/tasks/${taskId}`).delete();
+  
+  return { success: true };
+});
     
 
     
+
 
 
 
