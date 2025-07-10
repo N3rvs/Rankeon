@@ -1,4 +1,3 @@
-
 // src/components/profile/edit-profile-form.tsx
 'use client';
 
@@ -17,8 +16,7 @@ import { db, storage } from '@/lib/firebase/client';
 import { useTransition, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Globe, Info, Shield } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import { Globe, Shield } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
 import { useAuth } from '@/contexts/auth-context';
@@ -38,7 +36,6 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 const gameRoles: Record<string, readonly string[]> = {
   Valorant: ["Controlador", "Iniciador", "Duelista", "Centinela"],
-  // Future games can be added here
 };
 const availableGames = Object.keys(gameRoles);
 
@@ -90,8 +87,8 @@ const europeanCountries = [
     { value: 'Vatican City', label: 'Vatican City' }
 ];
 
-export function EditProfileForm({ userProfile, onFinished, isManagerEditing = false }: { userProfile: UserProfile, onFinished: () => void, isManagerEditing?: boolean }) {
-  const { userProfile: loggedInUserProfile, claims: editorClaims } = useAuth();
+export function EditProfileForm({ userProfile, onFinished }: { userProfile: UserProfile, onFinished: () => void }) {
+  const { userProfile: loggedInUserProfile } = useAuth();
   const { t } = useI18n();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -124,15 +121,7 @@ export function EditProfileForm({ userProfile, onFinished, isManagerEditing = fa
 ];
 
   const isEditingSelf = loggedInUserProfile?.id === userProfile.id;
-  const isAdminEditing = editorClaims?.role === 'admin';
-
-  // Personal info (name, avatar, bio, country) can only be edited by the user themselves or a platform admin.
-  const canEditPersonalInfo = isEditingSelf || isAdminEditing;
-  const showPersonalInfo = !isManagerEditing || isAdminEditing;
-
-  // Game-related fields are locked if a player on a team is editing their own profile.
-  // A manager (founder/coach/admin) can always edit these fields for a team member.
-  const isGameFieldsLocked = isEditingSelf && !!userProfile.teamId && !isManagerEditing;
+  const isGameFieldsLocked = isEditingSelf && !!userProfile.teamId;
 
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
@@ -150,21 +139,18 @@ export function EditProfileForm({ userProfile, onFinished, isManagerEditing = fa
       try {
         let newAvatarUrl = userProfile.avatarUrl;
 
-        if (avatarFile && canEditPersonalInfo) {
+        if (avatarFile) {
           const storageRef = ref(storage, `avatars/${userProfile.id}/${avatarFile.name}`);
           const uploadResult = await uploadBytes(storageRef, avatarFile);
           newAvatarUrl = await getDownloadURL(uploadResult.ref);
         }
         
-        // We construct the update payload carefully to respect locked fields.
-        const updatePayload: Partial<ProfileFormValues> & { avatarUrl?: string } = {};
-
-        if (showPersonalInfo) {
-            updatePayload.name = data.name;
-            updatePayload.country = data.country;
-            updatePayload.bio = data.bio;
-            updatePayload.avatarUrl = newAvatarUrl;
-        }
+        const updatePayload: Partial<UserProfile> = {
+            name: data.name,
+            country: data.country,
+            bio: data.bio,
+            avatarUrl: newAvatarUrl,
+        };
 
         if (!isGameFieldsLocked) {
             updatePayload.primaryGame = data.primaryGame;
@@ -173,14 +159,13 @@ export function EditProfileForm({ userProfile, onFinished, isManagerEditing = fa
             updatePayload.skills = data.skills;
         }
 
-        if (Object.keys(updatePayload).length > 0) {
-            const userDocRef = doc(db, 'users', userProfile.id);
-            await updateDoc(userDocRef, updatePayload);
-            toast({
-                title: 'Profile Updated',
-                description: "The user's profile has been successfully updated.",
-            });
-        }
+        const userDocRef = doc(db, 'users', userProfile.id);
+        await updateDoc(userDocRef, updatePayload);
+        
+        toast({
+            title: 'Profile Updated',
+            description: "Your profile has been successfully updated.",
+        });
         
         onFinished();
       } catch (error: any) {
@@ -197,209 +182,190 @@ export function EditProfileForm({ userProfile, onFinished, isManagerEditing = fa
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {showPersonalInfo && (
-          <>
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                <Avatar className="h-20 w-20 shrink-0">
-                    <AvatarImage src={avatarPreview || undefined} alt="Avatar Preview" data-ai-hint="person avatar"/>
-                    <AvatarFallback>{userProfile.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="grid w-full max-w-sm items-center gap-1.5">
-                    <FormLabel htmlFor="avatar-upload">{t('EditProfileDialog.update_avatar')}</FormLabel>
-                    <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} disabled={!canEditPersonalInfo} />
-                    {!canEditPersonalInfo && <FormDescription>{t('EditProfileDialog.avatar_admin_only')}</FormDescription>}
-                </div>
+        <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <Avatar className="h-20 w-20 shrink-0">
+                <AvatarImage src={avatarPreview || undefined} alt="Avatar Preview" data-ai-hint="person avatar"/>
+                <AvatarFallback>{userProfile.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+                <FormLabel htmlFor="avatar-upload">{t('EditProfileDialog.update_avatar')}</FormLabel>
+                <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} />
             </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>{t('EditProfileDialog.name')}</FormLabel>
-                    <FormControl>
-                        <Input placeholder={t('EditProfileDialog.display_name_placeholder')} {...field} disabled={!canEditPersonalInfo} />
-                    </FormControl>
-                    {!canEditPersonalInfo && <FormDescription>{t('EditProfileDialog.name_admin_only')}</FormDescription>}
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                  control={form.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('EditProfileDialog.country')}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={!canEditPersonalInfo}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('EditProfileDialog.select_country')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {europeanCountries.map(country => (
-                            <SelectItem key={country.value} value={country.value}>
-                              {country.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-            </div>
-            
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>{t('EditProfileDialog.name')}</FormLabel>
+                <FormControl>
+                    <Input placeholder={t('EditProfileDialog.display_name_placeholder')} {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
             <FormField
               control={form.control}
-              name="bio"
+              name="country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('EditProfileDialog.bio')}</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder={t('EditProfileDialog.bio_placeholder')} className="resize-none" {...field} disabled={!canEditPersonalInfo} />
-                  </FormControl>
-                  {!canEditPersonalInfo && <FormDescription>{t('EditProfileDialog.bio_admin_only')}</FormDescription>}
+                  <FormLabel>{t('EditProfileDialog.country')}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('EditProfileDialog.select_country')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {europeanCountries.map(country => (
+                        <SelectItem key={country.value} value={country.value}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </>
-        )}
+        </div>
         
-        {isGameFieldsLocked ? (
-            <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle>{t('EditProfileDialog.team_member_alert_title')}</AlertTitle>
-                <AlertDescription>
-                   {t('EditProfileDialog.team_member_alert_desc')}
-                </AlertDescription>
-            </Alert>
-        ) : (
-            <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                    control={form.control}
-                    name="primaryGame"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>{t('EditProfileDialog.primary_game')}</FormLabel>
-                        <Select onValueChange={(value) => {
-                            field.onChange(value);
-                            form.setValue('skills', []); // Reset skills when game changes
-                            }} 
-                            defaultValue={field.value}
-                            disabled={isGameFieldsLocked}
-                        >
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder={t('EditProfileDialog.select_game')} />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            {availableGames.map(game => (
-                                <SelectItem key={game} value={game}>{game}</SelectItem>
-                            ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="rank"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>{t('EditProfileDialog.rank')}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGameFieldsLocked}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <Shield className="mr-2 h-4 w-4" />
-                                    <SelectValue placeholder={t('EditProfileDialog.select_rank')} />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            {valorantRanks.map(rank => (
-                                <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>
-                            ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                </div>
+        <FormField
+          control={form.control}
+          name="bio"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('EditProfileDialog.bio')}</FormLabel>
+              <FormControl>
+                <Textarea placeholder={t('EditProfileDialog.bio_placeholder')} className="resize-none" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="primaryGame"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>{t('EditProfileDialog.primary_game')}</FormLabel>
+                <Select onValueChange={(value) => {
+                    field.onChange(value);
+                    form.setValue('skills', []); // Reset skills when game changes
+                    }} 
+                    defaultValue={field.value}
+                    disabled={isGameFieldsLocked}
+                >
+                    <FormControl>
+                    <SelectTrigger>
+                        <SelectValue placeholder={t('EditProfileDialog.select_game')} />
+                    </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                    {availableGames.map(game => (
+                        <SelectItem key={game} value={game}>{game}</SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
+                {isGameFieldsLocked && <FormDescription>{t('EditProfileDialog.team_member_alert_desc')}</FormDescription>}
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="rank"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>{t('EditProfileDialog.rank')}</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGameFieldsLocked}>
+                    <FormControl>
+                        <SelectTrigger>
+                            <Shield className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder={t('EditProfileDialog.select_rank')} />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                    {valorantRanks.map(rank => (
+                        <SelectItem key={rank.value} value={rank.value}>{rank.label}</SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
 
-                <FormField
-                    control={form.control}
-                    name="lookingForTeam"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                                <FormLabel>{t('EditProfileDialog.looking_for_team')}</FormLabel>
-                                <FormDescription>
-                                {t('EditProfileDialog.looking_for_team_desc')}
-                                </FormDescription>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                disabled={isGameFieldsLocked}
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
+        <FormField
+            control={form.control}
+            name="lookingForTeam"
+            render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                        <FormLabel>{t('EditProfileDialog.looking_for_team')}</FormLabel>
+                        <FormDescription>
+                        {t('EditProfileDialog.looking_for_team_desc')}
+                        </FormDescription>
+                    </div>
+                    <FormControl>
+                        <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isGameFieldsLocked}
+                        />
+                    </FormControl>
+                </FormItem>
+            )}
+        />
 
-                <FormField
-                    control={form.control}
-                    name="skills"
-                    render={() => (
-                        <FormItem>
-                            <FormLabel>{t('EditProfileDialog.skills_roles')}</FormLabel>
-                            <FormDescription>
-                                {t('EditProfileDialog.skills_roles_desc')}
-                            </FormDescription>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                {(gameRoles[selectedGame] || []).map((role) => (
-                                <FormField
-                                    key={role}
-                                    control={form.control}
-                                    name="skills"
-                                    render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                        <FormControl>
-                                        <Checkbox
-                                            checked={field.value?.includes(role)}
-                                            disabled={isGameFieldsLocked || (!field.value?.includes(role) && selectedSkills.length >= 2)}
-                                            onCheckedChange={(checked) => {
-                                                const currentSkills = field.value || [];
-                                                return checked
-                                                    ? field.onChange([...currentSkills, role])
-                                                    : field.onChange(currentSkills.filter((value) => value !== role));
-                                            }}
-                                        />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">{role}</FormLabel>
-                                    </FormItem>
-                                    )}
+        <FormField
+            control={form.control}
+            name="skills"
+            render={() => (
+                <FormItem>
+                    <FormLabel>{t('EditProfileDialog.skills_roles')}</FormLabel>
+                    <FormDescription>
+                        {t('EditProfileDialog.skills_roles_desc')}
+                    </FormDescription>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        {(gameRoles[selectedGame] || []).map((role) => (
+                        <FormField
+                            key={role}
+                            control={form.control}
+                            name="skills"
+                            render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                <FormControl>
+                                <Checkbox
+                                    checked={field.value?.includes(role)}
+                                    disabled={isGameFieldsLocked || (!field.value?.includes(role) && selectedSkills.length >= 2)}
+                                    onCheckedChange={(checked) => {
+                                        const currentSkills = field.value || [];
+                                        return checked
+                                            ? field.onChange([...currentSkills, role])
+                                            : field.onChange(currentSkills.filter((value) => value !== role));
+                                    }}
                                 />
-                                ))}
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </>
-        )}
+                                </FormControl>
+                                <FormLabel className="font-normal">{role}</FormLabel>
+                            </FormItem>
+                            )}
+                        />
+                        ))}
+                    </div>
+                    <FormMessage />
+                </FormItem>
+            )}
+        />
 
         <Button type="submit" className="w-full" disabled={isPending || form.formState.isSubmitting}>
           {isPending ? t('EditProfileDialog.saving') : t('EditProfileDialog.save_changes')}
