@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Login from '../../assets/login.png';
 
 export const metadata: Metadata = {
   title: 'Login',
