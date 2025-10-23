@@ -14,7 +14,7 @@ export default function LoginPage() {
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
       <div className="relative hidden flex-col items-center justify-center bg-gray-900 text-white lg:flex">
         <Image 
-            src="/login.png"
+            src={'/login.png'}
             alt="Gaming background"
             fill
             className="absolute inset-0 object-cover"
