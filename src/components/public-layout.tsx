@@ -35,7 +35,7 @@ function Header() {
                   <Spinner className="h-6 w-6" />
                 ) : user ? (
                 <Button asChild>
-                    <Link href="/dashboard">{t('LandingPage.go_to_app')}</Link>
+                    <Link href="/profile">{t('LandingPage.go_to_app')}</Link>
                 </Button>
                 ) : (
                 <>

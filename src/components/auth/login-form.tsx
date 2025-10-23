@@ -40,7 +40,7 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      router.push('/dashboard');
+      router.push('/profile');
     } catch (error: any) {
         let errorMessage = 'An unexpected error occurred.';
         if (error.code) {

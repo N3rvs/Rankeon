@@ -79,7 +79,7 @@ export function RegisterForm() {
         createdAt: serverTimestamp(),
       });
 
-      router.push('/dashboard');
+      router.push('/profile');
     } catch (error: any) {
         let errorMessage = "An unexpected error occurred.";
         if (error.code === 'auth/email-already-in-use') {
