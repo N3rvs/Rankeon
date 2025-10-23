@@ -20,7 +20,7 @@ export default function LoginPage() {
             className="absolute inset-0 object-cover opacity-30"
             data-ai-hint="esports gamer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
         <div className="relative z-10 text-center max-w-sm">
             <h1 className="text-4xl font-bold font-headline">Inicia tu carrera como dueño de equipo en Rankeon</h1>
         </div>
