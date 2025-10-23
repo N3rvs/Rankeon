@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -8,8 +9,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { useI18n } from '@/contexts/i18n-context';
 
 export default function ModeratorPage() {
-    const { claims } = useAuth();
     const { t } = useI18n();
+    const { claims } = useAuth();
     const isAlsoAdmin = claims?.role === 'admin';
 
     const managementCards = [
@@ -76,7 +77,7 @@ export default function ModeratorPage() {
                         </CardHeader>
                         <CardContent className="flex-grow" />
                         <div className="p-6 pt-0">
-                             <Button variant="outline" className="w-full" asChild>
+                             <Button variant="outline" className="w-full whitespace-normal h-auto" asChild>
                                 <Link href={card.href}>
                                     {t('ModPanel.go_to_button', { title: card.title })} <ArrowRight className="ml-2 h-4 w-4" />
                                 </Link>
