@@ -17,7 +17,7 @@ export default function RegisterPage() {
           src="https://picsum.photos/seed/register-esports/1200/1800"
           alt="Esports team planning strategy"
           fill
-          className="absolute inset-0 object-cover opacity-30"
+          className="absolute inset-0 object-cover"
           data-ai-hint="esports team planning"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
@@ -26,7 +26,7 @@ export default function RegisterPage() {
             Construye tu legado.
           </h1>
           <p className="text-lg text-white/80 mt-2">
-            Registra tu cuenta y empieza tu camino hacia la cima.
+            Registra tu cuenta y empieza a forjar tu rol en un equipo de campeones.
           </p>
         </div>
       </div>
