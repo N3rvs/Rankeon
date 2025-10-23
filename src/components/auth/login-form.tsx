@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Gamepad2 } from 'lucide-react';
 import { useI18n } from '@/contexts/i18n-context';
 
 const formSchema = z.object({
@@ -123,7 +123,8 @@ export function LoginForm() {
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Signing In...' : 'Sign In'}
+                    {isLoading && <Gamepad2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Sign In
                 </Button>
                  <p className="text-sm text-center text-muted-foreground">
                     Don't have an account?{' '}
