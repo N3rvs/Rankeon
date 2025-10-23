@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
  
 const withPWA = require('@ducanh2912/next-pwa').default({
@@ -43,6 +44,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'static.wikia.nocookie.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
       },
