@@ -19,6 +19,7 @@ export default function LoginPage() {
             fill
             className="absolute inset-0 object-cover"
             data-ai-hint="esports gamer"
+            priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent opacity-90" />
         <div className="relative z-10 text-center max-w-sm">
