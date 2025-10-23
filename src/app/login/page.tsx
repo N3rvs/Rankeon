@@ -14,11 +14,11 @@ export default function LoginPage() {
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
       <div className="relative hidden flex-col items-center justify-center bg-gray-900 text-white lg:flex">
         <Image 
-            src="https://picsum.photos/seed/login/1200/1800"
+            src="https://picsum.photos/seed/login-esports/1200/1800"
             alt="Gaming background"
             fill
             className="absolute inset-0 object-cover opacity-30"
-            data-ai-hint="gaming esports"
+            data-ai-hint="esports gamer"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
         <div className="relative z-10 text-center max-w-sm">
