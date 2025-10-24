@@ -61,8 +61,9 @@ export const getFeaturedScrims = onCall({ enforceAppCheck: false }, async () => 
 
 /* --------------------------- Market: Players (UI) -------------------------- */
 
-export const getMarketPlayers = onCall({ enforceAppCheck: false }, async ({ auth, data }) => {
+export const getMarketPlayers = onCall(async ({ auth, data }) => {
   try {
+    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
     const { lastId } = (data ?? {}) as { lastId: string | null };
 
     let q = db
@@ -91,7 +92,6 @@ export const getMarketPlayers = onCall({ enforceAppCheck: false }, async ({ auth
         lookingForTeam: u.lookingForTeam || false,
         teamId: u.teamId ?? null,
         blocked: u.blocked || [],
-        createdAt: u.createdAt?.toDate().toISOString() || null,
       };
     });
 
@@ -103,10 +103,12 @@ export const getMarketPlayers = onCall({ enforceAppCheck: false }, async ({ auth
   }
 });
 
+
 /* ---------------------------- Market: Teams (UI) --------------------------- */
 
-export const getMarketTeams = onCall({ enforceAppCheck: false }, async ({ auth, data }) => {
+export const getMarketTeams = onCall(async ({ auth, data }) => {
   try {
+    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
     const { lastId } = (data ?? {}) as { lastId: string | null };
 
     let q = db
@@ -309,18 +311,21 @@ export const getManagedUsers = onCall(async ({ auth: callerAuth, data }) => {
 
 /* ----------------------------- Team Members (UI) --------------------------- */
 
-export const getTeamMembers = onCall({ enforceAppCheck: false }, async (request) => {
+export const getTeamMembers = onCall(async (request) => {
   try {
     const { teamId } = (request.data ?? {}) as { teamId: string };
     if (!teamId)
       throw new HttpsError('invalid-argument', 'Team ID is required.');
     
+    if (!request.auth)
+      throw new HttpsError('unauthenticated', 'Authentication is required.');
+
     // Step 1: Get member roles and join dates from the subcollection
     const membersSnap = await db.collection(`teams/${teamId}/members`).get();
     const memberIds = membersSnap.docs.map((d) => d.id);
 
     if (memberIds.length === 0) return [];
-
+    
     // Step 2: Get user profile data for all members, handling batches for >30 members
     const chunks: string[][] = [];
     for (let i = 0; i < memberIds.length; i += 30) {
