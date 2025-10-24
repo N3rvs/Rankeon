@@ -97,6 +97,13 @@
   }
 }
 
+@layer components {
+  .destructive {
+    @apply border-destructive/50 text-destructive-foreground;
+    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--destructive)));
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
