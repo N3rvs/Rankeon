@@ -34,7 +34,7 @@ type FriendshipStatusActionResponse = {
     message: string;
 }
 
-const functions = getFunctions(app, 'europe-west1');
+const functions = getFunctions(app, "europe-west1");
 
 
 export async function getFriendshipStatus(targetUserId: string): Promise<FriendshipStatusActionResponse> {

@@ -11,25 +11,9 @@ type ActionResponse = {
   message: string;
 };
 
-// Región correcta
-const functions = getFunctions(app, 'europe-west1');
+const functions = getFunctions(app, "europe-west1");
 
-// *** INICIO CORRECCIÓN #2 (Paginación) ***
-// Define el tipo de respuesta paginada que devuelve el backend
-type PaginatedChatsResponse = {
-    success: boolean;
-    data?: {
-        chats: Chat[];
-        nextLastTimestamp: string | null; // El backend devuelve el timestamp ISO
-    };
-    message: string;
-}
-
-/**
- * Obtiene los chats del usuario de forma paginada.
- * @param lastTimestamp El timestamp ISO del último mensaje del último chat del lote anterior, o null para la primera página.
- */
-export async function getChats(lastTimestamp: string | null): Promise<PaginatedChatsResponse> {
+export async function getChats(): Promise<{ success: boolean; data?: Chat[]; message: string; }> {
   try {
     // Especifica los tipos de entrada y salida para httpsCallable
     const getChatsFunc = httpsCallable<

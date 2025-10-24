@@ -5,8 +5,7 @@ import { app } from '../firebase/client';
 import type { UserProfile, UserRole, UserStatus } from '../types';
 import { Timestamp } from 'firebase/firestore';
 
-// La región está correctamente definida
-const functions = getFunctions(app, 'europe-west1');
+const functions = getFunctions(app, "europe-west1");
 
 type ActionResponse = {
   success: boolean;

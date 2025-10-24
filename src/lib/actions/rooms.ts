@@ -4,8 +4,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { z } from 'zod';
 import { app } from '../firebase/client';
 
-const functions = getFunctions(app, 'europe-west1');
-
+const functions = getFunctions(app, "europe-west1");
 
 const CreateRoomSchema = z.object({
   name: z.string().min(3).max(50),

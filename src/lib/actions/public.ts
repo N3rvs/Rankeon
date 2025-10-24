@@ -4,9 +4,9 @@ import { app } from '../firebase/client';
 import type { UserProfile, Team, Tournament, Scrim } from '../types';
 import { errorEmitter } from '../firebase/error-emitter';
 import { FirestorePermissionError } from '../firebase/errors';
-import { Timestamp } from 'firebase/firestore'; // Import Timestamp
+import { Timestamp } from 'firebase/firestore';
 
-const functions = getFunctions(app, 'europe-west1');
+const functions = getFunctions(app, "europe-west1");
 
 // --- TIPOS DE RESPUESTA PAGINADA ---
 type PaginatedResponse<T> = {
@@ -38,24 +38,10 @@ type ScrimRankingTeam = Team & { winRate: number; played: number; won: number };
  */
 export async function getMarketPlayers(lastId: string | null): Promise<PaginatedPlayersResponse> {
   try {
-    // Llama a la función paginada del backend
-    const getPlayersFunc = httpsCallable<{ lastId: string | null }, { players: any[], nextLastId: string | null }>(functions, 'getMarketPlayers');
-    const result = await getPlayersFunc({ lastId });
-
-    // Rehidrata Timestamps si UserProfile los tuviera (ej. createdAt)
-    const players = result.data.players.map(p => ({
-        ...p,
-        // Ejemplo: createdAt: p.createdAt ? Timestamp.fromDate(new Date(p.createdAt)) : undefined,
-    }));
-
-    return {
-        success: true,
-        data: {
-            items: players as UserProfile[],
-            nextLastId: result.data.nextLastId
-        },
-        message: 'Jugadores obtenidos.'
-    };
+    const getPlayersFunc = httpsCallable<void, any[]>(functions, 'getMarketPlayers');
+    const result = await getPlayersFunc();
+    const players = result.data.map(p => ({ ...p, createdAt: Timestamp.fromDate(new Date(p.createdAt)) }))
+    return { success: true, data: players, message: 'Players fetched.' };
   } catch (error: any) {
     console.error('Error fetching market players:', error);
     if (error.code === 'permission-denied') {
@@ -112,8 +98,7 @@ export async function getFeaturedScrims(): Promise<PaginatedScrimsResponse> {
     }));
     return { success: true, data: scrims as Scrim[], message: 'Scrims obtenidas.' };
   } catch (error: any) {
-    // No loguear error aquí, es una función pública no crítica.
-    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
 
