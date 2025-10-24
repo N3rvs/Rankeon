@@ -5,6 +5,8 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 import type { UserProfile } from '../types';
 import { Timestamp } from 'firebase/firestore';
+import { errorEmitter } from '../firebase/error-emitter';
+import { FirestorePermissionError } from '../firebase/errors';
 
 type ActionResponse = {
   success: boolean;
@@ -41,6 +43,13 @@ export async function getFriendshipStatus(targetUserId: string): Promise<Friends
   } catch (error: any)
   {
     console.error('Error fetching friendship status:', error);
+    if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
+      const permissionError = new FirestorePermissionError({
+        path: `/users/{userId}/friends`,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message || 'An unexpected error occurred while fetching friendship status.' };
   }
 }
@@ -54,6 +63,14 @@ export async function sendFriendRequest(
     return (result.data as ActionResponse) || { success: true, message: 'Friend request sent.' };
   } catch (error: any) {
     console.error('Error sending friend request:', error);
+    if (error.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: `/friendRequests`,
+        operation: 'create',
+        requestResourceData: { to: recipientId },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -71,6 +88,14 @@ export async function respondToFriendRequest({
     return (result.data as ActionResponse) || { success: true, message: `Request ${accept ? 'accepted' : 'rejected'}.` };
   } catch (error: any) {
     console.error('Error responding to friend request:', error);
+    if (error.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: `/friendRequests/${requestId}`,
+        operation: 'update',
+        requestResourceData: { accept },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -82,6 +107,14 @@ export async function removeFriend(friendId: string): Promise<ActionResponse> {
     return (result.data as ActionResponse) || { success: true, message: 'Friend removed.' };
   } catch (error: any) {
     console.error('Error removing friend:', error);
+     if (error.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: `/users/{userId}`,
+        operation: 'update',
+        requestResourceData: { friends: { 'array-remove': friendId } },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -93,6 +126,14 @@ export async function blockUser(userId: string): Promise<ActionResponse> {
     return (result.data as ActionResponse) || { success: true, message: 'User blocked.' };
   } catch (error: any) {
     console.error('Error blocking user:', error);
+    if (error.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: `/users/{userId}`,
+        operation: 'update',
+        requestResourceData: { blocked: { 'array-union': userId } },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',
@@ -107,6 +148,14 @@ export async function unblockUser(userId: string): Promise<ActionResponse> {
     return (result.data as ActionResponse) || { success: true, message: 'User unblocked.' };
   } catch (error: any) {
     console.error('Error unblocking user:', error);
+     if (error.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: `/users/{userId}`,
+        operation: 'update',
+        requestResourceData: { blocked: { 'array-remove': userId } },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',
@@ -128,6 +177,13 @@ export async function getFriends(): Promise<{ success: boolean; data?: UserProfi
     return { success: true, data: profiles as UserProfile[], message: 'Friends fetched.' };
   } catch (error: any) {
     console.error('Error getting friends:', error);
+    if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
+      const permissionError = new FirestorePermissionError({
+        path: '/users/{userId}/friends',
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',
