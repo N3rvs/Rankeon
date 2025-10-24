@@ -5,24 +5,30 @@ import * as admin from 'firebase-admin';
 admin.initializeApp();
 
 // Now import the functions that use the initialized admin SDK.
-import { deleteChatHistory, sendMessageToFriend } from './chat';
-import { sendFriendRequest, respondToFriendRequest, removeFriend } from './friends';
-import { giveHonor } from './honors';
+import { getChats, deleteChatHistory, sendMessageToFriend } from './chat';
+import { getFriendProfiles, sendFriendRequest, respondToFriendRequest, removeFriend, getFriendshipStatus } from './friends';
+import { giveHonor, revokeHonor } from './honors';
 import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
-import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
-import { createScrim, acceptScrim, cancelScrim } from './scrims';
-import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL } from './teams';
-import { proposeTournament, reviewTournamentProposal } from './tournaments';
-import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
+import { createGameRoom, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
+import { createScrim, challengeScrim, respondToScrimChallenge, cancelScrim, reportScrimResult } from './scrims';
+import { createTeam, updateTeam, deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers, sendTeamInvite, respondToTeamInvite, applyToTeam, respondToTeamApplication, addTask, updateTaskStatus, deleteTask } from './teams';
+import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
+import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
+import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence, getManagedUsers } from './users';
+import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings, getFeaturedScrims } from './public';
 
 export {
+  getChats,
   deleteChatHistory,
   sendMessageToFriend,
+  getFriendProfiles,
   sendFriendRequest,
   respondToFriendRequest,
   removeFriend,
+  getFriendshipStatus,
   giveHonor,
+  revokeHonor,
   addInboxNotification,
   markNotificationsAsRead,
   deleteNotifications,
@@ -30,22 +36,44 @@ export {
   blockUser,
   unblockUser,
   cleanUpOldData,
-  createGameRoomWithDiscord,
+  createGameRoom,
   joinRoom,
   leaveRoom,
   sendMessageToRoom,
   createScrim,
-  acceptScrim,
+  challengeScrim,
+  respondToScrimChallenge,
   cancelScrim,
+  reportScrimResult,
   createTeam,
   updateTeam,
   deleteTeam,
-  updateTeamMemberRole,
   kickTeamMember,
   setTeamIGL,
+  getTeamMembers,
+  sendTeamInvite,
+  respondToTeamInvite,
+  applyToTeam,
+  respondToTeamApplication,
+  addTask,
+  updateTaskStatus,
+  deleteTask,
   proposeTournament,
   reviewTournamentProposal,
+  editTournament,
+  deleteTournament,
+  createSupportTicket,
+  respondToTicket,
+  resolveTicket,
   updateUserRole,
   updateUserStatus,
-  updateUserCertification
+  updateUserCertification,
+  updateUserPresence,
+  getMarketPlayers,
+  getMarketTeams,
+  getHonorRankings,
+  getScrimRankings,
+  getTournamentRankings,
+  getFeaturedScrims,
+  getManagedUsers
 };

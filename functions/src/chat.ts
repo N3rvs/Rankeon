@@ -4,6 +4,32 @@ import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
+export const getChats = onCall(async ({ auth }) => {
+  if (!auth) throw new HttpsError("unauthenticated", "User must be logged in.");
+  const { uid } = auth;
+
+  try {
+    const chatsQuery = db.collection("chats").where("members", "array-contains", uid);
+    const chatsSnap = await chatsQuery.get();
+    
+    const chats = chatsSnap.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            lastMessageAt: data.lastMessageAt?.toDate().toISOString() || null,
+            createdAt: data.createdAt?.toDate().toISOString() || null,
+        }
+    });
+
+    return chats;
+  } catch (error) {
+    console.error("Error getting chats:", error);
+    throw new HttpsError("internal", "Failed to retrieve chat list.");
+  }
+});
+
+
 export const deleteChatHistory = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "User must be logged in.");
   const { uid } = request.auth;
