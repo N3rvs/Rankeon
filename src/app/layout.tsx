@@ -39,25 +39,17 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: "#1AD1D1",
 }
-
-function getLocale(requestHeaders: Headers): Locale {
-    // Reading the cookie
-    const cookieStore = cookies();
-    const localeCookie = cookieStore.get('NEXT_LOCALE')?.value;
-    if (localeCookie && i18nConfig.locales.includes(localeCookie as Locale)) {
-        return localeCookie as Locale;
-    }
-    
-    // Fallback to default if no valid cookie
-    return i18nConfig.defaultLocale;
-}
  
 export default function RootLayout({
   children
 }: {
   children: React.ReactNode;
 }) {
-  const locale = getLocale(new Headers());
+  const cookieStore = cookies();
+  const localeCookie = cookieStore.get('NEXT_LOCALE')?.value;
+  const locale = (localeCookie && i18nConfig.locales.includes(localeCookie as Locale))
+    ? localeCookie as Locale
+    : i18nConfig.defaultLocale;
   
   return (
     <html lang={locale} className={cn("dark", inter.variable, spaceGrotesk.variable)}>
