@@ -159,3 +159,23 @@ export const getTournamentRankings = onCall(async ({ auth }) => {
     
     return tournaments;
 });
+
+export const getManagedUsers = onCall(async ({ auth: callerAuth }) => {
+    if (!callerAuth) throw new HttpsError('unauthenticated', 'You must be logged in.');
+    const { role } = callerAuth.token;
+    if (role !== 'admin' && role !== 'moderator') {
+        throw new HttpsError('permission-denied', 'You do not have permission to access user data.');
+    }
+    
+    const usersSnapshot = await db.collection('users').get();
+    return usersSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            id: doc.id,
+            createdAt: data.createdAt?.toDate().toISOString() || null,
+            banUntil: data.banUntil?.toDate().toISOString() || null,
+            _claimsRefreshedAt: data._claimsRefreshedAt?.toDate().toISOString() || null,
+        }
+    });
+});
