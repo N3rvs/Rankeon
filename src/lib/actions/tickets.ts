@@ -5,7 +5,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { z } from 'zod';
 import { app } from '../firebase/client';
 
-const functions = getFunctions(app, 'europe-west1');
+const functions = getFunctions(app, "europe-west1");
 
 export const CreateTicketSchema = z.object({
   subject: z.string().min(1, 'Please select a subject.'),

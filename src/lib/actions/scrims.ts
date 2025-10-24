@@ -5,7 +5,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { z } from 'zod';
 import { app } from '../firebase/client';
 
-const functions = getFunctions(app);
+const functions = getFunctions(app, "europe-west1");
 
 type ActionResponse = {
   success: boolean;

@@ -7,7 +7,7 @@ import { app } from '../firebase/client';
 import type { TeamMember } from '../types';
 import { Timestamp } from 'firebase/firestore';
 
-const functions = getFunctions(app);
+const functions = getFunctions(app, "europe-west1");
 
 // Schema for creating a team
 export const CreateTeamSchema = z.object({

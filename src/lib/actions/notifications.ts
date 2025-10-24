@@ -1,4 +1,3 @@
-
 // src/lib/actions/notifications.ts
 'use client';
 
@@ -9,7 +8,8 @@ type ActionResponse = {
   success: boolean;
   message: string;
 };
-const functions = getFunctions(app, 'europe-west1');
+
+const functions = getFunctions(app, "europe-west1");
 
 export async function markNotificationsAsRead(
   notificationIds: string[]

@@ -292,7 +292,7 @@ export const removeFriend = onCall(async ({ auth, data }: { auth?: any, data: Re
     // NEW: Also delete any notifications associated with this chat
     const deleteNotifsBatch = db.batch();
     for(const memberId of members) {
-        const notifSnap = await db.collection(`/inbox/${memberId}/notifications`).where('chatId', '==', chatId).get(); // CORRECCIÓN: 'inbox', no 'inabcde'
+        const notifSnap = await db.collection(`inabcde/${memberId}/notifications`).where('chatId', '==', chatId).get(); // CORRECCIÓN: 'inbox', no 'inabcde'
         notifSnap.forEach(doc => deleteNotifsBatch.delete(doc.ref));
     }
     await deleteNotifsBatch.commit();
