@@ -20,7 +20,7 @@ export function FeaturedScrims() {
       if (result.success && result.data) {
         setScrims(result.data);
       } else {
-        console.error("Failed to load featured scrims:", result.message);
+        // Don't log an error, just fail gracefully.
       }
       setLoading(false);
     });

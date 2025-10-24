@@ -12,7 +12,7 @@ interface CreateRoomData {
   partySize: string;
 }
 
-export const createGameRoomWithDiscord = onCall(async ({ auth, data }: { auth?: any, data: CreateRoomData }) => {
+export const createGameRoom = onCall(async ({ auth, data }: { auth?: any, data: CreateRoomData }) => {
   const uid = auth?.uid;
   if (!uid) {
     throw new HttpsError("unauthenticated", "You must be logged in to create a room.");
@@ -35,11 +35,10 @@ export const createGameRoomWithDiscord = onCall(async ({ auth, data }: { auth?: 
       partySize,
       createdBy: uid,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      discordChannelId: null, // Discord integration is not implemented
       participants: [uid], // Creator automatically joins
     });
 
-    return { success: true, message: "Room created successfully.", roomId: roomRef.id, discordChannelId: null };
+    return { success: true, message: "Room created successfully.", roomId: roomRef.id };
   } catch (error) {
     console.error("Error creating game room in Firestore:", error);
     throw new HttpsError("internal", "Failed to create the game room.");

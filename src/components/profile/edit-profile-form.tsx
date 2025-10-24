@@ -122,10 +122,12 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
 
   const isEditingSelf = loggedInUserProfile?.id === userProfile.id;
   const isTeamMember = isEditingSelf && !!userProfile.teamId;
+  const isAdmin = loggedInUserProfile?.role === 'admin';
 
   const areSkillsLocked = useMemo(() => {
+    if (isAdmin) return false;
     return isTeamMember && loggedInUserProfile?.role !== 'founder' && loggedInUserProfile?.role !== 'coach';
-  }, [isTeamMember, loggedInUserProfile?.role]);
+  }, [isTeamMember, loggedInUserProfile?.role, isAdmin]);
   
   const selectedGame = form.watch('primaryGame');
   const selectedSkills = form.watch('skills') || [];
@@ -154,13 +156,10 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             country: data.country,
             bio: data.bio,
             avatarUrl: newAvatarUrl,
+            rank: data.rank,
+            lookingForTeam: data.lookingForTeam,
         };
-
-        if (isEditingSelf) {
-            updatePayload.rank = data.rank;
-            updatePayload.lookingForTeam = data.lookingForTeam;
-        }
-
+        
         if (!areSkillsLocked) {
             updatePayload.primaryGame = data.primaryGame;
             updatePayload.skills = data.skills;
@@ -293,7 +292,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>{t('EditProfileDialog.rank')}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditingSelf}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditingSelf && !isAdmin}>
                     <FormControl>
                         <SelectTrigger>
                             <Shield className="mr-2 h-4 w-4" />
@@ -306,7 +305,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                     ))}
                     </SelectContent>
                 </Select>
-                 {!isEditingSelf && <FormDescription>El rango solo puede ser editado por el propio jugador.</FormDescription>}
+                 {!isEditingSelf && !isAdmin && <FormDescription>El rango solo puede ser editado por el propio jugador.</FormDescription>}
                 <FormMessage />
                 </FormItem>
             )}
@@ -328,7 +327,7 @@ export function EditProfileForm({ userProfile, onFinished }: { userProfile: User
                         <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        disabled={!isEditingSelf}
+                        disabled={!isEditingSelf && !isAdmin}
                         />
                     </FormControl>
                 </FormItem>

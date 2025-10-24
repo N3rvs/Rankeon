@@ -2,33 +2,36 @@
 import * as admin from 'firebase-admin';
 import { setGlobalOptions } from 'firebase-functions/v2';
 
-// 1. DEFINE LA REGIÓN GLOBAL ANTES DE NADA
-// Esto forzará que todas las funciones v2 se desplieguen en Europa.
 setGlobalOptions({ region: 'europe-west1' });
-
-// 2. Inicializa Firebase Admin SDK (después de setGlobalOptions)
+// Initialize Firebase Admin SDK. This must be done once, at the top.
 admin.initializeApp();
 
-// 3. Ahora importa todas tus funciones
-import { deleteChatHistory, sendMessageToFriend } from './chat';
-import { sendFriendRequest, respondToFriendRequest, removeFriend } from './friends';
-import { giveHonor } from './honors';
+// Now import the functions that use the initialized admin SDK.
+import { getChats, deleteChatHistory, sendMessageToFriend } from './chat';
+import { getFriendProfiles, sendFriendRequest, respondToFriendRequest, removeFriend, getFriendshipStatus } from './friends';
+import { giveHonor, revokeHonor } from './honors';
 import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
-import { createGameRoomWithDiscord, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
+import { createGameRoom, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
 import { createScrim, acceptScrim, cancelScrim } from './scrims';
-import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMember, setTeamIGL } from './teams';
-import { proposeTournament, reviewTournamentProposal } from './tournaments';
+import { createTeam, updateTeam, deleteTeam, kickTeamMember, setTeamIGL, updateTeamMemberRole } from './teams';
+import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
+import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
+import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings, getFeaturedScrims, getManagedUsers } from './public';
 
 // 4. Exporta todo como lo tenías
 export {
+  getChats,
   deleteChatHistory,
   sendMessageToFriend,
+  getFriendProfiles,
   sendFriendRequest,
   respondToFriendRequest,
   removeFriend,
+  getFriendshipStatus,
   giveHonor,
+  revokeHonor,
   addInboxNotification,
   markNotificationsAsRead,
   deleteNotifications,
@@ -36,7 +39,7 @@ export {
   blockUser,
   unblockUser,
   cleanUpOldData,
-  createGameRoomWithDiscord,
+  createGameRoom,
   joinRoom,
   leaveRoom,
   sendMessageToRoom,
@@ -46,12 +49,24 @@ export {
   createTeam,
   updateTeam,
   deleteTeam,
-  updateTeamMemberRole,
   kickTeamMember,
   setTeamIGL,
+  updateTeamMemberRole,
   proposeTournament,
   reviewTournamentProposal,
+  editTournament,
+  deleteTournament,
+  createSupportTicket,
+  respondToTicket,
+  resolveTicket,
   updateUserRole,
   updateUserStatus,
-  updateUserCertification
+  updateUserCertification,
+  getMarketPlayers,
+  getMarketTeams,
+  getHonorRankings,
+  getScrimRankings,
+  getTournamentRankings,
+  getFeaturedScrims,
+  getManagedUsers
 };

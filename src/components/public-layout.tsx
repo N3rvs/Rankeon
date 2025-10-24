@@ -31,21 +31,19 @@ function Header() {
             <div className="flex items-center gap-2">
                 <HeaderInstallButton />
                 <LanguageSwitcher />
-                {loading ? (
-                  <Spinner className="h-6 w-6" />
-                ) : user ? (
-                <Button asChild>
-                    <Link href="/dashboard">{t('LandingPage.go_to_app')}</Link>
-                </Button>
+                {user ? (
+                  <Button asChild>
+                      <Link href="/profile">{t('LandingPage.go_to_app')}</Link>
+                  </Button>
                 ) : (
-                <>
-                    <Button variant="ghost" asChild>
-                    <Link href="/login">{t('LandingPage.login')}</Link>
-                    </Button>
-                    <Button asChild>
-                    <Link href="/register">{t('LandingPage.register')}</Link>
-                    </Button>
-                </>
+                  <>
+                      <Button variant="ghost" asChild>
+                      <Link href="/login">{t('LandingPage.login')}</Link>
+                      </Button>
+                      <Button asChild>
+                      <Link href="/register">{t('LandingPage.register')}</Link>
+                      </Button>
+                  </>
                 )}
             </div>
         </div>

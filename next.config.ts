@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
  
 const withPWA = require('@ducanh2912/next-pwa').default({
@@ -46,7 +47,23 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
+      },
     ],
+  },
+  webpack: (config, { isServer }) => {
+    // This is required to make EventEmitter work in the browser
+    if (!isServer) {
+        config.resolve.fallback = {
+            ...config.resolve.fallback,
+            events: require.resolve('events/'),
+        };
+    }
+    return config;
   },
 };
  

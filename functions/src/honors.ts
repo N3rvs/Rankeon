@@ -4,7 +4,7 @@ import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
-const VALID_HONORS = ['great_teammate', 'leader', 'good_communicator', 'positive_attitude'];
+const VALID_HONORS = ['great_teammate', 'leader', 'good_communicator', 'positive_attitude', 'bad_behavior'];
 
 interface GiveHonorData {
     recipientId: string;
@@ -60,5 +60,51 @@ export const giveHonor = onCall(async ({ auth, data }: { auth?: any, data: GiveH
         });
 
         return { success: true, message: "Honor awarded successfully!" };
+    });
+});
+
+export const revokeHonor = onCall(async ({ auth, data }: { auth?: any, data: { recipientId: string } }) => {
+    const giverId = auth?.uid;
+    const { recipientId } = data;
+
+    if (!giverId) {
+        throw new HttpsError("unauthenticated", "You must be logged in to revoke an honor.");
+    }
+    if (!recipientId) {
+        throw new HttpsError("invalid-argument", "Missing recipient ID.");
+    }
+    if (giverId === recipientId) {
+        throw new HttpsError("invalid-argument", "You cannot revoke an honor from yourself.");
+    }
+
+    const honorDocId = `${giverId}_${recipientId}`;
+    const honorDocRef = db.collection("honorsGiven").doc(honorDocId);
+    const recipientUserRef = db.collection("users").doc(recipientId);
+
+    return db.runTransaction(async (transaction) => {
+        const honorDoc = await transaction.get(honorDocRef);
+        if (!honorDoc.exists) {
+            throw new HttpsError("not-found", "No honor was found to revoke for this user.");
+        }
+
+        const honorData = honorDoc.data();
+        const givenHonors: string[] = honorData?.honors || [];
+        if (givenHonors.length === 0) {
+            transaction.delete(honorDocRef); // Clean up empty doc
+            throw new HttpsError("not-found", "No honor type found to revoke.");
+        }
+        
+        const honorTypeToRevoke = givenHonors[0];
+
+        // Decrement the denormalized count on the recipient's user document
+        const honorCountField = `honorCounts.${honorTypeToRevoke}`;
+        transaction.update(recipientUserRef, {
+            [honorCountField]: admin.firestore.FieldValue.increment(-1)
+        });
+
+        // Delete the giver->recipient document
+        transaction.delete(honorDocRef);
+
+        return { success: true, message: "Honor revoked successfully." };
     });
 });

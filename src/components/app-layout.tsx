@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -59,6 +60,7 @@ import { InstallPwaButton } from './pwa/install-button';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, userProfile, loading, claims } = useAuth();
   const [unreadFriendActivity, setUnreadFriendActivity] = useState(0);
   const { t } = useI18n();
@@ -92,6 +94,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const handleLogout = async () => {
     await updateUserPresence('offline');
     await auth.signOut();
+    router.push('/');
   };
 
   const handleStatusChange = (status: UserStatus) => {

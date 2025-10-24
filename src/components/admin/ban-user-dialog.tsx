@@ -114,7 +114,13 @@ export function BanUserDialog({ user, open, onOpenChange }: BanUserDialogProps) 
                      <FormItem>
                         <FormLabel>Duration</FormLabel>
                         <FormControl>
-                           <Input type="number" placeholder="e.g., 24" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.value)} />
+                           <Input
+                             type="number"
+                             placeholder="e.g., 24"
+                             {...field}
+                             value={field.value ?? ''}
+                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : e.target.value)}
+                           />
                         </FormControl>
                         <FormMessage />
                      </FormItem>

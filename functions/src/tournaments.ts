@@ -10,11 +10,30 @@ interface ProposeTournamentData {
   description: string;
   proposedDate: string; // ISO String from client
   format: string;
+  maxTeams: number;
+  rankMin?: string;
+  rankMax?: string;
+  prize?: number;
+  currency?: string;
 }
 
 interface ReviewTournamentData {
   proposalId: string;
   status: 'approved' | 'rejected';
+}
+
+interface EditTournamentData {
+    tournamentId: string;
+    name: string;
+    description: string;
+    prize?: number;
+    currency?: string;
+    rankMin?: string;
+    rankMax?: string;
+}
+
+interface DeleteTournamentData {
+    tournamentId: string;
 }
 
 export const proposeTournament = onCall(async (request) => {
@@ -31,9 +50,9 @@ export const proposeTournament = onCall(async (request) => {
     throw new HttpsError("permission-denied", "Only certified streamers, moderators, or admins can propose tournaments.");
   }
   
-  const { name, game, description, proposedDate, format } = request.data as ProposeTournamentData;
+  const { name, game, description, proposedDate, format, maxTeams, rankMin, rankMax, prize, currency } = request.data as ProposeTournamentData;
   
-  if (!name || !game || !description || !proposedDate || !format) {
+  if (!name || !game || !description || !proposedDate || !format || !maxTeams) {
     throw new HttpsError("invalid-argument", "Missing required tournament proposal details.");
   }
   
@@ -41,18 +60,26 @@ export const proposeTournament = onCall(async (request) => {
   if (!userDoc.exists) {
       throw new HttpsError("not-found", "Proposer's user profile not found.");
   }
-  const proposerName = userDoc.data()?.name || 'Unknown User';
+  const userData = userDoc.data();
+  const proposerName = userData?.name || 'Unknown User';
+  const proposerCountry = userData?.country || '';
   
   const proposalRef = db.collection("tournamentProposals").doc();
   await proposalRef.set({
     id: proposalRef.id,
     proposerUid: uid,
     proposerName: proposerName,
+    proposerCountry: proposerCountry,
     tournamentName: name,
     game,
     description,
     proposedDate: admin.firestore.Timestamp.fromDate(new Date(proposedDate)),
     format,
+    maxTeams,
+    rankMin: rankMin || '',
+    rankMax: rankMax || '',
+    prize: prize || null,
+    currency: currency || '',
     status: 'pending',
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
@@ -103,10 +130,10 @@ export const reviewTournamentProposal = onCall(async (request) => {
 
             // Step 2: If approved, create the new tournament document
             if (status === 'approved') {
-                const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName } = proposalData;
+                const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName, proposerCountry, maxTeams, rankMin, rankMax, prize, currency } = proposalData;
                 
                 // Rigorous validation. If any of these fail, the transaction will roll back.
-                if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName) {
+                if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName || !maxTeams) {
                     throw new HttpsError("failed-precondition", "The proposal document has invalid data and cannot be approved.");
                 }
 
@@ -118,8 +145,14 @@ export const reviewTournamentProposal = onCall(async (request) => {
                     description: description,
                     startDate: proposedDate, // This is a valid Firestore Timestamp
                     format: format,
+                    maxTeams,
+                    rankMin: rankMin || '',
+                    rankMax: rankMax || '',
+                    prize: prize || null,
+                    currency: currency || '',
                     status: 'upcoming',
                     organizer: { uid: proposerUid, name: proposerName },
+                    country: proposerCountry || '',
                     createdAt: reviewTimestamp,
                     proposalId: proposalId,
                 });
@@ -137,4 +170,62 @@ export const reviewTournamentProposal = onCall(async (request) => {
         // Otherwise, wrap it in a generic internal error.
         throw new HttpsError('internal', 'A server error occurred while processing the proposal. Please check the function logs.');
     }
+});
+
+export const editTournament = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in to edit a tournament.");
+    }
+
+    const { uid, token } = request.auth;
+    const { tournamentId, ...updateData } = request.data as EditTournamentData;
+
+    if (!tournamentId) {
+        throw new HttpsError("invalid-argument", "Tournament ID is required.");
+    }
+
+    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const tournamentSnap = await tournamentRef.get();
+
+    if (!tournamentSnap.exists) {
+        throw new HttpsError("not-found", "Tournament not found.");
+    }
+
+    const tournamentData = tournamentSnap.data()!;
+    const isOwner = tournamentData.organizer.uid === uid;
+    const isModOrAdmin = token.role === 'moderator' || token.role === 'admin';
+
+    if (!isOwner && !isModOrAdmin) {
+        throw new HttpsError("permission-denied", "You do not have permission to edit this tournament.");
+    }
+
+    await tournamentRef.update(updateData);
+
+    return { success: true, message: "Tournament updated successfully." };
+});
+
+export const deleteTournament = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in to delete a tournament.");
+    }
+     const { token } = request.auth;
+    if (token.role !== 'moderator' && token.role !== 'admin') {
+        throw new HttpsError("permission-denied", "You do not have permission to delete tournaments.");
+    }
+
+    const { tournamentId } = request.data as DeleteTournamentData;
+    if (!tournamentId) {
+        throw new HttpsError("invalid-argument", "Tournament ID is required.");
+    }
+
+    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const tournamentSnap = await tournamentRef.get();
+
+    if (!tournamentSnap.exists) {
+        return { success: true, message: "Tournament already deleted." };
+    }
+
+    await tournamentRef.delete();
+
+    return { success: true, message: "Tournament deleted successfully." };
 });
