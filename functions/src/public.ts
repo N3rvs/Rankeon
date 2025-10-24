@@ -315,16 +315,29 @@ export const getTeamMembers = onCall({ enforceAppCheck: false }, async (request)
     if (!teamId)
       throw new HttpsError('invalid-argument', 'Team ID is required.');
     
+    // Step 1: Get member roles and join dates from the subcollection
     const membersSnap = await db.collection(`teams/${teamId}/members`).get();
     const memberIds = membersSnap.docs.map((d) => d.id);
 
     if (memberIds.length === 0) return [];
 
-    const userPromises = memberIds.map(id => db.collection('users').doc(id).get());
-    const userDocs = await Promise.all(userPromises);
+    // Step 2: Get user profile data for all members, handling batches for >30 members
+    const chunks: string[][] = [];
+    for (let i = 0; i < memberIds.length; i += 30) {
+        chunks.push(memberIds.slice(i, i + 30));
+    }
+    
+    const userQueries = chunks.map(chunk =>
+        db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', chunk).get()
+    );
+    const userQuerySnapshots = await Promise.all(userQueries);
+    
+    const usersMap = new Map<string, FirebaseFirestore.DocumentData>();
+    userQuerySnapshots.forEach(snap => {
+        snap.docs.forEach(doc => usersMap.set(doc.id, doc.data()));
+    });
 
-    const usersMap = new Map(userDocs.map(doc => [doc.id, doc.data()]));
-
+    // Step 3: Combine the data
     return membersSnap.docs.map((d) => {
       const memberData = d.data();
       const userData = usersMap.get(d.id) || {};
