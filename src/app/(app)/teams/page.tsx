@@ -1,3 +1,4 @@
+
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -8,15 +9,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield, Twitch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
-import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy, updateDoc } from 'firebase/firestore'; // updateDoc is no longer needed here for skills
+import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-// *** INICIO DE LA CORRECCIÓN PARCIAL ***
-// Asegúrate de importar updateMemberSkills
-import { deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers, updateMemberSkills } from '@/lib/actions/teams';
-// *** FIN DE LA CORRECCIÓN PARCIAL ***
+import { deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers } from '@/lib/actions/teams';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +45,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
             if (currentSkills.includes(toggledRole)) {
                 newSkills = currentSkills.filter((skill) => skill !== toggledRole);
             } else {
-                // Previene añadir un tercer rol
                 if (currentSkills.length >= 2) {
                     toast({
                         title: "No se pueden añadir más roles",
@@ -59,23 +56,20 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 newSkills = [...currentSkills, toggledRole];
             }
 
-            // *** INICIO DE LA CORRECCIÓN COMPLETA ***
-            // ¡Llama a la acción del backend en lugar de escribir directo!
-            const result = await updateMemberSkills(team.id, member.id, newSkills);
-
-            if (result.success) {
+            try {
+                const userDocRef = doc(db, 'users', member.id);
+                await updateDoc(userDocRef, { skills: newSkills });
                 toast({
                     title: 'Roles actualizados',
                     description: `Se han actualizado los roles de ${member.name}.`
                 });
-            } else {
+            } catch (error: any) {
                 toast({
                     title: 'Error',
-                    description: result.message || 'No se pudieron actualizar los roles',
+                    description: `No se pudieron actualizar los roles: ${error.message}`,
                     variant: 'destructive',
                 });
             }
-            // *** FIN DE LA CORRECCIÓN COMPLETA ***
         });
     };
 
@@ -90,7 +84,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
             setKickAlertOpen(false);
         });
     }
-
+    
     const handleSetIGL = () => {
         startTransition(async () => {
             const result = await setTeamIGL(team.id, member.isIGL ? null : member.id);
@@ -105,7 +99,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     const canKick = currentUserRole === 'founder';
     const canManageRoles = currentUserRole === 'founder' || currentUserRole === 'coach';
 
-    // No mostrar menú para el fundador o si el usuario actual no puede gestionar roles
     if (member.role === 'founder' || !canManageRoles) {
         return null;
     }
@@ -184,9 +177,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     );
 }
 
-// --- El resto del archivo (TeamDisplay, NoTeamDisplay, TeamsPage) sin cambios ---
-// ... (copia el resto de tu archivo original aquí, no necesita modificaciones) ...
-
 function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: TeamMember[], currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
     const { toast } = useToast();
@@ -231,10 +221,10 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
             }
         });
     };
-
+    
     const isStaff = currentUserRole === 'founder' || currentUserRole === 'coach';
     const isFounder = currentUserRole === 'founder';
-
+    
     const rankRange = team.rankMin && team.rankMax
         ? team.rankMin === team.rankMax
             ? team.rankMin
@@ -245,7 +235,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
         if (!videoUrl) {
           return null;
         }
-
+        
         let embedUrl = '';
         if (videoUrl.includes("youtube.com/watch?v=")) {
           const videoId = videoUrl.split('v=')[1].split('&')[0];
@@ -257,14 +247,14 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
 
         const videoNode = embedUrl ? (
              <div className="aspect-video">
-               <iframe
-                 className="w-full h-full rounded-lg"
-                 src={embedUrl}
-                 title="Team Showcase Video"
-                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                 allowFullScreen
-               ></iframe>
-             </div>
+              <iframe
+                className="w-full h-full rounded-lg"
+                src={embedUrl}
+                title="Team Showcase Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
         ) : (
             <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
         );
@@ -325,7 +315,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
         <div className="space-y-6 pt-20">
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
             {isStaff && <TeamTasksDialog teamId={team.id} open={isTasksDialogOpen} onOpenChange={setIsTasksDialogOpen} />}
-
+            
              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 {/* LEFT/MAIN COLUMN */}
                 <div className="lg:col-span-3 space-y-6">
@@ -421,7 +411,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                             <p className="text-muted-foreground text-sm">{team.description || t('TeamsPage.no_description')}</p>
                         </CardContent>
                     </Card>
-
+                    
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> {t('TeamsPage.recruitment_status')}</CardTitle>
@@ -470,7 +460,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                     </Card>
 
                     {isStaff && <TeamApplications teamId={team.id} />}
-
+                    
                     {isStaff && (
                         <Card>
                             <CardHeader>
@@ -503,13 +493,13 @@ function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-xl font-semibold">{t('TeamsPage.no_team_title')}</h3>
-
+            
             {canCreateTeam ? (
                  <>
-                   <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                       {t('TeamsPage.no_team_subtitle')}
-                   </p>
-                   <CreateTeamDialog />
+                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                        {t('TeamsPage.no_team_subtitle')}
+                    </p>
+                    <CreateTeamDialog />
                  </>
             ) : (
                 <p className="mb-4 mt-2 text-sm text-muted-foreground">
@@ -550,12 +540,12 @@ export default function TeamsPage() {
             setLoadingTeam(true);
             const teamId = userProfile.teamId;
             const teamRef = doc(db, 'teams', teamId);
-
+            
             teamUnsubscribe = onSnapshot(teamRef, (teamDoc) => {
                 if (teamDoc.exists()) {
                 const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
                 setTeam(teamData);
-
+                
                 // Now fetch members securely
                 getTeamMembers(teamId).then(result => {
                     if (result.success && result.data) {
@@ -598,7 +588,7 @@ export default function TeamsPage() {
             </div>
         );
     }
-
+    
     const currentUserMembership = members.find(m => m.id === userProfile?.id);
 
     return (
