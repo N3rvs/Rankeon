@@ -309,24 +309,20 @@ export const getManagedUsers = onCall(async ({ auth: callerAuth, data }) => {
 
 /* ----------------------------- Team Members (UI) --------------------------- */
 
-export const getTeamMembers = onCall(async (request) => {
+export const getTeamMembers = onCall({ enforceAppCheck: false }, async (request) => {
   try {
     const { teamId } = (request.data ?? {}) as { teamId: string };
     if (!teamId) throw new HttpsError('invalid-argument', 'Team ID is required.');
-    if (!request.auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
-
+    
     const membersSnap = await db.collection(`teams/${teamId}/members`).get();
     const memberIds = membersSnap.docs.map((d) => d.id);
 
     if (memberIds.length === 0) return [];
 
-    // Nota: 'in' admite máx 30 IDs → si hay más, paginar en lotes.
-    const usersSnap = await db
-      .collection('users')
-      .where(admin.firestore.FieldPath.documentId(), 'in', memberIds)
-      .get();
+    const userPromises = memberIds.map(id => db.collection('users').doc(id).get());
+    const userDocs = await Promise.all(userPromises);
 
-    const usersMap = new Map(usersSnap.docs.map((d) => [d.id, d.data()]));
+    const usersMap = new Map(userDocs.map(doc => [doc.id, doc.data()]));
 
     return membersSnap.docs.map((d) => {
       const memberData = d.data();

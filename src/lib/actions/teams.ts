@@ -194,11 +194,13 @@ export async function getTeamMembers(teamId: string): Promise<{ success: boolean
   try {
     const getMembersFunc = httpsCallable<{ teamId: string }, any[]>(functions, 'getTeamMembers');
     const result = await getMembersFunc({ teamId });
+    
     // Re-hydrate timestamps
-    const members = result.data.map(m => ({
+    const members = (result.data || []).map(m => ({
         ...m,
-        joinedAt: Timestamp.fromDate(new Date(m.joinedAt)),
-    }))
+        joinedAt: m.joinedAt ? Timestamp.fromDate(new Date(m.joinedAt)) : undefined,
+    }));
+    
     return { success: true, data: members as TeamMember[], message: 'Members fetched.' };
   } catch (error: any) {
     console.error('Error getting team members:', error);
@@ -239,4 +241,15 @@ export async function deleteTask(teamId: string, taskId: string): Promise<Action
   } catch (error: any) {
     return { success: false, message: error.message };
   }
+}
+
+export async function updateMemberSkills(teamId: string, memberId: string, skills: string[]): Promise<ActionResponse> {
+    try {
+        const updateSkillsFunc = httpsCallable(functions, 'updateMemberSkills');
+        await updateSkillsFunc({ teamId, memberId, skills });
+        return { success: true, message: 'Skills updated.' };
+    } catch (error: any) {
+        console.error('Error updating member skills:', error);
+        return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+    }
 }
