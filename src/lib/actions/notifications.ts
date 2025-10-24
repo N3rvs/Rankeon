@@ -9,8 +9,7 @@ type ActionResponse = {
   success: boolean;
   message: string;
 };
-
-const functions = getFunctions(app);
+const functions = getFunctions(app, 'europe-west1');
 
 export async function markNotificationsAsRead(
   notificationIds: string[]

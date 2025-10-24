@@ -11,6 +11,41 @@ interface CreateTeamData {
   description?: string;
 }
 
+// En tu archivo /functions/src/teams.ts (backend)
+
+interface UpdateSkillsData {
+    teamId: string;
+    memberId: string;
+    skills: string[];
+}
+
+export const updateMemberSkills = onCall(async ({ auth: requestAuth, data }) => {
+    if (!requestAuth) throw new HttpsError("unauthenticated", "Falta autenticación.");
+    
+    const { teamId, memberId, skills } = data as UpdateSkillsData;
+    if (!teamId || !memberId || !Array.isArray(skills)) {
+        throw new HttpsError("invalid-argument", "Faltan datos.");
+    }
+    if (skills.length > 2) {
+        throw new HttpsError("invalid-argument", "Un jugador puede tener como máximo 2 roles.");
+    }
+
+    const teamRef = db.collection("teams").doc(teamId);
+    
+    // 1. Comprobar permisos (igual que en kickTeamMember)
+    const callerMemberDoc = await teamRef.collection("members").doc(requestAuth.uid).get();
+    const callerRole = callerMemberDoc.data()?.role;
+    if (callerRole !== 'founder' && callerRole !== 'coach') {
+        throw new HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar los roles.");
+    }
+
+    // 2. Actualizar el documento del usuario
+    await db.collection('users').doc(memberId).update({ skills: skills });
+
+    return { success: true, message: "Roles de jugador actualizados." };
+});
+
+// (Recuerda añadir 'updateMemberSkills' a tu 'index.ts' y desplegarla)
 export const createTeam = onCall(async ({ auth: requestAuth, data }) => {
   if (!requestAuth) {
     throw new HttpsError("unauthenticated", "Debes iniciar sesión para crear un equipo.");

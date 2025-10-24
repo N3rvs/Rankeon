@@ -1,365 +1,344 @@
 // functions/src/public.ts
-import { onCall, HttpsError } from "firebase-functions/v2/https";
-import * as admin from "firebase-admin";
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import * as admin from 'firebase-admin';
 
 const db = admin.firestore();
+const DEFAULT_PAGE_SIZE = 20;
 
-// --- CONSTANTES ---
-const DEFAULT_PAGE_SIZE = 20; // Número de documentos a traer por página
+/* --------------------------- Utilidades de error --------------------------- */
 
+function mapErrorToHttpsError(ctx: string, err: any): never {
+  const msg = String(err?.message ?? err ?? 'Unexpected error');
+  console.error(`[${ctx}] ERROR:`, msg, err);
 
-// Esta función ya estaba bien porque usa .limit()
-export const getFeaturedScrims = onCall({ enforceAppCheck: false }, async () =>{
-    try {
-        const scrimsSnapshot = await db.collection('scrims')
-            .where('status', '==', 'confirmed')
-            .orderBy('date', 'desc')
-            .limit(10) // Límite pequeño, esto está bien
-            .get();
+  // Índice compuesto faltante (Firestore suele lanzar FAILED_PRECONDITION)
+  if (msg.includes('FAILED_PRECONDITION') || msg.toLowerCase().includes('index')) {
+    throw new HttpsError(
+      'failed-precondition',
+      'Falta un índice compuesto para esta consulta de Firestore. Crea el índice sugerido en la consola.'
+    );
+  }
 
-        const confirmedScrims = scrimsSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                ...data,
-                id: doc.id,
-                date: data.date?.toDate().toISOString(),
-                createdAt: data.createdAt?.toDate().toISOString(),
-            };
-        });
-        
-        return confirmedScrims;
-    } catch (error) {
-        console.error("Error fetching featured scrims:", error);
-        throw new HttpsError("internal", "Failed to retrieve featured scrims.");
-    }
+  // Reglas denegaron acceso
+  if (msg.includes('Missing or insufficient permissions')) {
+    throw new HttpsError('permission-denied', 'Las reglas de Firestore denegaron la lectura.');
+  }
+
+  // Argumento inválido
+  if (msg.includes('invalid-argument')) {
+    throw new HttpsError('invalid-argument', msg);
+  }
+
+  throw new HttpsError('internal', msg);
+}
+
+/* -------------------------- Featured Scrims (Top N) ------------------------ */
+
+export const getFeaturedScrims = onCall({ enforceAppCheck: false }, async () => {
+  try {
+    const snap = await db
+      .collection('scrims')
+      .where('status', '==', 'confirmed')
+      .orderBy('date', 'desc')
+      .limit(10)
+      .get();
+
+    const scrims = snap.docs.map((d) => {
+      const s = d.data();
+      return {
+        ...s,
+        id: d.id,
+        date: s.date?.toDate().toISOString(),
+        createdAt: s.createdAt?.toDate().toISOString(),
+      };
+    });
+
+    return scrims;
+  } catch (err) {
+    return mapErrorToHttpsError('getFeaturedScrims', err);
+  }
 });
 
-/**
- * --- FUNCIÓN PAGINADA MODIFICADA ---
- * Obtiene jugadores del mercado de forma paginada.
- * Espera { lastId: string | null } en data.
- */
+/* --------------------------- Market: Players (UI) -------------------------- */
+
 export const getMarketPlayers = onCall(async ({ auth, data }) => {
-    if (!auth) {
-        throw new HttpsError('unauthenticated', 'Authentication is required.');
-    }
+  try {
+    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+    const { lastId } = (data ?? {}) as { lastId: string | null };
 
-    const { lastId } = data as { lastId: string | null };
-    
-    let query = db.collection('users')
-        .where('lookingForTeam', '==', true) // Filtra primero, es más eficiente
-        .orderBy('name') // Necesitas un orderBy para usar startAfter
-        .limit(DEFAULT_PAGE_SIZE);
+    let q = db
+      .collection('users')
+      .where('lookingForTeam', '==', true)
+      .orderBy('name')
+      .limit(DEFAULT_PAGE_SIZE);
 
     if (lastId) {
-        const lastDoc = await db.collection('users').doc(lastId).get();
-        if (lastDoc.exists) {
-            query = query.startAfter(lastDoc);
-        }
+      const lastDoc = await db.collection('users').doc(lastId).get();
+      if (lastDoc.exists) q = q.startAfter(lastDoc);
     }
 
-    const usersSnapshot = await query.get();
-    
-    const players = usersSnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            name: data.name || '',
-            avatarUrl: data.avatarUrl || '',
-            primaryGame: data.primaryGame || '',
-            skills: data.skills || [],
-            rank: data.rank || '',
-            country: data.country || '',
-            lookingForTeam: data.lookingForTeam || false,
-            teamId: data.teamId || null,
-            blocked: data.blocked || [],
-        };
+    const snap = await q.get();
+
+    const players = snap.docs.map((d) => {
+      const u = d.data();
+      return {
+        id: d.id,
+        name: u.name || '',
+        avatarUrl: u.avatarUrl || '',
+        primaryGame: u.primaryGame || '',
+        skills: u.skills || [],
+        rank: u.rank || '',
+        country: u.country || '',
+        lookingForTeam: u.lookingForTeam || false,
+        teamId: u.teamId ?? null,
+        blocked: u.blocked || [],
+      };
     });
 
-    // Devuelve el ID del último documento para la siguiente consulta
-    const lastDocInBatch = usersSnapshot.docs[usersSnapshot.docs.length - 1];
-    
-    return {
-        players: players,
-        nextLastId: lastDocInBatch ? lastDocInBatch.id : null,
-    };
+    const lastDoc = snap.docs[snap.docs.length - 1] || null;
+
+    return { players, nextLastId: lastDoc ? lastDoc.id : null };
+  } catch (err) {
+    return mapErrorToHttpsError('getMarketPlayers', err);
+  }
 });
 
-/**
- * --- FUNCIÓN PAGINADA MODIFICADA ---
- * Obtiene equipos del mercado de forma paginada.
- * Espera { lastId: string | null } en data.
- */
+/* ---------------------------- Market: Teams (UI) --------------------------- */
+
 export const getMarketTeams = onCall(async ({ auth, data }) => {
-     if (!auth) {
-        throw new HttpsError('unauthenticated', 'Authentication is required.');
-    }
+  try {
+    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+    const { lastId } = (data ?? {}) as { lastId: string | null };
 
-    const { lastId } = data as { lastId: string | null };
-
-    let query = db.collection('teams')
-        .where('lookingForPlayers', '==', true)
-        .orderBy('createdAt', 'desc') // Ordena por creación reciente
-        .limit(DEFAULT_PAGE_SIZE);
+    let q = db
+      .collection('teams')
+      .where('lookingForPlayers', '==', true)
+      .orderBy('createdAt', 'desc')
+      .limit(DEFAULT_PAGE_SIZE);
 
     if (lastId) {
-        const lastDoc = await db.collection('teams').doc(lastId).get();
-        if (lastDoc.exists) {
-            query = query.startAfter(lastDoc);
-        }
+      const lastDoc = await db.collection('teams').doc(lastId).get();
+      if (lastDoc.exists) q = q.startAfter(lastDoc);
     }
-    
-    const teamsSnapshot = await query.get();
-    
-    const teams = teamsSnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            ...data,
-            id: doc.id,
-            createdAt: data.createdAt?.toDate().toISOString(),
-        };
+
+    const snap = await q.get();
+
+    const teams = snap.docs.map((d) => {
+      const t = d.data();
+      return {
+        ...t,
+        id: d.id,
+        createdAt: t.createdAt?.toDate().toISOString(),
+      };
     });
 
-    const lastDocInBatch = teamsSnapshot.docs[teamsSnapshot.docs.length - 1];
+    const lastDoc = snap.docs[snap.docs.length - 1] || null;
 
-    return {
-        teams: teams,
-        nextLastId: lastDocInBatch ? lastDocInBatch.id : null,
-    };
+    return { teams, nextLastId: lastDoc ? lastDoc.id : null };
+  } catch (err) {
+    return mapErrorToHttpsError('getMarketTeams', err);
+  }
 });
 
-/**
- * --- FUNCIÓN PAGINADA MODIFICADA ---
- * Obtiene rankings de honor paginados.
- * Espera { lastId: string | null } en data.
- * * !!! NOTA IMPORTANTE !!!
- * Esta función AHORA ASUME que tienes un campo `totalHonors` en tus
- * documentos de usuario. Debes actualizar tu función `giveHonor` para
- * que mantenga este campo (`admin.firestore.FieldValue.increment(1)`).
- * Consultar sobre `honorCounts` en cada lectura es demasiado costoso.
- */
+/* --------------------------- Honor Rankings (UI) --------------------------- */
+/* Nota: requiere campo denormalizado `totalHonors` en users */
+
 export const getHonorRankings = onCall(async ({ auth, data }) => {
-    if (!auth) {
-        throw new HttpsError('unauthenticated', 'Authentication is required.');
-    }
+  try {
+    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+    const { lastId } = (data ?? {}) as { lastId: string | null };
 
-    const { lastId } = data as { lastId: string | null };
-
-    let query = db.collection('users')
-        .where('totalHonors', '>', 0) // Filtra por el campo denormalizado
-        .orderBy('totalHonors', 'desc') // Ordena por él
-        .limit(DEFAULT_PAGE_SIZE);
+    let q = db
+      .collection('users')
+      .where('totalHonors', '>', 0)
+      .orderBy('totalHonors', 'desc')
+      .limit(DEFAULT_PAGE_SIZE);
 
     if (lastId) {
-        const lastDoc = await db.collection('users').doc(lastId).get();
-        if (lastDoc.exists) {
-            query = query.startAfter(lastDoc);
-        }
+      const lastDoc = await db.collection('users').doc(lastId).get();
+      if (lastDoc.exists) q = q.startAfter(lastDoc);
     }
-    
-    const usersSnapshot = await query.get();
-    
-    const rankings = usersSnapshot.docs.map(doc => {
-        const user = doc.data();
-        return {
-            id: doc.id,
-            name: user.name,
-            avatarUrl: user.avatarUrl,
-            totalHonors: user.totalHonors || 0, // Lee el campo denormalizado
-            isCertifiedStreamer: user.isCertifiedStreamer || false,
-        };
+
+    const snap = await q.get();
+
+    const rankings = snap.docs.map((d) => {
+      const u = d.data();
+      return {
+        id: d.id,
+        name: u.name,
+        avatarUrl: u.avatarUrl,
+        totalHonors: u.totalHonors || 0,
+        isCertifiedStreamer: u.isCertifiedStreamer || false,
+      };
     });
 
-    const lastDocInBatch = usersSnapshot.docs[usersSnapshot.docs.length - 1];
-    
-    return {
-        rankings: rankings,
-        nextLastId: lastDocInBatch ? lastDocInBatch.id : null,
-    };
+    const lastDoc = snap.docs[snap.docs.length - 1] || null;
+
+    return { rankings, nextLastId: lastDoc ? lastDoc.id : null };
+  } catch (err) {
+    return mapErrorToHttpsError('getHonorRankings', err);
+  }
 });
 
-/**
- * --- FUNCIÓN PAGINADA MODIFICADA ---
- * Obtiene rankings de scrims paginados.
- * * !!! NOTA IMPORTANTE !!!
- * Esta función ASUME que tienes un campo `winRate` en tus documentos de equipo
- * y que `stats.scrimsWon` existe.
- * También necesitarás un ÍNDICE COMPUESTO en Firestore para esta consulta:
- * Colección: `teams`
- * Campos: `stats.scrimsPlayed` (ASC), `winRate` (DESC), `stats.scrimsWon` (DESC)
- */
+/* --------------------------- Scrim Rankings (UI) --------------------------- */
+/* Requiere índices compuestos para: stats.scrimsPlayed (ASC),
+   winRate (DESC), stats.scrimsWon (DESC) */
+
 export const getScrimRankings = onCall(async ({ auth, data }) => {
-    if (!auth) {
-        throw new HttpsError('unauthenticated', 'Authentication is required.');
-    }
-    
-    const { lastId } = data as { lastId: string | null };
+  try {
+    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+    const { lastId } = (data ?? {}) as { lastId: string | null };
 
-    let query = db.collection('teams')
-        .where('stats.scrimsPlayed', '>', 0)
-        .orderBy('stats.scrimsPlayed') // Añadido para consulta
-        .orderBy('winRate', 'desc')
-        .orderBy('stats.scrimsWon', 'desc')
-        .limit(DEFAULT_PAGE_SIZE);
+    let q = db
+      .collection('teams')
+      .where('stats.scrimsPlayed', '>', 0)
+      .orderBy('stats.scrimsPlayed')
+      .orderBy('winRate', 'desc')
+      .orderBy('stats.scrimsWon', 'desc')
+      .limit(DEFAULT_PAGE_SIZE);
 
     if (lastId) {
-        const lastDoc = await db.collection('teams').doc(lastId).get();
-        if (lastDoc.exists) {
-            query = query.startAfter(lastDoc);
-        }
+      const lastDoc = await db.collection('teams').doc(lastId).get();
+      if (lastDoc.exists) q = q.startAfter(lastDoc);
     }
 
-    const teamsSnapshot = await query.get();
-    
-    const rankings = teamsSnapshot.docs.map(doc => {
-        const teamData = doc.data();
-        const played = teamData.stats?.scrimsPlayed || 0;
-        const won = teamData.stats?.scrimsWon || 0;
-        const winRate = teamData.winRate || 0; // Lee el campo pre-calculado
-        return {
-            id: doc.id,
-            ...teamData,
-            winRate,
-            played,
-            won,
-            createdAt: teamData.createdAt?.toDate().toISOString(),
-        };
+    const snap = await q.get();
+
+    const rankings = snap.docs.map((d) => {
+      const t = d.data();
+      const played = t.stats?.scrimsPlayed || 0;
+      const won = t.stats?.scrimsWon || 0;
+      const winRate = t.winRate || 0;
+      return {
+        id: d.id,
+        ...t,
+        winRate,
+        played,
+        won,
+        createdAt: t.createdAt?.toDate().toISOString(),
+      };
     });
 
-    const lastDocInBatch = teamsSnapshot.docs[teamsSnapshot.docs.length - 1];
-    
-    return {
-        rankings: rankings,
-        nextLastId: lastDocInBatch ? lastDocInBatch.id : null,
-    };
+    const lastDoc = snap.docs[snap.docs.length - 1] || null;
+
+    return { rankings, nextLastId: lastDoc ? lastDoc.id : null };
+  } catch (err) {
+    return mapErrorToHttpsError('getScrimRankings', err);
+  }
 });
 
-/**
- * --- FUNCIÓN PAGINADA MODIFICADA ---
- * Obtiene torneos completados paginados.
- */
+/* ----------------------- Tournament Rankings (UI) -------------------------- */
+
 export const getTournamentRankings = onCall(async ({ auth, data }) => {
-    if (!auth) {
-        throw new HttpsError('unauthenticated', 'Authentication is required.');
-    }
+  try {
+    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+    const { lastId } = (data ?? {}) as { lastId: string | null };
 
-    const { lastId } = data as { lastId: string | null };
-
-    let query = db.collection('tournaments')
-        .where('status', '==', 'completed')
-        .where('winnerId', '!=', null) // Filtra en la consulta, no en el código
-        .orderBy('winnerId') // Necesario para el filtro '!='
-        .orderBy('startDate', 'desc') // Ordena por fecha
-        .limit(DEFAULT_PAGE_SIZE);
+    let q = db
+      .collection('tournaments')
+      .where('status', '==', 'completed')
+      .where('winnerId', '!=', null)
+      .orderBy('winnerId') // necesario para '!='
+      .orderBy('startDate', 'desc')
+      .limit(DEFAULT_PAGE_SIZE);
 
     if (lastId) {
-        const lastDoc = await db.collection('tournaments').doc(lastId).get();
-        if (lastDoc.exists) {
-            query = query.startAfter(lastDoc);
-        }
+      const lastDoc = await db.collection('tournaments').doc(lastId).get();
+      if (lastDoc.exists) q = q.startAfter(lastDoc);
     }
-    
-    const tourneySnapshot = await query.get();
-        
-    const tournaments = tourneySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            ...data,
-            id: doc.id,
-            startDate: data.startDate?.toDate().toISOString(),
-            createdAt: data.createdAt?.toDate().toISOString(),
-        };
+
+    const snap = await q.get();
+
+    const tournaments = snap.docs.map((d) => {
+      const t = d.data();
+      return {
+        ...t,
+        id: d.id,
+        startDate: t.startDate?.toDate().toISOString(),
+        createdAt: t.createdAt?.toDate().toISOString(),
+      };
     });
-    
-    const lastDocInBatch = tourneySnapshot.docs[tourneySnapshot.docs.length - 1];
-    
-    return {
-        tournaments: tournaments,
-        nextLastId: lastDocInBatch ? lastDocInBatch.id : null,
-    };
+
+    const lastDoc = snap.docs[snap.docs.length - 1] || null;
+
+    return { tournaments, nextLastId: lastDoc ? lastDoc.id : null };
+  } catch (err) {
+    return mapErrorToHttpsError('getTournamentRankings', err);
+  }
 });
 
-/**
- * --- FUNCIÓN PAGINADA MODIFICADA ---
- * Obtiene usuarios para el panel de admin/mod de forma paginada.
- */
+/* --------------------------- Managed Users (UI) ---------------------------- */
+
 export const getManagedUsers = onCall(async ({ auth: callerAuth, data }) => {
+  try {
     if (!callerAuth) throw new HttpsError('unauthenticated', 'You must be logged in.');
-    const { role } = callerAuth.token;
+    const { role } = callerAuth.token as any;
     if (role !== 'admin' && role !== 'moderator') {
-        throw new HttpsError('permission-denied', 'You do not have permission to access user data.');
+      throw new HttpsError('permission-denied', 'You do not have permission to access user data.');
     }
-    
-    const { lastId } = data as { lastId: string | null };
 
-    let query = db.collection('users')
-        .orderBy('name') // Un orden simple
-        .limit(DEFAULT_PAGE_SIZE);
+    const { lastId } = (data ?? {}) as { lastId: string | null };
+
+    let q = db.collection('users').orderBy('name').limit(DEFAULT_PAGE_SIZE);
 
     if (lastId) {
-        const lastDoc = await db.collection('users').doc(lastId).get();
-        if (lastDoc.exists) {
-            query = query.startAfter(lastDoc);
-        }
+      const lastDoc = await db.collection('users').doc(lastId).get();
+      if (lastDoc.exists) q = q.startAfter(lastDoc);
     }
 
-    const usersSnapshot = await query.get();
-    
-    const users = usersSnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            ...data,
-            id: doc.id,
-            createdAt: data.createdAt?.toDate().toISOString() || null,
-            banUntil: data.banUntil?.toDate().toISOString() || null,
-            _claimsRefreshedAt: data._claimsRefreshedAt?.toDate().toISOString() || null,
-        }
+    const snap = await q.get();
+
+    const users = snap.docs.map((d) => {
+      const u = d.data();
+      return {
+        ...u,
+        id: d.id,
+        createdAt: u.createdAt?.toDate().toISOString() || null,
+        banUntil: u.banUntil?.toDate().toISOString() || null,
+        _claimsRefreshedAt: u._claimsRefreshedAt?.toDate().toISOString() || null,
+      };
     });
 
-    const lastDocInBatch = usersSnapshot.docs[usersSnapshot.docs.length - 1];
-    
-    return {
-        users: users,
-        nextLastId: lastDocInBatch ? lastDocInBatch.id : null,
-    };
+    const lastDoc = snap.docs[snap.docs.length - 1] || null;
+
+    return { users, nextLastId: lastDoc ? lastDoc.id : null };
+  } catch (err) {
+    return mapErrorToHttpsError('getManagedUsers', err);
+  }
 });
 
-/**
- * --- ESTA FUNCIÓN ESTABA BIEN ESCRITA ---
- * El patrón de obtener IDs de subcolección y luego usar `where-in`
- * es eficiente y escala bien (hasta el límite de 30 items en `where-in`).
- * El error CORS que veías es por CÓMO LA LLAMAS (fetch) y no por
- * CÓMO ESTÁ ESCRITA.
- */
+/* ----------------------------- Team Members (UI) --------------------------- */
+
 export const getTeamMembers = onCall(async (request) => {
-    const { teamId } = request.data;
+  try {
+    const { teamId } = (request.data ?? {}) as { teamId: string };
     if (!teamId) throw new HttpsError('invalid-argument', 'Team ID is required.');
     if (!request.auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
 
-    // Idealmente, aquí deberías comprobar si el usuario que llama
-    // tiene permiso para ver los miembros de este equipo.
-
     const membersSnap = await db.collection(`teams/${teamId}/members`).get();
-    const memberIds = membersSnap.docs.map(doc => doc.id);
+    const memberIds = membersSnap.docs.map((d) => d.id);
 
-    if (memberIds.length === 0) {
-        return [];
-    }
+    if (memberIds.length === 0) return [];
 
-    // El `where-in` es muy eficiente.
-    // Límite: Firebase solo permite hasta 30 items en un array 'in'.
-    // Si un equipo puede tener >30 miembros, tendrás que hacer múltiples consultas.
-    const usersSnap = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', memberIds).get();
-    const usersMap = new Map(usersSnap.docs.map(doc => [doc.id, doc.data()]));
-    
-    return membersSnap.docs.map(doc => {
-        const memberData = doc.data();
-        const userData = usersMap.get(doc.id) || {};
-        return {
-            ...memberData,
-            ...userData,
-            id: doc.id,
-            joinedAt: memberData.joinedAt?.toDate().toISOString(),
-        }
+    // Nota: 'in' admite máx 30 IDs → si hay más, paginar en lotes.
+    const usersSnap = await db
+      .collection('users')
+      .where(admin.firestore.FieldPath.documentId(), 'in', memberIds)
+      .get();
+
+    const usersMap = new Map(usersSnap.docs.map((d) => [d.id, d.data()]));
+
+    return membersSnap.docs.map((d) => {
+      const memberData = d.data();
+      const userData = usersMap.get(d.id) || {};
+      return {
+        ...memberData,
+        ...userData,
+        id: d.id,
+        joinedAt: memberData.joinedAt?.toDate().toISOString(),
+      };
     });
+  } catch (err) {
+    return mapErrorToHttpsError('getTeamMembers', err);
+  }
 });

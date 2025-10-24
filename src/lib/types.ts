@@ -1,5 +1,5 @@
-// src/lib/types.ts
 import { Timestamp } from 'firebase/firestore';
+import { ReplaceTimestampsWithDates } from './time-types';
 
 export type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
 export type UserStatus = 'available' | 'busy' | 'away' | 'offline';
@@ -222,7 +222,7 @@ export interface Scrim {
   rankMin?: string;
   rankMax?: string;
   country?: string;
-  status: 'open' | 'challenged' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'challenged' | 'confirmed' | 'cancelled' | 'completed';
   createdAt: Timestamp;
   notes?: string;
 }
@@ -273,3 +273,20 @@ export interface SupportTicket {
   resolvedBy?: string; // UID of mod/admin
   lastMessageAt?: Timestamp;
 }
+
+export type UserProfileUI = ReplaceTimestampsWithDates<UserProfile>;
+export type HonorsGivenUI = ReplaceTimestampsWithDates<HonorsGiven>;
+export type TeamUI = ReplaceTimestampsWithDates<Team>;
+export type TeamMemberUI = ReplaceTimestampsWithDates<TeamMember>;
+export type ChatMessageUI = ReplaceTimestampsWithDates<ChatMessage>;
+export type ChatUI = ReplaceTimestampsWithDates<Chat>;
+export type NotificationUI = ReplaceTimestampsWithDates<Notification>;
+export type TeamInvitationUI = ReplaceTimestampsWithDates<TeamInvitation>;
+export type TeamApplicationUI = ReplaceTimestampsWithDates<TeamApplication>;
+export type FriendRequestUI = ReplaceTimestampsWithDates<FriendRequest>;
+export type GameRoomUI = ReplaceTimestampsWithDates<GameRoom>;
+export type TournamentProposalUI = ReplaceTimestampsWithDates<TournamentProposal>;
+export type TournamentUI = ReplaceTimestampsWithDates<Tournament>;
+export type ScrimUI = ReplaceTimestampsWithDates<Scrim>;
+export type TicketMessageUI = ReplaceTimestampsWithDates<TicketMessage>;
+export type SupportTicketUI = ReplaceTimestampsWithDates<SupportTicket>;

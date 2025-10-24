@@ -33,23 +33,15 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-<<<<<<< HEAD
 exports.revokeHonor = exports.giveHonor = void 0;
-=======
-exports.giveHonor = void 0;
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 // src/functions/honors.ts
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const db = admin.firestore();
-<<<<<<< HEAD
 // Separamos los tipos de honores para la lógica de Karma
 const POSITIVE_HONORS = ['great_teammate', 'leader', 'good_communicator', 'positive_attitude'];
 const NEGATIVE_HONORS = ['bad_behavior']; // Esto actúa como un "reporte"
 const VALID_HONORS = [...POSITIVE_HONORS, ...NEGATIVE_HONORS];
-=======
-const VALID_HONORS = ['great_teammate', 'leader', 'good_communicator', 'positive_attitude'];
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.giveHonor = (0, https_1.onCall)(async ({ auth, data }) => {
     const giverId = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { recipientId, honorType } = data;
@@ -79,7 +71,6 @@ exports.giveHonor = (0, https_1.onCall)(async ({ auth, data }) => {
         if (givenHonors.length > 0) {
             throw new https_1.HttpsError("already-exists", "You have already given an honor to this user. You can only give one honor per user.");
         }
-<<<<<<< HEAD
         // --- LÓGICA DE KARMA (TOTALHONORS) AÑADIDA ---
         // Determina si sumar o restar al Karma total
         let karmaIncrement = 0;
@@ -90,13 +81,10 @@ exports.giveHonor = (0, https_1.onCall)(async ({ auth, data }) => {
             karmaIncrement = -1; // Resta 1 por mal comportamiento
         }
         // ---------------------------------------------
-=======
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         // Add the honor to the specific giver->recipient document
         transaction.set(honorDocRef, {
             giverId,
             recipientId,
-<<<<<<< HEAD
             honors: [honorType], // Guarda el tipo de honor
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         }, { merge: true });
@@ -106,20 +94,10 @@ exports.giveHonor = (0, https_1.onCall)(async ({ auth, data }) => {
             [honorCountField]: admin.firestore.FieldValue.increment(1),
             // --- ACTUALIZA EL CAMPO TOTALHONORS ---
             'totalHonors': admin.firestore.FieldValue.increment(karmaIncrement)
-=======
-            honors: [honorType],
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true });
-        // Increment the denormalized count on the recipient's user document
-        const honorCountField = `honorCounts.${honorType}`;
-        transaction.update(recipientUserRef, {
-            [honorCountField]: admin.firestore.FieldValue.increment(1)
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         });
         return { success: true, message: "Honor awarded successfully!" };
     });
 });
-<<<<<<< HEAD
 exports.revokeHonor = (0, https_1.onCall)(async ({ auth, data }) => {
     const giverId = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { recipientId } = data;
@@ -169,6 +147,4 @@ exports.revokeHonor = (0, https_1.onCall)(async ({ auth, data }) => {
         return { success: true, message: "Honor revoked successfully." };
     });
 });
-=======
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 //# sourceMappingURL=honors.js.map

@@ -8,10 +8,12 @@ import { Timestamp } from 'firebase/firestore';
 import { errorEmitter } from '../firebase/error-emitter';
 import { FirestorePermissionError } from '../firebase/errors';
 
+
 type ActionResponse = {
   success: boolean;
   message: string;
 };
+
 
 export type FriendshipStatus =
   | 'loading'
@@ -32,7 +34,7 @@ type FriendshipStatusActionResponse = {
     message: string;
 }
 
-const functions = getFunctions(app);
+const functions = getFunctions(app, 'europe-west1');
 
 
 export async function getFriendshipStatus(targetUserId: string): Promise<FriendshipStatusActionResponse> {

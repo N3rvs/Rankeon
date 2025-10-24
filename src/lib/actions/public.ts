@@ -1,144 +1,210 @@
-// src/lib/actions/public.ts
 'use client';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 import type { UserProfile, Team, Tournament, Scrim } from '../types';
 import { errorEmitter } from '../firebase/error-emitter';
 import { FirestorePermissionError } from '../firebase/errors';
+import { Timestamp } from 'firebase/firestore'; // Import Timestamp
 
-const functions = getFunctions(app);
+const functions = getFunctions(app, 'europe-west1');
 
-// Market Data
-type PlayerDataResponse = { success: boolean; data?: UserProfile[]; message: string; }
-type TeamDataResponse = { success: boolean; data?: Team[]; message: string; }
-type ScrimDataResponse = { success: boolean; data?: Scrim[]; message: string; }
+// --- TIPOS DE RESPUESTA PAGINADA ---
+type PaginatedResponse<T> = {
+    success: boolean;
+    data?: {
+        items: T[];
+        nextLastId: string | null;
+    };
+    message: string;
+}
 
+// --- Tipos específicos ---
+type PaginatedPlayersResponse = PaginatedResponse<UserProfile>;
+type PaginatedTeamsResponse = PaginatedResponse<Team>;
+type PaginatedScrimsResponse = { success: boolean; data?: Scrim[]; message: string; } // getFeaturedScrims no es paginada
+type PaginatedHonorRankingsResponse = PaginatedResponse<HonorRankingPlayer>;
+type PaginatedScrimRankingsResponse = PaginatedResponse<ScrimRankingTeam>;
+type PaginatedTournamentRankingsResponse = PaginatedResponse<Tournament>;
 
-export async function getMarketPlayers(): Promise<PlayerDataResponse> {
+// --- Tipos de datos para Rankings ---
+type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl' | 'isCertifiedStreamer'> & { totalHonors: number };
+type ScrimRankingTeam = Team & { winRate: number; played: number; won: number }; // Añadido 'won'
+
+// --- ACCIONES ACTUALIZADAS ---
+
+/**
+ * Obtiene jugadores del mercado de forma paginada.
+ * @param lastId El ID del último jugador del lote anterior, o null para la primera página.
+ */
+export async function getMarketPlayers(lastId: string | null): Promise<PaginatedPlayersResponse> {
   try {
-    const getPlayersFunc = httpsCallable<void, UserProfile[]>(functions, 'getMarketPlayers');
-    const result = await getPlayersFunc();
-    return { success: true, data: result.data, message: 'Players fetched.' };
+    // Llama a la función paginada del backend
+    const getPlayersFunc = httpsCallable<{ lastId: string | null }, { players: any[], nextLastId: string | null }>(functions, 'getMarketPlayers');
+    const result = await getPlayersFunc({ lastId });
+
+    // Rehidrata Timestamps si UserProfile los tuviera (ej. createdAt)
+    const players = result.data.players.map(p => ({
+        ...p,
+        // Ejemplo: createdAt: p.createdAt ? Timestamp.fromDate(new Date(p.createdAt)) : undefined,
+    }));
+
+    return {
+        success: true,
+        data: {
+            items: players as UserProfile[],
+            nextLastId: result.data.nextLastId
+        },
+        message: 'Jugadores obtenidos.'
+    };
   } catch (error: any) {
     console.error('Error fetching market players:', error);
     if (error.code === 'permission-denied') {
-      const permissionError = new FirestorePermissionError({
-        path: '/users',
-        operation: 'list',
-      });
+      const permissionError = new FirestorePermissionError({ path: '/users', operation: 'list' });
       errorEmitter.emit('permission-error', permissionError);
     }
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
 
-export async function getMarketTeams(): Promise<TeamDataResponse> {
+/**
+ * Obtiene equipos del mercado de forma paginada.
+ * @param lastId El ID del último equipo del lote anterior, o null para la primera página.
+ */
+export async function getMarketTeams(lastId: string | null): Promise<PaginatedTeamsResponse> {
   try {
-    const getTeamsFunc = httpsCallable<void, any[]>(functions, 'getMarketTeams');
-    const result = await getTeamsFunc();
-    // Re-hydrate Firestore Timestamps
-    const teams = result.data.map(t => ({
+    const getTeamsFunc = httpsCallable<{ lastId: string | null }, { teams: any[], nextLastId: string | null }>(functions, 'getMarketTeams');
+    const result = await getTeamsFunc({ lastId });
+
+    // Rehidrata Timestamps
+    const teams = result.data.teams.map(t => ({
         ...t,
-        createdAt: new Date(t.createdAt),
-    }))
-    return { success: true, data: teams, message: 'Teams fetched.' };
+        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined, // Usa Timestamp
+    }));
+
+    return {
+        success: true,
+        data: {
+            items: teams as Team[],
+            nextLastId: result.data.nextLastId
+        },
+        message: 'Equipos obtenidos.'
+    };
   } catch (error: any) {
     console.error('Error fetching market teams:', error);
     if (error.code === 'permission-denied') {
-      const permissionError = new FirestorePermissionError({
-        path: '/teams',
-        operation: 'list',
-      });
+      const permissionError = new FirestorePermissionError({ path: '/teams', operation: 'list' });
       errorEmitter.emit('permission-error', permissionError);
     }
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
 
-export async function getFeaturedScrims(): Promise<ScrimDataResponse> {
+// getFeaturedScrims no necesita paginación porque ya usa limit(10) en el backend
+export async function getFeaturedScrims(): Promise<PaginatedScrimsResponse> {
   try {
     const getScrimsFunc = httpsCallable<void, any[]>(functions, 'getFeaturedScrims');
     const result = await getScrimsFunc();
-    // Re-hydrate Firestore Timestamps
+    // Rehidrata Timestamps
     const scrims = result.data.map(s => ({
         ...s,
-        date: new Date(s.date),
-        createdAt: new Date(s.createdAt),
-    }))
-    return { success: true, data: scrims, message: 'Scrims fetched.' };
+        date: s.date ? Timestamp.fromDate(new Date(s.date)) : undefined, // Usa Timestamp
+        createdAt: s.createdAt ? Timestamp.fromDate(new Date(s.createdAt)) : undefined, // Usa Timestamp
+    }));
+    return { success: true, data: scrims as Scrim[], message: 'Scrims obtenidas.' };
   } catch (error: any) {
-    // We don't log an error here because it's a public, non-critical feature.
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    // No loguear error aquí, es una función pública no crítica.
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
 
-
-// Rankings Data
-type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl' | 'isCertifiedStreamer'> & { totalHonors: number };
-type HonorRankingResponse = { success: boolean; data?: HonorRankingPlayer[]; message: string; }
-type ScrimRankingTeam = Team & { winRate: number; played: number; };
-type ScrimRankingResponse = { success: boolean; data?: ScrimRankingTeam[]; message: string; }
-type TournamentRankingResponse = { success: boolean; data?: Tournament[]; message: string; }
-
-export async function getHonorRankings(): Promise<HonorRankingResponse> {
+/**
+ * Obtiene rankings de honor de forma paginada.
+ * @param lastId El ID del último jugador del lote anterior, o null para la primera página.
+ */
+export async function getHonorRankings(lastId: string | null): Promise<PaginatedHonorRankingsResponse> {
   try {
-    const getRankingsFunc = httpsCallable<void, HonorRankingPlayer[]>(functions, 'getHonorRankings');
-    const result = await getRankingsFunc();
-    return { success: true, data: result.data, message: 'Rankings fetched.' };
+    const getRankingsFunc = httpsCallable<{ lastId: string | null }, { rankings: HonorRankingPlayer[], nextLastId: string | null }>(functions, 'getHonorRankings');
+    const result = await getRankingsFunc({ lastId });
+
+    return {
+        success: true,
+        data: {
+            items: result.data.rankings,
+            nextLastId: result.data.nextLastId
+        },
+        message: 'Rankings de honor obtenidos.'
+    };
   } catch (error: any) {
     console.error('Error fetching honor rankings:', error);
     if (error.code === 'permission-denied') {
-      const permissionError = new FirestorePermissionError({
-        path: '/users',
-        operation: 'list',
-      });
+      const permissionError = new FirestorePermissionError({ path: '/users', operation: 'list' });
       errorEmitter.emit('permission-error', permissionError);
     }
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
 
-export async function getScrimRankings(): Promise<ScrimRankingResponse> {
+/**
+ * Obtiene rankings de scrims de forma paginada.
+ * @param lastId El ID del último equipo del lote anterior, o null para la primera página.
+ */
+export async function getScrimRankings(lastId: string | null): Promise<PaginatedScrimRankingsResponse> {
   try {
-    const getRankingsFunc = httpsCallable<void, any[]>(functions, 'getScrimRankings');
-    const result = await getRankingsFunc();
-    const teams = result.data.map(t => ({
+    const getRankingsFunc = httpsCallable<{ lastId: string | null }, { rankings: any[], nextLastId: string | null }>(functions, 'getScrimRankings');
+    const result = await getRankingsFunc({ lastId });
+
+    const teams = result.data.rankings.map(t => ({
         ...t,
-        createdAt: new Date(t.createdAt),
-    }))
-    return { success: true, data: teams, message: 'Rankings fetched.' };
+        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined, // Usa Timestamp
+    }));
+
+    return {
+        success: true,
+        data: {
+            items: teams as ScrimRankingTeam[],
+            nextLastId: result.data.nextLastId
+        },
+        message: 'Rankings de scrims obtenidos.'
+    };
   } catch (error: any) {
     console.error('Error fetching scrim rankings:', error);
      if (error.code === 'permission-denied') {
-      const permissionError = new FirestorePermissionError({
-        path: '/teams',
-        operation: 'list',
-      });
+      const permissionError = new FirestorePermissionError({ path: '/teams', operation: 'list' });
       errorEmitter.emit('permission-error', permissionError);
     }
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }
 
-export async function getTournamentRankings(): Promise<TournamentRankingResponse> {
+/**
+ * Obtiene rankings de torneos (torneos completados) de forma paginada.
+ * @param lastId El ID del último torneo del lote anterior, o null para la primera página.
+ */
+export async function getTournamentRankings(lastId: string | null): Promise<PaginatedTournamentRankingsResponse> {
   try {
-    const getRankingsFunc = httpsCallable<void, any[]>(functions, 'getTournamentRankings');
-    const result = await getRankingsFunc();
-     const tournaments = result.data.map(t => ({
+    const getRankingsFunc = httpsCallable<{ lastId: string | null }, { tournaments: any[], nextLastId: string | null }>(functions, 'getTournamentRankings');
+    const result = await getRankingsFunc({ lastId });
+
+     const tournaments = result.data.tournaments.map(t => ({
         ...t,
-        startDate: new Date(t.startDate),
-        createdAt: new Date(t.createdAt),
-    }))
-    return { success: true, data: tournaments, message: 'Rankings fetched.' };
+        startDate: t.startDate ? Timestamp.fromDate(new Date(t.startDate)) : undefined, // Usa Timestamp
+        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined, // Usa Timestamp
+    }));
+
+    return {
+        success: true,
+        data: {
+            items: tournaments as Tournament[],
+            nextLastId: result.data.nextLastId
+        },
+        message: 'Rankings de torneos obtenidos.'
+    };
   } catch (error: any) {
     console.error('Error fetching tournament rankings:', error);
     if (error.code === 'permission-denied') {
-      const permissionError = new FirestorePermissionError({
-        path: '/tournaments',
-        operation: 'list',
-      });
+      const permissionError = new FirestorePermissionError({ path: '/tournaments', operation: 'list' });
       errorEmitter.emit('permission-error', permissionError);
     }
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
 }

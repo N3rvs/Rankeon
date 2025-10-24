@@ -33,8 +33,98 @@ interface EditTournamentData {
 interface DeleteTournamentData {
     tournamentId: string;
 }
+interface RegisterTeamData {
+  tournamentId: string;
+  teamId: string;
+}
 
 // --- proposeTournament (Sin cambios, estaba perfecto) ---
+export const registerTeamForTournament = onCall(async (request) => {
+    // 1. Autenticación y Validación de Datos
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Debes iniciar sesión para registrar un equipo.");
+    }
+    const { uid } = request.auth;
+    const { tournamentId, teamId } = request.data as RegisterTeamData;
+
+    if (!tournamentId || !teamId) {
+        throw new HttpsError("invalid-argument", "Faltan IDs de torneo o equipo.");
+    }
+
+    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const teamRef = db.collection("teams").doc(teamId);
+    const memberRef = teamRef.collection("members").doc(uid); // Referencia al usuario en el equipo
+    const registrationRef = tournamentRef.collection("teams").doc(teamId); // Documento de registro
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            // 2. Obtener datos necesarios en la transacción
+            const [tournamentSnap, teamSnap, memberSnap, registrationSnap] = await Promise.all([
+                transaction.get(tournamentRef),
+                transaction.get(teamRef),
+                transaction.get(memberRef),
+                transaction.get(registrationRef)
+            ]);
+
+            // 3. Validaciones
+            if (!tournamentSnap.exists) {
+                throw new HttpsError("not-found", "El torneo no existe.");
+            }
+            if (!teamSnap.exists) {
+                throw new HttpsError("not-found", "Tu equipo no existe.");
+            }
+            // Permiso: ¿Es el usuario staff del equipo?
+            if (!memberSnap.exists || !['founder', 'coach'].includes(memberSnap.data()?.role)) {
+                throw new HttpsError("permission-denied", "Solo el fundador o coach pueden registrar el equipo.");
+            }
+            // ¿Ya está registrado?
+            if (registrationSnap.exists) {
+                throw new HttpsError("already-exists", "Este equipo ya está registrado en el torneo.");
+            }
+
+            const tournamentData = tournamentSnap.data()!;
+            const teamData = teamSnap.data()!;
+
+            // ¿El torneo está abierto para inscripción?
+            if (tournamentData.status !== 'upcoming') {
+                throw new HttpsError("failed-precondition", "Este torneo no está abierto para inscripciones.");
+            }
+            // ¿Hay cupo? (Usa un contador o lee la subcolección)
+            const currentTeamsCount = tournamentData.registeredTeamsCount || 0; // Asume un contador
+            if (currentTeamsCount >= tournamentData.maxTeams) {
+                throw new HttpsError("failed-precondition", "El torneo está lleno.");
+            }
+            // ¿Cumple el requisito de rango? (Simplificado, necesita tu lógica de rangos)
+            // const teamRankValue = rankOrder[teamData.rank]; // Necesitas tu lógica rankOrder
+            // const minRankValue = rankOrder[tournamentData.rankMin];
+            // const maxRankValue = rankOrder[tournamentData.rankMax];
+            // if (tournamentData.rankMin && teamRankValue < minRankValue) { ... }
+            // if (tournamentData.rankMax && teamRankValue > maxRankValue) { ... }
+
+
+            // 4. Escribir el registro y actualizar contador
+            transaction.set(registrationRef, {
+                teamName: teamData.name,
+                teamAvatarUrl: teamData.avatarUrl,
+                registeredAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Actualiza el contador de equipos registrados en el torneo
+            transaction.update(tournamentRef, {
+                registeredTeamsCount: admin.firestore.FieldValue.increment(1)
+            });
+        });
+
+        return { success: true, message: "Equipo registrado exitosamente en el torneo." };
+
+    } catch (error: any) {
+        console.error(`Error al registrar equipo ${teamId} en torneo ${tournamentId}:`, error);
+        if (error instanceof HttpsError) {
+            throw error; // Re-lanza errores Https conocidos
+        }
+        throw new HttpsError('internal', 'Ocurrió un error inesperado al registrar el equipo.');
+    }
+});
 export const proposeTournament = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to propose a tournament.");

@@ -21,7 +21,7 @@ import { db } from '@/lib/firebase/client';
 import type { Team } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 
-export function CreateScrimDialog({ teamId }: { teamId: string }) {
+export function CreateScrimDialog({ teamId }: { teamId: string , teamCountry?: string}) {
   const { t } = useI18n();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);

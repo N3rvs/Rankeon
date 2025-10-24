@@ -32,7 +32,6 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-<<<<<<< HEAD
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -45,22 +44,90 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTournament = exports.editTournament = exports.reviewTournamentProposal = exports.proposeTournament = void 0;
-=======
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.reviewTournamentProposal = exports.proposeTournament = void 0;
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
+exports.deleteTournament = exports.editTournament = exports.reviewTournamentProposal = exports.proposeTournament = exports.registerTeamForTournament = void 0;
 // src/functions/tournaments.ts
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const db = admin.firestore();
-<<<<<<< HEAD
 // --- proposeTournament (Sin cambios, estaba perfecto) ---
+exports.registerTeamForTournament = (0, https_1.onCall)(async (request) => {
+    // 1. Autenticación y Validación de Datos
+    if (!request.auth) {
+        throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión para registrar un equipo.");
+    }
+    const { uid } = request.auth;
+    const { tournamentId, teamId } = request.data;
+    if (!tournamentId || !teamId) {
+        throw new https_1.HttpsError("invalid-argument", "Faltan IDs de torneo o equipo.");
+    }
+    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const teamRef = db.collection("teams").doc(teamId);
+    const memberRef = teamRef.collection("members").doc(uid); // Referencia al usuario en el equipo
+    const registrationRef = tournamentRef.collection("teams").doc(teamId); // Documento de registro
+    try {
+        await db.runTransaction(async (transaction) => {
+            var _a;
+            // 2. Obtener datos necesarios en la transacción
+            const [tournamentSnap, teamSnap, memberSnap, registrationSnap] = await Promise.all([
+                transaction.get(tournamentRef),
+                transaction.get(teamRef),
+                transaction.get(memberRef),
+                transaction.get(registrationRef)
+            ]);
+            // 3. Validaciones
+            if (!tournamentSnap.exists) {
+                throw new https_1.HttpsError("not-found", "El torneo no existe.");
+            }
+            if (!teamSnap.exists) {
+                throw new https_1.HttpsError("not-found", "Tu equipo no existe.");
+            }
+            // Permiso: ¿Es el usuario staff del equipo?
+            if (!memberSnap.exists || !['founder', 'coach'].includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) {
+                throw new https_1.HttpsError("permission-denied", "Solo el fundador o coach pueden registrar el equipo.");
+            }
+            // ¿Ya está registrado?
+            if (registrationSnap.exists) {
+                throw new https_1.HttpsError("already-exists", "Este equipo ya está registrado en el torneo.");
+            }
+            const tournamentData = tournamentSnap.data();
+            const teamData = teamSnap.data();
+            // ¿El torneo está abierto para inscripción?
+            if (tournamentData.status !== 'upcoming') {
+                throw new https_1.HttpsError("failed-precondition", "Este torneo no está abierto para inscripciones.");
+            }
+            // ¿Hay cupo? (Usa un contador o lee la subcolección)
+            const currentTeamsCount = tournamentData.registeredTeamsCount || 0; // Asume un contador
+            if (currentTeamsCount >= tournamentData.maxTeams) {
+                throw new https_1.HttpsError("failed-precondition", "El torneo está lleno.");
+            }
+            // ¿Cumple el requisito de rango? (Simplificado, necesita tu lógica de rangos)
+            // const teamRankValue = rankOrder[teamData.rank]; // Necesitas tu lógica rankOrder
+            // const minRankValue = rankOrder[tournamentData.rankMin];
+            // const maxRankValue = rankOrder[tournamentData.rankMax];
+            // if (tournamentData.rankMin && teamRankValue < minRankValue) { ... }
+            // if (tournamentData.rankMax && teamRankValue > maxRankValue) { ... }
+            // 4. Escribir el registro y actualizar contador
+            transaction.set(registrationRef, {
+                teamName: teamData.name,
+                teamAvatarUrl: teamData.avatarUrl,
+                registeredAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            // Actualiza el contador de equipos registrados en el torneo
+            transaction.update(tournamentRef, {
+                registeredTeamsCount: admin.firestore.FieldValue.increment(1)
+            });
+        });
+        return { success: true, message: "Equipo registrado exitosamente en el torneo." };
+    }
+    catch (error) {
+        console.error(`Error al registrar equipo ${teamId} en torneo ${tournamentId}:`, error);
+        if (error instanceof https_1.HttpsError) {
+            throw error; // Re-lanza errores Https conocidos
+        }
+        throw new https_1.HttpsError('internal', 'Ocurrió un error inesperado al registrar el equipo.');
+    }
+});
 exports.proposeTournament = (0, https_1.onCall)(async (request) => {
-=======
-exports.proposeTournament = (0, https_1.onCall)(async (request) => {
-    var _a;
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     if (!request.auth) {
         throw new https_1.HttpsError("unauthenticated", "You must be logged in to propose a tournament.");
     }
@@ -71,58 +138,39 @@ exports.proposeTournament = (0, https_1.onCall)(async (request) => {
     if (!isCertified && !isAdmin && !isModerator) {
         throw new https_1.HttpsError("permission-denied", "Only certified streamers, moderators, or admins can propose tournaments.");
     }
-<<<<<<< HEAD
     const { name, game, description, proposedDate, format, maxTeams, rankMin, rankMax, prize, currency } = request.data;
     if (!name || !game || !description || !proposedDate || !format || !maxTeams) {
-=======
-    const { name, game, description, proposedDate, format } = request.data;
-    if (!name || !game || !description || !proposedDate || !format) {
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         throw new https_1.HttpsError("invalid-argument", "Missing required tournament proposal details.");
     }
     const userDoc = await db.collection('users').doc(uid).get();
     if (!userDoc.exists) {
         throw new https_1.HttpsError("not-found", "Proposer's user profile not found.");
     }
-<<<<<<< HEAD
     const userData = userDoc.data();
     const proposerName = (userData === null || userData === void 0 ? void 0 : userData.name) || 'Unknown User';
     const proposerCountry = (userData === null || userData === void 0 ? void 0 : userData.country) || '';
-=======
-    const proposerName = ((_a = userDoc.data()) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown User';
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     const proposalRef = db.collection("tournamentProposals").doc();
     await proposalRef.set({
         id: proposalRef.id,
         proposerUid: uid,
         proposerName: proposerName,
-<<<<<<< HEAD
         proposerCountry: proposerCountry,
-=======
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         tournamentName: name,
         game,
         description,
         proposedDate: admin.firestore.Timestamp.fromDate(new Date(proposedDate)),
         format,
-<<<<<<< HEAD
         maxTeams,
         rankMin: rankMin || '',
         rankMax: rankMax || '',
         prize: prize || null,
         currency: currency || '',
-=======
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         status: 'pending',
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     return { success: true, message: "Tournament proposal submitted successfully for review." };
 });
-<<<<<<< HEAD
 // --- reviewTournamentProposal (Sin cambios, estaba perfecto) ---
-=======
-// A new, more robust implementation of reviewTournamentProposal using a transaction
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.reviewTournamentProposal = (0, https_1.onCall)(async (request) => {
     // 1. Permissions and Data Validation
     if (!request.auth) {
@@ -138,10 +186,6 @@ exports.reviewTournamentProposal = (0, https_1.onCall)(async (request) => {
     }
     const proposalRef = db.collection("tournamentProposals").doc(proposalId);
     try {
-<<<<<<< HEAD
-=======
-        // Using a transaction to ensure atomicity, which is safer than separate writes.
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         await db.runTransaction(async (transaction) => {
             const proposalSnap = await transaction.get(proposalRef);
             if (!proposalSnap.exists) {
@@ -160,14 +204,8 @@ exports.reviewTournamentProposal = (0, https_1.onCall)(async (request) => {
             });
             // Step 2: If approved, create the new tournament document
             if (status === 'approved') {
-<<<<<<< HEAD
                 const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName, proposerCountry, maxTeams, rankMin, rankMax, prize, currency } = proposalData;
                 if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName || !maxTeams) {
-=======
-                const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName } = proposalData;
-                // Rigorous validation. If any of these fail, the transaction will roll back.
-                if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName) {
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
                     throw new https_1.HttpsError("failed-precondition", "The proposal document has invalid data and cannot be approved.");
                 }
                 const tournamentRef = db.collection('tournaments').doc();
@@ -176,7 +214,6 @@ exports.reviewTournamentProposal = (0, https_1.onCall)(async (request) => {
                     name: tournamentName,
                     game: game,
                     description: description,
-<<<<<<< HEAD
                     startDate: proposedDate,
                     format: format,
                     maxTeams,
@@ -187,12 +224,6 @@ exports.reviewTournamentProposal = (0, https_1.onCall)(async (request) => {
                     status: 'upcoming',
                     organizer: { uid: proposerUid, name: proposerName },
                     country: proposerCountry || '',
-=======
-                    startDate: proposedDate, // This is a valid Firestore Timestamp
-                    format: format,
-                    status: 'upcoming',
-                    organizer: { uid: proposerUid, name: proposerName },
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
                     createdAt: reviewTimestamp,
                     proposalId: proposalId,
                 });
@@ -202,7 +233,6 @@ exports.reviewTournamentProposal = (0, https_1.onCall)(async (request) => {
     }
     catch (error) {
         console.error("Critical error in reviewTournamentProposal transaction:", error);
-<<<<<<< HEAD
         if (error instanceof https_1.HttpsError) {
             throw error;
         }
@@ -301,14 +331,4 @@ async function deleteCollection(db, collectionPath, batchSize = 50) {
         query = collectionRef.orderBy('__name__').startAfter(snapshot.docs[snapshot.docs.length - 1]).limit(batchSize);
     }
 }
-=======
-        // If it's an HttpsError we threw ourselves, re-throw it.
-        if (error instanceof https_1.HttpsError) {
-            throw error;
-        }
-        // Otherwise, wrap it in a generic internal error.
-        throw new https_1.HttpsError('internal', 'A server error occurred while processing the proposal. Please check the function logs.');
-    }
-});
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 //# sourceMappingURL=tournaments.js.map

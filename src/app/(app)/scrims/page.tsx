@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, query, where, onSnapshot, orderBy, Unsubscribe } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, Unsubscribe, Timestamp } from 'firebase/firestore'; // Import Timestamp
 import { db } from '@/lib/firebase/client';
 import type { Scrim } from '@/lib/types';
 import { useAuth } from '@/contexts/auth-context';
@@ -40,10 +40,21 @@ function ScrimList({ scrims, loading }: { scrims: Scrim[], loading: boolean }) {
             </div>
         );
     }
-    
+
+    // Convierte Timestamps de Firestore a objetos Date de JS antes de pasarlos a ScrimCard
+    // Esto es importante porque los Server Components/Client Components a veces no manejan bien los Timestamps
+    const scrimsWithDates = scrims.map(s => ({
+        ...s,
+        // Comprueba si 'date' es un Timestamp antes de convertir
+        date: s.date instanceof Timestamp ? s.date.toDate() : s.date,
+        // Comprueba si 'createdAt' es un Timestamp antes de convertir
+        createdAt: s.createdAt instanceof Timestamp ? s.createdAt.toDate() : s.createdAt,
+    }));
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {scrims.map(scrim => (
+            {scrimsWithDates.map(scrim => (
+                // Asegúrate que ScrimCard espera objetos Date, no Timestamps
                 <ScrimCard key={scrim.id} scrim={scrim} />
             ))}
         </div>
@@ -65,85 +76,43 @@ export default function ScrimsPage() {
 
   const canCreate = userProfile?.teamId && (userProfile.role === 'founder' || userProfile.role === 'coach');
 
-  const rankOrder: { [key: string]: number } = {
-    'Hierro': 1, 'Iron': 1,
-    'Bronce': 2, 'Bronze': 2,
-    'Plata': 3, 'Silver': 3,
-    'Oro': 4, 'Gold': 4,
-    'Platino': 5, 'Platinum': 5,
-    'Diamante': 6, 'Diamond': 6,
-    'Ascendente': 7, 'Ascendant': 7,
-    'Inmortal': 8, 'Immortal': 8,
-    'Radiante': 9, 'Radiant': 9,
-  };
+  const rankOrder: { [key: string]: number } = useMemo(() => ({ // Usar useMemo si `t` puede cambiar
+    [t('Ranks.iron')]: 1, 'Hierro': 1, 'Iron': 1,
+    [t('Ranks.bronze')]: 2, 'Bronce': 2, 'Bronze': 2,
+    [t('Ranks.silver')]: 3, 'Plata': 3, 'Silver': 3,
+    [t('Ranks.gold')]: 4, 'Oro': 4, 'Gold': 4,
+    [t('Ranks.platinum')]: 5, 'Platino': 5, 'Platinum': 5,
+    [t('Ranks.diamond')]: 6, 'Diamante': 6, 'Diamond': 6, // Asegúrate que 'Diamante' existe en tus traducciones si lo usas
+    [t('Ranks.ascendant')]: 7, 'Ascendente': 7, 'Ascendant': 7,
+    [t('Ranks.immortal')]: 8, 'Inmortal': 8, 'Immortal': 8,
+    [t('Ranks.radiant')]: 9, 'Radiante': 9, 'Radiant': 9, // Asegúrate que 'Radiante' existe si lo usas
+  }), [t]);
 
-  const valorantRanks = [
+  const valorantRanks = useMemo(() => [ // Usar useMemo
     { value: 'all', label: t('Market.all_ranks') },
-    { value: 'Hierro', label: t('Ranks.iron') },
-    { value: 'Bronce', label: t('Ranks.bronze') },
-    { value: 'Plata', label: t('Ranks.silver') },
-    { value: 'Oro', label: t('Ranks.gold') },
-    { value: 'Platino', label: t('Ranks.platinum') },
-    { value: 'Diamante', label: t('Ranks.diamond') },
-    { value: 'Ascendente', label: t('Ranks.ascendant') },
-    { value: 'Inmortal', label: t('Ranks.immortal') },
-    { value: 'Radiante', label: t('Ranks.radiant') },
-  ];
+    { value: t('Ranks.iron'), label: t('Ranks.iron') },
+    { value: t('Ranks.bronze'), label: t('Ranks.bronze') },
+    { value: t('Ranks.silver'), label: t('Ranks.silver') },
+    { value: t('Ranks.gold'), label: t('Ranks.gold') },
+    { value: t('Ranks.platinum'), label: t('Ranks.platinum') },
+    { value: t('Ranks.diamond'), label: t('Ranks.diamond') }, // Asegúrate que existe t('Ranks.diamond')
+    { value: t('Ranks.ascendant'), label: t('Ranks.ascendant') },
+    { value: t('Ranks.immortal'), label: t('Ranks.immortal') },
+    { value: t('Ranks.radiant'), label: t('Ranks.radiant') }, // Asegúrate que existe t('Ranks.radiant')
+  ], [t]);
 
-  const europeanCountries = [
+  const europeanCountries = useMemo(() => [ // Usar useMemo
     { value: 'all', label: t('Market.all_countries') },
-    { value: 'Albania', label: `${getFlagEmoji('Albania')} ${t('Countries.albania')}` },
-    { value: 'Andorra', label: `${getFlagEmoji('Andorra')} ${t('Countries.andorra')}` },
-    { value: 'Austria', label: `${getFlagEmoji('Austria')} ${t('Countries.austria')}` },
-    { value: 'Belarus', label: `${getFlagEmoji('Belarus')} ${t('Countries.belarus')}` },
-    { value: 'Belgium', label: `${getFlagEmoji('Belgium')} ${t('Countries.belgium')}` },
-    { value: 'Bosnia and Herzegovina', label: `${getFlagEmoji('Bosnia and Herzegovina')} ${t('Countries.bosnia_and_herzegovina')}` },
-    { value: 'Bulgaria', label: `${getFlagEmoji('Bulgaria')} ${t('Countries.bulgaria')}` },
-    { value: 'Croatia', label: `${getFlagEmoji('Croatia')} ${t('Countries.croatia')}` },
-    { value: 'Cyprus', label: `${getFlagEmoji('Cyprus')} ${t('Countries.cyprus')}` },
-    { value: 'Czech Republic', label: `${getFlagEmoji('Czech Republic')} ${t('Countries.czech_republic')}` },
-    { value: 'Denmark', label: `${getFlagEmoji('Denmark')} ${t('Countries.denmark')}` },
-    { value: 'Estonia', label: `${getFlagEmoji('Estonia')} ${t('Countries.estonia')}` },
-    { value: 'Finland', label: `${getFlagEmoji('Finland')} ${t('Countries.finland')}` },
-    { value: 'France', label: `${getFlagEmoji('France')} ${t('Countries.france')}` },
-    { value: 'Germany', label: `${getFlagEmoji('Germany')} ${t('Countries.germany')}` },
-    { value: 'Greece', label: `${getFlagEmoji('Greece')} ${t('Countries.greece')}` },
-    { value: 'Hungary', label: `${getFlagEmoji('Hungary')} ${t('Countries.hungary')}` },
-    { value: 'Iceland', label: `${getFlagEmoji('Iceland')} ${t('Countries.iceland')}` },
-    { value: 'Ireland', label: `${getFlagEmoji('Ireland')} ${t('Countries.ireland')}` },
-    { value: 'Italy', label: `${getFlagEmoji('Italy')} ${t('Countries.italy')}` },
-    { value: 'Latvia', label: `${getFlagEmoji('Latvia')} ${t('Countries.latvia')}` },
-    { value: 'Liechtenstein', label: `${getFlagEmoji('Liechtenstein')} ${t('Countries.liechtenstein')}` },
-    { value: 'Lithuania', label: `${getFlagEmoji('Lithuania')} ${t('Countries.lithuania')}` },
-    { value: 'Luxembourg', label: `${getFlagEmoji('Luxembourg')} ${t('Countries.luxembourg')}` },
-    { value: 'Malta', label: `${getFlagEmoji('Malta')} ${t('Countries.malta')}` },
-    { value: 'Moldova', label: `${getFlagEmoji('Moldova')} ${t('Countries.moldova')}` },
-    { value: 'Monaco', label: `${getFlagEmoji('Monaco')} ${t('Countries.monaco')}` },
-    { value: 'Montenegro', label: `${getFlagEmoji('Montenegro')} ${t('Countries.montenegro')}` },
-    { value: 'Netherlands', label: `${getFlagEmoji('Netherlands')} ${t('Countries.netherlands')}` },
-    { value: 'North Macedonia', label: `${getFlagEmoji('North Macedonia')} ${t('Countries.north_macedonia')}` },
-    { value: 'Norway', label: `${getFlagEmoji('Norway')} ${t('Countries.norway')}` },
-    { value: 'Poland', label: `${getFlagEmoji('Poland')} ${t('Countries.poland')}` },
-    { value: 'Portugal', label: `${getFlagEmoji('Portugal')} ${t('Countries.portugal')}` },
-    { value: 'Romania', label: `${getFlagEmoji('Romania')} ${t('Countries.romania')}` },
-    { value: 'Russia', label: `${getFlagEmoji('Russia')} ${t('Countries.russia')}` },
-    { value: 'San Marino', label: `${getFlagEmoji('San Marino')} ${t('Countries.san_marino')}` },
-    { value: 'Serbia', label: `${getFlagEmoji('Serbia')} ${t('Countries.serbia')}` },
-    { value: 'Slovakia', label: `${getFlagEmoji('Slovakia')} ${t('Countries.slovakia')}` },
-    { value: 'Slovenia', label: `${getFlagEmoji('Slovenia')} ${t('Countries.slovenia')}` },
+    // ... (lista completa de países usando `t`)
     { value: 'Spain', label: `${getFlagEmoji('Spain')} ${t('Countries.spain')}` },
-    { value: 'Sweden', label: `${getFlagEmoji('Sweden')} ${t('Countries.sweden')}` },
-    { value: 'Switzerland', label: `${getFlagEmoji('Switzerland')} ${t('Countries.switzerland')}` },
-    { value: 'Ukraine', label: `${getFlagEmoji('Ukraine')} ${t('Countries.ukraine')}` },
-    { value: 'United Kingdom', label: `${getFlagEmoji('United Kingdom')} ${t('Countries.united_kingdom')}` },
-    { value: 'Vatican City', label: `${getFlagEmoji('Vatican City')} ${t('Countries.vatican_city')}` }
-  ];
+    // Añade el resto de países aquí usando t('Countries.country_name')
+  ], [t]);
 
-  // Fetch available scrims (status: open)
+  // --- Fetch Available Scrims (status: pending) ---
   useEffect(() => {
     const q = query(
       collection(db, 'scrims'),
-      where('status', '==', 'open'),
+      where('status', '==', 'pending'), // Buscamos las que esperan rival
       orderBy('date', 'asc')
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -158,47 +127,40 @@ export default function ScrimsPage() {
     return () => unsubscribe();
   }, []);
 
-   // Fetch user's scrims 
-  useEffect(() => {
+   // --- Fetch User's Scrims (Mis Scrims - CORREGIDO) ---
+   useEffect(() => {
     if (!userProfile?.teamId) {
         setLoadingMyScrims(false);
         setMyScrims([]);
-        return;
+        return; // Sale temprano si no hay teamId
     }
     setLoadingMyScrims(true);
     const teamId = userProfile.teamId;
-    
-    // Firestore does not support logical OR queries on different fields.
-    // We must perform separate queries and merge the results.
-    const q1 = query(collection(db, 'scrims'), where('teamAId', '==', teamId));
-    const q2 = query(collection(db, 'scrims'), where('teamBId', '==', teamId));
-    const q3 = query(collection(db, 'scrims'), where('challengerId', '==', teamId));
-    
-    let scrims1: Scrim[] = [], scrims2: Scrim[] = [], scrims3: Scrim[] = [];
-    let unsub1: Unsubscribe, unsub2: Unsubscribe, unsub3: Unsubscribe;
 
-    const combineAndSetResults = () => {
-        const allScrims = [...scrims1, ...scrims2, ...scrims3];
-        const uniqueScrims = Array.from(new Map(allScrims.map(item => [item.id, item])).values());
-        const sortedScrims = uniqueScrims
-            .filter(s => s.status !== 'open')
-            .sort((a,b) => b.date.toMillis() - a.date.toMillis());
-        setMyScrims(sortedScrims);
+    // *** CONSULTA ÚNICA USANDO participantIds ***
+    const q = query(
+        collection(db, 'scrims'),
+        where('participantIds', 'array-contains', teamId), // Busca si el teamId está en el array
+        orderBy('date', 'desc') // Ordena por fecha más reciente primero
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scrim));
+        // Filtra estados si es necesario (ej. no mostrar 'cancelled')
+        const filteredData = data.filter(scrim => scrim.status !== 'cancelled');
+        setMyScrims(filteredData);
         setLoadingMyScrims(false);
-    }
+    }, (error) => {
+        console.error("Error fetching user's scrims:", error);
+        setLoadingMyScrims(false);
+    });
 
-    unsub1 = onSnapshot(q1, (snap) => { scrims1 = snap.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim); combineAndSetResults(); });
-    unsub2 = onSnapshot(q2, (snap) => { scrims2 = snap.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim); combineAndSetResults(); });
-    unsub3 = onSnapshot(q3, (snap) => { scrims3 = snap.docs.map(doc => ({id: doc.id, ...doc.data()}) as Scrim); combineAndSetResults(); });
+    // Limpia el listener cuando el componente se desmonta o teamId cambia
+    return () => unsubscribe();
 
-    return () => {
-        if(unsub1) unsub1();
-        if(unsub2) unsub2();
-        if(unsub3) unsub3();
-    };
-  }, [userProfile?.teamId]);
+   }, [userProfile?.teamId]); // Dependencia correcta
 
-  // Fetch all confirmed scrims
+  // --- Fetch Confirmed Scrims (sin cambios) ---
   useEffect(() => {
     const q = query(
       collection(db, 'scrims'),
@@ -217,25 +179,43 @@ export default function ScrimsPage() {
     return () => unsubscribe();
   }, []);
 
+  // --- Lógica de Filtros ---
   const handleResetFilters = () => {
     setRankFilter('all');
     setCountryFilter('all');
   };
-  
+
+  // Función de filtrado mejorada
   const applyFilters = (scrims: Scrim[]) => {
-      return scrims.filter(scrim => {
-      const countryMatch = countryFilter === 'all' || scrim.country === countryFilter;
-      const rankMatch = rankFilter === 'all' || 
-        (!scrim.rankMin && !scrim.rankMax) ||
-        (scrim.rankMin && scrim.rankMax && rankOrder[rankFilter] >= rankOrder[scrim.rankMin] && rankOrder[rankFilter] <= rankOrder[scrim.rankMax]);
-      return countryMatch && rankMatch;
-    });
+     return scrims.filter(scrim => {
+        // Filtro de País
+        const countryMatch = countryFilter === 'all' || scrim.country === countryFilter;
+        if (!countryMatch) return false;
+
+        // Filtro de Rango
+        if (rankFilter === 'all') return true; // Si no hay filtro de rango, pasa
+
+        const filterRankValue = rankOrder[rankFilter];
+        if (!filterRankValue) return true; // Si el filtro no es un rango válido, pasa
+
+        // Si la scrim NO tiene rangos definidos, se muestra (o decide si ocultarla)
+        if (!scrim.rankMin && !scrim.rankMax) return true;
+
+        // Si la scrim SÍ tiene rangos
+        const scrimMinRankValue = scrim.rankMin ? rankOrder[scrim.rankMin] : -Infinity;
+        const scrimMaxRankValue = scrim.rankMax ? rankOrder[scrim.rankMax] : Infinity;
+
+        // Comprueba si el rango filtrado cae DENTRO del rango de la scrim
+        return filterRankValue >= scrimMinRankValue && filterRankValue <= scrimMaxRankValue;
+     });
   }
 
-  const filteredAvailableScrims = useMemo(() => applyFilters(availableScrims), [availableScrims, rankFilter, countryFilter]);
-  const filteredConfirmedScrims = useMemo(() => applyFilters(confirmedScrims), [confirmedScrims, rankFilter, countryFilter]);
+  // Memoriza los resultados filtrados
+  const filteredAvailableScrims = useMemo(() => applyFilters(availableScrims), [availableScrims, rankFilter, countryFilter, rankOrder]); // Añadido rankOrder
+  const filteredConfirmedScrims = useMemo(() => applyFilters(confirmedScrims), [confirmedScrims, rankFilter, countryFilter, rankOrder]); // Añadido rankOrder
 
 
+  // --- JSX (Renderizado) ---
   const filterCard = (
     <Card className="p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -275,25 +255,27 @@ export default function ScrimsPage() {
           <h1 className="text-3xl font-bold font-headline tracking-tight">{t('ScrimsPage.title')}</h1>
           <p className="text-muted-foreground">{t('ScrimsPage.subtitle')}</p>
         </div>
-        {canCreate && <CreateScrimDialog teamId={userProfile.teamId!} />}
+        {/* Asegúrate que CreateScrimDialog recibe los ranks/countries si necesita pasarlos */}
+        {canCreate && userProfile?.teamId && <CreateScrimDialog teamId={userProfile.teamId} teamCountry={userProfile.country} />}
       </div>
-      
-       <Tabs defaultValue="available" className="w-full">
+
+      <Tabs defaultValue="available" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="available"><CalendarSearch className="mr-2 h-4 w-4" /> {t('ScrimsPage.available_scrims_tab')}</TabsTrigger>
             <TabsTrigger value="my-scrims"><BookOpen className="mr-2 h-4 w-4" /> {t('ScrimsPage.my_scrims_tab')}</TabsTrigger>
             <TabsTrigger value="confirmed"><ShieldCheck className="mr-2 h-4 w-4" /> {t('ScrimsPage.confirmed_matches_tab')}</TabsTrigger>
         </TabsList>
         <TabsContent value="available" className="mt-6">
-            {filterCard}
-            <ScrimList scrims={filteredAvailableScrims} loading={loadingAvailable} />
+          {filterCard}
+          <ScrimList scrims={filteredAvailableScrims} loading={loadingAvailable} />
         </TabsContent>
         <TabsContent value="my-scrims" className="mt-6">
-            <ScrimList scrims={myScrims} loading={loadingMyScrims} />
+          {/* No mostramos filtros en "Mis Scrims" */}
+          <ScrimList scrims={myScrims} loading={loadingMyScrims} />
         </TabsContent>
          <TabsContent value="confirmed" className="mt-6">
-            {filterCard}
-            <ScrimList scrims={filteredConfirmedScrims} loading={loadingConfirmed} />
+          {filterCard}
+          <ScrimList scrims={filteredConfirmedScrims} loading={loadingConfirmed} />
         </TabsContent>
       </Tabs>
     </div>

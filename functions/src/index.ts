@@ -14,7 +14,7 @@ import { addInboxNotification, markNotificationsAsRead, deleteNotifications, cle
 import { cleanUpOldData } from './cleanup';
 import { createGameRoom, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
 import { createScrim, acceptScrim, cancelScrim } from './scrims';
-import { createTeam, updateTeam, deleteTeam, kickTeamMember, setTeamIGL, updateTeamMemberRole } from './teams';
+import { createTeam, updateTeam, deleteTeam, kickTeamMember, setTeamIGL, updateTeamMemberRole,updateMemberSkills } from './teams';
 import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
 import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
@@ -22,6 +22,7 @@ import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, g
 
 // 4. Exporta todo como lo tenías
 export {
+  updateMemberSkills,
   getChats,
   deleteChatHistory,
   sendMessageToFriend,

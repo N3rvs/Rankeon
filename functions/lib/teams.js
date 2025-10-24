@@ -44,11 +44,34 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setTeamIGL = exports.kickTeamMember = exports.updateTeamMemberRole = exports.deleteTeam = exports.updateTeam = exports.createTeam = void 0;
+exports.setTeamIGL = exports.kickTeamMember = exports.updateTeamMemberRole = exports.deleteTeam = exports.updateTeam = exports.createTeam = exports.updateMemberSkills = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const db = admin.firestore();
 const auth = admin.auth();
+exports.updateMemberSkills = (0, https_1.onCall)(async ({ auth: requestAuth, data }) => {
+    var _a;
+    if (!requestAuth)
+        throw new https_1.HttpsError("unauthenticated", "Falta autenticación.");
+    const { teamId, memberId, skills } = data;
+    if (!teamId || !memberId || !Array.isArray(skills)) {
+        throw new https_1.HttpsError("invalid-argument", "Faltan datos.");
+    }
+    if (skills.length > 2) {
+        throw new https_1.HttpsError("invalid-argument", "Un jugador puede tener como máximo 2 roles.");
+    }
+    const teamRef = db.collection("teams").doc(teamId);
+    // 1. Comprobar permisos (igual que en kickTeamMember)
+    const callerMemberDoc = await teamRef.collection("members").doc(requestAuth.uid).get();
+    const callerRole = (_a = callerMemberDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
+    if (callerRole !== 'founder' && callerRole !== 'coach') {
+        throw new https_1.HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar los roles.");
+    }
+    // 2. Actualizar el documento del usuario
+    await db.collection('users').doc(memberId).update({ skills: skills });
+    return { success: true, message: "Roles de jugador actualizados." };
+});
+// (Recuerda añadir 'updateMemberSkills' a tu 'index.ts' y desplegarla)
 exports.createTeam = (0, https_1.onCall)(async ({ auth: requestAuth, data }) => {
     if (!requestAuth) {
         throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión para crear un equipo.");
@@ -78,11 +101,7 @@ exports.createTeam = (0, https_1.onCall)(async ({ auth: requestAuth, data }) => 
             description: description || '',
             country: (userData === null || userData === void 0 ? void 0 : userData.country) || '',
             avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0, 2)}`,
-<<<<<<< HEAD
             bannerUrl: 'https://placehold.co/900x400.png',
-=======
-            bannerUrl: 'https://placehold.co/1200x400.png',
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
             founder: uid,
             memberIds: [uid],
             recruitingRoles: [],

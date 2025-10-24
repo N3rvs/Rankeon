@@ -9,7 +9,7 @@ type ActionResponse = {
   message: string;
 };
 
-const functions = getFunctions(app);
+const functions = getFunctions(app, 'europe-west1');
 
 export async function giveHonorToUser(
   recipientId: string,

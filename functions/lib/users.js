@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserCertification = exports.updateUserStatus = exports.updateUserRole = void 0;
+exports.updateUserCertification = exports.updateUserPresence = exports.updateUserStatus = exports.updateUserRole = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const db = admin.firestore();
@@ -118,6 +118,35 @@ exports.updateUserStatus = (0, https_1.onCall)(async ({ auth: callerAuth, data }
     catch (error) {
         console.error('Error updating user status:', error);
         throw new https_1.HttpsError('internal', `Failed to update user status: ${error.message}`);
+    }
+});
+const VALID_STATUSES = ['online', 'away', 'offline'];
+exports.updateUserPresence = (0, https_1.onCall)(async ({ auth: requestAuth, data }) => {
+    // 1. Autenticación y Validación
+    if (!requestAuth) {
+        throw new https_1.HttpsError('unauthenticated', 'Debes iniciar sesión para actualizar tu estado.');
+    }
+    const uid = requestAuth.uid;
+    const { status } = data;
+    if (!status || !VALID_STATUSES.includes(status)) {
+        throw new https_1.HttpsError('invalid-argument', 'Se proporcionó un estado inválido.');
+    }
+    const userRef = db.collection('users').doc(uid);
+    try {
+        // 2. Actualizar Firestore
+        await userRef.update({
+            status: status,
+            lastSeen: admin.firestore.FieldValue.serverTimestamp() // Guarda la última vez que se actualizó
+        });
+        return { success: true, message: `Estado actualizado a "${status}".` };
+    }
+    catch (error) {
+        console.error(`Error al actualizar la presencia para el usuario ${uid}:`, error);
+        // Comprueba si el documento no existe (puede pasar si hay retraso entre Auth y Firestore)
+        if (error.code === 5) { // Firestore NOT_FOUND error code
+            throw new https_1.HttpsError('not-found', 'No se encontró el perfil de usuario para actualizar el estado.');
+        }
+        throw new https_1.HttpsError('internal', 'Ocurrió un error inesperado al actualizar el estado.');
     }
 });
 exports.updateUserCertification = (0, https_1.onCall)(async ({ auth: callerAuth, data }) => {

@@ -33,17 +33,18 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancelScrim = exports.acceptScrim = exports.createScrim = void 0;
+exports.reportScrimResult = exports.respondToScrimChallenge = exports.challengeScrim = exports.cancelScrim = exports.acceptScrim = exports.createScrim = void 0;
 // src/functions/scrims.ts
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const db = admin.firestore();
 const Timestamp = admin.firestore.Timestamp;
-const STAFF_ROLES = ['founder', 'coach', 'admin'];
+const STAFF_ROLES = ['founder', 'coach', 'admin']; // Roles que pueden gestionar scrims
+// --- FUNCIONES ---
 exports.createScrim = (0, https_1.onCall)(async ({ auth, data }) => {
     var _a;
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
-    const { teamId, date, format, type, notes } = data;
+    const { teamId, date, format, type, notes, rankMin, rankMax } = data; // Añadidos rankMin/Max
     if (!uid)
         throw new https_1.HttpsError("unauthenticated", "You must be logged in.");
     if (!teamId || !date || !format || !type) {
@@ -54,11 +55,7 @@ exports.createScrim = (0, https_1.onCall)(async ({ auth, data }) => {
     const [teamSnap, memberSnap] = await Promise.all([teamRef.get(), memberRef.get()]);
     if (!teamSnap.exists)
         throw new https_1.HttpsError("not-found", "Team not found.");
-<<<<<<< HEAD
-    if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) { // <--- Correcto
-=======
     if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) {
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         throw new https_1.HttpsError("permission-denied", "You must be staff to create a scrim for this team.");
     }
     const teamData = teamSnap.data();
@@ -72,11 +69,16 @@ exports.createScrim = (0, https_1.onCall)(async ({ auth, data }) => {
         format,
         type,
         notes: notes || '',
-        status: "pending",
+        status: "pending", // Estado inicial: esperando rival
         createdAt: Timestamp.now(),
+        // Guardamos Rango y País para facilitar filtros en el frontend
+        rankMin: rankMin || null,
+        rankMax: rankMax || null,
+        country: teamData.country || null, // País del equipo A
     });
-    return { success: true, scrimId: scrimRef.id };
+    return { success: true, scrimId: scrimRef.id, message: "Scrim creada, esperando rival." };
 });
+// Mantenemos acceptScrim por si se usa, pero también añade participantIds
 exports.acceptScrim = (0, https_1.onCall)(async ({ auth, data }) => {
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { scrimId, acceptingTeamId } = data;
@@ -98,11 +100,7 @@ exports.acceptScrim = (0, https_1.onCall)(async ({ auth, data }) => {
             throw new https_1.HttpsError("not-found", "Scrim not found.");
         if (!teamSnap.exists)
             throw new https_1.HttpsError("not-found", "Your team could not be found.");
-<<<<<<< HEAD
-        if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) { // <--- Correcto
-=======
         if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) {
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
             throw new https_1.HttpsError("permission-denied", "You must be staff to accept a scrim for this team.");
         }
         const scrimData = scrimSnap.data();
@@ -112,31 +110,22 @@ exports.acceptScrim = (0, https_1.onCall)(async ({ auth, data }) => {
         if (scrimData.teamAId === acceptingTeamId) {
             throw new https_1.HttpsError("invalid-argument", "You cannot accept your own scrim.");
         }
-<<<<<<< HEAD
-        // *** INICIO DE LA CORRECCIÓN #1 ***
-        // Guardamos los datos del equipo B (teamSnap) al aceptar
         const teamData = teamSnap.data();
         transaction.update(scrimRef, {
             teamBId: acceptingTeamId,
             status: "confirmed",
-            teamBName: teamData.name, // <-- AÑADIDO
-            teamBAvatarUrl: teamData.avatarUrl // <-- AÑADIDO
+            teamBName: teamData.name,
+            teamBAvatarUrl: teamData.avatarUrl,
+            // *** AÑADIDO PARA MEJORA DE CONSULTA ***
+            participantIds: [scrimData.teamAId, acceptingTeamId]
         });
-        // *** FIN DE LA CORRECCIÓN #1 ***
-=======
-        transaction.update(scrimRef, {
-            teamBId: acceptingTeamId,
-            status: "confirmed",
-        });
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
-        // Here you would create the temporary chat
+        // Aquí podrías crear un chat temporal o enviar notificaciones
     });
+    // Devuelve un mensaje genérico ya que la transacción se encarga de errores
+    return { success: true, message: "Scrim aceptada." };
 });
 exports.cancelScrim = (0, https_1.onCall)(async ({ auth, data }) => {
-<<<<<<< HEAD
     var _a, _b;
-=======
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { scrimId } = data;
     if (!uid)
@@ -146,40 +135,186 @@ exports.cancelScrim = (0, https_1.onCall)(async ({ auth, data }) => {
     if (!scrimSnap.exists)
         throw new https_1.HttpsError("not-found", "Scrim not found.");
     const scrimData = scrimSnap.data();
-<<<<<<< HEAD
-    // *** INICIO DE LA CORRECCIÓN #2 ***
     // Comprueba el ROL, no solo si existe
     const teamARef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
     const teamASnap = await teamARef.get();
     const teamAStaff = teamASnap.exists && STAFF_ROLES.includes((_a = teamASnap.data()) === null || _a === void 0 ? void 0 : _a.role);
     let teamBStaff = false;
-    if (scrimData.teamBId) {
+    // Solo comprueba el equipo B si la scrim fue confirmada o completada
+    if (scrimData.teamBId && (scrimData.status === 'confirmed' || scrimData.status === 'completed')) {
         const teamBRef = db.collection("teams").doc(scrimData.teamBId).collection("members").doc(uid);
         const teamBSnap = await teamBRef.get();
         teamBStaff = teamBSnap.exists && STAFF_ROLES.includes((_b = teamBSnap.data()) === null || _b === void 0 ? void 0 : _b.role);
     }
-    // *** FIN DE LA CORRECCIÓN #2 ***
     if (!teamAStaff && !teamBStaff) {
         throw new https_1.HttpsError("permission-denied", "You are not authorized to cancel this scrim.");
     }
-    // Solo se puede cancelar si está 'pending' o 'confirmed'
     if (scrimData.status === 'cancelled' || scrimData.status === 'completed') {
         throw new https_1.HttpsError("failed-precondition", `Cannot cancel a scrim that is already ${scrimData.status}.`);
     }
-=======
-    // Check if user is staff of either team
-    const teamARef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
-    const teamAStaff = (await teamARef.get()).exists;
-    let teamBStaff = false;
-    if (scrimData.teamBId) {
-        const teamBRef = db.collection("teams").doc(scrimData.teamBId).collection("members").doc(uid);
-        teamBStaff = (await teamBRef.get()).exists;
+    // Si la scrim estaba confirmada y se cancela, restar estadísticas
+    if (scrimData.status === 'confirmed' && scrimData.teamBId) {
+        const batch = db.batch();
+        const teamARefUpdate = db.collection("teams").doc(scrimData.teamAId);
+        const teamBRefUpdate = db.collection("teams").doc(scrimData.teamBId);
+        batch.update(teamARefUpdate, { 'stats.scrimsPlayed': admin.firestore.FieldValue.increment(-1) });
+        batch.update(teamBRefUpdate, { 'stats.scrimsPlayed': admin.firestore.FieldValue.increment(-1) });
+        // También actualiza la scrim a 'cancelled'
+        batch.update(scrimRef, { status: 'cancelled' });
+        await batch.commit();
     }
-    if (!teamAStaff && !teamBStaff) {
-        throw new https_1.HttpsError("permission-denied", "You are not authorized to cancel this scrim.");
+    else {
+        // Si estaba 'pending' o 'challenged', solo cambia el estado
+        await scrimRef.update({ status: 'cancelled' });
     }
->>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
-    await scrimRef.update({ status: 'cancelled' });
-    return { success: true, message: "Scrim cancelled." };
+    return { success: true, message: "Scrim cancelada." };
+});
+exports.challengeScrim = (0, https_1.onCall)(async ({ auth, data }) => {
+    const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
+    const { scrimId, challengingTeamId } = data;
+    if (!uid)
+        throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión.");
+    if (!scrimId || !challengingTeamId)
+        throw new https_1.HttpsError("invalid-argument", "Faltan IDs.");
+    const scrimRef = db.collection("scrims").doc(scrimId);
+    const challengingTeamRef = db.collection("teams").doc(challengingTeamId);
+    const memberRef = challengingTeamRef.collection("members").doc(uid); // Miembro del equipo desafiante
+    return db.runTransaction(async (transaction) => {
+        var _a, _b, _c;
+        const [scrimSnap, teamSnap, memberSnap] = await Promise.all([
+            transaction.get(scrimRef),
+            transaction.get(challengingTeamRef),
+            transaction.get(memberRef),
+        ]);
+        if (!scrimSnap.exists)
+            throw new https_1.HttpsError("not-found", "Scrim no encontrada.");
+        if (!teamSnap.exists)
+            throw new https_1.HttpsError("not-found", "Tu equipo no se encontró.");
+        if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) {
+            throw new https_1.HttpsError("permission-denied", "Debes ser staff de tu equipo para desafiar.");
+        }
+        const scrimData = scrimSnap.data();
+        if (scrimData.status !== 'pending') { // Cambiado de 'open' a 'pending'
+            throw new https_1.HttpsError("failed-precondition", "Esta scrim ya no está disponible o ya ha sido desafiada.");
+        }
+        if (scrimData.teamAId === challengingTeamId) {
+            throw new https_1.HttpsError("invalid-argument", "No puedes desafiar tu propia scrim.");
+        }
+        transaction.update(scrimRef, {
+            status: "challenged",
+            challengerTeamId: challengingTeamId,
+            challengerTeamName: (_b = teamSnap.data()) === null || _b === void 0 ? void 0 : _b.name,
+            challengerTeamAvatarUrl: (_c = teamSnap.data()) === null || _c === void 0 ? void 0 : _c.avatarUrl,
+        });
+        // Aquí notificar al Equipo A
+    });
+    return { success: true, message: "Desafío enviado al equipo A." };
+});
+exports.respondToScrimChallenge = (0, https_1.onCall)(async ({ auth, data }) => {
+    const uid = auth === null || auth === void 0 ? void 0 : auth.uid; // UID del miembro del Equipo A que responde
+    const { scrimId, accept } = data;
+    if (!uid)
+        throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión.");
+    if (!scrimId || typeof accept !== 'boolean')
+        throw new https_1.HttpsError("invalid-argument", "Faltan datos.");
+    const scrimRef = db.collection("scrims").doc(scrimId);
+    return db.runTransaction(async (transaction) => {
+        var _a;
+        const scrimSnap = await transaction.get(scrimRef);
+        if (!scrimSnap.exists)
+            throw new https_1.HttpsError("not-found", "Scrim no encontrada.");
+        const scrimData = scrimSnap.data();
+        if (scrimData.status !== 'challenged' || !scrimData.challengerTeamId) {
+            throw new https_1.HttpsError("failed-precondition", "Esta scrim no tiene un desafío pendiente.");
+        }
+        const memberRef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
+        const memberSnap = await transaction.get(memberRef);
+        if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) {
+            throw new https_1.HttpsError("permission-denied", "Solo el staff del equipo creador puede responder.");
+        }
+        if (accept) {
+            transaction.update(scrimRef, {
+                status: "confirmed",
+                teamBId: scrimData.challengerTeamId,
+                teamBName: scrimData.challengerTeamName,
+                teamBAvatarUrl: scrimData.challengerTeamAvatarUrl,
+                // *** AÑADIDO PARA MEJORA DE CONSULTA ***
+                participantIds: [scrimData.teamAId, scrimData.challengerTeamId],
+                // Limpia los campos del desafío
+                challengerTeamId: admin.firestore.FieldValue.delete(),
+                challengerTeamName: admin.firestore.FieldValue.delete(),
+                challengerTeamAvatarUrl: admin.firestore.FieldValue.delete(),
+            });
+            // Aquí notificar al Equipo B que fue aceptado y sumar stats.scrimsPlayed a ambos
+            const teamARefUpdate = db.collection("teams").doc(scrimData.teamAId);
+            const teamBRefUpdate = db.collection("teams").doc(scrimData.challengerTeamId);
+            transaction.update(teamARefUpdate, { 'stats.scrimsPlayed': admin.firestore.FieldValue.increment(1) });
+            transaction.update(teamBRefUpdate, { 'stats.scrimsPlayed': admin.firestore.FieldValue.increment(1) });
+        }
+        else {
+            transaction.update(scrimRef, {
+                status: "pending", // Vuelve a estar disponible
+                // Limpia los campos del desafío
+                challengerTeamId: admin.firestore.FieldValue.delete(),
+                challengerTeamName: admin.firestore.FieldValue.delete(),
+                challengerTeamAvatarUrl: admin.firestore.FieldValue.delete(),
+            });
+            // Aquí notificar al Equipo B que fue rechazado
+        }
+    });
+    return { success: true, message: `Desafío ${accept ? 'aceptado' : 'rechazado'}.` };
+});
+exports.reportScrimResult = (0, https_1.onCall)(async ({ auth, data }) => {
+    const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
+    const { scrimId, winnerId } = data;
+    if (!uid)
+        throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión.");
+    if (!scrimId || !winnerId)
+        throw new https_1.HttpsError("invalid-argument", "Faltan IDs.");
+    const scrimRef = db.collection("scrims").doc(scrimId);
+    return db.runTransaction(async (transaction) => {
+        var _a, _b;
+        const scrimSnap = await transaction.get(scrimRef);
+        if (!scrimSnap.exists)
+            throw new https_1.HttpsError("not-found", "Scrim no encontrada.");
+        const scrimData = scrimSnap.data();
+        if (scrimData.status !== 'confirmed') {
+            throw new https_1.HttpsError("failed-precondition", `No se puede reportar resultado de una scrim ${scrimData.status}.`);
+        }
+        if (!scrimData.teamBId) { // Asegura que el equipo B exista
+            throw new https_1.HttpsError("failed-precondition", `La scrim no tiene dos equipos confirmados.`);
+        }
+        const memberARef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
+        const memberBRef = db.collection("teams").doc(scrimData.teamBId).collection("members").doc(uid);
+        const [memberASnap, memberBSnap] = await Promise.all([
+            transaction.get(memberARef),
+            transaction.get(memberBRef)
+        ]);
+        const isStaffA = memberASnap.exists && STAFF_ROLES.includes((_a = memberASnap.data()) === null || _a === void 0 ? void 0 : _a.role);
+        const isStaffB = memberBSnap.exists && STAFF_ROLES.includes((_b = memberBSnap.data()) === null || _b === void 0 ? void 0 : _b.role);
+        if (!isStaffA && !isStaffB) {
+            throw new https_1.HttpsError("permission-denied", "Debes ser staff de uno de los equipos participantes.");
+        }
+        if (winnerId !== scrimData.teamAId && winnerId !== scrimData.teamBId) {
+            throw new https_1.HttpsError("invalid-argument", "El ganador debe ser uno de los equipos participantes.");
+        }
+        const loserId = (winnerId === scrimData.teamAId) ? scrimData.teamBId : scrimData.teamAId;
+        // 1. Actualiza scrim
+        transaction.update(scrimRef, {
+            status: "completed",
+            winnerId: winnerId,
+            loserId: loserId,
+            reportedBy: uid,
+            reportedAt: Timestamp.now(),
+        });
+        // 2. Actualiza stats (scrimsPlayed ya se sumó al confirmar)
+        const winnerTeamRef = db.collection("teams").doc(winnerId);
+        const loserTeamRef = db.collection("teams").doc(loserId); // No necesitamos leer/actualizar al perdedor aquí
+        transaction.update(winnerTeamRef, {
+            'stats.scrimsWon': admin.firestore.FieldValue.increment(1)
+        });
+        transaction.update(loserTeamRef, { /* recalcular winRate */});
+    });
+    return { success: true, message: "Resultado reportado correctamente." };
 });
 //# sourceMappingURL=scrims.js.map

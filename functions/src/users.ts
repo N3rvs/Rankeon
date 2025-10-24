@@ -1,6 +1,8 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
+
+
 type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
 
 const db = admin.firestore();
@@ -112,6 +114,48 @@ export const updateUserStatus = onCall(async ({ auth: callerAuth, data }: { auth
     }
 });
 
+type UserStatus = 'online' | 'away' | 'offline';
+const VALID_STATUSES: UserStatus[] = ['online', 'away', 'offline'];
+
+// ... (Aquí van tus funciones existentes: updateUserRole, updateUserStatus, updateUserCertification) ...
+
+// *** INICIO DE LA NUEVA FUNCIÓN ***
+interface UpdatePresenceData {
+  status: UserStatus;
+}
+
+export const updateUserPresence = onCall(async ({ auth: requestAuth, data }: { auth?: any, data: UpdatePresenceData }) => {
+    // 1. Autenticación y Validación
+    if (!requestAuth) {
+        throw new HttpsError('unauthenticated', 'Debes iniciar sesión para actualizar tu estado.');
+    }
+    const uid = requestAuth.uid;
+    const { status } = data;
+
+    if (!status || !VALID_STATUSES.includes(status)) {
+        throw new HttpsError('invalid-argument', 'Se proporcionó un estado inválido.');
+    }
+
+    const userRef = db.collection('users').doc(uid);
+
+    try {
+        // 2. Actualizar Firestore
+        await userRef.update({
+            status: status,
+            lastSeen: admin.firestore.FieldValue.serverTimestamp() // Guarda la última vez que se actualizó
+        });
+
+        return { success: true, message: `Estado actualizado a "${status}".` };
+    } catch (error: any) {
+        console.error(`Error al actualizar la presencia para el usuario ${uid}:`, error);
+        // Comprueba si el documento no existe (puede pasar si hay retraso entre Auth y Firestore)
+        if (error.code === 5) { // Firestore NOT_FOUND error code
+             throw new HttpsError('not-found', 'No se encontró el perfil de usuario para actualizar el estado.');
+        }
+        throw new HttpsError('internal', 'Ocurrió un error inesperado al actualizar el estado.');
+    }
+});
+
 
 interface UpdateCertificationData {
     uid: string;
@@ -140,6 +184,7 @@ export const updateUserCertification = onCall(async ({ auth: callerAuth, data }:
         console.error('Error updating user certification:', error);
         throw new HttpsError('internal', `Failed to update certification: ${error.message}`);
     }
+    
 });
 
 
