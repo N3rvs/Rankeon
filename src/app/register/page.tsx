@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-
+import RegisterbackGround from '../../assets/register.jpg'
 export const metadata: Metadata = {
   title: 'Register',
 };
@@ -14,7 +14,7 @@ export default function RegisterPage() {
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
       <div className="relative hidden flex-col items-center justify-center bg-gray-900 text-white lg:flex">
         <Image
-          src="https://picsum.photos/seed/register-esports/1200/1800"
+          src={RegisterbackGround}
           alt="Esports team planning strategy"
           fill
           className="absolute inset-0 object-cover"

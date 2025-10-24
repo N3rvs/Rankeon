@@ -67,21 +67,14 @@ export async function getFeaturedScrims(): Promise<ScrimDataResponse> {
     }))
     return { success: true, data: scrims, message: 'Scrims fetched.' };
   } catch (error: any) {
-    console.error('Error fetching featured scrims:', error);
-    if (error.code === 'permission-denied') {
-      const permissionError = new FirestorePermissionError({
-        path: '/scrims',
-        operation: 'list',
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    }
+    // We don't log an error here because it's a public, non-critical feature.
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
 
 
 // Rankings Data
-type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl'> & { totalHonors: number };
+type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl' | 'isCertifiedStreamer'> & { totalHonors: number };
 type HonorRankingResponse = { success: boolean; data?: HonorRankingPlayer[]; message: string; }
 type ScrimRankingTeam = Team & { winRate: number; played: number; };
 type ScrimRankingResponse = { success: boolean; data?: ScrimRankingTeam[]; message: string; }
