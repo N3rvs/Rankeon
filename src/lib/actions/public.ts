@@ -10,33 +10,32 @@ const functions = getFunctions(app, "europe-west1");
 
 // --- TIPOS DE RESPUESTA PAGINADA ---
 type PaginatedResponse<T> = {
-    success: boolean;
-    data?: {
-        items: T[];
-        nextLastId: string | null;
-    };
-    message: string;
-}
+    items: T[];
+    nextLastId: string | null;
+};
 
 // --- Tipos específicos ---
-type PaginatedPlayersResponse = PaginatedResponse<UserProfile>;
-type PaginatedTeamsResponse = PaginatedResponse<Team>;
-type PaginatedScrimsResponse = { success: boolean; data?: Scrim[]; message: string; } // getFeaturedScrims no es paginada
-type PaginatedHonorRankingsResponse = PaginatedResponse<HonorRankingPlayer>;
-type PaginatedScrimRankingsResponse = PaginatedResponse<ScrimRankingTeam>;
-type PaginatedTournamentRankingsResponse = PaginatedResponse<Tournament>;
+type PlayersResponse = {
+    players: UserProfile[];
+    nextLastId: string | null;
+}
+type TeamsResponse = {
+    teams: Team[];
+    nextLastId: string | null;
+}
+
+type PaginatedScrimsResponse = { success: boolean; data?: Scrim[]; message: string; } 
+type PaginatedHonorRankingsResponse = { success: boolean; data?: HonorRankingPlayer[]; message: string; };
+type PaginatedScrimRankingsResponse = { success: boolean; data?: ScrimRankingTeam[]; message: string; };
+type PaginatedTournamentRankingsResponse = { success: boolean; data?: Tournament[]; message: string; };
 
 // --- Tipos de datos para Rankings ---
 type HonorRankingPlayer = Pick<UserProfile, 'id' | 'name' | 'avatarUrl' | 'isCertifiedStreamer'> & { totalHonors: number };
-type ScrimRankingTeam = Team & { winRate: number; played: number; won: number }; // Añadido 'won'
+type ScrimRankingTeam = Team & { winRate: number; played: number; won: number };
 
 // --- ACCIONES ACTUALIZADAS ---
 
-/**
- * Obtiene jugadores del mercado de forma paginada.
- * @param lastId El ID del último jugador del lote anterior, o null para la primera página.
- */
-export async function getMarketPlayers(lastId: string | null): Promise<PaginatedPlayersResponse> {
+export async function getMarketPlayers(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
   try {
     const getPlayersFunc = httpsCallable<void, any[]>(functions, 'getMarketPlayers');
     const result = await getPlayersFunc();
@@ -52,27 +51,19 @@ export async function getMarketPlayers(lastId: string | null): Promise<Paginated
   }
 }
 
-/**
- * Obtiene equipos del mercado de forma paginada.
- * @param lastId El ID del último equipo del lote anterior, o null para la primera página.
- */
-export async function getMarketTeams(lastId: string | null): Promise<PaginatedTeamsResponse> {
+export async function getMarketTeams(): Promise<{ success: boolean; data?: Team[]; message: string }> {
   try {
-    const getTeamsFunc = httpsCallable<{ lastId: string | null }, { teams: any[], nextLastId: string | null }>(functions, 'getMarketTeams');
-    const result = await getTeamsFunc({ lastId });
+    const getTeamsFunc = httpsCallable<void, any[]>(functions, 'getMarketTeams');
+    const result = await getTeamsFunc();
 
-    // Rehidrata Timestamps
-    const teams = result.data.teams.map(t => ({
+    const teams = result.data.map(t => ({
         ...t,
-        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined, // Usa Timestamp
+        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined,
     }));
 
     return {
         success: true,
-        data: {
-            items: teams as Team[],
-            nextLastId: result.data.nextLastId
-        },
+        data: teams as Team[],
         message: 'Equipos obtenidos.'
     };
   } catch (error: any) {
@@ -85,16 +76,15 @@ export async function getMarketTeams(lastId: string | null): Promise<PaginatedTe
   }
 }
 
-// getFeaturedScrims no necesita paginación porque ya usa limit(10) en el backend
+
 export async function getFeaturedScrims(): Promise<PaginatedScrimsResponse> {
   try {
     const getScrimsFunc = httpsCallable<void, any[]>(functions, 'getFeaturedScrims');
     const result = await getScrimsFunc();
-    // Rehidrata Timestamps
     const scrims = result.data.map(s => ({
         ...s,
-        date: s.date ? Timestamp.fromDate(new Date(s.date)) : undefined, // Usa Timestamp
-        createdAt: s.createdAt ? Timestamp.fromDate(new Date(s.createdAt)) : undefined, // Usa Timestamp
+        date: s.date ? Timestamp.fromDate(new Date(s.date)) : undefined,
+        createdAt: s.createdAt ? Timestamp.fromDate(new Date(s.createdAt)) : undefined,
     }));
     return { success: true, data: scrims as Scrim[], message: 'Scrims obtenidas.' };
   } catch (error: any) {
@@ -102,21 +92,14 @@ export async function getFeaturedScrims(): Promise<PaginatedScrimsResponse> {
   }
 }
 
-/**
- * Obtiene rankings de honor de forma paginada.
- * @param lastId El ID del último jugador del lote anterior, o null para la primera página.
- */
-export async function getHonorRankings(lastId: string | null): Promise<PaginatedHonorRankingsResponse> {
+export async function getHonorRankings(): Promise<PaginatedHonorRankingsResponse> {
   try {
-    const getRankingsFunc = httpsCallable<{ lastId: string | null }, { rankings: HonorRankingPlayer[], nextLastId: string | null }>(functions, 'getHonorRankings');
-    const result = await getRankingsFunc({ lastId });
+    const getRankingsFunc = httpsCallable<void, { rankings: HonorRankingPlayer[], nextLastId: string | null }>(functions, 'getHonorRankings');
+    const result = await getRankingsFunc();
 
     return {
         success: true,
-        data: {
-            items: result.data.rankings,
-            nextLastId: result.data.nextLastId
-        },
+        data: result.data.rankings,
         message: 'Rankings de honor obtenidos.'
     };
   } catch (error: any) {
@@ -129,26 +112,19 @@ export async function getHonorRankings(lastId: string | null): Promise<Paginated
   }
 }
 
-/**
- * Obtiene rankings de scrims de forma paginada.
- * @param lastId El ID del último equipo del lote anterior, o null para la primera página.
- */
-export async function getScrimRankings(lastId: string | null): Promise<PaginatedScrimRankingsResponse> {
+export async function getScrimRankings(): Promise<PaginatedScrimRankingsResponse> {
   try {
-    const getRankingsFunc = httpsCallable<{ lastId: string | null }, { rankings: any[], nextLastId: string | null }>(functions, 'getScrimRankings');
-    const result = await getRankingsFunc({ lastId });
+    const getRankingsFunc = httpsCallable<void, { rankings: any[], nextLastId: string | null }>(functions, 'getScrimRankings');
+    const result = await getRankingsFunc();
 
     const teams = result.data.rankings.map(t => ({
         ...t,
-        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined, // Usa Timestamp
+        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined,
     }));
 
     return {
         success: true,
-        data: {
-            items: teams as ScrimRankingTeam[],
-            nextLastId: result.data.nextLastId
-        },
+        data: teams as ScrimRankingTeam[],
         message: 'Rankings de scrims obtenidos.'
     };
   } catch (error: any) {
@@ -161,27 +137,20 @@ export async function getScrimRankings(lastId: string | null): Promise<Paginated
   }
 }
 
-/**
- * Obtiene rankings de torneos (torneos completados) de forma paginada.
- * @param lastId El ID del último torneo del lote anterior, o null para la primera página.
- */
-export async function getTournamentRankings(lastId: string | null): Promise<PaginatedTournamentRankingsResponse> {
+export async function getTournamentRankings(): Promise<PaginatedTournamentRankingsResponse> {
   try {
-    const getRankingsFunc = httpsCallable<{ lastId: string | null }, { tournaments: any[], nextLastId: string | null }>(functions, 'getTournamentRankings');
-    const result = await getRankingsFunc({ lastId });
+    const getRankingsFunc = httpsCallable<void, { tournaments: any[], nextLastId: string | null }>(functions, 'getTournamentRankings');
+    const result = await getRankingsFunc();
 
      const tournaments = result.data.tournaments.map(t => ({
         ...t,
-        startDate: t.startDate ? Timestamp.fromDate(new Date(t.startDate)) : undefined, // Usa Timestamp
-        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined, // Usa Timestamp
+        startDate: t.startDate ? Timestamp.fromDate(new Date(t.startDate)) : undefined,
+        createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined,
     }));
 
     return {
         success: true,
-        data: {
-            items: tournaments as Tournament[],
-            nextLastId: result.data.nextLastId
-        },
+        data: tournaments as Tournament[],
         message: 'Rankings de torneos obtenidos.'
     };
   } catch (error: any) {
@@ -192,4 +161,21 @@ export async function getTournamentRankings(lastId: string | null): Promise<Pagi
     }
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
+}
+
+export async function getManagedUsers(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
+    try {
+        const getManagedUsersFunc = httpsCallable<void, { users: any[] }>(functions, 'getManagedUsers');
+        const result = await getManagedUsersFunc();
+        const users = result.data.users.map(u => ({
+            ...u,
+            createdAt: u.createdAt ? Timestamp.fromDate(new Date(u.createdAt)) : undefined,
+            banUntil: u.banUntil ? Timestamp.fromDate(new Date(u.banUntil)) : undefined,
+            _claimsRefreshedAt: u._claimsRefreshedAt ? Timestamp.fromDate(new Date(u._claimsRefreshedAt)) : undefined,
+        }));
+        return { success: true, data: users as UserProfile[], message: 'Users fetched.' };
+    } catch (error: any) {
+        console.error('Error getting managed users:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
 }

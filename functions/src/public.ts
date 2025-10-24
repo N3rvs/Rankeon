@@ -61,9 +61,8 @@ export const getFeaturedScrims = onCall({ enforceAppCheck: false }, async () => 
 
 /* --------------------------- Market: Players (UI) -------------------------- */
 
-export const getMarketPlayers = onCall(async ({ auth, data }) => {
+export const getMarketPlayers = onCall({ enforceAppCheck: false }, async ({ auth, data }) => {
   try {
-    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
     const { lastId } = (data ?? {}) as { lastId: string | null };
 
     let q = db
@@ -92,6 +91,7 @@ export const getMarketPlayers = onCall(async ({ auth, data }) => {
         lookingForTeam: u.lookingForTeam || false,
         teamId: u.teamId ?? null,
         blocked: u.blocked || [],
+        createdAt: u.createdAt?.toDate().toISOString() || null,
       };
     });
 
@@ -105,9 +105,8 @@ export const getMarketPlayers = onCall(async ({ auth, data }) => {
 
 /* ---------------------------- Market: Teams (UI) --------------------------- */
 
-export const getMarketTeams = onCall(async ({ auth, data }) => {
+export const getMarketTeams = onCall({ enforceAppCheck: false }, async ({ auth, data }) => {
   try {
-    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
     const { lastId } = (data ?? {}) as { lastId: string | null };
 
     let q = db
@@ -271,7 +270,8 @@ export const getTournamentRankings = onCall(async ({ auth, data }) => {
 
 export const getManagedUsers = onCall(async ({ auth: callerAuth, data }) => {
   try {
-    if (!callerAuth) throw new HttpsError('unauthenticated', 'You must be logged in.');
+    if (!callerAuth)
+      throw new HttpsError('unauthenticated', 'You must be logged in.');
     const { role } = callerAuth.token as any;
     if (role !== 'admin' && role !== 'moderator') {
       throw new HttpsError('permission-denied', 'You do not have permission to access user data.');
@@ -312,7 +312,8 @@ export const getManagedUsers = onCall(async ({ auth: callerAuth, data }) => {
 export const getTeamMembers = onCall({ enforceAppCheck: false }, async (request) => {
   try {
     const { teamId } = (request.data ?? {}) as { teamId: string };
-    if (!teamId) throw new HttpsError('invalid-argument', 'Team ID is required.');
+    if (!teamId)
+      throw new HttpsError('invalid-argument', 'Team ID is required.');
     
     const membersSnap = await db.collection(`teams/${teamId}/members`).get();
     const memberIds = membersSnap.docs.map((d) => d.id);
