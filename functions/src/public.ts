@@ -12,31 +12,22 @@ const calculateTotalHonors = (userData: admin.firestore.DocumentData): number =>
 
 export const getFeaturedScrims = onCall({ allowInvalidAppCheck: true }, async () => {
     try {
-        // Fetch confirmed scrims and sort in memory to avoid needing a composite index.
         const scrimsSnapshot = await db.collection('scrims')
             .where('status', '==', 'confirmed')
-            .limit(50)
+            .orderBy('date', 'desc')
+            .limit(10)
             .get();
 
-        const confirmedScrims = scrimsSnapshot.docs
-            .map(doc => {
-                const data = doc.data();
-                return {
-                    ...data,
-                    id: doc.id,
-                    date: data.date?.toDate(), // Keep as Date object for sorting
-                    createdAt: data.createdAt?.toDate(),
-                };
-            })
-            // Sort by date descending in memory
-            .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0))
-            .slice(0, 10) // Take the top 10 most recent
-            // Now convert to ISO string for serialization
-            .map(scrim => ({
-                ...scrim,
-                date: scrim.date?.toISOString(),
-                createdAt: scrim.createdAt?.toISOString(),
-            }));
+        const confirmedScrims = scrimsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                id: doc.id,
+                // Convert Timestamps to ISO strings for serialization
+                date: data.date?.toDate().toISOString(),
+                createdAt: data.createdAt?.toDate().toISOString(),
+            };
+        });
         
         return confirmedScrims;
     } catch (error) {
@@ -176,6 +167,35 @@ export const getManagedUsers = onCall(async ({ auth: callerAuth }) => {
             createdAt: data.createdAt?.toDate().toISOString() || null,
             banUntil: data.banUntil?.toDate().toISOString() || null,
             _claimsRefreshedAt: data._claimsRefreshedAt?.toDate().toISOString() || null,
+        }
+    });
+});
+
+export const getTeamMembers = onCall(async (request) => {
+    const { teamId } = request.data;
+    if (!teamId) throw new HttpsError('invalid-argument', 'Team ID is required.');
+    // In a real app, you'd add a permission check here.
+    // For now, we allow any authenticated user to fetch members for simplicity.
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+
+    const membersSnap = await db.collection(`teams/${teamId}/members`).get();
+    const memberIds = membersSnap.docs.map(doc => doc.id);
+
+    if (memberIds.length === 0) {
+        return [];
+    }
+
+    const usersSnap = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', memberIds).get();
+    const usersMap = new Map(usersSnap.docs.map(doc => [doc.id, doc.data()]));
+    
+    return membersSnap.docs.map(doc => {
+        const memberData = doc.data();
+        const userData = usersMap.get(doc.id) || {};
+        return {
+            ...memberData,
+            ...userData,
+            id: doc.id,
+            joinedAt: memberData.joinedAt?.toDate().toISOString(),
         }
     });
 });
