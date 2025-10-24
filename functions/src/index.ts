@@ -1,6 +1,8 @@
 // src/functions/index.ts
 import * as admin from 'firebase-admin';
+import { setGlobalOptions } from 'firebase-functions/v2';
 
+setGlobalOptions({ region: 'europe-west1' });
 // Initialize Firebase Admin SDK. This must be done once, at the top.
 admin.initializeApp();
 
@@ -11,12 +13,12 @@ import { giveHonor, revokeHonor } from './honors';
 import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
 import { cleanUpOldData } from './cleanup';
 import { createGameRoom, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
-import { createScrim, challengeScrim, respondToScrimChallenge, cancelScrim, reportScrimResult } from './scrims';
-import { createTeam, updateTeam, deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers, sendTeamInvite, respondToTeamInvite, applyToTeam, respondToTeamApplication, addTask, updateTaskStatus, deleteTask } from './teams';
+import { createScrim, acceptScrim, cancelScrim } from './scrims';
+import { createTeam, updateTeam, deleteTeam, kickTeamMember, setTeamIGL, updateTeamMemberRole } from './teams';
 import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament } from './tournaments';
 import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
-import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence, getManagedUsers } from './users';
-import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings, getFeaturedScrims } from './public';
+import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
+import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings, getFeaturedScrims, getManagedUsers } from './public';
 
 export {
   getChats,
@@ -41,23 +43,14 @@ export {
   leaveRoom,
   sendMessageToRoom,
   createScrim,
-  challengeScrim,
-  respondToScrimChallenge,
+  acceptScrim,
   cancelScrim,
-  reportScrimResult,
   createTeam,
   updateTeam,
   deleteTeam,
   kickTeamMember,
   setTeamIGL,
-  getTeamMembers,
-  sendTeamInvite,
-  respondToTeamInvite,
-  applyToTeam,
-  respondToTeamApplication,
-  addTask,
-  updateTaskStatus,
-  deleteTask,
+  updateTeamMemberRole,
   proposeTournament,
   reviewTournamentProposal,
   editTournament,
@@ -68,7 +61,6 @@ export {
   updateUserRole,
   updateUserStatus,
   updateUserCertification,
-  updateUserPresence,
   getMarketPlayers,
   getMarketTeams,
   getHonorRankings,
