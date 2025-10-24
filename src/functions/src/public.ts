@@ -10,7 +10,7 @@ const calculateTotalHonors = (userData: admin.firestore.DocumentData): number =>
     return Object.values(userData.honorCounts).reduce((sum: number, count: any) => sum + count, 0);
 };
 
-export const getFeaturedScrims = onCall(async () => {
+export const getFeaturedScrims = onCall({ allowInvalidAppCheck: true }, async () => {
     try {
         // Fetch confirmed scrims and sort in memory to avoid needing a composite index.
         const scrimsSnapshot = await db.collection('scrims')
