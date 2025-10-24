@@ -33,7 +33,13 @@ service cloud.firestore {
       
       match /members/{memberId} {
         allow read: if true;
-        allow write: if false;
+        allow write: if true;
+      }
+      
+      // Team tasks subcollection
+      match /tasks/{taskId} {
+        allow read: if isAuthenticated() && get(/databases/$(database)/documents/teams/$(teamId)).data.memberIds.hasAny([request.auth.uid]);
+        allow write: if isAuthenticated() && get(/databases/$(database)/documents/teams/$(teamId)).data.founder == request.auth.uid;
       }
     }
 
@@ -51,8 +57,7 @@ service cloud.firestore {
     // CHATS & MESSAGES
     // Only members of a chat can read its data or messages.
     match /chats/{chatId} {
-      allow get: if isAuthenticated() && request.auth.uid in resource.data.members;
-      allow list: if isAuthenticated() && request.auth.uid in request.query.where.members; // For querying user's chats
+      allow read: if isAuthenticated() && request.auth.uid in resource.data.members;
       allow write: if false; // All writes are through backend functions
 
       match /messages/{messageId} {
