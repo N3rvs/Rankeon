@@ -1,4 +1,3 @@
-
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
@@ -12,6 +11,7 @@ interface CreateRoomData {
   partySize: string;
 }
 
+// Esta función estaba bien
 export const createGameRoom = onCall(async ({ auth, data }: { auth?: any, data: CreateRoomData }) => {
   const uid = auth?.uid;
   if (!uid) {
@@ -49,6 +49,8 @@ interface RoomActionData {
     roomId: string;
 }
 
+// *** INICIO DE LA CORRECCIÓN ***
+// Esta función ahora usa una transacción para comprobar partySize
 export const joinRoom = onCall(async ({ auth, data }: { auth?: any, data: RoomActionData }) => {
     const uid = auth?.uid;
     const { roomId } = data;
@@ -58,13 +60,42 @@ export const joinRoom = onCall(async ({ auth, data }: { auth?: any, data: RoomAc
 
     const roomRef = db.collection("gameRooms").doc(roomId);
 
-    await roomRef.update({
-        participants: admin.firestore.FieldValue.arrayUnion(uid)
+    // Usa una transacción para leer antes de escribir
+    return db.runTransaction(async (transaction) => {
+        const roomDoc = await transaction.get(roomRef);
+
+        if (!roomDoc.exists) {
+            throw new HttpsError("not-found", "The room does not exist.");
+        }
+
+        const roomData = roomDoc.data()!;
+        const participants: string[] = roomData.participants || [];
+        
+        // Convierte partySize (que es un string) a número
+        const maxSize = parseInt(roomData.partySize, 10) || 10; // 10 como fallback
+
+        if (participants.includes(uid)) {
+            // El usuario ya está en la sala, no hagas nada
+            return { success: true, message: "Already in room." };
+        }
+
+        if (participants.length >= maxSize) {
+            // La sala está llena
+            throw new HttpsError("failed-precondition", "This room is full.");
+        }
+
+        // Hay espacio, une al usuario
+        transaction.update(roomRef, {
+            participants: admin.firestore.FieldValue.arrayUnion(uid)
+        });
+
+        return { success: true, message: "Joined room." };
     });
-
-    return { success: true };
 });
+// *** FIN DE LA CORRECCIÓN ***
 
+
+// Esta función estaba bien (es una lógica excelente)
 export const leaveRoom = onCall(async ({ auth, data }: { auth?: any, data: RoomActionData }) => {
     const uid = auth?.uid;
     const { roomId } = data;
@@ -126,6 +157,7 @@ interface SendMessageData {
   content: string;
 }
 
+// Esta función también estaba bien
 export const sendMessageToRoom = onCall(async ({ auth, data }: { auth?: any; data: SendMessageData }) => {
   const uid = auth?.uid;
   const { roomId, content } = data;

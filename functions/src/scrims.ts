@@ -30,7 +30,7 @@ export const createScrim = onCall(async ({ auth, data }: { auth?: any, data: Cre
     const [teamSnap, memberSnap] = await Promise.all([teamRef.get(), memberRef.get()]);
 
     if (!teamSnap.exists) throw new HttpsError("not-found", "Team not found.");
-    if (!memberSnap.exists || !STAFF_ROLES.includes(memberSnap.data()?.role)) {
+    if (!memberSnap.exists || !STAFF_ROLES.includes(memberSnap.data()?.role)) { // <--- Correcto
         throw new HttpsError("permission-denied", "You must be staff to create a scrim for this team.");
     }
 
@@ -78,7 +78,7 @@ export const acceptScrim = onCall(async ({ auth, data }: { auth?: any, data: Acc
 
         if (!scrimSnap.exists) throw new HttpsError("not-found", "Scrim not found.");
         if (!teamSnap.exists) throw new HttpsError("not-found", "Your team could not be found.");
-        if (!memberSnap.exists || !STAFF_ROLES.includes(memberSnap.data()?.role)) {
+        if (!memberSnap.exists || !STAFF_ROLES.includes(memberSnap.data()?.role)) { // <--- Correcto
             throw new HttpsError("permission-denied", "You must be staff to accept a scrim for this team.");
         }
 
@@ -90,10 +90,17 @@ export const acceptScrim = onCall(async ({ auth, data }: { auth?: any, data: Acc
             throw new HttpsError("invalid-argument", "You cannot accept your own scrim.");
         }
 
+        // *** INICIO DE LA CORRECCIÓN #1 ***
+        // Guardamos los datos del equipo B (teamSnap) al aceptar
+        const teamData = teamSnap.data()!;
+
         transaction.update(scrimRef, {
             teamBId: acceptingTeamId,
             status: "confirmed",
+            teamBName: teamData.name,          // <-- AÑADIDO
+            teamBAvatarUrl: teamData.avatarUrl // <-- AÑADIDO
         });
+        // *** FIN DE LA CORRECCIÓN #1 ***
 
         // Here you would create the temporary chat
     });
@@ -114,18 +121,27 @@ export const cancelScrim = onCall(async ({ auth, data }: { auth?: any, data: Can
 
     const scrimData = scrimSnap.data()!;
     
-    // Check if user is staff of either team
+    // *** INICIO DE LA CORRECCIÓN #2 ***
+    // Comprueba el ROL, no solo si existe
     const teamARef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
-    const teamAStaff = (await teamARef.get()).exists;
+    const teamASnap = await teamARef.get();
+    const teamAStaff = teamASnap.exists && STAFF_ROLES.includes(teamASnap.data()?.role);
     
     let teamBStaff = false;
     if (scrimData.teamBId) {
         const teamBRef = db.collection("teams").doc(scrimData.teamBId).collection("members").doc(uid);
-        teamBStaff = (await teamBRef.get()).exists;
+        const teamBSnap = await teamBRef.get();
+        teamBStaff = teamBSnap.exists && STAFF_ROLES.includes(teamBSnap.data()?.role);
     }
+    // *** FIN DE LA CORRECCIÓN #2 ***
 
     if (!teamAStaff && !teamBStaff) {
          throw new HttpsError("permission-denied", "You are not authorized to cancel this scrim.");
+    }
+    
+    // Solo se puede cancelar si está 'pending' o 'confirmed'
+    if (scrimData.status === 'cancelled' || scrimData.status === 'completed') {
+         throw new HttpsError("failed-precondition", `Cannot cancel a scrim that is already ${scrimData.status}.`);
     }
     
     await scrimRef.update({ status: 'cancelled' });

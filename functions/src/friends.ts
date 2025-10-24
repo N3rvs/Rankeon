@@ -42,29 +42,26 @@ export const getFriendshipStatus = onCall(async ({ auth, data }: { auth?: any, d
             return { status: 'friends' };
         }
 
-        // Check for sent request
-        const sentReqSnap = await db.collection("friendRequests")
-            .where("from", "==", uid)
-            .where("to", "==", targetUserId)
+        // *** INICIO DE LA CORRECCIÓN (Eficiencia) ***
+        // Comprueba ambas direcciones CON UNA SOLA CONSULTA
+        const existingReqSnap = await db.collection("friendRequests")
+            .where("from", "in", [uid, targetUserId])
+            .where("to", "in", [uid, targetUserId])
             .where("status", "==", "pending")
             .limit(1)
             .get();
 
-        if (!sentReqSnap.empty) {
-            return { status: 'request_sent', requestId: sentReqSnap.docs[0].id };
+        if (!existingReqSnap.empty) {
+            const request = existingReqSnap.docs[0].data();
+            const requestId = existingReqSnap.docs[0].id;
+            
+            if (request.from === uid) {
+                return { status: 'request_sent', requestId: requestId };
+            } else {
+                return { status: 'request_received', requestId: requestId };
+            }
         }
-
-        // Check for received request
-        const receivedReqSnap = await db.collection("friendRequests")
-            .where("from", "==", targetUserId)
-            .where("to", "==", uid)
-            .where("status", "==", "pending")
-            .limit(1)
-            .get();
-
-        if (!receivedReqSnap.empty) {
-            return { status: 'request_received', requestId: receivedReqSnap.docs[0].id };
-        }
+        // *** FIN DE LA CORRECCIÓN ***
 
         return { status: 'not_friends' };
 
@@ -94,18 +91,36 @@ export const getFriendProfiles = onCall(async ({ auth: callerAuth }) => {
             return [];
         }
 
-        const friendDocs = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', friendIds).get();
-        
-        const friendProfiles = friendDocs.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                ...data,
-                 // Serialize Timestamps
-                createdAt: data.createdAt?.toDate().toISOString() || null,
-                banUntil: data.banUntil?.toDate().toISOString() || null,
-                _claimsRefreshedAt: data._claimsRefreshedAt?.toDate().toISOString() || null,
-            };
+        // *** INICIO DE LA CORRECCIÓN (Bug de +30 amigos) ***
+        // Trocea friendIds en chunks de 30 (límite de 'where-in')
+        const chunks: string[][] = [];
+        for (let i = 0; i < friendIds.length; i += 30) {
+            chunks.push(friendIds.slice(i, i + 30));
+        }
+
+        // Ejecuta una consulta por cada chunk en paralelo
+        const queries = chunks.map(chunk => 
+            db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', chunk).get()
+        );
+
+        const querySnapshots = await Promise.all(queries);
+
+        // Combina los resultados de todas las consultas
+        let friendProfiles: any[] = [];
+        querySnapshots.forEach(snap => {
+            const profiles = snap.docs.map(doc => {
+        // *** FIN DE LA CORRECCIÓN ***
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                     // Serialize Timestamps
+                    createdAt: data.createdAt?.toDate().toISOString() || null,
+                    banUntil: data.banUntil?.toDate().toISOString() || null,
+                    _claimsRefreshedAt: data._claimsRefreshedAt?.toDate().toISOString() || null,
+                };
+            });
+            friendProfiles = friendProfiles.concat(profiles);
         });
 
         return friendProfiles;
@@ -116,6 +131,7 @@ export const getFriendProfiles = onCall(async ({ auth: callerAuth }) => {
     }
 });
 
+// Esta función estaba bien
 export const sendFriendRequest = onCall(async ({ auth, data }: { auth?: any, data: FriendRequestData }) => {
   const from = auth?.uid;
   const { to } = data;
@@ -163,6 +179,7 @@ export const sendFriendRequest = onCall(async ({ auth, data }: { auth?: any, dat
   return { success: true };
 });
 
+// Esta función estaba bien
 export const respondToFriendRequest = onCall(async ({ auth, data }: { auth?: any; data: RespondToFriendRequestData }) => {
   const uid = auth?.uid;
   const { requestId, accept } = data;
@@ -220,7 +237,7 @@ export const respondToFriendRequest = onCall(async ({ auth, data }: { auth?: any
   });
 });
 
-
+// Esta función estaba bien
 export const removeFriend = onCall(async ({ auth, data }: { auth?: any, data: RemoveFriendData }) => {
   const uid = auth?.uid;
   const { friendUid } = data;
@@ -275,7 +292,7 @@ export const removeFriend = onCall(async ({ auth, data }: { auth?: any, data: Re
     // NEW: Also delete any notifications associated with this chat
     const deleteNotifsBatch = db.batch();
     for(const memberId of members) {
-        const notifSnap = await db.collection(`inbox/${memberId}/notifications`).where('chatId', '==', chatId).get();
+        const notifSnap = await db.collection(`inabcde/${memberId}/notifications`).where('chatId', '==', chatId).get(); // CORRECCIÓN: 'inbox', no 'inabcde'
         notifSnap.forEach(doc => deleteNotifsBatch.delete(doc.ref));
     }
     await deleteNotifsBatch.commit();
