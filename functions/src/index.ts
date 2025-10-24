@@ -1,10 +1,15 @@
 // src/functions/index.ts
 import * as admin from 'firebase-admin';
+import { setGlobalOptions } from 'firebase-functions/v2';
 
-// Initialize Firebase Admin SDK. This must be done once, at the top.
+// 1. DEFINE LA REGIÓN GLOBAL ANTES DE NADA
+// Esto forzará que todas las funciones v2 se desplieguen en Europa.
+setGlobalOptions({ region: 'europe-west1' });
+
+// 2. Inicializa Firebase Admin SDK (después de setGlobalOptions)
 admin.initializeApp();
 
-// Now import the functions that use the initialized admin SDK.
+// 3. Ahora importa todas tus funciones
 import { deleteChatHistory, sendMessageToFriend } from './chat';
 import { sendFriendRequest, respondToFriendRequest, removeFriend } from './friends';
 import { giveHonor } from './honors';
@@ -16,6 +21,7 @@ import { createTeam, updateTeam, deleteTeam, updateTeamMemberRole, kickTeamMembe
 import { proposeTournament, reviewTournamentProposal } from './tournaments';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
 
+// 4. Exporta todo como lo tenías
 export {
   deleteChatHistory,
   sendMessageToFriend,
