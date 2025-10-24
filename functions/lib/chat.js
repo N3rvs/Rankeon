@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+<<<<<<< HEAD
 exports.sendMessageToFriend = exports.deleteChatHistory = exports.getChats = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
@@ -56,6 +57,12 @@ exports.getChats = (0, https_1.onCall)(async ({ auth }) => {
         throw new https_1.HttpsError("internal", "Failed to retrieve chat list.");
     }
 });
+=======
+exports.sendMessageToFriend = exports.deleteChatHistory = void 0;
+const https_1 = require("firebase-functions/v2/https");
+const admin = __importStar(require("firebase-admin"));
+const db = admin.firestore();
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.deleteChatHistory = (0, https_1.onCall)(async (request) => {
     if (!request.auth)
         throw new https_1.HttpsError("unauthenticated", "User must be logged in.");

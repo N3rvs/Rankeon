@@ -78,7 +78,11 @@ exports.createTeam = (0, https_1.onCall)(async ({ auth: requestAuth, data }) => 
             description: description || '',
             country: (userData === null || userData === void 0 ? void 0 : userData.country) || '',
             avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0, 2)}`,
+<<<<<<< HEAD
             bannerUrl: 'https://placehold.co/900x400.png',
+=======
+            bannerUrl: 'https://placehold.co/1200x400.png',
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
             founder: uid,
             memberIds: [uid],
             recruitingRoles: [],

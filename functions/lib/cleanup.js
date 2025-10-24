@@ -44,15 +44,23 @@ exports.cleanUpOldData = (0, scheduler_1.onSchedule)({
     const now = admin.firestore.Timestamp.now();
     const sevenDaysAgo = admin.firestore.Timestamp.fromMillis(now.toMillis() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = admin.firestore.Timestamp.fromMillis(now.toMillis() - 30 * 24 * 60 * 60 * 1000);
+<<<<<<< HEAD
     // *** INICIO DE LA CORRECCIÓN ***
     // El batch principal solo se usará para tareas 1 y 2
     const mainBatch = db.batch();
+=======
+    const batch = db.batch();
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     // 🧹 1. Eliminar solicitudes de amistad viejas
     const oldRequests = await db.collection("friendRequests")
         .where("status", "in", ["rejected", "accepted"])
         .where("createdAt", "<", sevenDaysAgo)
         .get();
+<<<<<<< HEAD
     oldRequests.forEach(doc => mainBatch.delete(doc.ref));
+=======
+    oldRequests.forEach(doc => batch.delete(doc.ref));
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     // 🧹 2. Eliminar chats inactivos o vacíos por 30 días
     const oldChats = await db.collection("chats")
         .where("lastMessageAt", "<", thirtyDaysAgo)
@@ -60,6 +68,7 @@ exports.cleanUpOldData = (0, scheduler_1.onSchedule)({
     for (const chat of oldChats.docs) {
         const messagesSnap = await chat.ref.collection("messages").limit(1).get();
         if (messagesSnap.empty) {
+<<<<<<< HEAD
             mainBatch.delete(chat.ref);
         }
     }
@@ -74,12 +83,19 @@ exports.cleanUpOldData = (0, scheduler_1.onSchedule)({
     // *** FIN DE LA CORRECCIÓN PARCIAL ***
     // 🧹 3. Levantar baneos temporales expirados
     // ESTO SE EJECUTA POR SEPARADO DEL BATCH PRINCIPAL
+=======
+            batch.delete(chat.ref);
+        }
+    }
+    // 🧹 3. Levantar baneos temporales expirados
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     const expiredBansQuery = db.collection("users")
         .where("disabled", "==", true)
         .where("banUntil", "<=", now);
     const expiredBansSnap = await expiredBansQuery.get();
     if (!expiredBansSnap.empty) {
         console.log(`Found ${expiredBansSnap.size} expired bans to lift.`);
+<<<<<<< HEAD
         // Itera y ejecuta las actualizaciones por usuario para mantener la consistencia
         for (const userDoc of expiredBansSnap.docs) {
             const uid = userDoc.id;
@@ -99,10 +115,30 @@ exports.cleanUpOldData = (0, scheduler_1.onSchedule)({
             catch (error) {
                 // Si falla, al menos lo registramos.
                 // El usuario puede quedar inconsistente, pero solo este usuario.
+=======
+        for (const userDoc of expiredBansSnap.docs) {
+            const uid = userDoc.id;
+            try {
+                // Unban in Auth
+                await admin.auth().updateUser(uid, { disabled: false });
+                // Unban in Firestore
+                batch.update(userDoc.ref, {
+                    disabled: false,
+                    banUntil: admin.firestore.FieldValue.delete()
+                });
+                console.log(`Lifting ban for user ${uid}.`);
+            }
+            catch (error) {
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
                 console.error(`Failed to lift ban for user ${uid}:`, error);
             }
         }
     }
+<<<<<<< HEAD
     console.log("✅ Proceso de limpieza de baneos completado.");
+=======
+    await batch.commit();
+    console.log("✅ Limpieza completada correctamente.");
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 });
 //# sourceMappingURL=cleanup.js.map

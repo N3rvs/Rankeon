@@ -20,6 +20,7 @@ import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
 import { updateUserRole, updateUserStatus, updateUserCertification } from './users';
 import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings, getFeaturedScrims, getManagedUsers } from './public';
 
+// 4. Exporta todo como lo tenías
 export {
   getChats,
   deleteChatHistory,

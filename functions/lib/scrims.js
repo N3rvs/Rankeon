@@ -54,7 +54,11 @@ exports.createScrim = (0, https_1.onCall)(async ({ auth, data }) => {
     const [teamSnap, memberSnap] = await Promise.all([teamRef.get(), memberRef.get()]);
     if (!teamSnap.exists)
         throw new https_1.HttpsError("not-found", "Team not found.");
+<<<<<<< HEAD
     if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) { // <--- Correcto
+=======
+    if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) {
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         throw new https_1.HttpsError("permission-denied", "You must be staff to create a scrim for this team.");
     }
     const teamData = teamSnap.data();
@@ -94,7 +98,11 @@ exports.acceptScrim = (0, https_1.onCall)(async ({ auth, data }) => {
             throw new https_1.HttpsError("not-found", "Scrim not found.");
         if (!teamSnap.exists)
             throw new https_1.HttpsError("not-found", "Your team could not be found.");
+<<<<<<< HEAD
         if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) { // <--- Correcto
+=======
+        if (!memberSnap.exists || !STAFF_ROLES.includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role)) {
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
             throw new https_1.HttpsError("permission-denied", "You must be staff to accept a scrim for this team.");
         }
         const scrimData = scrimSnap.data();
@@ -104,6 +112,7 @@ exports.acceptScrim = (0, https_1.onCall)(async ({ auth, data }) => {
         if (scrimData.teamAId === acceptingTeamId) {
             throw new https_1.HttpsError("invalid-argument", "You cannot accept your own scrim.");
         }
+<<<<<<< HEAD
         // *** INICIO DE LA CORRECCIÓN #1 ***
         // Guardamos los datos del equipo B (teamSnap) al aceptar
         const teamData = teamSnap.data();
@@ -114,11 +123,20 @@ exports.acceptScrim = (0, https_1.onCall)(async ({ auth, data }) => {
             teamBAvatarUrl: teamData.avatarUrl // <-- AÑADIDO
         });
         // *** FIN DE LA CORRECCIÓN #1 ***
+=======
+        transaction.update(scrimRef, {
+            teamBId: acceptingTeamId,
+            status: "confirmed",
+        });
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
         // Here you would create the temporary chat
     });
 });
 exports.cancelScrim = (0, https_1.onCall)(async ({ auth, data }) => {
+<<<<<<< HEAD
     var _a, _b;
+=======
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { scrimId } = data;
     if (!uid)
@@ -128,6 +146,7 @@ exports.cancelScrim = (0, https_1.onCall)(async ({ auth, data }) => {
     if (!scrimSnap.exists)
         throw new https_1.HttpsError("not-found", "Scrim not found.");
     const scrimData = scrimSnap.data();
+<<<<<<< HEAD
     // *** INICIO DE LA CORRECCIÓN #2 ***
     // Comprueba el ROL, no solo si existe
     const teamARef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
@@ -147,6 +166,19 @@ exports.cancelScrim = (0, https_1.onCall)(async ({ auth, data }) => {
     if (scrimData.status === 'cancelled' || scrimData.status === 'completed') {
         throw new https_1.HttpsError("failed-precondition", `Cannot cancel a scrim that is already ${scrimData.status}.`);
     }
+=======
+    // Check if user is staff of either team
+    const teamARef = db.collection("teams").doc(scrimData.teamAId).collection("members").doc(uid);
+    const teamAStaff = (await teamARef.get()).exists;
+    let teamBStaff = false;
+    if (scrimData.teamBId) {
+        const teamBRef = db.collection("teams").doc(scrimData.teamBId).collection("members").doc(uid);
+        teamBStaff = (await teamBRef.get()).exists;
+    }
+    if (!teamAStaff && !teamBStaff) {
+        throw new https_1.HttpsError("permission-denied", "You are not authorized to cancel this scrim.");
+    }
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     await scrimRef.update({ status: 'cancelled' });
     return { success: true, message: "Scrim cancelled." };
 });

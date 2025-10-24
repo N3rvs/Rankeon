@@ -33,12 +33,20 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+<<<<<<< HEAD
 exports.sendMessageToRoom = exports.leaveRoom = exports.joinRoom = exports.createGameRoom = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const db = admin.firestore();
 // Esta función estaba bien
 exports.createGameRoom = (0, https_1.onCall)(async ({ auth, data }) => {
+=======
+exports.sendMessageToRoom = exports.leaveRoom = exports.joinRoom = exports.createGameRoomWithDiscord = void 0;
+const https_1 = require("firebase-functions/v2/https");
+const admin = __importStar(require("firebase-admin"));
+const db = admin.firestore();
+exports.createGameRoomWithDiscord = (0, https_1.onCall)(async ({ auth, data }) => {
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     if (!uid) {
         throw new https_1.HttpsError("unauthenticated", "You must be logged in to create a room.");
@@ -58,17 +66,27 @@ exports.createGameRoom = (0, https_1.onCall)(async ({ auth, data }) => {
             partySize,
             createdBy: uid,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
+<<<<<<< HEAD
             participants: [uid], // Creator automatically joins
         });
         return { success: true, message: "Room created successfully.", roomId: roomRef.id };
+=======
+            discordChannelId: null, // Discord integration is not implemented
+            participants: [uid], // Creator automatically joins
+        });
+        return { success: true, message: "Room created successfully.", roomId: roomRef.id, discordChannelId: null };
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
     }
     catch (error) {
         console.error("Error creating game room in Firestore:", error);
         throw new https_1.HttpsError("internal", "Failed to create the game room.");
     }
 });
+<<<<<<< HEAD
 // *** INICIO DE LA CORRECCIÓN ***
 // Esta función ahora usa una transacción para comprobar partySize
+=======
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.joinRoom = (0, https_1.onCall)(async ({ auth, data }) => {
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { roomId } = data;
@@ -77,6 +95,7 @@ exports.joinRoom = (0, https_1.onCall)(async ({ auth, data }) => {
     if (!roomId)
         throw new https_1.HttpsError("invalid-argument", "Missing room ID.");
     const roomRef = db.collection("gameRooms").doc(roomId);
+<<<<<<< HEAD
     // Usa una transacción para leer antes de escribir
     return db.runTransaction(async (transaction) => {
         const roomDoc = await transaction.get(roomRef);
@@ -104,6 +123,13 @@ exports.joinRoom = (0, https_1.onCall)(async ({ auth, data }) => {
 });
 // *** FIN DE LA CORRECCIÓN ***
 // Esta función estaba bien (es una lógica excelente)
+=======
+    await roomRef.update({
+        participants: admin.firestore.FieldValue.arrayUnion(uid)
+    });
+    return { success: true };
+});
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.leaveRoom = (0, https_1.onCall)(async ({ auth, data }) => {
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { roomId } = data;
@@ -155,7 +181,10 @@ exports.leaveRoom = (0, https_1.onCall)(async ({ auth, data }) => {
         throw new https_1.HttpsError("internal", "An unexpected error occurred while leaving the room.");
     });
 });
+<<<<<<< HEAD
 // Esta función también estaba bien
+=======
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.sendMessageToRoom = (0, https_1.onCall)(async ({ auth, data }) => {
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { roomId, content } = data;

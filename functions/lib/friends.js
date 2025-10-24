@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+<<<<<<< HEAD
 exports.removeFriend = exports.respondToFriendRequest = exports.sendFriendRequest = exports.getFriendProfiles = exports.getFriendshipStatus = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
@@ -127,6 +128,12 @@ exports.getFriendProfiles = (0, https_1.onCall)(async ({ auth: callerAuth }) => 
     }
 });
 // Esta función estaba bien
+=======
+exports.removeFriend = exports.respondToFriendRequest = exports.sendFriendRequest = void 0;
+const https_1 = require("firebase-functions/v2/https");
+const admin = __importStar(require("firebase-admin"));
+const db = admin.firestore();
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.sendFriendRequest = (0, https_1.onCall)(async ({ auth, data }) => {
     var _a;
     const from = auth === null || auth === void 0 ? void 0 : auth.uid;
@@ -167,7 +174,10 @@ exports.sendFriendRequest = (0, https_1.onCall)(async ({ auth, data }) => {
     await batch.commit();
     return { success: true };
 });
+<<<<<<< HEAD
 // Esta función estaba bien
+=======
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.respondToFriendRequest = (0, https_1.onCall)(async ({ auth, data }) => {
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { requestId, accept } = data;
@@ -215,7 +225,10 @@ exports.respondToFriendRequest = (0, https_1.onCall)(async ({ auth, data }) => {
         return { success: true, accepted: accept };
     });
 });
+<<<<<<< HEAD
 // Esta función estaba bien
+=======
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
 exports.removeFriend = (0, https_1.onCall)(async ({ auth, data }) => {
     const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
     const { friendUid } = data;
@@ -260,7 +273,11 @@ exports.removeFriend = (0, https_1.onCall)(async ({ auth, data }) => {
         // NEW: Also delete any notifications associated with this chat
         const deleteNotifsBatch = db.batch();
         for (const memberId of members) {
+<<<<<<< HEAD
             const notifSnap = await db.collection(`inabcde/${memberId}/notifications`).where('chatId', '==', chatId).get(); // CORRECCIÓN: 'inbox', no 'inabcde'
+=======
+            const notifSnap = await db.collection(`inbox/${memberId}/notifications`).where('chatId', '==', chatId).get();
+>>>>>>> d5efcc92842827615608361b0ce60cb5a0a3613d
             notifSnap.forEach(doc => deleteNotifsBatch.delete(doc.ref));
         }
         await deleteNotifsBatch.commit();
