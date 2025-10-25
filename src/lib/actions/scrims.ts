@@ -1,4 +1,3 @@
-// src/lib/actions/scrims.ts
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';

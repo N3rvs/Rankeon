@@ -34,46 +34,69 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateUserCertification = exports.updateUserPresence = exports.updateUserStatus = exports.updateUserRole = void 0;
+// src/functions/users.ts
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const db = admin.firestore();
 const auth = admin.auth();
 const VALID_ROLES = ['admin', 'moderator', 'player', 'founder', 'coach'];
+const VALID_STATUSES = ['online', 'away', 'offline']; // Definir estados válidos
+// --- Helpers de Permisos ---
 const checkAdmin = (auth) => {
-    if (!auth || auth.token.role !== 'admin') {
+    // Añadir verificación de auth.token para seguridad
+    if (!(auth === null || auth === void 0 ? void 0 : auth.token) || auth.token.role !== 'admin') {
         throw new https_1.HttpsError('permission-denied', 'This action requires administrator privileges.');
     }
 };
 const checkModOrAdmin = (auth) => {
-    if (!auth || (auth.token.role !== 'admin' && auth.token.role !== 'moderator')) {
+    // Añadir verificación de auth.token para seguridad
+    if (!(auth === null || auth === void 0 ? void 0 : auth.token) || (auth.token.role !== 'admin' && auth.token.role !== 'moderator')) {
         throw new https_1.HttpsError('permission-denied', 'This action requires moderator or administrator privileges.');
     }
 };
-exports.updateUserRole = (0, https_1.onCall)(async ({ auth: callerAuth, data }) => {
-    checkAdmin(callerAuth);
+// --- FUNCIONES (Región añadida a onCall) ---
+exports.updateUserRole = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: callerAuth, data }) => {
+    checkAdmin(callerAuth); // Verifica permisos primero
     const { uid, role } = data;
     if (!uid || !role || !VALID_ROLES.includes(role)) {
-        throw new https_1.HttpsError('invalid-argument', 'Invalid arguments provided.');
+        throw new https_1.HttpsError('invalid-argument', 'Invalid arguments provided (uid, role).');
     }
     try {
         const userToUpdate = await auth.getUser(uid);
         const existingClaims = userToUpdate.customClaims || {};
-        // Step 1: Set the secure custom claim. This is the source of truth.
+        // No permitir cambiar rol de otro admin si no eres admin (seguridad extra)
+        if (existingClaims.role === 'admin' && callerAuth.token.role !== 'admin') {
+            throw new https_1.HttpsError('permission-denied', 'Cannot change the role of another admin.');
+        }
+        // 1. Set claim
         await auth.setCustomUserClaims(uid, Object.assign(Object.assign({}, existingClaims), { role }));
-        // Step 2: Update the denormalized role in Firestore for client display and add refresh timestamp.
-        await db.collection('users').doc(uid).set({ role, _claimsRefreshedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        // 2. Update Firestore
+        await db.collection('users').doc(uid).set({
+            role,
+            _claimsRefreshedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
         return { success: true, message: `Role "${role}" assigned to user ${uid}` };
     }
     catch (error) {
-        console.error('Error updating role:', error);
-        throw new https_1.HttpsError('internal', `Failed to update role: ${error.message}`);
+        console.error(`Error updating role for user ${uid}:`, error);
+        if (error instanceof https_1.HttpsError)
+            throw error;
+        throw new https_1.HttpsError('internal', error.message || `Failed to update role.`);
     }
 });
-exports.updateUserStatus = (0, https_1.onCall)(async ({ auth: callerAuth, data }) => {
-    checkModOrAdmin(callerAuth);
+exports.updateUserStatus = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: callerAuth, data }) => {
+    checkModOrAdmin(callerAuth); // Verifica permisos
     const { uid, disabled, duration } = data;
     if (!uid) {
-        throw new https_1.HttpsError('invalid-argument', 'User ID is required.');
+        throw new https_1.HttpsError('invalid-argument', 'User ID (uid) is required.');
+    }
+    // Asegurarse que disabled sea booleano
+    if (typeof disabled !== 'boolean') {
+        throw new https_1.HttpsError('invalid-argument', 'Disabled status must be true or false.');
+    }
+    // Asegurarse que duration sea número si existe
+    if (duration !== undefined && typeof duration !== 'number') {
+        throw new https_1.HttpsError('invalid-argument', 'Duration must be a number (in hours).');
     }
     if (callerAuth.uid === uid) {
         throw new https_1.HttpsError('failed-precondition', 'You cannot change your own status.');
@@ -82,33 +105,32 @@ exports.updateUserStatus = (0, https_1.onCall)(async ({ auth: callerAuth, data }
         const userToUpdate = await auth.getUser(uid);
         const targetClaims = userToUpdate.customClaims || {};
         const targetRole = targetClaims.role;
-        const callerRole = callerAuth.token.role;
-        // Rule: Moderators can't ban other moderators or admins.
+        const callerRole = callerAuth.token.role; // Sabemos que token existe por checkModOrAdmin
+        // Regla: Mods no pueden banear admins u otros mods
         if (callerRole === 'moderator' && (targetRole === 'admin' || targetRole === 'moderator')) {
             throw new https_1.HttpsError('permission-denied', 'Moderators cannot ban other moderators or admins.');
         }
         const userDocRef = db.collection('users').doc(uid);
         let banUntil = null;
         const claimsRefreshTime = admin.firestore.FieldValue.serverTimestamp();
-        if (disabled && duration) {
-            // Temporary ban
+        if (disabled && duration && duration > 0) { // Solo calcular si es ban temporal positivo
             const now = admin.firestore.Timestamp.now();
             banUntil = admin.firestore.Timestamp.fromMillis(now.toMillis() + duration * 60 * 60 * 1000);
         }
-        // Update Auth
+        // Actualizar Auth (primero por si falla)
         await auth.updateUser(uid, { disabled });
-        // Update Firestore
+        // Actualizar Firestore
         if (disabled) { // Banning
             await userDocRef.update({
                 disabled,
-                banUntil: banUntil, // Will be null for permanent, or a timestamp for temporary
+                banUntil: banUntil, // null si es permanente, Timestamp si es temporal
                 _claimsRefreshedAt: claimsRefreshTime
             });
         }
         else { // Unbanning
             await userDocRef.update({
                 disabled,
-                banUntil: admin.firestore.FieldValue.delete(),
+                banUntil: admin.firestore.FieldValue.delete(), // Elimina el campo banUntil
                 _claimsRefreshedAt: claimsRefreshTime
             });
         }
@@ -116,12 +138,15 @@ exports.updateUserStatus = (0, https_1.onCall)(async ({ auth: callerAuth, data }
         return { success: true, message: `User ${action} successfully.` };
     }
     catch (error) {
-        console.error('Error updating user status:', error);
-        throw new https_1.HttpsError('internal', `Failed to update user status: ${error.message}`);
+        console.error(`Error updating status for user ${uid}:`, error);
+        // Si falla Firestore después de Auth, intentar revertir Auth (opcional, complejo)
+        // Por ahora, solo lanzamos el error
+        if (error instanceof https_1.HttpsError)
+            throw error;
+        throw new https_1.HttpsError('internal', error.message || `Failed to update user status.`);
     }
 });
-const VALID_STATUSES = ['online', 'away', 'offline'];
-exports.updateUserPresence = (0, https_1.onCall)(async ({ auth: requestAuth, data }) => {
+exports.updateUserPresence = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: requestAuth, data }) => {
     // 1. Autenticación y Validación
     if (!requestAuth) {
         throw new https_1.HttpsError('unauthenticated', 'Debes iniciar sesión para actualizar tu estado.');
@@ -142,25 +167,30 @@ exports.updateUserPresence = (0, https_1.onCall)(async ({ auth: requestAuth, dat
     }
     catch (error) {
         console.error(`Error al actualizar la presencia para el usuario ${uid}:`, error);
-        // Comprueba si el documento no existe (puede pasar si hay retraso entre Auth y Firestore)
-        if (error.code === 5) { // Firestore NOT_FOUND error code
+        // Comprueba si el documento no existe
+        if (error.code === 5) { // Código de error NOT_FOUND de Firestore
             throw new https_1.HttpsError('not-found', 'No se encontró el perfil de usuario para actualizar el estado.');
         }
-        throw new https_1.HttpsError('internal', 'Ocurrió un error inesperado al actualizar el estado.');
+        if (error instanceof https_1.HttpsError)
+            throw error;
+        throw new https_1.HttpsError('internal', error.message || 'Ocurrió un error inesperado al actualizar el estado.');
     }
 });
-exports.updateUserCertification = (0, https_1.onCall)(async ({ auth: callerAuth, data }) => {
-    checkModOrAdmin(callerAuth);
+exports.updateUserCertification = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: callerAuth, data }) => {
+    checkModOrAdmin(callerAuth); // Verifica permisos
     const { uid, isCertified } = data;
     if (!uid) {
-        throw new https_1.HttpsError('invalid-argument', 'User ID is required.');
+        throw new https_1.HttpsError('invalid-argument', 'User ID (uid) is required.');
+    }
+    if (typeof isCertified !== 'boolean') {
+        throw new https_1.HttpsError('invalid-argument', 'Certification status must be true or false.');
     }
     try {
         const userToUpdate = await auth.getUser(uid);
         const existingClaims = userToUpdate.customClaims || {};
-        // Step 1: Set the secure custom claim.
+        // 1. Set claim
         await auth.setCustomUserClaims(uid, Object.assign(Object.assign({}, existingClaims), { isCertifiedStreamer: isCertified }));
-        // Step 2: Update the denormalized field in Firestore for client display and add refresh timestamp.
+        // 2. Update Firestore
         await db.collection('users').doc(uid).update({
             isCertifiedStreamer: isCertified,
             _claimsRefreshedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -168,8 +198,11 @@ exports.updateUserCertification = (0, https_1.onCall)(async ({ auth: callerAuth,
         return { success: true, message: `User certification status updated successfully.` };
     }
     catch (error) {
-        console.error('Error updating user certification:', error);
-        throw new https_1.HttpsError('internal', `Failed to update certification: ${error.message}`);
+        console.error(`Error updating certification for user ${uid}:`, error);
+        // Si falla Firestore después de Auth, intentar revertir Auth (opcional)
+        if (error instanceof https_1.HttpsError)
+            throw error;
+        throw new https_1.HttpsError('internal', error.message || `Failed to update certification.`);
     }
 });
 //# sourceMappingURL=users.js.map

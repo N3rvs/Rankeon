@@ -16,7 +16,6 @@ import { applyToTeam, getTeamMembers } from '@/lib/actions/teams';
 import { useParams, useRouter } from 'next/navigation';
 import { useI18n } from '@/contexts/i18n-context';
 import { format } from 'date-fns';
-import { Separator } from '@/components/ui/separator';
 import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -329,10 +328,10 @@ export default function TeamPage() {
     return (
         <div className="-mt-4 md:-mt-6">
             <div className="relative -mx-4 md:-mx-6">
-                <div className="h-48 md:h-64 bg-muted overflow-hidden">
+                <div className="h-40 md:h-64 bg-muted overflow-hidden">
                     {team && (
                         <Image
-                            src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
+                            src={team.bannerUrl || 'https://placehold.co/1600x300.png'}
                             alt={`${team.name} banner`}
                             fill
                             className="object-cover"

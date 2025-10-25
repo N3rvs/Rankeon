@@ -1,49 +1,45 @@
+// src/functions/friends.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
+// --- INTERFACES ---
 interface FriendRequestData {
   to: string;
 }
-
 interface RespondToFriendRequestData {
   requestId: string;
   accept: boolean;
 }
-
 interface RemoveFriendData {
   friendUid: string;
 }
-
 interface GetFriendshipStatusData {
     targetUserId: string;
 }
 
-export const getFriendshipStatus = onCall(async ({ auth, data }: { auth?: any, data: GetFriendshipStatusData }) => {
+// --- FUNCIONES (Región añadida y manejo de errores revisado) ---
+
+// *** Añadida región ***
+export const getFriendshipStatus = onCall({ region: 'europe-west1' }, async ({ auth, data }: { auth?: any, data: GetFriendshipStatusData }) => {
     const uid = auth?.uid;
     const { targetUserId } = data;
 
-    if (!uid) {
-        throw new HttpsError('unauthenticated', 'You must be logged in.');
-    }
-    if (!targetUserId) {
-        throw new HttpsError('invalid-argument', 'Target user ID is required.');
-    }
-    if (uid === targetUserId) {
-        return { status: 'self' };
-    }
+    if (!uid) throw new HttpsError('unauthenticated', 'You must be logged in.');
+    if (!targetUserId) throw new HttpsError('invalid-argument', 'Target user ID is required.');
+    if (uid === targetUserId) return { status: 'self' };
 
     try {
         const userDoc = await db.collection('users').doc(uid).get();
-        const userData = userDoc.data();
+        // Es posible que el documento del usuario aún no exista si se acaba de registrar
+        const userData = userDoc.exists ? userDoc.data() : null;
 
         if (userData?.friends?.includes(targetUserId)) {
             return { status: 'friends' };
         }
 
-        // *** INICIO DE LA CORRECCIÓN (Eficiencia) ***
-        // Comprueba ambas direcciones CON UNA SOLA CONSULTA
+        // Consulta única y eficiente
         const existingReqSnap = await db.collection("friendRequests")
             .where("from", "in", [uid, targetUserId])
             .where("to", "in", [uid, targetUserId])
@@ -54,70 +50,58 @@ export const getFriendshipStatus = onCall(async ({ auth, data }: { auth?: any, d
         if (!existingReqSnap.empty) {
             const request = existingReqSnap.docs[0].data();
             const requestId = existingReqSnap.docs[0].id;
-            
-            if (request.from === uid) {
-                return { status: 'request_sent', requestId: requestId };
-            } else {
-                return { status: 'request_received', requestId: requestId };
-            }
+            if (request.from === uid) return { status: 'request_sent', requestId: requestId };
+            else return { status: 'request_received', requestId: requestId };
         }
-        // *** FIN DE LA CORRECCIÓN ***
 
         return { status: 'not_friends' };
 
-    } catch (error) {
-        console.error('Error getting friendship status:', error);
-        throw new HttpsError('internal', 'An unexpected error occurred while checking friendship status.');
+    } catch (error: any) { // Catch y lanzar HttpsError
+        console.error(`Error getting friendship status between ${uid} and ${targetUserId}:`, error);
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError('internal', error.message || 'An unexpected error occurred while checking friendship status.');
     }
 });
 
-
-export const getFriendProfiles = onCall(async ({ auth: callerAuth }) => {
-    if (!callerAuth) {
-        throw new HttpsError('unauthenticated', 'Authentication is required.');
-    }
+// *** Añadida región ***
+export const getFriendProfiles = onCall({ region: 'europe-west1' }, async ({ auth: callerAuth }) => {
+    if (!callerAuth) throw new HttpsError('unauthenticated', 'Authentication is required.');
     const uid = callerAuth.uid;
 
     try {
         const userDoc = await db.collection('users').doc(uid).get();
-        if (!userDoc.exists) {
-            throw new HttpsError('not-found', 'Current user not found.');
-        }
+        if (!userDoc.exists) throw new HttpsError('not-found', 'Current user profile not found.');
 
         const userData = userDoc.data()!;
         const friendIds: string[] = userData.friends || [];
+        if (friendIds.length === 0) return [];
 
-        if (friendIds.length === 0) {
-            return [];
-        }
-
-        // *** INICIO DE LA CORRECCIÓN (Bug de +30 amigos) ***
-        // Trocea friendIds en chunks de 30 (límite de 'where-in')
+        // Trocea IDs en chunks de 30
         const chunks: string[][] = [];
         for (let i = 0; i < friendIds.length; i += 30) {
             chunks.push(friendIds.slice(i, i + 30));
         }
 
-        // Ejecuta una consulta por cada chunk en paralelo
-        const queries = chunks.map(chunk => 
+        // Ejecuta consultas en paralelo
+        const queries = chunks.map(chunk =>
             db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', chunk).get()
         );
-
         const querySnapshots = await Promise.all(queries);
 
-        // Combina los resultados de todas las consultas
+        // Combina y formatea resultados
         let friendProfiles: any[] = [];
         querySnapshots.forEach(snap => {
             const profiles = snap.docs.map(doc => {
-        // *** FIN DE LA CORRECCIÓN ***
                 const data = doc.data();
+                // Devuelve solo los campos necesarios y serializa Timestamps
                 return {
                     id: doc.id,
-                    ...data,
-                     // Serialize Timestamps
-                    createdAt: data.createdAt?.toDate().toISOString() || null,
-                    banUntil: data.banUntil?.toDate().toISOString() || null,
-                    _claimsRefreshedAt: data._claimsRefreshedAt?.toDate().toISOString() || null,
+                    name: data.name,
+                    avatarUrl: data.avatarUrl,
+                    status: data.status, // Ejemplo: añadir estado online/offline
+                    lastSeen: data.lastSeen?.toDate().toISOString() || null, // Ejemplo
+                    // Excluye campos sensibles como email, blocked, etc.
+                    createdAt: data.createdAt?.toDate().toISOString() || null, // Opcional
                 };
             });
             friendProfiles = friendProfiles.concat(profiles);
@@ -125,181 +109,208 @@ export const getFriendProfiles = onCall(async ({ auth: callerAuth }) => {
 
         return friendProfiles;
 
-    } catch (error: any) {
-        console.error('Error fetching friend profiles:', error);
-        throw new HttpsError('internal', 'An unexpected error occurred while fetching friends.');
+    } catch (error: any) { // Catch y lanzar HttpsError
+        console.error(`Error fetching friend profiles for user ${uid}:`, error);
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError('internal', error.message || 'An unexpected error occurred while fetching friends.');
     }
 });
 
-// Esta función estaba bien
-export const sendFriendRequest = onCall(async ({ auth, data }: { auth?: any, data: FriendRequestData }) => {
+// *** Añadida región ***
+export const sendFriendRequest = onCall({ region: 'europe-west1' }, async ({ auth, data }: { auth?: any, data: FriendRequestData }) => {
   const from = auth?.uid;
   const { to } = data;
 
   if (!from) throw new HttpsError("unauthenticated", "You must be logged in.");
-  if (!to || from === to) throw new HttpsError("invalid-argument", "Invalid user ID.");
+  if (!to || from === to) throw new HttpsError("invalid-argument", "Invalid recipient user ID.");
 
-  const fromDoc = await db.collection("users").doc(from).get();
-  const fromData = fromDoc.data();
-  if (fromData?.friends?.includes(to)) {
-    throw new HttpsError("already-exists", "User is already your friend.");
+  try {
+      // Comprobaciones previas (ya amigos, solicitud pendiente)
+      const fromDoc = await db.collection("users").doc(from).get();
+      const fromData = fromDoc.data();
+      if (fromData?.friends?.includes(to)) throw new HttpsError("already-exists", "User is already your friend.");
+
+      // Verifica si el destinatario existe (opcional pero bueno)
+      const toDoc = await db.collection("users").doc(to).get();
+      if (!toDoc.exists) throw new HttpsError("not-found", "The recipient user does not exist.");
+
+      const existingReqSnap = await db.collection("friendRequests")
+        .where("from", "in", [from, to])
+        .where("to", "in", [from, to])
+        .where("status", "==", "pending")
+        .get();
+      if (!existingReqSnap.empty) throw new HttpsError("already-exists", "A pending friend request already exists.");
+
+      // Crear solicitud y notificación en batch
+      const batch = db.batch();
+      const requestRef = db.collection("friendRequests").doc();
+      batch.set(requestRef, {
+        from, to, status: "pending",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      const notificationRef = db.collection(`inbox/${to}/notifications`).doc();
+      batch.set(notificationRef, {
+        type: "friend_request", from, read: false,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        extraData: { requestId: requestRef.id }
+      });
+      await batch.commit();
+
+      return { success: true };
+  } catch (error: any) { // Catch y lanzar HttpsError
+      console.error(`Error sending friend request from ${from} to ${to}:`, error);
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError('internal', error.message || 'Failed to send friend request.');
   }
-
-  const existingReqSnap = await db.collection("friendRequests")
-    .where("from", "in", [from, to])
-    .where("to", "in", [from, to])
-    .where("status", "==", "pending")
-    .get();
-
-  if (!existingReqSnap.empty) {
-      throw new HttpsError("already-exists", "A pending friend request already exists.");
-  }
-  
-  const batch = db.batch();
-  const requestRef = db.collection("friendRequests").doc();
-
-  batch.set(requestRef, {
-    from,
-    to,
-    status: "pending",
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
-
-  const notificationRef = db.collection(`inbox/${to}/notifications`).doc();
-  batch.set(notificationRef, {
-    type: "friend_request",
-    from,
-    read: false,
-    timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    extraData: { requestId: requestRef.id } // Pass the request ID
-  });
-  
-  await batch.commit();
-
-  return { success: true };
 });
 
-// Esta función estaba bien
-export const respondToFriendRequest = onCall(async ({ auth, data }: { auth?: any; data: RespondToFriendRequestData }) => {
-  const uid = auth?.uid;
+// *** Añadida región ***
+export const respondToFriendRequest = onCall({ region: 'europe-west1' }, async ({ auth, data }: { auth?: any; data: RespondToFriendRequestData }) => {
+  const uid = auth?.uid; // UID del destinatario que responde
   const { requestId, accept } = data;
 
   if (!uid || typeof accept !== "boolean" || !requestId) {
-    throw new HttpsError("invalid-argument", "Invalid data.");
+    throw new HttpsError("invalid-argument", "Invalid data (requestId, accept).");
   }
 
   const requestRef = db.collection("friendRequests").doc(requestId);
-  
-  return db.runTransaction(async (transaction) => {
-    const requestSnap = await transaction.get(requestRef);
-    if (!requestSnap.exists) {
-        throw new HttpsError("not-found", "Friend request not found. It may have been withdrawn.");
-    }
-    const req = requestSnap.data();
-    if (!req || req.to !== uid) {
-        throw new HttpsError("permission-denied", "This is not your friend request to respond to.");
-    }
-    if (req.status !== 'pending') {
-        throw new HttpsError("failed-precondition", "This friend request has already been resolved.");
-    }
-    
-    transaction.update(requestRef, { status: accept ? "accepted" : "rejected" });
 
-    if (accept) {
-        const fromId = req.from;
-        const userRef = db.doc(`users/${uid}`);
-        const fromRef = db.doc(`users/${fromId}`);
-        
-        // This is safe. arrayUnion creates the array if it doesn't exist.
-        transaction.update(userRef, { friends: admin.firestore.FieldValue.arrayUnion(fromId) });
-        transaction.update(fromRef, { friends: admin.firestore.FieldValue.arrayUnion(uid) });
+  try {
+      return await db.runTransaction(async (transaction) => {
+        const requestSnap = await transaction.get(requestRef);
+        if (!requestSnap.exists) throw new HttpsError("not-found", "Friend request not found.");
 
-        // Notify the original sender that their request was accepted
-        const notificationRef = db.collection(`inbox/${fromId}/notifications`).doc();
-        transaction.set(notificationRef, {
-            type: "friend_accepted",
-            from: uid,
-            read: false,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        const req = requestSnap.data();
+        if (!req || req.to !== uid) throw new HttpsError("permission-denied", "This is not your request to respond to.");
+        if (req.status !== 'pending') throw new HttpsError("failed-precondition", "Request already resolved.");
 
-        // Create a chat document so they can start messaging immediately
-        const members = [uid, fromId].sort();
-        const chatId = members.join('_');
-        const chatRef = db.collection("chats").doc(chatId);
-        transaction.set(chatRef, {
-            members: members,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true }); // Use merge to not overwrite if it somehow exists
-    }
-    
-    return { success: true, accepted: accept };
-  });
+        transaction.update(requestRef, { status: accept ? "accepted" : "rejected" });
+
+        if (accept) {
+            const fromId = req.from;
+            // Asegurarse que ambos usuarios existen antes de actualizar (más seguro)
+            const userRef = db.doc(`users/${uid}`);
+            const fromRef = db.doc(`users/${fromId}`);
+            const [userSnap, fromSnap] = await Promise.all([transaction.get(userRef), transaction.get(fromRef)]);
+            if (!userSnap.exists || !fromSnap.exists) {
+                throw new HttpsError("not-found", "One of the user profiles involved does not exist.");
+            }
+
+            // Añadir amigos
+            transaction.update(userRef, { friends: admin.firestore.FieldValue.arrayUnion(fromId) });
+            transaction.update(fromRef, { friends: admin.firestore.FieldValue.arrayUnion(uid) });
+
+            // Notificar al remitente original
+            const notificationRef = db.collection(`inbox/${fromId}/notifications`).doc();
+            transaction.set(notificationRef, {
+                type: "friend_accepted", from: uid, read: false,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Crear/Actualizar documento de chat
+            const members = [uid, fromId].sort();
+            const chatId = members.join('_');
+            const chatRef = db.collection("chats").doc(chatId);
+            transaction.set(chatRef, {
+                members: members,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            }, { merge: true });
+        }
+
+        return { success: true, accepted: accept };
+      });
+  } catch (error: any) { // Catch y lanzar HttpsError
+      console.error(`Error responding to friend request ${requestId} by user ${uid}:`, error);
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError('internal', error.message || 'Failed to respond to friend request.');
+  }
 });
 
-// Esta función estaba bien
-export const removeFriend = onCall(async ({ auth, data }: { auth?: any, data: RemoveFriendData }) => {
+// *** Añadida región ***
+export const removeFriend = onCall({ region: 'europe-west1' }, async ({ auth, data }: { auth?: any, data: RemoveFriendData }) => {
   const uid = auth?.uid;
   const { friendUid } = data;
 
   if (!uid || !friendUid) {
-    throw new HttpsError("invalid-argument", "Missing friend UID.");
+    throw new HttpsError("invalid-argument", "Missing user ID or friend ID.");
+  }
+  if (uid === friendUid) {
+      throw new HttpsError("invalid-argument", "Cannot remove yourself as a friend.");
   }
 
-  const batch = db.batch();
-  const currentUserRef = db.doc(`users/${uid}`);
-  const friendUserRef = db.doc(`users/${friendUid}`);
+  // --- Primer paso: Quitar amistad y limpiar peticiones ---
+  try {
+      const batch = db.batch();
+      const currentUserRef = db.doc(`users/${uid}`);
+      const friendUserRef = db.doc(`users/${friendUid}`);
 
-  // Remove friend from both users' friend lists
-  batch.update(currentUserRef, { friends: admin.firestore.FieldValue.arrayRemove(friendUid) });
-  batch.update(friendUserRef, { friends: admin.firestore.FieldValue.arrayRemove(uid) });
+      // Quitar de ambas listas de amigos
+      batch.update(currentUserRef, { friends: admin.firestore.FieldValue.arrayRemove(friendUid) });
+      batch.update(friendUserRef, { friends: admin.firestore.FieldValue.arrayRemove(uid) });
 
-  // Optional: Clean up the friend request document(s) between them.
-  const requestsSnap = await db.collection("friendRequests")
-    .where("from", "in", [uid, friendUid])
-    .where("to", "in", [uid, friendUid])
-    .get();
-  
-  requestsSnap.forEach(doc => batch.delete(doc.ref));
+      // Limpiar peticiones pendientes o aceptadas entre ellos
+      const requestsSnap = await db.collection("friendRequests")
+        .where("from", "in", [uid, friendUid])
+        .where("to", "in", [uid, friendUid])
+        .get();
+      requestsSnap.forEach(doc => batch.delete(doc.ref));
 
-  // Commit the primary changes first.
-  await batch.commit();
+      await batch.commit();
+  } catch (error: any) {
+      console.error(`Error removing friendship between ${uid} and ${friendUid}:`, error);
+      // Si falla el primer paso, lanzar error y no continuar
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError('internal', error.message || 'Failed to update friendship status.');
+  }
 
-  // --- NEW LOGIC: Delete the chat document and its messages ---
-  // This is done after the main batch to ensure friend removal succeeds first,
-  // even if the chat cleanup fails for some reason.
+  // --- Segundo paso (separado): Borrar chat y notificaciones ---
+  // Se hace después para que el fallo aquí no impida quitar al amigo
   try {
     const members = [uid, friendUid].sort();
     const chatId = members.join('_');
     const chatRef = db.collection("chats").doc(chatId);
-    const messagesRef = chatRef.collection("messages");
 
-    // Batched delete of subcollection
-    const batchSize = 400;
-    let snapshot;
-    do {
-      snapshot = await messagesRef.limit(batchSize).get();
-      if (snapshot.empty) break;
+    // Borrar subcolección de mensajes (usando helper si existe)
+    await deleteCollection(db, `chats/${chatId}/messages`);
+    // O el bucle:
+    // const messagesRef = chatRef.collection("messages");
+    // const batchSize = 400; let snapshot;
+    // do { /* ... bucle de borrado ... */ } while (!snapshot.empty);
 
-      const deleteBatch = db.batch();
-      snapshot.docs.forEach((doc) => deleteBatch.delete(doc.ref));
-      await deleteBatch.commit();
-    } while (!snapshot.empty);
-
-    // Delete the main chat document after its subcollection is empty
+    // Borrar documento principal del chat
     await chatRef.delete();
-    
-    // NEW: Also delete any notifications associated with this chat
+
+    // Borrar notificaciones asociadas al chat para ambos usuarios
     const deleteNotifsBatch = db.batch();
     for(const memberId of members) {
-        const notifSnap = await db.collection(`inabcde/${memberId}/notifications`).where('chatId', '==', chatId).get(); // CORRECCIÓN: 'inbox', no 'inabcde'
+        const notifSnap = await db.collection(`inbox/${memberId}/notifications`).where('chatId', '==', chatId).get();
         notifSnap.forEach(doc => deleteNotifsBatch.delete(doc.ref));
     }
     await deleteNotifsBatch.commit();
 
-  } catch(error) {
-    console.error(`Failed to delete chat history for friend removal between ${uid} and ${friendUid}. The friendship was removed successfully.`, error);
+  } catch(error: any) {
+    // Solo loguear error aquí, la amistad ya se quitó
+    console.error(`Failed to delete chat history/notifications after friend removal between ${uid} and ${friendUid}. Friendship removed.`, error);
   }
 
-  return { success: true };
+  return { success: true }; // Devuelve éxito aunque falle el borrado del chat
 });
+
+// Helper para borrar colecciones (si no lo tienes en un archivo común)
+async function deleteCollection(
+    db: admin.firestore.Firestore,
+    collectionPath: string,
+    batchSize: number = 400
+) {
+    const collectionRef = db.collection(collectionPath);
+    let query = collectionRef.orderBy('__name__').limit(batchSize);
+    while (true) {
+        const snapshot = await query.get();
+        if (snapshot.size === 0) break;
+        const batch = db.batch();
+        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+        query = collectionRef.orderBy('__name__').startAfter(snapshot.docs[snapshot.docs.length - 1]).limit(batchSize);
+    }
+     console.log(`Finished deleting collection: ${collectionPath}`);
+}

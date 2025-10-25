@@ -1,4 +1,3 @@
-// src/lib/actions/honors.ts
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';

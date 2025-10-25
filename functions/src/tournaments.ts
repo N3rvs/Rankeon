@@ -4,7 +4,7 @@ import * as admin from "firebase-admin";
 
 const db = admin.firestore();
 
-// --- INTERFACES (Sin cambios) ---
+// --- INTERFACES ---
 interface ProposeTournamentData {
   name: string;
   game: string;
@@ -38,9 +38,10 @@ interface RegisterTeamData {
   teamId: string;
 }
 
-// --- proposeTournament (Sin cambios, estaba perfecto) ---
-export const registerTeamForTournament = onCall(async (request) => {
-    // 1. Autenticación y Validación de Datos
+// --- FUNCIONES ---
+
+export const registerTeamForTournament = onCall({ region: 'europe-west1' }, async (request) => {
+    // 1. Autenticación y Validación
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "Debes iniciar sesión para registrar un equipo.");
     }
@@ -73,11 +74,9 @@ export const registerTeamForTournament = onCall(async (request) => {
             if (!teamSnap.exists) {
                 throw new HttpsError("not-found", "Tu equipo no existe.");
             }
-            // Permiso: ¿Es el usuario staff del equipo?
             if (!memberSnap.exists || !['founder', 'coach'].includes(memberSnap.data()?.role)) {
                 throw new HttpsError("permission-denied", "Solo el fundador o coach pueden registrar el equipo.");
             }
-            // ¿Ya está registrado?
             if (registrationSnap.exists) {
                 throw new HttpsError("already-exists", "Este equipo ya está registrado en el torneo.");
             }
@@ -85,31 +84,22 @@ export const registerTeamForTournament = onCall(async (request) => {
             const tournamentData = tournamentSnap.data()!;
             const teamData = teamSnap.data()!;
 
-            // ¿El torneo está abierto para inscripción?
             if (tournamentData.status !== 'upcoming') {
                 throw new HttpsError("failed-precondition", "Este torneo no está abierto para inscripciones.");
             }
-            // ¿Hay cupo? (Usa un contador o lee la subcolección)
-            const currentTeamsCount = tournamentData.registeredTeamsCount || 0; // Asume un contador
+            const currentTeamsCount = tournamentData.registeredTeamsCount || 0;
             if (currentTeamsCount >= tournamentData.maxTeams) {
                 throw new HttpsError("failed-precondition", "El torneo está lleno.");
             }
-            // ¿Cumple el requisito de rango? (Simplificado, necesita tu lógica de rangos)
-            // const teamRankValue = rankOrder[teamData.rank]; // Necesitas tu lógica rankOrder
-            // const minRankValue = rankOrder[tournamentData.rankMin];
-            // const maxRankValue = rankOrder[tournamentData.rankMax];
-            // if (tournamentData.rankMin && teamRankValue < minRankValue) { ... }
-            // if (tournamentData.rankMax && teamRankValue > maxRankValue) { ... }
-
+            // Aquí iría la validación de rango si la implementas
 
             // 4. Escribir el registro y actualizar contador
             transaction.set(registrationRef, {
                 teamName: teamData.name,
                 teamAvatarUrl: teamData.avatarUrl,
                 registeredAt: admin.firestore.FieldValue.serverTimestamp(),
+                // Puedes añadir más datos del equipo si los necesitas mostrar en la lista de inscritos
             });
-
-            // Actualiza el contador de equipos registrados en el torneo
             transaction.update(tournamentRef, {
                 registeredTeamsCount: admin.firestore.FieldValue.increment(1)
             });
@@ -122,14 +112,15 @@ export const registerTeamForTournament = onCall(async (request) => {
         if (error instanceof HttpsError) {
             throw error; // Re-lanza errores Https conocidos
         }
-        throw new HttpsError('internal', 'Ocurrió un error inesperado al registrar el equipo.');
+        throw new HttpsError('internal', error.message || 'Ocurrió un error inesperado al registrar el equipo.');
     }
 });
-export const proposeTournament = onCall(async (request) => {
+
+export const proposeTournament = onCall({ region: 'europe-west1' }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to propose a tournament.");
   }
-  
+
   const { uid, token } = request.auth;
   const isCertified = token.isCertifiedStreamer === true;
   const isAdmin = token.role === 'admin';
@@ -138,47 +129,51 @@ export const proposeTournament = onCall(async (request) => {
   if (!isCertified && !isAdmin && !isModerator) {
     throw new HttpsError("permission-denied", "Only certified streamers, moderators, or admins can propose tournaments.");
   }
-  
-  const { name, game, description, proposedDate, format, maxTeams, rankMin, rankMax, prize, currency } = request.data as ProposeTournamentData;
-  
-  if (!name || !game || !description || !proposedDate || !format || !maxTeams) {
-    throw new HttpsError("invalid-argument", "Missing required tournament proposal details.");
-  }
-  
-  const userDoc = await db.collection('users').doc(uid).get();
-  if (!userDoc.exists) {
-      throw new HttpsError("not-found", "Proposer's user profile not found.");
-  }
-  const userData = userDoc.data();
-  const proposerName = userData?.name || 'Unknown User';
-  const proposerCountry = userData?.country || '';
-  
-  const proposalRef = db.collection("tournamentProposals").doc();
-  await proposalRef.set({
-    id: proposalRef.id,
-    proposerUid: uid,
-    proposerName: proposerName,
-    proposerCountry: proposerCountry,
-    tournamentName: name,
-    game,
-    description,
-    proposedDate: admin.firestore.Timestamp.fromDate(new Date(proposedDate)),
-    format,
-    maxTeams,
-    rankMin: rankMin || '',
-    rankMax: rankMax || '',
-    prize: prize || null,
-    currency: currency || '',
-    status: 'pending',
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
 
-  return { success: true, message: "Tournament proposal submitted successfully for review." };
+  const { name, game, description, proposedDate, format, maxTeams, rankMin, rankMax, prize, currency } = request.data as ProposeTournamentData;
+
+  if (!name || !game || !description || !proposedDate || !format || !maxTeams) {
+    throw new HttpsError("invalid-argument", "Missing required tournament proposal details (name, game, desc, date, format, maxTeams).");
+  }
+
+  try {
+      const userDoc = await db.collection('users').doc(uid).get();
+      if (!userDoc.exists) {
+          throw new HttpsError("not-found", "Proposer's user profile not found.");
+      }
+      const userData = userDoc.data();
+      const proposerName = userData?.name || 'Unknown User';
+      const proposerCountry = userData?.country || '';
+
+      const proposalRef = db.collection("tournamentProposals").doc();
+      await proposalRef.set({
+        id: proposalRef.id,
+        proposerUid: uid,
+        proposerName: proposerName,
+        proposerCountry: proposerCountry,
+        tournamentName: name,
+        game,
+        description,
+        proposedDate: admin.firestore.Timestamp.fromDate(new Date(proposedDate)),
+        format,
+        maxTeams,
+        rankMin: rankMin || '',
+        rankMax: rankMax || '',
+        prize: prize || null,
+        currency: currency || '',
+        status: 'pending',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return { success: true, message: "Tournament proposal submitted successfully for review." };
+  } catch (error: any) {
+      console.error(`Error proposing tournament by user ${uid}:`, error);
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError('internal', error.message || 'Failed to submit proposal.');
+  }
 });
 
-// --- reviewTournamentProposal (Sin cambios, estaba perfecto) ---
-export const reviewTournamentProposal = onCall(async (request) => {
-    // 1. Permissions and Data Validation
+export const reviewTournamentProposal = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -189,7 +184,7 @@ export const reviewTournamentProposal = onCall(async (request) => {
 
     const { proposalId, status } = request.data as ReviewTournamentData;
     if (!proposalId || !['approved', 'rejected'].includes(status)) {
-        throw new HttpsError("invalid-argument", "Missing or invalid proposal data.");
+        throw new HttpsError("invalid-argument", "Missing or invalid proposal data (proposalId, status).");
     }
 
     const proposalRef = db.collection("tournamentProposals").doc(proposalId);
@@ -199,15 +194,15 @@ export const reviewTournamentProposal = onCall(async (request) => {
             const proposalSnap = await transaction.get(proposalRef);
 
             if (!proposalSnap.exists) {
-                throw new HttpsError("not-found", "Tournament proposal not found. It may have been deleted or already processed.");
+                throw new HttpsError("not-found", "Tournament proposal not found.");
             }
-            
+
             const proposalData = proposalSnap.data();
             if (!proposalData || proposalData.status !== 'pending') {
                 throw new HttpsError("failed-precondition", "This proposal has already been reviewed.");
             }
 
-            // Step 1: Update the proposal document
+            // 1. Update proposal
             const reviewTimestamp = admin.firestore.Timestamp.now();
             transaction.update(proposalRef, {
                 status: status,
@@ -215,12 +210,12 @@ export const reviewTournamentProposal = onCall(async (request) => {
                 reviewedAt: reviewTimestamp,
             });
 
-            // Step 2: If approved, create the new tournament document
+            // 2. Create tournament if approved
             if (status === 'approved') {
                 const { tournamentName, game, description, proposedDate, format, proposerUid, proposerName, proposerCountry, maxTeams, rankMin, rankMax, prize, currency } = proposalData;
-                
+
                 if (!tournamentName || !game || !description || !proposedDate || !format || !proposerUid || !proposerName || !maxTeams) {
-                    throw new HttpsError("failed-precondition", "The proposal document has invalid data and cannot be approved.");
+                    throw new HttpsError("failed-precondition", "The proposal document has invalid/missing data.");
                 }
 
                 const tournamentRef = db.collection('tournaments').doc();
@@ -229,7 +224,7 @@ export const reviewTournamentProposal = onCall(async (request) => {
                     name: tournamentName,
                     game: game,
                     description: description,
-                    startDate: proposedDate, 
+                    startDate: proposedDate,
                     format: format,
                     maxTeams,
                     rankMin: rankMin || '',
@@ -241,6 +236,8 @@ export const reviewTournamentProposal = onCall(async (request) => {
                     country: proposerCountry || '',
                     createdAt: reviewTimestamp,
                     proposalId: proposalId,
+                    registeredTeamsCount: 0, // Initialize counter
+                    winnerId: null, // Initialize winner field
                 });
             }
         });
@@ -252,12 +249,11 @@ export const reviewTournamentProposal = onCall(async (request) => {
         if (error instanceof HttpsError) {
             throw error;
         }
-        throw new HttpsError('internal', 'A server error occurred while processing the proposal. Please check the function logs.');
+        throw new HttpsError('internal', error.message || 'A server error occurred while processing the proposal.');
     }
 });
 
-// --- editTournament (Sin cambios, estaba perfecto) ---
-export const editTournament = onCall(async (request) => {
+export const editTournament = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in to edit a tournament.");
     }
@@ -268,30 +264,48 @@ export const editTournament = onCall(async (request) => {
     if (!tournamentId) {
         throw new HttpsError("invalid-argument", "Tournament ID is required.");
     }
+    // Basic validation for name
+    if (updateData.name && updateData.name.length < 5) {
+         throw new HttpsError("invalid-argument", "Tournament name must be at least 5 characters.");
+    }
 
     const tournamentRef = db.collection("tournaments").doc(tournamentId);
-    const tournamentSnap = await tournamentRef.get();
+    try {
+        const tournamentSnap = await tournamentRef.get();
 
-    if (!tournamentSnap.exists) {
-        throw new HttpsError("not-found", "Tournament not found.");
+        if (!tournamentSnap.exists) {
+            throw new HttpsError("not-found", "Tournament not found.");
+        }
+
+        const tournamentData = tournamentSnap.data()!;
+        const isOwner = tournamentData.organizer.uid === uid;
+        const isModOrAdmin = token.role === 'moderator' || token.role === 'admin';
+
+        if (!isOwner && !isModOrAdmin) {
+            throw new HttpsError("permission-denied", "You do not have permission to edit this tournament.");
+        }
+
+        // Prevent updating internal fields
+        const allowedUpdates = { ...updateData };
+        delete (allowedUpdates as any).organizer;
+        delete (allowedUpdates as any).status;
+        delete (allowedUpdates as any).id;
+        delete (allowedUpdates as any).createdAt;
+        delete (allowedUpdates as any).proposalId;
+        delete (allowedUpdates as any).registeredTeamsCount;
+        delete (allowedUpdates as any).winnerId;
+
+        await tournamentRef.update(allowedUpdates);
+
+        return { success: true, message: "Tournament updated successfully." };
+    } catch (error: any) {
+        console.error(`Error editing tournament ${tournamentId}:`, error);
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", error.message || "Failed to update tournament.");
     }
-
-    const tournamentData = tournamentSnap.data()!;
-    const isOwner = tournamentData.organizer.uid === uid;
-    const isModOrAdmin = token.role === 'moderator' || token.role === 'admin';
-
-    if (!isOwner && !isModOrAdmin) {
-        throw new HttpsError("permission-denied", "You do not have permission to edit this tournament.");
-    }
-
-    await tournamentRef.update(updateData);
-
-    return { success: true, message: "Tournament updated successfully." };
 });
 
-
-// *** INICIO DE LA CORRECCIÓN ***
-export const deleteTournament = onCall(async (request) => {
+export const deleteTournament = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in to delete a tournament.");
     }
@@ -306,75 +320,69 @@ export const deleteTournament = onCall(async (request) => {
     }
 
     const tournamentRef = db.collection("tournaments").doc(tournamentId);
-    const tournamentSnap = await tournamentRef.get();
-
-    if (!tournamentSnap.exists) {
-        return { success: true, message: "Tournament already deleted." };
-    }
-    
-    const tournamentData = tournamentSnap.data();
-    const proposalId = tournamentData?.proposalId;
-
     try {
-        // --- PASO 1: Borrar subcolecciones recursivamente ---
-        // (Añade aquí todas las subcolecciones que uses, ej. 'matches', 'teams')
+        const tournamentSnap = await tournamentRef.get();
+
+        if (!tournamentSnap.exists) {
+            return { success: true, message: "Tournament already deleted." };
+        }
+
+        const tournamentData = tournamentSnap.data();
+        const proposalId = tournamentData?.proposalId;
+
+        // --- Borrar subcolecciones ---
         console.log(`Deleting subcollections for tournament ${tournamentId}`);
+        // Add all subcollections you use (e.g., 'teams', 'matches', 'rounds')
         await deleteCollection(db, `tournaments/${tournamentId}/teams`);
         await deleteCollection(db, `tournaments/${tournamentId}/matches`);
 
-        // --- PASO 2: Borrar el documento principal Y la propuesta ---
+        // --- Borrar principal y propuesta ---
         const batch = db.batch();
-
-        // Borra el torneo
         batch.delete(tournamentRef);
-
-        // Borra la propuesta original, si existe
         if (proposalId) {
             const proposalRef = db.collection("tournamentProposals").doc(proposalId);
             batch.delete(proposalRef);
         }
-
         await batch.commit();
 
         return { success: true, message: "Tournament and all related data deleted successfully." };
-    
+
     } catch (error: any) {
         console.error(`Error deleting tournament ${tournamentId}:`, error);
-        throw new HttpsError("internal", "Failed to delete tournament and its subcollections.");
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", error.message || "Failed to delete tournament.");
     }
 });
-// *** FIN DE LA CORRECCIÓN ***
 
 
-/**
- * --- FUNCIÓN DE AYUDA (Helper) AÑADIDA ---
- * Borra una colección completa, incluyendo subcolecciones, en lotes.
- */
+// --- FUNCIÓN DE AYUDA (Helper) para borrar colecciones ---
 async function deleteCollection(
   db: admin.firestore.Firestore,
   collectionPath: string,
-  batchSize: number = 50
+  batchSize: number = 50 // Firestore batch limit is 500 writes
 ) {
   const collectionRef = db.collection(collectionPath);
   let query = collectionRef.orderBy('__name__').limit(batchSize);
 
   while (true) {
     const snapshot = await query.get();
+    // When there are no documents left, we are done
     if (snapshot.size === 0) {
       break;
     }
 
+    // Delete documents in a batch
     const batch = db.batch();
     snapshot.docs.forEach((doc) => {
-      // Llama recursivamente para borrar subcolecciones
-      // (Esta es una implementación simplificada. Para sub-sub-colecciones
-      // profundas, se necesita una cola de tareas, pero para 1 nivel es suficiente)
+      // NOTE: This simple version does NOT recursively delete sub-sub-collections.
+      // For deeper nested structures, Cloud Tasks or recursive calls are needed.
       batch.delete(doc.ref);
     });
-    
+    // Commit the batch
     await batch.commit();
 
-    // Obtiene el último documento para la siguiente consulta
+    // Get the last document from the batch as the starting point for the next query
     query = collectionRef.orderBy('__name__').startAfter(snapshot.docs[snapshot.docs.length - 1]).limit(batchSize);
   }
+  console.log(`Finished deleting collection: ${collectionPath}`);
 }

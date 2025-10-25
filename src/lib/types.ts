@@ -20,7 +20,7 @@ export interface UserProfile {
   disabled?: boolean;
   createdAt?: Timestamp;
   blocked?: string[]; // Array of user IDs
-  friends?: string[]; // Array of friend UIDs
+  friends?: string[];
   isCertifiedStreamer?: boolean;
   teamId?: string | null;
   banUntil?: Timestamp;
