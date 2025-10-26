@@ -69,6 +69,8 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
     });
   };
 
+  const canUnban = currentUserRole === 'admin' || (currentUserRole === 'moderator' && user.role !== 'admin' && user.role !== 'moderator');
+
   return (
     <>
       <BanUserDialog user={user} open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen} />
@@ -146,10 +148,12 @@ export function UserActions({ user, currentUserRole }: UserActionsProps) {
           <DropdownMenuSeparator />
 
           {user.disabled ? (
-            <DropdownMenuItem onSelect={() => setIsUnbanAlertOpen(true)} className="text-green-600 focus:text-green-700">
-                <UserCheck className="mr-2 h-4 w-4" />
-                <span>Unban User</span>
-            </DropdownMenuItem>
+            canUnban && (
+              <DropdownMenuItem onSelect={() => setIsUnbanAlertOpen(true)} className="text-green-600 focus:text-green-700">
+                  <UserCheck className="mr-2 h-4 w-4" />
+                  <span>Unban User</span>
+              </DropdownMenuItem>
+            )
           ) : (
             <DropdownMenuItem onSelect={() => setIsBanDialogOpen(true)} className="text-destructive focus:text-destructive">
                 <UserX className="mr-2 h-4 w-4" />

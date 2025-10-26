@@ -46,7 +46,6 @@ export const getFeaturedScrims = onCall({ enforceAppCheck: false, region: 'europ
     });
     return scrims;
   } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
     throw mapErrorToHttpsError('getFeaturedScrims', err);
   }
 });
@@ -87,7 +86,6 @@ export const getMarketPlayers = onCall({ region: 'europe-west1' }, async ({ auth
     const lastDoc = snap.docs[snap.docs.length - 1] || null;
     return { players, nextLastId: lastDoc ? lastDoc.id : null };
   } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
     throw mapErrorToHttpsError('getMarketPlayers', err);
   }
 });
@@ -131,7 +129,6 @@ export const getMarketTeams = onCall({ region: 'europe-west1' }, async ({ auth, 
     const lastDoc = snap.docs[snap.docs.length - 1] || null;
     return { teams, nextLastId: lastDoc ? lastDoc.id : null };
   } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
     throw mapErrorToHttpsError('getMarketTeams', err);
   }
 });
@@ -167,7 +164,6 @@ export const getHonorRankings = onCall({ region: 'europe-west1' }, async ({ auth
     const lastDoc = snap.docs[snap.docs.length - 1] || null;
     return { rankings, nextLastId: lastDoc ? lastDoc.id : null };
   } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
     throw mapErrorToHttpsError('getHonorRankings', err);
   }
 });
