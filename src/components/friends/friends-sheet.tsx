@@ -1,3 +1,4 @@
+
 // src/components/friends/friends-sheet.tsx
 'use client';
 
@@ -7,6 +8,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Users, User, ShieldBan } from 'lucide-react';
