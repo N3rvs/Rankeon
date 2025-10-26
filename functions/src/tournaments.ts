@@ -1,3 +1,4 @@
+
 // src/functions/tournaments.ts
 // *** CORRECCIÓN: Importar CallableRequest ***
 import { onCall, HttpsError, type CallableRequest } from "firebase-functions/v2/https";
@@ -63,7 +64,6 @@ const ReportRoundRobinMatchResultSchema = z.object({
   winnerId: z.string().min(1),
   loserId: z.string().min(1),
 });
-type ReportRoundRobinMatchResultData = z.infer<typeof ReportRoundRobinMatchResultSchema>;
 
 
 // --- FUNCIONES ---
@@ -484,3 +484,5 @@ async function deleteCollection(
   }
   console.log(`Finished deleting collection: ${collectionPath}`);
 }
+
+    
