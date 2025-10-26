@@ -1,18 +1,17 @@
+
 // src/functions/users.ts
 import { onCall, HttpsError, type CallableRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 // --- Definiciones de Tipos ---
 type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
-// *** CORRECCIÓN: Añadido 'busy' para el estado "Ocupado" ***
-type UserStatus = 'available' | 'away' | 'offline' | 'busy';
+type UserStatus = 'available' | 'busy' | 'away' | 'offline';
 
 const db = admin.firestore();
 const auth = admin.auth();
 
 const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player', 'founder', 'coach'];
-// *** CORRECCIÓN: Añadido 'busy' a la lista de validación ***
-const VALID_STATUSES: UserStatus[] = ['available', 'away', 'offline', 'busy'];
+const VALID_STATUSES: UserStatus[] = ['available', 'busy', 'away', 'offline'];
 
 // --- Helpers de Permisos ---
 const checkAdmin = (callerAuth: admin.auth.DecodedIdToken | undefined) => {
@@ -198,6 +197,38 @@ export const updateUserPresence = onCall({ region: 'europe-west1' }, async (requ
              throw new HttpsError('not-found', 'No se encontró el perfil de usuario.');
         }
         if (error instanceof HttpsError) throw error;
-        throw new HttpsError('internal', error.message || 'Ocurrió un error inesperado.');
+        throw new HttpsError('internal', error.message || 'Ocurrió un error inesperado al actualizar el estado.');
+    }
+});
+
+
+export const updateUserCertification = onCall({ region: 'europe-west1' }, async ({ auth: callerAuth, data }: { auth?: any, data: UpdateCertificationData }) => {
+    checkModOrAdmin(callerAuth); // Verifica permisos
+
+    const { uid, isCertified } = data;
+    if (!uid) {
+        throw new HttpsError('invalid-argument', 'User ID (uid) is required.');
+    }
+    if (typeof isCertified !== 'boolean') {
+         throw new HttpsError('invalid-argument', 'Certification status must be true or false.');
+    }
+
+    try {
+        const userToUpdate = await auth.getUser(uid);
+        const existingClaims = userToUpdate.customClaims || {};
+
+        // 1. Set claim
+        await auth.setCustomUserClaims(uid, { ...existingClaims, isCertifiedStreamer: isCertified });
+        // 2. Update Firestore
+        await db.collection('users').doc(uid).update({ // Usar update es más seguro que set merge
+            isCertifiedStreamer: isCertified,
+            _claimsRefreshedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        return { success: true, message: `User certification status updated successfully.` };
+    } catch (error: any) {
+        console.error(`Error updating certification for user ${uid}:`, error);
+        // Si falla Firestore después de Auth, intentar revertir Auth (opcional)
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError('internal', error.message || `Failed to update certification.`);
     }
 });
