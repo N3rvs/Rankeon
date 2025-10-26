@@ -16,10 +16,12 @@ import {
   serverTimestamp,
   Unsubscribe,
   getDoc,
+  updateDoc
 } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase/client';
+import { auth, db, rtdb } from '@/lib/firebase/client';
 import { UserProfile } from '@/lib/types';
-import { updateUserPresence } from '@/lib/actions/users';
+import { ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from 'firebase/database';
+
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -48,10 +50,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let unsubscribeProfile: Unsubscribe | undefined;
+    let presenceRef: any;
 
     const unsubscribeAuth = onIdTokenChanged(auth, async (authUser) => {
       if (unsubscribeProfile) {
         unsubscribeProfile();
+      }
+      if (presenceRef) {
+        onDisconnect(presenceRef).cancel();
       }
 
       if (authUser) {
@@ -62,13 +68,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const userDocRef = doc(db, 'users', authUser.uid);
         
-        // Get the doc once to handle initial presence on login
-        const initialDocSnap = await getDoc(userDocRef);
-        if (initialDocSnap.exists()) {
-          if (initialDocSnap.data().status === 'offline') {
-            await updateUserPresence('available');
+        // --- PRESENCE SYSTEM (RTDB + FIRESTORE) ---
+        presenceRef = ref(rtdb, `/status/${authUser.uid}`);
+        
+        // Firestore and RTDB status are now managed by this listener
+        onValue(ref(rtdb, '.info/connected'), (snapshot) => {
+          if (snapshot.val() === false) {
+            // Not connected. We can't do anything, but onDisconnect will handle it.
+            return;
           }
-        }
+          // When we connect, set our status to online.
+          set(presenceRef, { status: 'online', lastSeen: rtdbServerTimestamp() })
+            .then(() => {
+                // Also update firestore
+                updateDoc(userDocRef, {
+                    status: 'available', // Use 'available' as the default online state in Firestore
+                    lastSeen: serverTimestamp()
+                });
+            });
+           // When we disconnect, update our status to offline
+           onDisconnect(presenceRef).set({ status: 'offline', lastSeen: rtdbServerTimestamp() })
+            .then(() => {
+                 updateDoc(userDocRef, {
+                    status: 'offline',
+                    lastSeen: serverTimestamp()
+                });
+            })
+        });
+
         
         unsubscribeProfile = onSnapshot(userDocRef, async (docSnap) => {
             if (docSnap.exists()) {
@@ -76,13 +103,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setUserProfile(newProfileData);
               setLoading(false);
             } else {
-              // User exists in Auth but not Firestore. Create the document.
-              // This is mainly for the first sign-up.
               try {
                 await setDoc(userDocRef, {
                   id: authUser.uid,
                   email: authUser.email,
-                  role: 'player', // Default role
+                  role: 'player',
                   status: "available",
                   name: authUser.displayName || authUser.email?.split('@')[0] || 'New Player',
                   avatarUrl: authUser.photoURL || `https://placehold.co/100x100.png`,
@@ -97,8 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   disabled: false,
                   isCertifiedStreamer: false,
                   createdAt: serverTimestamp(),
+                  lastSeen: serverTimestamp()
                 });
-                // The onSnapshot will automatically re-trigger with the newly created data.
               } catch (error) {
                 console.error("Error creating user document in onSnapshot:", error);
                 setUserProfile(null);
@@ -126,6 +151,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsubscribeAuth();
       if (unsubscribeProfile) {
         unsubscribeProfile();
+      }
+       if (presenceRef) {
+        onDisconnect(presenceRef).cancel();
       }
     };
   }, []);

@@ -157,11 +157,10 @@ export const updateUserPresence = onCall({ region: 'europe-west1' }, async ({ au
     const { status } = data;
 
     if (!status || !VALID_STATUSES.includes(status)) {
-        throw new HttpsError('invalid-argument', 'Se proporcionó un estado inválido.');
+        throw new HttpsError('invalid-argument', `Se proporcionó un estado inválido: ${status}. Los estados válidos son: ${VALID_STATUSES.join(', ')}`);
     }
 
     const userRef = db.collection('users').doc(uid);
-
     try {
         // 2. Actualizar Firestore
         await userRef.update({
