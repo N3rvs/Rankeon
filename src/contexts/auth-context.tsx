@@ -75,6 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         onValue(ref(rtdb, '.info/connected'), (snapshot) => {
           if (snapshot.val() === false) {
             // Not connected. We can't do anything, but onDisconnect will handle it.
+            // This is a Firestore-only update for graceful shutdown.
+             updateDoc(userDocRef, {
+                status: 'offline',
+                lastSeen: serverTimestamp()
+            });
             return;
           }
           // When we connect, set our status to online.
@@ -139,6 +144,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       } else {
         // User logged out
+        if (user?.uid && presenceRef) {
+            set(presenceRef, { status: 'offline', lastSeen: rtdbServerTimestamp() });
+        }
         setUser(null);
         setUserProfile(null);
         setToken(null);
@@ -152,11 +160,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (unsubscribeProfile) {
         unsubscribeProfile();
       }
-       if (presenceRef) {
+       if (user?.uid && presenceRef) {
         onDisconnect(presenceRef).cancel();
+        set(presenceRef, { status: 'offline', lastSeen: rtdbServerTimestamp() });
       }
     };
-  }, []);
+  }, [user?.uid]);
 
   return (
     <AuthContext.Provider value={{ user, userProfile, token, claims, loading, setToken }}>
