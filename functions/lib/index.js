@@ -33,8 +33,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getScrimRankings = exports.getHonorRankings = exports.getMarketTeams = exports.getMarketPlayers = exports.updateUserPresence = exports.updateUserCertification = exports.updateUserStatus = exports.updateUserRole = exports.resolveTicket = exports.respondToTicket = exports.createSupportTicket = exports.registerTeamForTournament = exports.deleteTournament = exports.editTournament = exports.reviewTournamentProposal = exports.proposeTournament = exports.updateMemberSkills = exports.updateTeamMemberRole = exports.setTeamIGL = exports.kickTeamMember = exports.deleteTeam = exports.updateTeam = exports.createTeam = exports.reportScrimResult = exports.respondToScrimChallenge = exports.challengeScrim = exports.cancelScrim = exports.acceptScrim = exports.createScrim = exports.sendMessageToRoom = exports.leaveRoom = exports.joinRoom = exports.createGameRoom = exports.cleanUpOldData = exports.unblockUser = exports.blockUser = exports.clearAllNotifications = exports.deleteNotifications = exports.markNotificationsAsRead = exports.addInboxNotification = exports.revokeHonor = exports.giveHonor = exports.getFriendshipStatus = exports.removeFriend = exports.respondToFriendRequest = exports.sendFriendRequest = exports.getFriendProfiles = exports.sendMessageToFriend = exports.deleteChatHistory = exports.getChats = void 0;
-exports.getTeamMembers = exports.getManagedUsers = exports.getFeaturedScrims = exports.getTournamentRankings = void 0;
+exports.getMarketPlayers = exports.updateUserPresence = exports.updateUserCertification = exports.updateUserStatus = exports.updateUserRole = exports.resolveTicket = exports.respondToTicket = exports.createSupportTicket = exports.registerTeamForTournament = exports.deleteTournament = exports.editTournament = exports.reviewTournamentProposal = exports.proposeTournament = exports.reportRoundRobinMatchResult = exports.reportBracketMatchResult = exports.generateTournamentStructure = exports.updateMemberSkills = exports.updateTeamMemberRole = exports.setTeamIGL = exports.kickTeamMember = exports.deleteTeam = exports.updateTeam = exports.createTeam = exports.reportScrimResult = exports.respondToScrimChallenge = exports.challengeScrim = exports.cancelScrim = exports.acceptScrim = exports.createScrim = exports.sendMessageToRoom = exports.leaveRoom = exports.joinRoom = exports.createGameRoom = exports.cleanUpOldData = exports.unblockUser = exports.blockUser = exports.clearAllNotifications = exports.deleteNotifications = exports.markNotificationsAsRead = exports.addInboxNotification = exports.revokeHonor = exports.giveHonor = exports.getFriendshipStatus = exports.removeFriend = exports.respondToFriendRequest = exports.sendFriendRequest = exports.getFriendProfiles = exports.sendMessageToFriend = exports.deleteChatHistory = exports.getChats = void 0;
+exports.deleteTask = exports.updateTaskStatus = exports.addTask = exports.getTeamMembers = exports.getManagedUsers = exports.getFeaturedScrims = exports.getTournamentRankings = exports.getScrimRankings = exports.getHonorRankings = exports.getMarketTeams = void 0;
 // src/functions/index.ts
 const admin = __importStar(require("firebase-admin"));
 const v2_1 = require("firebase-functions/v2");
@@ -93,6 +93,9 @@ Object.defineProperty(exports, "reviewTournamentProposal", { enumerable: true, g
 Object.defineProperty(exports, "editTournament", { enumerable: true, get: function () { return tournaments_1.editTournament; } });
 Object.defineProperty(exports, "deleteTournament", { enumerable: true, get: function () { return tournaments_1.deleteTournament; } });
 Object.defineProperty(exports, "registerTeamForTournament", { enumerable: true, get: function () { return tournaments_1.registerTeamForTournament; } });
+Object.defineProperty(exports, "generateTournamentStructure", { enumerable: true, get: function () { return tournaments_1.generateTournamentStructure; } });
+Object.defineProperty(exports, "reportBracketMatchResult", { enumerable: true, get: function () { return tournaments_1.reportBracketMatchResult; } });
+Object.defineProperty(exports, "reportRoundRobinMatchResult", { enumerable: true, get: function () { return tournaments_1.reportRoundRobinMatchResult; } });
 const tickets_1 = require("./tickets");
 Object.defineProperty(exports, "createSupportTicket", { enumerable: true, get: function () { return tickets_1.createSupportTicket; } });
 Object.defineProperty(exports, "respondToTicket", { enumerable: true, get: function () { return tickets_1.respondToTicket; } });
@@ -112,4 +115,8 @@ Object.defineProperty(exports, "getTournamentRankings", { enumerable: true, get:
 Object.defineProperty(exports, "getFeaturedScrims", { enumerable: true, get: function () { return public_1.getFeaturedScrims; } });
 Object.defineProperty(exports, "getManagedUsers", { enumerable: true, get: function () { return public_1.getManagedUsers; } });
 Object.defineProperty(exports, "getTeamMembers", { enumerable: true, get: function () { return public_1.getTeamMembers; } });
+const task_1 = require("./task");
+Object.defineProperty(exports, "addTask", { enumerable: true, get: function () { return task_1.addTask; } });
+Object.defineProperty(exports, "updateTaskStatus", { enumerable: true, get: function () { return task_1.updateTaskStatus; } });
+Object.defineProperty(exports, "deleteTask", { enumerable: true, get: function () { return task_1.deleteTask; } });
 //# sourceMappingURL=index.js.map

@@ -284,7 +284,7 @@ exports.getManagedUsers = (0, https_1.onCall)({ region: 'europe-west1' }, async 
     try {
         if (!callerAuth)
             throw new https_1.HttpsError('unauthenticated', 'You must be logged in.');
-        const { role } = callerAuth.token; // Cuidado con 'as any'
+        const { role } = callerAuth.token;
         if (role !== 'admin' && role !== 'moderator') {
             throw new https_1.HttpsError('permission-denied', 'You do not have permission.');
         }
@@ -297,25 +297,25 @@ exports.getManagedUsers = (0, https_1.onCall)({ region: 'europe-west1' }, async 
         }
         const snap = await q.get();
         const users = snap.docs.map((d) => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e;
             const u = d.data();
-            // Devuelve campos relevantes para la gestión
             return {
                 id: d.id,
                 name: u.name,
-                email: u.email, // Importante para identificar usuarios
+                email: u.email,
                 role: u.role,
-                disabled: (_a = u.disabled) !== null && _a !== void 0 ? _a : false,
-                createdAt: ((_b = u.createdAt) === null || _b === void 0 ? void 0 : _b.toDate().toISOString()) || null,
-                banUntil: ((_c = u.banUntil) === null || _c === void 0 ? void 0 : _c.toDate().toISOString()) || null,
-                _claimsRefreshedAt: ((_d = u._claimsRefreshedAt) === null || _d === void 0 ? void 0 : _d.toDate().toISOString()) || null,
+                avatarUrl: u.avatarUrl,
+                isCertifiedStreamer: (_a = u.isCertifiedStreamer) !== null && _a !== void 0 ? _a : false,
+                disabled: (_b = u.disabled) !== null && _b !== void 0 ? _b : false,
+                createdAt: ((_c = u.createdAt) === null || _c === void 0 ? void 0 : _c.toDate().toISOString()) || null,
+                banUntil: ((_d = u.banUntil) === null || _d === void 0 ? void 0 : _d.toDate().toISOString()) || null,
+                _claimsRefreshedAt: ((_e = u._claimsRefreshedAt) === null || _e === void 0 ? void 0 : _e.toDate().toISOString()) || null,
             };
         });
         const lastDoc = snap.docs[snap.docs.length - 1] || null;
         return { users, nextLastId: lastDoc ? lastDoc.id : null };
     }
     catch (err) {
-        // *** CORRECCIÓN: Usar throw ***
         throw mapErrorToHttpsError('getManagedUsers', err);
     }
 });

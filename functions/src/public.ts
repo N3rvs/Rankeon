@@ -1,3 +1,4 @@
+
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 
@@ -209,6 +210,7 @@ export const getScrimRankings = onCall({ region: 'europe-west1' }, async ({ auth
     const lastDoc = snap.docs[snap.docs.length - 1] || null;
     return { rankings, nextLastId: lastDoc ? lastDoc.id : null };
   } catch (err) {
+    // *** CORRECCIÓN: Usar throw ***
     throw mapErrorToHttpsError('getScrimRankings', err);
   }
 });
@@ -249,6 +251,7 @@ export const getTournamentRankings = onCall({ region: 'europe-west1' }, async ({
     const lastDoc = snap.docs[snap.docs.length - 1] || null;
     return { tournaments, nextLastId: lastDoc ? lastDoc.id : null };
   } catch (err) {
+    // *** CORRECCIÓN: Usar throw ***
     throw mapErrorToHttpsError('getTournamentRankings', err);
   }
 });
@@ -257,7 +260,7 @@ export const getTournamentRankings = onCall({ region: 'europe-west1' }, async ({
 export const getManagedUsers = onCall({ region: 'europe-west1' }, async ({ auth: callerAuth, data }) => {
   try {
     if (!callerAuth) throw new HttpsError('unauthenticated', 'You must be logged in.');
-    const { role } = callerAuth.token as any; // Cuidado con 'as any'
+    const { role } = callerAuth.token as any;
     if (role !== 'admin' && role !== 'moderator') {
       throw new HttpsError('permission-denied', 'You do not have permission.');
     }
@@ -271,12 +274,13 @@ export const getManagedUsers = onCall({ region: 'europe-west1' }, async ({ auth:
     const snap = await q.get();
     const users = snap.docs.map((d) => {
        const u = d.data();
-       // Devuelve campos relevantes para la gestión
        return {
          id: d.id,
          name: u.name,
-         email: u.email, // Importante para identificar usuarios
+         email: u.email,
          role: u.role,
+         avatarUrl: u.avatarUrl,
+         isCertifiedStreamer: u.isCertifiedStreamer ?? false,
          disabled: u.disabled ?? false,
          createdAt: u.createdAt?.toDate().toISOString() || null,
          banUntil: u.banUntil?.toDate().toISOString() || null,
@@ -340,3 +344,5 @@ export const getTeamMembers = onCall({ region: 'europe-west1' }, async (request)
     throw mapErrorToHttpsError('getTeamMembers', err);
   }
 });
+
+    

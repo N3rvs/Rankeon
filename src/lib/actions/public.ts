@@ -1,3 +1,4 @@
+
 'use client';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
@@ -37,10 +38,10 @@ type ScrimRankingTeam = Team & { winRate: number; played: number; won: number };
 
 export async function getMarketPlayers(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
   try {
-    const getPlayersFunc = httpsCallable<void, any[]>(functions, 'getMarketPlayers');
+    const getPlayersFunc = httpsCallable<void, { players: any[], nextLastId: string | null }>(functions, 'getMarketPlayers');
     const result = await getPlayersFunc();
-    const players = result.data.map(p => ({ ...p, createdAt: Timestamp.fromDate(new Date(p.createdAt)) }))
-    return { success: true, data: players, message: 'Players fetched.' };
+    const players = result.data.players.map(p => ({ ...p, createdAt: p.createdAt ? Timestamp.fromDate(new Date(p.createdAt)) : undefined }))
+    return { success: true, data: players as UserProfile[], message: 'Players fetched.' };
   } catch (error: any) {
     console.error('Error fetching market players:', error);
     if (error.code === 'permission-denied') {
@@ -53,10 +54,10 @@ export async function getMarketPlayers(): Promise<{ success: boolean; data?: Use
 
 export async function getMarketTeams(): Promise<{ success: boolean; data?: Team[]; message: string }> {
   try {
-    const getTeamsFunc = httpsCallable<void, any[]>(functions, 'getMarketTeams');
+    const getTeamsFunc = httpsCallable<void, { teams: any[], nextLastId: string | null }>(functions, 'getMarketTeams');
     const result = await getTeamsFunc();
 
-    const teams = result.data.map(t => ({
+    const teams = result.data.teams.map(t => ({
         ...t,
         createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined,
     }));
@@ -163,19 +164,34 @@ export async function getTournamentRankings(): Promise<PaginatedTournamentRankin
   }
 }
 
-export async function getManagedUsers(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
+export async function getManagedUsers(lastId: string | null = null): Promise<{
+    success: boolean;
+    data?: { users: UserProfile[]; nextLastId: string | null };
+    message: string;
+}> {
     try {
-        const getManagedUsersFunc = httpsCallable<void, { users: any[] }>(functions, 'getManagedUsers');
-        const result = await getManagedUsersFunc();
+        const getManagedUsersFunc = httpsCallable<{ lastId: string | null }, { users: any[]; nextLastId: string | null }>(functions, 'getManagedUsers');
+        const result = await getManagedUsersFunc({ lastId });
+
         const users = result.data.users.map(u => ({
             ...u,
             createdAt: u.createdAt ? Timestamp.fromDate(new Date(u.createdAt)) : undefined,
             banUntil: u.banUntil ? Timestamp.fromDate(new Date(u.banUntil)) : undefined,
             _claimsRefreshedAt: u._claimsRefreshedAt ? Timestamp.fromDate(new Date(u._claimsRefreshedAt)) : undefined,
         }));
-        return { success: true, data: users as UserProfile[], message: 'Users fetched.' };
+
+        return {
+            success: true,
+            data: {
+                users: users as UserProfile[],
+                nextLastId: result.data.nextLastId,
+            },
+            message: 'Users fetched.',
+        };
     } catch (error: any) {
         console.error('Error getting managed users:', error);
         return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }
+
+    

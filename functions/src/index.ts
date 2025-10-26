@@ -19,12 +19,12 @@ import { createGameRoom, joinRoom, leaveRoom, sendMessageToRoom } from './rooms'
 import { createScrim, acceptScrim, cancelScrim, challengeScrim, respondToScrimChallenge, reportScrimResult } from './scrims';
 import { createTeam, updateTeam, deleteTeam, kickTeamMember, setTeamIGL, updateTeamMemberRole, updateMemberSkills } from './teams';
 // *** AÑADIR NUEVA FUNCIÓN DE TORNEOS ***
-import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament, registerTeamForTournament } from './tournaments';
+import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament, registerTeamForTournament, generateTournamentStructure, reportBracketMatchResult, reportRoundRobinMatchResult } from './tournaments';
 import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
 // *** AÑADIR NUEVA FUNCIÓN DE USUARIOS ***
 import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence } from './users';
 import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings, getFeaturedScrims, getManagedUsers, getTeamMembers } from './public'; // getTeamMembers estaba en public.ts
-
+import { addTask, updateTaskStatus, deleteTask } from './task';
 // --- Exportaciones (Añadir las nuevas) ---
 export {
   // Chat
@@ -70,6 +70,9 @@ export {
   updateTeamMemberRole,
   updateMemberSkills,
   // Tournaments (*** AÑADIDA ***)
+  generateTournamentStructure,
+  reportBracketMatchResult,
+  reportRoundRobinMatchResult,
   proposeTournament,
   reviewTournamentProposal,
   editTournament,
@@ -93,4 +96,8 @@ export {
   getFeaturedScrims,
   getManagedUsers,
   getTeamMembers // Asegúrate que getTeamMembers se importa desde public.ts si está allí
+  // Tasks
+  ,addTask,
+  updateTaskStatus,
+  deleteTask
 };

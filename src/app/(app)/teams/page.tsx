@@ -1,3 +1,4 @@
+// src/app/(app)/teams/page.tsx
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
@@ -7,12 +8,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield, Twitch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
+// updateDoc ya no es necesario aquí para skills
 import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+// *** INICIO CORRECCIÓN PARCIAL: Asegúrate de importar updateMemberSkills ***
 import { deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers, updateMemberSkills } from '@/lib/actions/teams';
+// *** FIN CORRECCIÓN PARCIAL ***
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +58,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 newSkills = [...currentSkills, toggledRole];
             }
 
-            // *** CORRECCIÓN APLICADA: Llamar a la acción del backend ***
+            // *** INICIO CORRECCIÓN 1: Llamar a la acción del backend ***
             const result = await updateMemberSkills(team.id, member.id, newSkills);
 
             if (result.success) {
@@ -69,7 +73,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                     variant: 'destructive',
                 });
             }
-            // *** FIN CORRECCIÓN ***
+            // *** FIN CORRECCIÓN 1 ***
         });
     };
 
@@ -100,7 +104,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     const canKick = currentUserRole === 'founder';
     const canManageRoles = currentUserRole === 'founder' || currentUserRole === 'coach';
 
-    // No mostrar menú para el fundador o si el usuario actual no puede gestionar roles
     if (member.role === 'founder' || !canManageRoles) {
         return null;
     }
@@ -179,11 +182,11 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     );
 }
 
-function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- CORRECCIÓN: Añadido userProfile aquí
+function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- CORRECCIÓN 2: Añadido userProfile
     team: Team,
     members: TeamMember[],
     currentUserRole: 'founder' | 'coach' | 'member',
-    userProfile: UserProfile | null // <-- CORRECCIÓN: Añadido el tipo aquí
+    userProfile: UserProfile | null // <-- CORRECCIÓN 2: Añadido tipo
 }) {
     const { t } = useI18n();
     const { toast } = useToast();
@@ -239,10 +242,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
         : null;
 
     const renderVideo = (videoUrl?: string) => {
-        if (!videoUrl) {
-          return null;
-        }
-
+        if (!videoUrl) return null;
         let embedUrl = '';
         if (videoUrl.includes("youtube.com/watch?v=")) {
           const videoId = videoUrl.split('v=')[1].split('&')[0];
@@ -251,28 +251,8 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
           const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
           embedUrl = `https://www.youtube.com/embed/${videoId}`;
         }
-
-        const videoNode = embedUrl ? (
-             <div className="aspect-video">
-               <iframe
-                 className="w-full h-full rounded-lg"
-                 src={embedUrl}
-                 title="Team Showcase Video"
-                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                 allowFullScreen
-               ></iframe>
-             </div>
-        ) : (
-            <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
-        );
-
-        return (
-            <Card>
-                <CardContent className="p-0">
-                    {videoNode}
-                </CardContent>
-            </Card>
-        );
+        const videoNode = embedUrl ? ( <div className="aspect-video"><iframe className="w-full h-full rounded-lg" src={embedUrl} title="Team Showcase Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe></div> ) : ( <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" /> );
+        return ( <Card><CardContent className="p-0">{videoNode}</CardContent></Card> );
     };
 
     const MemberCard = ({ member }: { member: TeamMember }) => {
@@ -280,7 +260,6 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
             founder: <Crown className="h-4 w-4 text-amber-400" />,
             coach: <ShieldCheck className="h-4 w-4 text-blue-400" />,
         };
-
         return (
             <div className="p-3 flex items-center justify-between rounded-lg border bg-background">
                 <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
@@ -296,19 +275,11 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             {roleIcons[member.role] || null}
                             <span className="capitalize">{member.role}</span>
-                            {member.isIGL && (
-                                <>
-                                    <span className="mx-1">·</span>
-                                    <BrainCircuit className="h-4 w-4 text-sky-400" />
-                                    <span>IGL</span>
-                                </>
-                            )}
+                            {member.isIGL && ( <> <span className="mx-1">·</span> <BrainCircuit className="h-4 w-4 text-sky-400" /> <span>IGL</span> </> )}
                         </div>
                         {member.skills && member.skills.length > 0 && (
                             <div className="flex items-center gap-1 mt-1">
-                                {member.skills.map(skill => (
-                                    <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                                ))}
+                                {member.skills.map(skill => ( <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge> ))}
                             </div>
                         )}
                     </div>
@@ -358,55 +329,24 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
                             <div>
                                 <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
                                 <CardDescription className="flex items-center gap-4 pt-1 flex-wrap">
-                                    <span className="flex items-center gap-2">
-                                        <Gamepad2 className="h-4 w-4" />
-                                        <span>{t('TeamsPage.playing')} {team.game}</span>
-                                    </span>
-                                    {team.country && (
-                                        <>
-                                            <span className="text-muted-foreground/50">|</span>
-                                            <span className="flex items-center gap-2">
-                                                <Globe className="h-4 w-4" />
-                                                <span>{team.country}</span>
-                                            </span>
-                                        </>
-                                    )}
-                                     {rankRange && (
-                                        <>
-                                            <span className="text-muted-foreground/50">|</span>
-                                            <span className="flex items-center gap-2">
-                                                <Shield className="h-4 w-4" />
-                                                <span>{rankRange}</span>
-                                            </span>
-                                        </>
-                                    )}
+                                    <span className="flex items-center gap-2"> <Gamepad2 className="h-4 w-4" /> <span>{t('TeamsPage.playing')} {team.game}</span> </span>
+                                    {team.country && ( <> <span className="text-muted-foreground/50">|</span> <span className="flex items-center gap-2"> <Globe className="h-4 w-4" /> <span>{team.country}</span> </span> </> )}
+                                     {rankRange && ( <> <span className="text-muted-foreground/50">|</span> <span className="flex items-center gap-2"> <Shield className="h-4 w-4" /> <span>{rankRange}</span> </span> </> )}
                                 </CardDescription>
                             </div>
                             {isFounder && (
                                 <div className="flex items-center gap-2 shrink-0">
-                                    <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary">
-                                        <Edit className="h-4 w-4" />
-                                        <span className="sr-only">{t('TeamsPage.edit')}</span>
-                                    </Button>
+                                    <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary"> <Edit className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.edit')}</span> </Button>
                                     <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="destructive" size="icon">
-                                                <Trash2 className="h-4 w-4" />
-                                                <span className="sr-only">{t('TeamsPage.delete')}</span>
-                                            </Button>
-                                        </AlertDialogTrigger>
+                                        <AlertDialogTrigger asChild> <Button variant="destructive" size="icon"> <Trash2 className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.delete')}</span> </Button> </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    {t('TeamsPage.delete_confirm_desc')}
-                                                </AlertDialogDescription>
+                                                <AlertDialogDescription> {t('TeamsPage.delete_confirm_desc')} </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>{t('MemberManager.cancel')}</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                                    {isPending ? t('TeamsPage.deleting') : t('TeamsPage.delete_confirm_button')}
-                                                </AlertDialogAction>
+                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90"> {isPending ? t('TeamsPage.deleting') : t('TeamsPage.delete_confirm_button')} </AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -437,10 +377,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline flex items-center gap-2">
-                                <Trophy className="h-5 w-5" />
-                                {t('TeamsPage.achievements_title')}
-                            </CardTitle>
+                            <CardTitle className="font-headline flex items-center gap-2"> <Trophy className="h-5 w-5" /> {t('TeamsPage.achievements_title')} </CardTitle>
                             <CardDescription>{t('TeamsPage.achievements_desc')}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -472,18 +409,12 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
                     {isStaff && (
                         <Card>
                             <CardHeader>
-                                <CardTitle className="font-headline flex items-center gap-2">
-                                    <Settings className="h-5 w-5" />
-                                    {t('TeamsPage.management_title')}
-                                </CardTitle>
+                                <CardTitle className="font-headline flex items-center gap-2"> <Settings className="h-5 w-5" /> {t('TeamsPage.management_title')} </CardTitle>
                                 <CardDescription>{t('TeamsPage.management_desc')}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-2">
-                                <Button variant="secondary" onClick={() => setIsTasksDialogOpen(true)}>
-                                    <ClipboardList className="mr-2 h-4 w-4" />
-                                    {t('TeamsPage.team_tasks')}
-                                </Button>
-                                {/* --- CORRECCIÓN APLICADA: Pasa userProfile?.country --- */}
+                                <Button variant="secondary" onClick={() => setIsTasksDialogOpen(true)}> <ClipboardList className="mr-2 h-4 w-4" /> {t('TeamsPage.team_tasks')} </Button>
+                                {/* --- CORRECCIÓN 2 APLICADA: Pasa userProfile?.country --- */}
                                 <CreateScrimDialog teamId={team.id} teamCountry={userProfile?.country} />
                             </CardContent>
                         </Card>
@@ -503,28 +434,17 @@ function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-xl font-semibold">{t('TeamsPage.no_team_title')}</h3>
-
             {canCreateTeam ? (
                  <>
-                   <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                       {t('TeamsPage.no_team_subtitle')}
-                   </p>
+                   <p className="mb-4 mt-2 text-sm text-muted-foreground"> {t('TeamsPage.no_team_subtitle')} </p>
                    <CreateTeamDialog />
                  </>
             ) : (
-                <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                    {t('TeamsPage.no_team_subtitle_generic')}
-                </p>
+                <p className="mb-4 mt-2 text-sm text-muted-foreground"> {t('TeamsPage.no_team_subtitle_generic')} </p>
             )}
-
-            <p className="mb-4 mt-8 text-sm text-muted-foreground">
-                {t('TeamsPage.no_team_join_prompt')}
-            </p>
+            <p className="mb-4 mt-8 text-sm text-muted-foreground"> {t('TeamsPage.no_team_join_prompt')} </p>
             <Button asChild>
-                <Link href="/dashboard">
-                    <Store className="mr-2 h-4 w-4" />
-                    {t('TeamsPage.join_a_team')}
-                </Link>
+                <Link href="/dashboard"> <Store className="mr-2 h-4 w-4" /> {t('TeamsPage.join_a_team')} </Link>
             </Button>
         </div>
     );
@@ -543,34 +463,29 @@ export default function TeamsPage() {
             setLoadingTeam(true);
             return;
         }
-
         let teamUnsubscribe: Unsubscribe | undefined;
-
         if (userProfile?.teamId) {
             setLoadingTeam(true);
             const teamId = userProfile.teamId;
             const teamRef = doc(db, 'teams', teamId);
-
             teamUnsubscribe = onSnapshot(teamRef, (teamDoc) => {
                 if (teamDoc.exists()) {
-                const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
-                setTeam(teamData);
-
-                // Now fetch members securely
-                getTeamMembers(teamId).then(result => {
-                    if (result.success && result.data) {
-                    setMembers(result.data);
-                    } else {
-                    setMembers([]);
-                    toast({ title: 'Error', description: `Failed to load team members: ${result.message}`, variant: 'destructive' });
-                    }
-                    setLoadingTeam(false); // Set loading to false after members are fetched
-                });
-
+                    const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
+                    setTeam(teamData);
+                    // Now fetch members securely
+                    getTeamMembers(teamId).then(result => {
+                        if (result.success && result.data) {
+                            setMembers(result.data);
+                        } else {
+                            setMembers([]);
+                            toast({ title: 'Error', description: `Failed to load team members: ${result.message}`, variant: 'destructive' });
+                        }
+                        setLoadingTeam(false);
+                    });
                 } else {
-                setTeam(null);
-                setMembers([]);
-                setLoadingTeam(false);
+                    setTeam(null);
+                    setMembers([]);
+                    setLoadingTeam(false);
                 }
             }, (error) => {
                 console.error("Error fetching team: ", error);
@@ -579,13 +494,11 @@ export default function TeamsPage() {
                 setMembers([]);
                 setLoadingTeam(false);
             });
-
         } else {
             setTeam(null);
             setMembers([]);
             setLoadingTeam(false);
         }
-
         return () => {
             if (teamUnsubscribe) teamUnsubscribe();
         };
@@ -625,7 +538,7 @@ export default function TeamsPage() {
                 )}
             </div>
 
-            {/* --- CORRECCIÓN APLICADA: Pasa userProfile como prop aquí --- */}
+            {/* --- CORRECCIÓN 2 APLICADA: Pasa userProfile como prop aquí --- */}
             {team && currentUserMembership ?
                 <TeamDisplay
                     team={team}
