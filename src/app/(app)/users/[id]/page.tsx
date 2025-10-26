@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,7 +11,7 @@ import { HonorsSection } from '@/components/profile/honors-section';
 import { TeamInfoCard } from '@/components/profile/team-info-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Frown, Twitch } from 'lucide-react';
+import { ArrowLeft, Frown, Twitch, ShieldBan } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,7 +24,7 @@ import { Spinner } from '@/components/ui/spinner';
 export default function UserProfilePage() {
   const params = useParams();
   const id = params.id as string;
-  const { user } = useAuth();
+  const { user, userProfile: loggedInUserProfile } = useAuth();
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,6 +90,8 @@ export default function UserProfilePage() {
     return variants[role] || 'secondary';
   }
 
+  const isBlocked = loggedInUserProfile?.blocked?.includes(userProfile.id);
+
   return (
     <>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -105,7 +108,11 @@ export default function UserProfilePage() {
                                     <span>{userProfile.name}</span>
                                     {userProfile.isCertifiedStreamer && <Twitch className="h-5 w-5 text-purple-500" />}
                                 </h2>
-                                <FriendshipButton targetUser={userProfile} variant="icon"/>
+                                {isBlocked ? (
+                                    <Badge variant="destructive"><ShieldBan className="mr-2 h-4 w-4"/>Blocked</Badge>
+                                ) : (
+                                    <FriendshipButton targetUser={userProfile} variant="icon"/>
+                                )}
                             </div>
                             <div className="flex flex-wrap items-center justify-center gap-2 mt-1 text-sm text-muted-foreground">
                             {userProfile.role && <Badge variant={getRoleVariant(userProfile.role)} className="capitalize">{userProfile.role}</Badge>}
