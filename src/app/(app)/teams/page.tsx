@@ -1,3 +1,4 @@
+
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -259,7 +260,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                  allowFullScreen
                ></iframe>
-             </div>
+            </div>
         ) : (
             <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
         );
@@ -278,6 +279,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
             founder: <Crown className="h-4 w-4 text-amber-400" />,
             coach: <ShieldCheck className="h-4 w-4 text-blue-400" />,
         };
+
         return (
             <div className="p-3 flex items-center justify-between rounded-lg border bg-background">
                 <Link href={`/users/${member.id}`} className="flex items-center gap-3 group flex-1">
@@ -311,7 +313,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
         <div className="space-y-6 pt-20">
             <EditTeamDialog team={team} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
             {isStaff && <TeamTasksDialog teamId={team.id} open={isTasksDialogOpen} onOpenChange={setIsTasksDialogOpen} />}
-
+            
              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 {/* LEFT/MAIN COLUMN */}
                 <div className="lg:col-span-3 space-y-6">
@@ -356,7 +358,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
                                 <div className="flex items-center gap-2 shrink-0">
                                     <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary"> <Edit className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.edit')}</span> </Button>
                                     <AlertDialog>
-                                        <AlertDialogTrigger asChild> <Button variant="destructive" size="icon"> <Trash2 className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.delete')}</span> </Button> </AlertDialogTrigger>
+                                        <AlertDialogTrigger asChild><Button variant="destructive" size="icon"> <Trash2 className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.delete')}</span> </Button></AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
@@ -376,7 +378,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
                             <p className="text-muted-foreground text-sm">{team.description || t('TeamsPage.no_description')}</p>
                         </CardContent>
                     </Card>
-
+                    
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline flex items-center gap-2"><Target className="h-5 w-5" /> {t('TeamsPage.recruitment_status')}</CardTitle>
@@ -423,7 +425,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
                     </Card>
 
                     {isStaff && <TeamApplications teamId={team.id} />}
-
+                    
                     {isStaff && (
                         <Card>
                             <CardHeader>
@@ -487,12 +489,12 @@ export default function TeamsPage() {
             setLoadingTeam(true);
             const teamId = userProfile.teamId;
             const teamRef = doc(db, 'teams', teamId);
-
+            
             teamUnsubscribe = onSnapshot(teamRef, (teamDoc) => {
                 if (teamDoc.exists()) {
                 const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
                 setTeam(teamData);
-
+                
                 // Now fetch members securely
                 getTeamMembers(teamId).then(result => {
                     if (result.success && result.data) {
