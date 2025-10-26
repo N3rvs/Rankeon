@@ -92,13 +92,13 @@ function BlockedUserItem({ user }: { user: UserProfile }) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <Avatar>
+        <Avatar className="h-8 w-8">
           <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person avatar" />
           <AvatarFallback>{user.name.slice(0, 2)}</AvatarFallback>
         </Avatar>
-        <span className="font-medium">{user.name}</span>
+        <span className="font-medium text-sm">{user.name}</span>
       </div>
-      <Button variant="outline" size="sm" onClick={handleUnblock} disabled={isPending}>
+      <Button variant="ghost" size="sm" onClick={handleUnblock} disabled={isPending}>
         <UserCheck className="mr-2 h-4 w-4" />
         {isPending ? 'Unblocking...' : 'Unblock'}
       </Button>

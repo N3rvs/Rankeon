@@ -7,10 +7,9 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Users, User } from 'lucide-react';
+import { Users, User, ShieldBan } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { useI18n } from '@/contexts/i18n-context';
 import { useToast } from '@/hooks/use-toast';
@@ -21,11 +20,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Spinner } from '../ui/spinner';
 import { ChatDialog } from './chat-dialog';
+import { BlockedUsersList } from '../profile/blocked-users-list';
+import { Separator } from '../ui/separator';
 
 interface EnrichedFriend extends UserProfile {}
 
 function FriendList() {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { t } = useI18n();
   const { toast } = useToast();
   const [friends, setFriends] = useState<UserProfile[]>([]);
@@ -145,6 +146,18 @@ function FriendList() {
             </p>
           )}
         </nav>
+        {userProfile && userProfile.blocked && userProfile.blocked.length > 0 && (
+            <div className="p-2 mt-2">
+                <Separator />
+                <h3 className="px-2 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    <ShieldBan className="h-4 w-4" />
+                    Blocked Users
+                </h3>
+                <div className="space-y-2">
+                    <BlockedUsersList blockedIds={userProfile.blocked} />
+                </div>
+            </div>
+        )}
       </ScrollArea>
     </>
   );
