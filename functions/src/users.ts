@@ -3,13 +3,13 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
-type UserStatus = 'available' | 'busy' | 'away' | 'offline' | 'online';
+type UserStatus = 'available' | 'busy' | 'away' | 'offline';
 
 const db = admin.firestore();
 const auth = admin.auth();
 
 const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player', 'founder', 'coach'];
-const VALID_STATUSES: UserStatus[] = ['available', 'busy', 'away', 'offline', 'online'];
+const VALID_STATUSES: UserStatus[] = ['available', 'busy', 'away', 'offline'];
 
 // --- Helpers de Permisos ---
 const checkAdmin = (auth: any) => {
