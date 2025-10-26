@@ -11,14 +11,19 @@ type ActionResponse = {
   message: string;
 };
 
+type GetChatsResponse = {
+    chats: any[];
+    nextLastTimestamp: string | null;
+}
+
 const functions = getFunctions(app, "europe-west1");
 
 export async function getChats(): Promise<{ success: boolean; data?: Chat[]; message: string; }> {
   try {
-    const getChatsFunc = httpsCallable<void, any[]>(functions, 'getChats');
+    const getChatsFunc = httpsCallable<void, GetChatsResponse>(functions, 'getChats');
     const result = await getChatsFunc();
     // Rehidrata Timestamps de Firestore a partir de los ISO strings del backend
-    const chats = result.data.map(c => ({
+    const chats = result.data.chats.map(c => ({
       ...c,
       lastMessageAt: c.lastMessageAt ? Timestamp.fromDate(new Date(c.lastMessageAt)) : null,
       createdAt: c.createdAt ? Timestamp.fromDate(new Date(c.createdAt)) : null,
