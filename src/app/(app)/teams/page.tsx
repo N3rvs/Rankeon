@@ -9,14 +9,12 @@ import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserC
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
 // updateDoc ya no es necesario aquí para skills
-import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-// *** INICIO CORRECCIÓN PARCIAL: Asegúrate de importar updateMemberSkills ***
 import { deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers, updateMemberSkills } from '@/lib/actions/teams';
-// *** FIN CORRECCIÓN PARCIAL ***
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -58,7 +56,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 newSkills = [...currentSkills, toggledRole];
             }
 
-            // *** INICIO CORRECCIÓN 1: Llamar a la acción del backend ***
+            // *** CORRECCIÓN APLICADA: Llamar a la acción del backend ***
             const result = await updateMemberSkills(team.id, member.id, newSkills);
 
             if (result.success) {
@@ -73,7 +71,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                     variant: 'destructive',
                 });
             }
-            // *** FIN CORRECCIÓN 1 ***
+            // *** FIN CORRECCIÓN ***
         });
     };
 
@@ -251,8 +249,28 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
           const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
           embedUrl = `https://www.youtube.com/embed/${videoId}`;
         }
-        const videoNode = embedUrl ? ( <div className="aspect-video"><iframe className="w-full h-full rounded-lg" src={embedUrl} title="Team Showcase Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe></div> ) : ( <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" /> );
-        return ( <Card><CardContent className="p-0">{videoNode}</CardContent></Card> );
+
+        const videoNode = embedUrl ? (
+             <div className="aspect-video">
+               <iframe
+                 className="w-full h-full rounded-lg"
+                 src={embedUrl}
+                 title="Team Showcase Video"
+                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                 allowFullScreen
+               ></iframe>
+             </div>
+        ) : (
+            <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
+        );
+
+        return (
+            <Card>
+                <CardContent className="p-0">
+                    {videoNode}
+                </CardContent>
+            </Card>
+        );
     };
 
     const MemberCard = ({ member }: { member: TeamMember }) => {
@@ -425,7 +443,6 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
     );
 }
 
-
 function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
     const { t } = useI18n();
     const canCreateTeam = userProfile?.role === 'player';
@@ -463,29 +480,34 @@ export default function TeamsPage() {
             setLoadingTeam(true);
             return;
         }
+
         let teamUnsubscribe: Unsubscribe | undefined;
+
         if (userProfile?.teamId) {
             setLoadingTeam(true);
             const teamId = userProfile.teamId;
             const teamRef = doc(db, 'teams', teamId);
+
             teamUnsubscribe = onSnapshot(teamRef, (teamDoc) => {
                 if (teamDoc.exists()) {
-                    const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
-                    setTeam(teamData);
-                    // Now fetch members securely
-                    getTeamMembers(teamId).then(result => {
-                        if (result.success && result.data) {
-                            setMembers(result.data);
-                        } else {
-                            setMembers([]);
-                            toast({ title: 'Error', description: `Failed to load team members: ${result.message}`, variant: 'destructive' });
-                        }
-                        setLoadingTeam(false);
-                    });
-                } else {
-                    setTeam(null);
+                const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
+                setTeam(teamData);
+
+                // Now fetch members securely
+                getTeamMembers(teamId).then(result => {
+                    if (result.success && result.data) {
+                    setMembers(result.data);
+                    } else {
                     setMembers([]);
-                    setLoadingTeam(false);
+                    toast({ title: 'Error', description: `Failed to load team members: ${result.message}`, variant: 'destructive' });
+                    }
+                    setLoadingTeam(false); // Set loading to false after members are fetched
+                });
+
+                } else {
+                setTeam(null);
+                setMembers([]);
+                setLoadingTeam(false);
                 }
             }, (error) => {
                 console.error("Error fetching team: ", error);
@@ -494,11 +516,13 @@ export default function TeamsPage() {
                 setMembers([]);
                 setLoadingTeam(false);
             });
+
         } else {
             setTeam(null);
             setMembers([]);
             setLoadingTeam(false);
         }
+
         return () => {
             if (teamUnsubscribe) teamUnsubscribe();
         };
@@ -511,7 +535,7 @@ export default function TeamsPage() {
             </div>
         );
     }
-
+    
     const currentUserMembership = members.find(m => m.id === userProfile?.id);
 
     return (
@@ -520,7 +544,7 @@ export default function TeamsPage() {
                 <div className="h-48 md:h-64 bg-muted overflow-hidden">
                     {team && (
                         <Image
-                            src={team.bannerUrl || 'https://placehold.co/1600x300.png'}
+                            src={team.bannerUrl || 'https://placehold.co/1200x480.png'}
                             alt={`${team.name} banner`}
                             fill
                             className="object-cover"
@@ -538,7 +562,7 @@ export default function TeamsPage() {
                 )}
             </div>
 
-            {/* --- CORRECCIÓN 2 APLICADA: Pasa userProfile como prop aquí --- */}
+            {/* --- CORRECCIÓN APLICADA: Pasa userProfile como prop aquí --- */}
             {team && currentUserMembership ?
                 <TeamDisplay
                     team={team}
