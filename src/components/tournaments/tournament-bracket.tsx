@@ -8,9 +8,19 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Crown, Edit, Swords } from 'lucide-react';
 import { useI18n } from '@/contexts/i18n-context';
-import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { reportBracketMatchResult } from '@/lib/actions/tournaments';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 // Sub-component for a single match
 const MatchCard = ({
@@ -22,46 +32,11 @@ const MatchCard = ({
   isEditable: boolean;
   tournamentId: string
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const [scores, setScores] = useState({
-    team1: match.team1?.score ?? '',
-    team2: match.team2?.score ?? ''
-  });
-  const { toast } = useToast();
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedWinner, setSelectedWinner] = useState<string | null>(null);
   const { t } = useI18n();
 
-  const handleScoreChange = (team: 'team1' | 'team2', value: string) => {
-    // Allow empty string to clear the input, but parse as number
-    const newScore = value === '' ? '' : parseInt(value, 10);
-    if (value === '' || (!isNaN(newScore as number) && newScore >= 0)) {
-      setScores(prev => ({...prev, [team]: newScore}));
-    }
-  };
-
-  const handleSaveScores = () => {
-    console.log("Saving scores:", { tournamentId, matchId: match.id, scores });
-    toast({ title: "Edit Mode", description: "Saving functionality is under development." });
-    setIsEditing(false);
-    // When backend is ready, this would be:
-    /*
-    startTransition(async () => {
-      const result = await updateTournamentMatch({
-        tournamentId,
-        matchId: match.id,
-        scores: { team1Score: scores.team1, team2Score: scores.team2 },
-      });
-      if (result.success) {
-        toast({ title: "Match Updated" });
-        setIsEditing(false);
-      } else {
-        toast({ title: 'Error', description: result.message, variant: 'destructive' });
-      }
-    });
-    */
-  }
-
-  const TeamDisplay = ({ team, score, isWinner }: { team?: MatchTeam, score?: number | '', isWinner: boolean }) => {
+  const TeamDisplay = ({ team, isWinner }: { team?: MatchTeam, isWinner: boolean }) => {
     if (!team || !team.id) {
       return (
         <div className="flex items-center p-2 text-sm text-muted-foreground italic h-12">
@@ -81,7 +56,7 @@ const MatchCard = ({
           </Avatar>
           <span className="truncate">{team.name}</span>
         </div>
-        <span className="font-bold text-lg">{score}</span>
+        <span className="font-bold text-lg">{team.score ?? ''}</span>
       </div>
     );
   };
@@ -90,56 +65,96 @@ const MatchCard = ({
     return null; // Don't render empty match slots from later rounds
   }
 
+  const canReport = isEditable && match.team1 && match.team2 && !match.winnerId;
+
   return (
-    <Card className="w-64 bg-background/50 shadow-md relative group/match">
-      {isEditable && !isEditing && (
-        <Button size="icon" variant="ghost" className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover/match:opacity-100 transition-opacity" onClick={() => setIsEditing(true)}>
-            <Edit className="h-4 w-4" />
-        </Button>
-      )}
-      <CardContent className="p-1">
-        {isEditing ? (
-          <div className="space-y-1 p-1">
-             <div className="flex items-center justify-between h-12 gap-2">
-                <div className="flex items-center gap-2 overflow-hidden text-sm">
-                    <Avatar className="h-6 w-6 shrink-0">
-                        <AvatarImage src={match.team1?.avatarUrl} data-ai-hint="team logo" />
-                        <AvatarFallback>{match.team1?.name?.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <span className="truncate">{match.team1?.name || t('StandingsTable.tbd')}</span>
-                </div>
-                <Input type="number" className="w-16 h-8 text-center" value={scores.team1} onChange={(e) => handleScoreChange('team1', e.target.value)}/>
-            </div>
-             <div className="flex items-center justify-between h-12 gap-2">
-                <div className="flex items-center gap-2 overflow-hidden text-sm">
-                    <Avatar className="h-6 w-6 shrink-0">
-                        <AvatarImage src={match.team2?.avatarUrl} data-ai-hint="team logo" />
-                        <AvatarFallback>{match.team2?.name?.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <span className="truncate">{match.team2?.name || t('StandingsTable.tbd')}</span>
-                </div>
-                <Input type="number" className="w-16 h-8 text-center" value={scores.team2} onChange={(e) => handleScoreChange('team2', e.target.value)}/>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-                <Button size="sm" variant="ghost" className="h-7" onClick={() => setIsEditing(false)}>Cancel</Button>
-                <Button size="sm" className="h-7" onClick={handleSaveScores} disabled={isPending}>Save</Button>
-            </div>
-          </div>
-        ) : (
-            <div className="space-y-1">
-                <TeamDisplay team={match.team1} score={match.team1?.score} isWinner={match.winnerId === match.team1?.id} />
-                <div className="flex items-center gap-2 px-2">
-                    <div className="flex-1 h-px bg-border/50"></div>
-                    <span className="text-xs font-bold text-muted-foreground">VS</span>
-                    <div className="flex-1 h-px bg-border/50"></div>
-                </div>
-                <TeamDisplay team={match.team2} score={match.team2?.score} isWinner={match.winnerId === match.team2?.id} />
-            </div>
+    <>
+      <AlertDialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
+        <ReportResultDialog
+          match={match}
+          tournamentId={tournamentId}
+          onOpenChange={setIsReportModalOpen}
+        />
+      </AlertDialog>
+
+      <Card className="w-64 bg-background/50 shadow-md relative group/match">
+        {canReport && (
+          <Button size="icon" variant="ghost" className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover/match:opacity-100 transition-opacity" onClick={() => setIsReportModalOpen(true)}>
+              <Edit className="h-4 w-4" />
+          </Button>
         )}
-      </CardContent>
-    </Card>
+        <CardContent className="p-1">
+          <div className="space-y-1">
+              <TeamDisplay team={match.team1} isWinner={match.winnerId === match.team1?.id} />
+              <div className="flex items-center gap-2 px-2">
+                  <div className="flex-1 h-px bg-border/50"></div>
+                  <span className="text-xs font-bold text-muted-foreground">VS</span>
+                  <div className="flex-1 h-px bg-border/50"></div>
+              </div>
+              <TeamDisplay team={match.team2} isWinner={match.winnerId === match.team2?.id} />
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 };
+
+
+function ReportResultDialog({
+  match,
+  tournamentId,
+  onOpenChange,
+}: {
+  match: Match;
+  tournamentId: string;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
+  const handleReport = (winnerId: string) => {
+    startTransition(async () => {
+      const result = await reportBracketMatchResult({
+        tournamentId,
+        matchId: match.id,
+        winnerId,
+      });
+
+      if (result.success) {
+        toast({ title: 'Match Result Reported', description: result.message });
+        onOpenChange(false);
+      } else {
+        toast({ title: 'Error', description: result.message, variant: 'destructive' });
+      }
+    });
+  };
+
+  return (
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Report Match Result</AlertDialogTitle>
+        <AlertDialogDescription>
+          Who won the match between {match.team1?.name} and {match.team2?.name}? This will advance the winner to the next round.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <div className="flex flex-col sm:flex-row gap-2">
+          {match.team1?.id && (
+            <Button onClick={() => handleReport(match.team1!.id)} disabled={isPending} variant="outline" className="w-full">
+              {match.team1.name} Won
+            </Button>
+          )}
+          {match.team2?.id && (
+            <Button onClick={() => handleReport(match.team2!.id)} disabled={isPending} variant="outline" className="w-full">
+              {match.team2.name} Won
+            </Button>
+          )}
+        </div>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  );
+}
 
 
 // Main Bracket Component

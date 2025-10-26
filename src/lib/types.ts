@@ -1,3 +1,4 @@
+
 import { Timestamp } from 'firebase/firestore';
 import { ReplaceTimestampsWithDates } from './time-types';
 
@@ -290,3 +291,5 @@ export type TournamentUI = ReplaceTimestampsWithDates<Tournament>;
 export type ScrimUI = ReplaceTimestampsWithDates<Scrim>;
 export type TicketMessageUI = ReplaceTimestampsWithDates<TicketMessage>;
 export type SupportTicketUI = ReplaceTimestampsWithDates<SupportTicket>;
+
+    

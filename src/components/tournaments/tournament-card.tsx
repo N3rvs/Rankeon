@@ -64,7 +64,7 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
                     <TooltipTrigger asChild>
                        <span className="flex items-center gap-2"><FormatIcon className="h-4 w-4" /> {formatName}</span>
                     </TooltipTrigger>
-                    <TooltipContent><p>{formatName}</p></TooltipContent>
+                    <TooltipContent>{formatName}</TooltipContent>
                 </Tooltip>
             </TooltipProvider>
         </CardDescription>

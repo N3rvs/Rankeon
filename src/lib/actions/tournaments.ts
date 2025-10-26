@@ -1,3 +1,4 @@
+
 // src/lib/actions/tournaments.ts
 'use client';
 
@@ -161,4 +162,26 @@ export async function registerTeamForTournament(values: { tournamentId: string; 
     console.error('Error registering team:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
+}
+
+export async function generateTournamentStructure(values: { tournamentId: string }): Promise<ActionResponse> {
+    try {
+        const generateFunc = httpsCallable(functions, 'generateTournamentStructure');
+        const result = await generateFunc(values);
+        return result.data as ActionResponse;
+    } catch (error: any) {
+        console.error('Error generating tournament structure:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
+}
+
+export async function reportBracketMatchResult(values: { tournamentId: string, matchId: string, winnerId: string }): Promise<ActionResponse> {
+    try {
+        const reportFunc = httpsCallable(functions, 'reportBracketMatchResult');
+        const result = await reportFunc(values);
+        return result.data as ActionResponse;
+    } catch (error: any) {
+        console.error('Error reporting bracket match result:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
 }

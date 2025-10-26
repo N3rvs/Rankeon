@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -58,7 +59,7 @@ function ProposalCard({ proposal }: { proposal: TournamentProposal }) {
                 </div>
                 <div>
                     <h4 className="font-semibold text-sm">Description</h4>
-                    <p className="text-muted-foreground text-sm whitespace-pre-wrap">{proposal.description}</p>
+                    <p className="text-muted-foreground text-sm whitespace-pre-wrap break-words">{proposal.description}</p>
                 </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
