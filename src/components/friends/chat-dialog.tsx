@@ -39,6 +39,7 @@ export function ChatDialog({ recipient, open, onOpenChange }: ChatDialogProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const [isBlockAlertOpen, setIsBlockAlertOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
@@ -83,6 +84,7 @@ export function ChatDialog({ recipient, open, onOpenChange }: ChatDialogProps) {
 
     const currentMessage = newMessage;
     setNewMessage('');
+    audioRef.current?.play().catch(err => console.error("Audio play failed:", err));
 
     startTransition(async () => {
       const result = await sendMessageToFriend({ to: recipient.id, content: currentMessage });
@@ -123,6 +125,7 @@ export function ChatDialog({ recipient, open, onOpenChange }: ChatDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md w-[90vw] h-[80vh] flex flex-col p-0">
+        <audio ref={audioRef} src="https://actions.google.com/sounds/v1/communications/send_message.ogg" preload="auto" />
         {!recipient ? (
              <div className="flex items-center justify-center h-full"><Spinner /></div>
         ) : (
