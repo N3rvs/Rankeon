@@ -181,9 +181,8 @@ export const getScrimRankings = onCall({ region: 'europe-west1' }, async ({ auth
     let q = db
       .collection('teams')
       .where('stats.scrimsPlayed', '>', 0)
-      .orderBy('stats.scrimsPlayed') // Asegúrate que el índice existe
-      .orderBy('winRate', 'desc')      // Asegúrate que el índice existe
-      .orderBy('stats.scrimsWon', 'desc') // Asegúrate que el índice existe
+      .orderBy('winRate', 'desc')
+      .orderBy('stats.scrimsPlayed', 'desc')
       .limit(DEFAULT_PAGE_SIZE);
 
     if (lastId) {
@@ -344,5 +343,3 @@ export const getTeamMembers = onCall({ region: 'europe-west1' }, async (request)
     throw mapErrorToHttpsError('getTeamMembers', err);
   }
 });
-
-    
