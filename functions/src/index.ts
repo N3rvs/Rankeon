@@ -76,6 +76,9 @@ export {
   editTournament,
   deleteTournament,
   registerTeamForTournament,
+  generateTournamentStructure,
+  reportBracketMatchResult,
+  reportRoundRobinMatchResult,
   // Tickets
   createSupportTicket,
   respondToTicket,
