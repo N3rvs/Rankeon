@@ -57,6 +57,7 @@ import { updateUserPresence } from '@/lib/actions/users';
 import { CreateTicketDialog } from './support/create-ticket-dialog';
 import { AssistantWidget } from './ai/assistant-widget';
 import { InstallPwaButton } from './pwa/install-button';
+import { FriendsSheet } from './friends/friends-sheet';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -222,23 +223,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive('/messages')}
-                tooltip={t('Sidebar.friends')}
-                 size="lg"
-              >
-                <Link href="/messages">
-                  <Users />
-                  <span>{t('Sidebar.friends')}</span>
-                </Link>
-              </SidebarMenuButton>
-              {unreadFriendActivity > 0 && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary group-data-[collapsible=icon]:hidden" />
-              )}
-            </SidebarMenuItem>
-            
             {claims?.role === 'admin' && (
               <SidebarMenuItem>
                 <SidebarMenuButton
@@ -293,6 +277,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
             <InboxIcon />
+            <FriendsSheet />
             {loading ? (
               <Skeleton className="h-10 w-10 rounded-full" />
             ) : (
