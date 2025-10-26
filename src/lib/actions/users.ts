@@ -70,7 +70,6 @@ export async function updateUserCertification({
 
 export async function updateUserPresence(status: UserStatus): Promise<ActionResponse> {
   try {
-    // ESTA FUNCIÓN NO EXISTE EN EL BACKEND PROPORCIONADO
     const updateUserPresenceFunc = httpsCallable(functions, 'updateUserPresence');
     const result = await updateUserPresenceFunc({ status });
     return (result.data as ActionResponse);
@@ -87,7 +86,7 @@ export async function updateUserPresence(status: UserStatus): Promise<ActionResp
  * @param lastId El ID del último usuario obtenido en el lote anterior, o null para la primera página.
  * @returns Un objeto que contiene los usuarios de la página y el ID para la siguiente página.
  */
-export async function getManagedUsers(lastId: string | null): Promise<{
+export async function getManagedUsers(lastId: string | null = null): Promise<{
     success: boolean;
     data?: { users: UserProfile[]; nextLastId: string | null };
     message: string;
