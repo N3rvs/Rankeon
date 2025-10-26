@@ -40,7 +40,7 @@ export const viewport: Viewport = {
   themeColor: "#1AD1D1",
 }
  
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: {
   children: React.ReactNode;
