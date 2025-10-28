@@ -55,16 +55,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
-    // This is required to make EventEmitter work in the browser
-    if (!isServer) {
-        config.resolve.fallback = {
-            ...config.resolve.fallback,
-            events: require.resolve('events/'),
-        };
-    }
-    return config;
-  },
 };
  
 export default withPWA(nextConfig);
