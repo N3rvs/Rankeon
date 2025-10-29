@@ -2,146 +2,52 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Helper Functions
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
-    }
-    
-    function isAuth() {
+
+    // Helper functions
+    function isSignedIn() {
       return request.auth != null;
     }
-    
-    function isAdmin() {
-      return isAuth() && request.auth.token.role == 'admin';
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
     }
     
-    function isModerator() {
-      return isAuth() && (request.auth.token.role == 'moderator' || isAdmin());
+    function isTeamFounder(teamId) {
+      return get(/databases/$(database)/documents/teams/$(teamId)).data.ownerId == request.auth.uid;
     }
     
     function isTeamStaff(teamId) {
-        return isAuth() && get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid)).data.role in ['founder', 'coach'];
+      // Correctly checks for role within the team's 'members' map
+      return get(/databases/$(database)/documents/teams/$(teamId)).data.members[request.auth.uid] in ['owner', 'coach', 'admin'];
     }
 
-    // --- USER PROFILES ---
+    // USERS
     match /users/{userId} {
       allow read: if true;
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId) &&
-                       // Core profile data
-                       request.resource.data.name == resource.data.name &&
-                       request.resource.data.avatarUrl == resource.data.avatarUrl &&
-                       // Security-related fields
-                       request.resource.data.role == resource.data.role &&
-                       request.resource.data.disabled == resource.data.disabled &&
-                       request.resource.data.isCertifiedStreamer == resource.data.isCertifiedStreamer &&
-                       // CORRECTED: Allow all valid statuses
-                       request.resource.data.status in ['available', 'busy', 'away', 'offline'];
-                       
-      // Admins can update any field except for sensitive ones they shouldn't touch
-      allow update: if isAdmin() &&
-                      request.resource.data.friends == resource.data.friends &&
-                      request.resource.data.blocked == resource.data.blocked;
-                      
-      allow delete: if isAdmin();
+      // Correctly use isTeamStaff with the user's teamId
+      allow update: if isOwner(userId) || (resource.data.teamId != null && isTeamStaff(resource.data.teamId));
+      allow delete: if false;
     }
-    
-    // --- TEAMS ---
+
+    // TEAMS
     match /teams/{teamId} {
       allow read: if true;
-      allow create: if isAuth() && request.resource.data.founder == request.auth.uid;
-      allow update: if isTeamStaff(teamId) || isAdmin();
-      allow delete: if isTeamStaff(teamId) || isAdmin();
-
-      // Team Members subcollection
-      match /members/{memberId} {
+      allow create: if isSignedIn();
+      allow update: if isTeamFounder(teamId);
+      allow delete: if isTeamFounder(teamId);
+    }
+    
+    match /teamMembers/{membershipId} {
         allow read: if true;
-        allow create, update, delete: if isTeamStaff(teamId) || isAdmin();
-      }
-      
-      // Team Tasks subcollection
-      match /tasks/{taskId} {
-        allow read, write: if isTeamStaff(teamId);
-      }
-    }
-
-    // --- FRIEND REQUESTS & SOCIAL ---
-    match /friendRequests/{requestId} {
-      allow read, create, update: if isAuth();
-    }
-
-    match /honorsGiven/{honorId} {
-      allow read, create, delete: if isAuth();
-    }
-
-    // --- CHATS ---
-    match /chats/{chatId} {
-        allow read, write: if isAuth() && request.auth.uid in resource.data.members;
-        
-        match /messages/{messageId} {
-            allow read, create: if isAuth() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-        }
+        allow create: if isSignedIn();
+        allow delete: if isTeamFounder(get(/databases/$(database)/documents/teamMembers/$(membershipId)).data.teamId);
+        allow update: if isTeamStaff(get(/databases/$(database)/documents/teamMembers/$(membershipId)).data.teamId);
     }
     
-    // --- INBOX (Notifications) ---
-    match /inbox/{userId}/{document=**} {
-      allow read, write, delete: if isOwner(userId);
-    }
-    
-    // --- TEAM APPLICATIONS & INVITATIONS ---
-    match /teamApplications/{applicationId} {
-        allow read, create: if isAuth();
-        allow update: if isAuth() && 
-                        (isOwner(resource.data.applicantId) || isTeamStaff(resource.data.teamId));
-    }
-
-    match /teamInvitations/{invitationId} {
-        allow read: if isAuth();
-        allow create: if isAuth() && isTeamStaff(request.resource.data.fromTeamId);
-        allow update: if isAuth() && 
-                        (isOwner(request.resource.data.toUserId) || isTeamStaff(request.resource.data.fromTeamId));
-    }
-    
-    // --- GAME ROOMS ---
-    match /gameRooms/{roomId} {
-        allow read, create: if isAuth();
-        allow update: if isAuth() && (request.auth.uid in resource.data.participants);
-        
-        match /messages/{messageId} {
-            allow read, create: if isAuth() && request.auth.uid in get(/databases/$(database)/documents/gameRooms/$(roomId)).data.participants;
-        }
-    }
-
-    // --- SCRIMS ---
-    match /scrims/{scrimId} {
-      allow read, create, update: if isAuth();
-    }
-
-    // --- TOURNAMENTS ---
-    match /tournaments/{tournamentId} {
-        allow read: if true;
-        allow create, update: if isModerator();
-
-        match /participants/{participantId} {
-            allow read, create, delete: if isAuth();
-        }
-    }
-
-    match /tournamentProposals/{proposalId} {
-      allow read, create: if isAuth();
-      allow update, delete: if isModerator();
-    }
-    
-    // --- SUPPORT TICKETS ---
-    match /supportTickets/{ticketId} {
-        allow read, create: if isAuth();
-        allow update: if isModerator();
-        
-        match /conversation/{messageId} {
-            allow read: if isOwner(get(/databases/$(database)/documents/supportTickets/$(ticketId)).data.userId) || isModerator();
-            allow create: if isOwner(get(/databases/$(database)/documents/supportTickets/$(ticketId)).data.userId) || isModerator();
-        }
+    // OTHER COLLECTIONS
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

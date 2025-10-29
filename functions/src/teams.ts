@@ -100,6 +100,9 @@ export const createTeam = onCall({ region: 'europe-west1' }, async (req) => {
       updatedAt: nowTs(),
       lookingForPlayers: true,
       recruitingRoles: [],
+      members: { // Add the members map on creation
+        [uid]: 'owner'
+      }
     });
 
     const memberRef = db.collection('teamMembers').doc();
