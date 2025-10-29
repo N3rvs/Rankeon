@@ -1,67 +1,55 @@
 'use client';
 
-import { getFunctions, httpsCallable, HttpsCallableResult } from 'firebase/functions';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 
-type ActionResponse = { success: boolean; message: string };
+type ActionResponse = { 
+    success: boolean; 
+    message: string;
+    id?: string;
+};
 
-// Enum local (ajústalo si en backend hay más tipos)
-export type HonorType = 'MVP' | 'FAIR_PLAY' | 'LEADERSHIP';
-const HONOR_TYPES: readonly HonorType[] = ['MVP', 'FAIR_PLAY', 'LEADERSHIP'] as const;
+// Ensure this type matches the one used in your components
+export type HonorType = 'great_teammate' | 'leader' | 'good_communicator' | 'positive_attitude' | 'bad_behavior';
 
 const functions = getFunctions(app, 'europe-west1');
 
-// ---- Adapters de payload: recipientId -> to, honorType -> type ----
-type GiveHonorPayloadServer = { to: string; type: HonorType };
-type RevokeHonorPayloadServer = { to: string; type?: HonorType }; // si backend exige type, hazlo obligatorio
-
-function normalizeHonorType(h: string): HonorType {
-  const up = h.trim().toUpperCase();
-  if ((HONOR_TYPES as readonly string[]).includes(up)) return up as HonorType;
-  throw new Error(`Invalid honorType "${h}". Valid: ${HONOR_TYPES.join(', ')}`);
-}
-
+/**
+ * Gives an honor from the current user to a target user.
+ * @param recipientId The UID of the user to receive the honor.
+ * @param honorType The type of honor to give.
+ */
 export async function giveHonorToUser(
   recipientId: string,
-  honorType: string
+  honorType: HonorType
 ): Promise<ActionResponse> {
   try {
-    const type = normalizeHonorType(honorType);
-    const giveHonor = httpsCallable<GiveHonorPayloadServer, ActionResponse>(functions, 'giveHonor');
-    const { data } = await giveHonor({ to: recipientId, type });
-    return data ?? { success: true, message: 'Honor granted.' };
+    const giveHonor = httpsCallable<{ to: string; type: HonorType }, ActionResponse>(functions, 'giveHonor');
+    const response = await giveHonor({ to: recipientId, type: honorType });
+    return response.data;
   } catch (error: any) {
     console.error('Error giving honor:', error);
-    // Mensajes más claros según código
-    if (error?.code === 'permission-denied') {
-      return { success: false, message: 'No tienes permisos para otorgar honores.' };
-    }
-    if (error?.code === 'unauthenticated') {
-      return { success: false, message: 'Debes iniciar sesión.' };
-    }
-    return { success: false, message: error?.message || 'Ha ocurrido un error inesperado.' };
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
 
+/**
+ * Revokes the current user's given honor from a target user.
+ * @param recipientId The UID of the user from whom to revoke the honor.
+ */
 export async function revokeHonorFromUser(
-  recipientId: string,
-  honorType?: string // si tu backend lo pide, ponlo como obligatorio y normalízalo
+  recipientId: string
 ): Promise<ActionResponse> {
   try {
-    const payload: RevokeHonorPayloadServer = { to: recipientId };
-    if (honorType) payload.type = normalizeHonorType(honorType);
-
-    const revokeHonor = httpsCallable<RevokeHonorPayloadServer, ActionResponse>(functions, 'revokeHonor');
-    const { data } = await revokeHonor(payload);
-    return data ?? { success: true, message: 'Honor revoked.' };
+    // The backend `revokeHonor` function may only need the target `honorId`.
+    // The client-side action here simplifies by just taking the recipient ID,
+    // assuming the backend can look up the specific honor to revoke based on giver/receiver.
+    // If the backend needs more specifics, this payload would need adjustment.
+    const revokeHonor = httpsCallable<{ to: string }, ActionResponse>(functions, 'revokeHonor');
+    const response = await revokeHonor({ to: recipientId });
+    return response.data;
   } catch (error: any) {
     console.error('Error revoking honor:', error);
-    if (error?.code === 'permission-denied') {
-      return { success: false, message: 'No tienes permisos para revocar honores.' };
-    }
-    if (error?.code === 'unauthenticated') {
-      return { success: false, message: 'Debes iniciar sesión.' };
-    }
-    return { success: false, message: error?.message || 'Ha ocurrido un error inesperado.' };
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
