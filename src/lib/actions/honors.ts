@@ -2,6 +2,8 @@
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
+import { errorEmitter } from '../firebase/error-emitter';
+import { FirestorePermissionError } from '../firebase/errors';
 
 type ActionResponse = { 
     success: boolean; 
@@ -29,6 +31,14 @@ export async function giveHonorToUser(
     return response.data;
   } catch (error: any) {
     console.error('Error giving honor:', error);
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+        const permissionError = new FirestorePermissionError({
+            path: `/honors/{honorId}`,
+            operation: 'create',
+            requestResourceData: { to: recipientId, type: honorType },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -50,6 +60,13 @@ export async function revokeHonorFromUser(
     return response.data;
   } catch (error: any) {
     console.error('Error revoking honor:', error);
+     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+        const permissionError = new FirestorePermissionError({
+            path: `/honors/{honorId}`,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
