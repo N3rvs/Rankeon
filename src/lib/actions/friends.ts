@@ -1,6 +1,3 @@
-// src/lib/actions/friends.ts
-// Client-side actions that call Firebase Functions
-
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 import type { UserProfile } from '../types';

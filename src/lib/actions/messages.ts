@@ -1,80 +1,94 @@
 // src/lib/actions/messages.ts
-// Acciones del lado del cliente que llaman a Firebase Functions
+'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 import type { Chat } from '../types';
 import { Timestamp } from 'firebase/firestore';
 
+// Si no usas ya un uuid en el proyecto, un mini-id es suficiente:
+const randId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
 type ActionResponse = {
   success: boolean;
   message: string;
 };
 
-type GetChatsResponse = {
-    chats: any[];
-    nextLastTimestamp: string | null;
+type GetChatsServer = {
+  items: any[];            // viene del backend
+  nextCursor: string|null; // viene del backend
+};
+
+const functions = getFunctions(app, 'europe-west1');
+
+// Helper para convertir fechas (ISO/string/Firestore Timestamp) a Timestamp de cliente
+function toTimestamp(value: any): Timestamp | null {
+  if (!value) return null;
+  // Firestore Timestamp (ya serializado por SDK)
+  if (value.seconds !== undefined && value.nanoseconds !== undefined) {
+    return new Timestamp(value.seconds, value.nanoseconds);
+  }
+  // ISO string / Date-string
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : Timestamp.fromDate(d);
 }
 
-const functions = getFunctions(app, "europe-west1");
-
-export async function getChats(): Promise<{ success: boolean; data?: Chat[]; message: string; }> {
+/** Obtener lista de chats (paginada) */
+export async function getChats(cursor?: string): Promise<{
+  success: boolean;
+  data?: { items: Chat[]; nextCursor: string | null };
+  message: string;
+}> {
   try {
-    const getChatsFunc = httpsCallable<void, GetChatsResponse>(functions, 'getChats');
-    const result = await getChatsFunc();
-    // Rehidrata Timestamps de Firestore a partir de los ISO strings del backend
-    const chats = result.data.chats.map(c => ({
+    const getChatsFunc = httpsCallable<{ cursor?: string }, GetChatsServer>(functions, 'getChats');
+    const { data } = await getChatsFunc(cursor ? { cursor } : undefined);
+
+    const chats = (data.items || []).map((c: any) => ({
       ...c,
-      lastMessageAt: c.lastMessageAt ? Timestamp.fromDate(new Date(c.lastMessageAt)) : null,
-      createdAt: c.createdAt ? Timestamp.fromDate(new Date(c.createdAt)) : null,
-    }));
-    
-    return {
-        success: true,
-        data: chats as Chat[],
-        message: 'Chats obtenidos.'
-    };
+      lastMessageAt: toTimestamp(c.lastMessageAt),
+      createdAt: toTimestamp(c.createdAt),
+    })) as Chat[];
+
+    return { success: true, data: { items: chats, nextCursor: data.nextCursor ?? null }, message: 'Chats obtenidos.' };
   } catch (error: any) {
     console.error('Error al obtener chats:', error);
-    return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+    return { success: false, message: error?.message || 'Ocurrió un error inesperado.' };
   }
 }
 
-export async function deleteChatHistory({
-  chatId,
-}: {
-  chatId: string;
-}): Promise<ActionResponse> {
+/** Borrar historial de mensajes de un chat (soft reset) */
+export async function deleteChatHistory({ chatId }: { chatId: string }): Promise<ActionResponse> {
   try {
-    const deleteFunc = httpsCallable<{chatId: string}, ActionResponse>(functions, 'deleteChatHistory');
-    const result = await deleteFunc({ chatId });
-    return result.data; // Devuelve la respuesta del backend
+    const fn = httpsCallable<{ chatId: string }, ActionResponse>(functions, 'deleteChatHistory');
+    const { data } = await fn({ chatId });
+    return data;
   } catch (error: any) {
     console.error('Error al borrar el historial del chat:', error);
-    return {
-      success: false,
-      message: error.message || 'Ocurrió un error inesperado.',
-    };
+    return { success: false, message: error?.message || 'Ocurrió un error inesperado.' };
   }
 }
 
+/** Enviar DM a un amigo/usuario (usa idempotencia con clientId) */
 export async function sendMessageToFriend({
   to,
   content,
+  clientId,
 }: {
   to: string;
   content: string;
-}): Promise<ActionResponse & {chatId?: string}> {
+  clientId?: string; // opcional: si no lo pasas, lo generamos
+}): Promise<ActionResponse & { chatId?: string }> {
   try {
-    const sendFunc = httpsCallable<{to: string; content: string}, ActionResponse & {chatId?: string}>(functions, 'sendMessageToFriend');
-    const result = await sendFunc({ to, content });
+    const fn = httpsCallable<{ to: string; text: string; clientId: string }, ActionResponse & { chatId?: string }>(
+      functions,
+      'sendMessageToFriend'
+    );
 
-    return result.data;
+    const payload = { to, text: content, clientId: clientId ?? randId() };
+    const { data } = await fn(payload);
+    return data;
   } catch (error: any) {
     console.error('Error al enviar mensaje:', error);
-    return {
-      success: false,
-      message: error.message || 'Ocurrió un error inesperado.',
-    };
+    return { success: false, message: error?.message || 'Ocurrió un error inesperado.' };
   }
 }

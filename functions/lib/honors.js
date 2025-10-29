@@ -33,132 +33,160 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.revokeHonor = exports.giveHonor = void 0;
-// src/functions/honors.ts
+exports.getHonorRankings = exports.revokeHonor = exports.giveHonor = void 0;
+// functions/src/honors.ts
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
+const zod_1 = require("zod");
 const db = admin.firestore();
-// Separamos los tipos de honores para la lógica de Karma
-const POSITIVE_HONORS = ['great_teammate', 'leader', 'good_communicator', 'positive_attitude'];
-const NEGATIVE_HONORS = ['bad_behavior']; // Esto actúa como un "reporte"
-const VALID_HONORS = [...POSITIVE_HONORS, ...NEGATIVE_HONORS];
-// *** Añadida región ***
-exports.giveHonor = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    const giverId = auth === null || auth === void 0 ? void 0 : auth.uid;
-    const { recipientId, honorType } = data;
-    // --- Validaciones ---
-    if (!giverId) {
-        throw new https_1.HttpsError("unauthenticated", "You must be logged in to give an honor.");
-    }
-    if (!recipientId || !honorType) {
-        throw new https_1.HttpsError("invalid-argument", "Missing recipient ID or honor type.");
-    }
-    if (giverId === recipientId) {
-        throw new https_1.HttpsError("invalid-argument", "You cannot give yourself an honor.");
-    }
-    if (!VALID_HONORS.includes(honorType)) {
-        throw new https_1.HttpsError("invalid-argument", "Invalid honor type provided.");
-    }
-    const honorDocId = `${giverId}_${recipientId}`;
-    const honorDocRef = db.collection("honorsGiven").doc(honorDocId);
-    const recipientUserRef = db.collection("users").doc(recipientId);
-    try {
-        await db.runTransaction(async (transaction) => {
-            var _a;
-            const honorDoc = await transaction.get(honorDocRef);
-            const recipientDoc = await transaction.get(recipientUserRef);
-            if (!recipientDoc.exists) {
-                throw new https_1.HttpsError("not-found", "The user you are trying to honor does not exist.");
-            }
-            const givenHonors = honorDoc.exists ? ((_a = honorDoc.data()) === null || _a === void 0 ? void 0 : _a.honors) || [] : [];
-            if (givenHonors.length > 0) {
-                throw new https_1.HttpsError("already-exists", "You have already given an honor to this user. You can only give one honor per user.");
-            }
-            // --- Lógica de Karma ---
-            let karmaIncrement = 0;
-            if (POSITIVE_HONORS.includes(honorType))
-                karmaIncrement = 1;
-            else if (NEGATIVE_HONORS.includes(honorType))
-                karmaIncrement = -1;
-            // --- Actualizaciones en transacción ---
-            transaction.set(honorDocRef, {
-                giverId, recipientId, honors: [honorType],
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            }, { merge: true });
-            const honorCountField = `honorCounts.${honorType}`;
-            transaction.update(recipientUserRef, {
-                [honorCountField]: admin.firestore.FieldValue.increment(1),
-                'totalHonors': admin.firestore.FieldValue.increment(karmaIncrement)
-            });
-        });
-        return { success: true, message: "Honor awarded successfully!" };
-    }
-    catch (error) { // Catch y lanzar HttpsError
-        console.error(`Error giving honor from ${giverId} to ${recipientId}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError('internal', error.message || 'Failed to award honor.');
-    }
+const PAGE_SIZE = 20;
+// ---------- helpers ----------
+function assertAuth(ctx) {
+    if (!ctx.auth?.uid)
+        throw new https_1.HttpsError('unauthenticated', 'You must be logged in.');
+    return ctx.auth.uid;
+}
+const toISO = (v) => {
+    if (!v)
+        return null;
+    if (typeof v?.toDate === 'function')
+        return v.toDate().toISOString();
+    if (v instanceof Date)
+        return v.toISOString();
+    return null;
+};
+// ---------- schemas ----------
+const honorTypes = ['MVP', 'FAIR_PLAY', 'LEADERSHIP'];
+const GiveSchema = zod_1.z.object({
+    to: zod_1.z.string().min(1),
+    type: zod_1.z.enum(honorTypes),
+    reason: zod_1.z.string().min(3).max(200).optional(),
 });
-// *** Añadida región ***
-exports.revokeHonor = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    const giverId = auth === null || auth === void 0 ? void 0 : auth.uid;
-    const { recipientId } = data;
-    // --- Validaciones ---
-    if (!giverId) {
-        throw new https_1.HttpsError("unauthenticated", "You must be logged in to revoke an honor.");
+const RevokeSchema = zod_1.z.object({
+    honorId: zod_1.z.string().min(1),
+});
+const PageInputSchema = zod_1.z.object({
+    lastId: zod_1.z.string().nullable().optional(),
+});
+// ============================================================
+// giveHonor
+// ============================================================
+exports.giveHonor = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const from = assertAuth(req);
+    const { to, type, reason } = GiveSchema.parse(req.data ?? {});
+    if (from === to)
+        throw new https_1.HttpsError('failed-precondition', 'Cannot honor yourself');
+    // límite diario: 5 por emisor
+    const since = admin.firestore.Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000));
+    const given24h = await db
+        .collection('honors')
+        .where('from', '==', from)
+        .where('createdAt', '>=', since)
+        .count()
+        .get();
+    if (given24h.data().count >= 5) {
+        throw new https_1.HttpsError('resource-exhausted', 'Daily honor limit reached');
     }
-    if (!recipientId) {
-        throw new https_1.HttpsError("invalid-argument", "Missing recipient ID.");
-    }
-    if (giverId === recipientId) {
-        throw new https_1.HttpsError("invalid-argument", "You cannot revoke an honor from yourself.");
-    }
-    const honorDocId = `${giverId}_${recipientId}`;
-    const honorDocRef = db.collection("honorsGiven").doc(honorDocId);
-    const recipientUserRef = db.collection("users").doc(recipientId);
-    try {
-        await db.runTransaction(async (transaction) => {
-            const honorDoc = await transaction.get(honorDocRef);
-            if (!honorDoc.exists) {
-                throw new https_1.HttpsError("not-found", "No honor was found to revoke for this user.");
-            }
-            // Verifica si el usuario receptor existe antes de intentar actualizarlo (más seguro)
-            const recipientDoc = await transaction.get(recipientUserRef);
-            if (!recipientDoc.exists) {
-                // Si el receptor no existe, solo borra el registro de honor
-                transaction.delete(honorDocRef);
-                console.warn(`Recipient user ${recipientId} not found, deleting honor record only.`);
-                return; // Salir de la transacción si el usuario no existe
-            }
-            const honorData = honorDoc.data();
-            const givenHonors = (honorData === null || honorData === void 0 ? void 0 : honorData.honors) || [];
-            if (givenHonors.length === 0) {
-                transaction.delete(honorDocRef); // Limpia doc vacío
-                throw new https_1.HttpsError("not-found", "No specific honor type found in record to revoke count.");
-            }
-            const honorTypeToRevoke = givenHonors[0]; // Asume solo un honor por registro
-            // --- Lógica de Karma ---
-            let karmaIncrement = 0;
-            if (POSITIVE_HONORS.includes(honorTypeToRevoke))
-                karmaIncrement = -1;
-            else if (NEGATIVE_HONORS.includes(honorTypeToRevoke))
-                karmaIncrement = 1;
-            // --- Actualizaciones en transacción ---
-            const honorCountField = `honorCounts.${honorTypeToRevoke}`;
-            transaction.update(recipientUserRef, {
-                [honorCountField]: admin.firestore.FieldValue.increment(-1),
-                'totalHonors': admin.firestore.FieldValue.increment(karmaIncrement)
-            });
-            transaction.delete(honorDocRef); // Borra el registro giver->recipient
+    // crea honor + incrementa agregados en una transacción
+    const honorRef = db.collection('honors').doc();
+    const userRef = db.doc(`users/${to}`);
+    const statRef = db.doc(`honorStats/${to}`);
+    await db.runTransaction(async (tx) => {
+        const userSnap = await tx.get(userRef);
+        if (!userSnap.exists)
+            throw new https_1.HttpsError('not-found', 'Recipient user not found');
+        tx.set(honorRef, {
+            from,
+            to,
+            type,
+            reason: reason ?? null,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-        return { success: true, message: "Honor revoked successfully." };
+        tx.set(statRef, {
+            uid: to,
+            total: admin.firestore.FieldValue.increment(1),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+        tx.set(userRef, {
+            totalHonors: admin.firestore.FieldValue.increment(1),
+            _honorUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+    });
+    return { id: honorRef.id };
+});
+// ============================================================
+// revokeHonor
+// ============================================================
+exports.revokeHonor = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { honorId } = RevokeSchema.parse(req.data ?? {});
+    const honorRef = db.doc(`honors/${honorId}`);
+    await db.runTransaction(async (tx) => {
+        const snap = await tx.get(honorRef);
+        if (!snap.exists)
+            throw new https_1.HttpsError('not-found', 'Honor not found');
+        const data = snap.data();
+        if (data.from !== uid)
+            throw new https_1.HttpsError('permission-denied', 'Cannot revoke others honors');
+        const to = data.to;
+        const userRef = db.doc(`users/${to}`);
+        const statRef = db.doc(`honorStats/${to}`);
+        tx.delete(honorRef);
+        tx.set(statRef, {
+            uid: to,
+            total: admin.firestore.FieldValue.increment(-1),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+        tx.set(userRef, {
+            totalHonors: admin.firestore.FieldValue.increment(-1),
+            _honorUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+    });
+    return { ok: true };
+});
+// ============================================================
+/** getHonorRankings
+ * Devuelve { rankings, nextLastId } para tu UI.
+ * Fuente: honorStats/{uid} (agregado), y se enriquece con datos del perfil.
+ */
+exports.getHonorRankings = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    try {
+        const { lastId } = PageInputSchema.parse(req.data ?? {});
+        let q = db
+            .collection('honorStats')
+            .orderBy('total', 'desc')
+            .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+            .limit(PAGE_SIZE);
+        if (lastId) {
+            const cur = await db.collection('honorStats').doc(lastId).get();
+            if (cur.exists)
+                q = q.startAfter(cur);
+        }
+        const res = await q.get();
+        // junta perfiles
+        const userRefs = res.docs.map((d) => db.doc(`users/${d.id}`));
+        const users = userRefs.length ? await db.getAll(...userRefs) : [];
+        const userById = new Map(users.filter((s) => s.exists).map((s) => [s.id, s.data()]));
+        const rankings = res.docs.map((d) => {
+            const stat = d.data();
+            const u = userById.get(d.id) ?? {};
+            return {
+                id: d.id,
+                name: u.name ?? u.displayName ?? '',
+                avatarUrl: u.avatarUrl ?? u.photoURL ?? null,
+                isCertifiedStreamer: !!u.isCertifiedStreamer,
+                totalHonors: Number(stat.total ?? u.totalHonors ?? 0),
+                createdAt: toISO(u.createdAt),
+            };
+        });
+        const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+        return { rankings, nextLastId };
     }
-    catch (error) { // Catch y lanzar HttpsError
-        console.error(`Error revoking honor from ${giverId} for ${recipientId}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError('internal', error.message || 'Failed to revoke honor.');
+    catch (err) {
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        console.error('getHonorRankings error:', err);
+        throw new https_1.HttpsError('internal', err.message ?? 'Unexpected error');
     }
 });
 //# sourceMappingURL=honors.js.map

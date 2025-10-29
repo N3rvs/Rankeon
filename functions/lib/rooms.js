@@ -34,186 +34,199 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendMessageToRoom = exports.leaveRoom = exports.joinRoom = exports.createGameRoom = void 0;
+// functions/src/rooms.ts
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
+const zod_1 = require("zod");
 const db = admin.firestore();
-// *** Añadida región ***
-exports.createGameRoom = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
-    if (!uid) {
-        throw new https_1.HttpsError("unauthenticated", "You must be logged in to create a room.");
-    }
-    const { name, game, server, rank, partySize } = data;
-    if (!name || !game || !server || !rank || !partySize) {
-        throw new https_1.HttpsError("invalid-argument", "Missing required room details.");
-    }
-    const roomRef = db.collection("gameRooms").doc();
-    try {
-        await roomRef.set({
-            id: roomRef.id,
-            name,
-            game,
-            server,
-            rank,
-            partySize,
-            createdBy: uid,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            participants: [uid], // Creator automatically joins
-            // Añadir lastMessageAt inicial si lo usas para ordenar
-            lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        return { success: true, message: "Room created successfully.", roomId: roomRef.id };
-    }
-    catch (error) { // Catch específico
-        console.error("Error creating game room in Firestore:", error);
-        // Lanzar HttpsError
-        throw new https_1.HttpsError("internal", error.message || "Failed to create the game room.");
-    }
-});
-// *** Añadida región ***
-exports.joinRoom = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
-    const { roomId } = data;
+const PAGE_SIZE = 50;
+function assertAuth(ctx) {
+    const uid = ctx.auth?.uid;
     if (!uid)
-        throw new https_1.HttpsError("unauthenticated", "You must be logged in.");
-    if (!roomId)
-        throw new https_1.HttpsError("invalid-argument", "Missing room ID.");
-    const roomRef = db.collection("gameRooms").doc(roomId);
-    try {
-        // Usa una transacción para leer antes de escribir
-        return await db.runTransaction(async (transaction) => {
-            const roomDoc = await transaction.get(roomRef);
-            if (!roomDoc.exists) {
-                throw new https_1.HttpsError("not-found", "The room does not exist.");
-            }
-            const roomData = roomDoc.data();
-            const participants = roomData.participants || [];
-            const maxSize = parseInt(roomData.partySize, 10) || 10;
-            if (participants.includes(uid)) {
-                return { success: true, message: "Already in room." };
-            }
-            if (participants.length >= maxSize) {
-                throw new https_1.HttpsError("failed-precondition", "This room is full.");
-            }
-            transaction.update(roomRef, {
-                participants: admin.firestore.FieldValue.arrayUnion(uid)
-            });
-            return { success: true, message: "Joined room." };
-        });
-    }
-    catch (error) { // Catch específico
-        console.error(`Error joining room ${roomId} for user ${uid}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error; // Re-lanza si ya es HttpsError
-        throw new https_1.HttpsError("internal", error.message || "An unexpected error occurred while joining the room.");
-    }
+        throw new https_1.HttpsError('unauthenticated', 'You must be logged in.');
+    return uid;
+}
+const CreateRoomSchema = zod_1.z.object({
+    name: zod_1.z.string().min(3).max(50),
+    game: zod_1.z.string().min(1),
+    server: zod_1.z.string().min(1),
+    rank: zod_1.z.string().min(1),
+    partySize: zod_1.z.string().min(1), // viene como string desde el cliente
 });
-// *** Añadida región ***
-exports.leaveRoom = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
-    const { roomId } = data;
-    if (!uid)
-        throw new https_1.HttpsError("unauthenticated", "You must be logged in.");
-    if (!roomId)
-        throw new https_1.HttpsError("invalid-argument", "Missing room ID.");
-    const roomRef = db.collection("gameRooms").doc(roomId);
-    try {
-        return await db.runTransaction(async (transaction) => {
-            const roomDoc = await transaction.get(roomRef);
-            if (!roomDoc.exists) {
-                return { success: true, message: "Room no longer exists." }; // No es un error si ya no existe
-            }
-            const roomData = roomDoc.data();
-            if (!roomData) {
-                // Si existe pero no hay datos, es raro, pero no debería bloquear
-                console.warn(`Room ${roomId} exists but has no data.`);
-                transaction.delete(roomRef); // Borrar sala corrupta
-                return { success: true, message: "Left invalid room." };
-                // throw new HttpsError("internal", "Room data is invalid."); // Original lanzaba error
-            }
-            const currentParticipants = roomData.participants || [];
-            if (!currentParticipants.includes(uid)) {
-                return { success: true, message: "You are not in the room." };
-            }
-            const remainingParticipants = currentParticipants.filter(p => p !== uid);
-            if (roomData.createdBy === uid) {
-                if (remainingParticipants.length === 0) {
-                    transaction.delete(roomRef); // Borra la sala y subcolecciones (si las hubiera)
-                }
-                else {
-                    const newCreatorId = remainingParticipants[0];
-                    transaction.update(roomRef, {
-                        createdBy: newCreatorId,
-                        participants: remainingParticipants // Actualiza la lista
-                    });
-                }
-            }
-            else {
-                // Actualiza la lista usando arrayRemove
-                transaction.update(roomRef, {
-                    participants: admin.firestore.FieldValue.arrayRemove(uid)
-                });
-            }
-            return { success: true, message: "Successfully left the room." };
-        });
-    }
-    catch (error) { // Catch específico y lanzar HttpsError
-        console.error(`Error leaving room ${roomId} for user ${uid}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError("internal", error.message || "An unexpected error occurred while leaving the room.");
-    }
+const JoinSchema = zod_1.z.object({
+    roomId: zod_1.z.string().min(1),
 });
-// *** Añadida región ***
-exports.sendMessageToRoom = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    const uid = auth === null || auth === void 0 ? void 0 : auth.uid;
-    const { roomId, content } = data;
-    if (!uid) {
-        throw new https_1.HttpsError('unauthenticated', 'You must be logged in to send a message.');
+const SendMessageSchema = zod_1.z.object({
+    roomId: zod_1.z.string().min(1),
+    content: zod_1.z.string().min(1).max(2000),
+});
+// Helper: lectura consistente de sala
+async function getRoomOrThrow(roomId) {
+    const ref = db.doc(`rooms/${roomId}`);
+    const snap = await ref.get();
+    if (!snap.exists)
+        throw new https_1.HttpsError('not-found', 'Room not found.');
+    return { ref, data: snap.data() };
+}
+/** =========================================================
+ * createGameRoom
+ * Crea sala con el usuario como owner y primer miembro.
+ * Devuelve { success, message, roomId }
+ * ======================================================= */
+exports.createGameRoom = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const input = CreateRoomSchema.parse(req.data ?? {});
+    const capacity = Number.parseInt(input.partySize, 10) || 1;
+    if (capacity < 1 || capacity > 20) {
+        throw new https_1.HttpsError('invalid-argument', 'partySize must be between 1 and 20.');
     }
-    if (!roomId || !content) {
-        throw new https_1.HttpsError('invalid-argument', 'Missing room ID or message content.');
+    // (opcional) Evitar que el usuario tenga 20 salas abiertas
+    const existing = await db
+        .collection('rooms')
+        .where('ownerId', '==', uid)
+        .where('closed', '==', false)
+        .count()
+        .get();
+    if (existing.data().count >= 20) {
+        throw new https_1.HttpsError('resource-exhausted', 'Room limit reached.');
     }
-    // Añadir límite de longitud al mensaje
-    if (content.length > 500) {
-        throw new https_1.HttpsError('invalid-argument', 'Message content is too long (max 500 chars).');
-    }
-    const roomRef = db.collection('gameRooms').doc(roomId);
-    try {
-        // Usar transacción para asegurar que la sala existe y el usuario es participante
-        await db.runTransaction(async (transaction) => {
-            const roomSnap = await transaction.get(roomRef);
-            if (!roomSnap.exists) {
-                throw new https_1.HttpsError('not-found', 'The room does not exist.');
-            }
-            const roomData = roomSnap.data();
-            if (!(roomData === null || roomData === void 0 ? void 0 : roomData.participants.includes(uid))) {
-                throw new https_1.HttpsError('permission-denied', 'You are not a participant of this room.');
-            }
-            // Crear mensaje dentro de la transacción
-            const messageRef = roomRef.collection('messages').doc(); // Nuevo ID para el mensaje
-            transaction.set(messageRef, {
-                sender: uid,
-                content: content, // Considerar sanitizar el contenido
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-            // Actualizar lastMessageAt fuera de la transacción si falla no es crítico
-            // O dentro si quieres asegurar consistencia
-            transaction.update(roomRef, {
-                lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
+    const ref = db.collection('rooms').doc();
+    const roomDoc = {
+        name: input.name,
+        game: input.game,
+        server: input.server,
+        rank: input.rank,
+        capacity,
+        ownerId: uid,
+        members: [uid],
+        closed: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    await ref.set(roomDoc);
+    return {
+        success: true,
+        message: 'Sala creada con éxito.',
+        roomId: ref.id,
+    };
+});
+/** =========================================================
+ * joinRoom
+ * Añade al usuario a la sala si hay espacio.
+ * Devuelve { success, message }
+ * ======================================================= */
+exports.joinRoom = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { roomId } = JoinSchema.parse(req.data ?? {});
+    await db.runTransaction(async (tx) => {
+        const ref = db.doc(`rooms/${roomId}`);
+        const snap = await tx.get(ref);
+        if (!snap.exists)
+            throw new https_1.HttpsError('not-found', 'Room not found.');
+        const room = snap.data();
+        if (room.closed)
+            throw new https_1.HttpsError('failed-precondition', 'Room is closed.');
+        const members = room.members ?? [];
+        const capacity = room.capacity ?? 1;
+        if (members.includes(uid)) {
+            // nada que hacer
+            return;
+        }
+        if (members.length >= capacity) {
+            throw new https_1.HttpsError('failed-precondition', 'Room is full.');
+        }
+        tx.update(ref, {
+            members: admin.firestore.FieldValue.arrayUnion(uid),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-        // La actualización de lastMessageAt podría hacerse fuera si la consistencia no es 100% crítica
-        await roomRef.update({
-            lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        return { success: true };
+    });
+    return { success: true, message: 'Joined room successfully' };
+});
+/** =========================================================
+ * leaveRoom
+ * Quita al usuario; si queda vacía, borra la sala y sus mensajes.
+ * Devuelve { success, message }
+ * ======================================================= */
+exports.leaveRoom = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { roomId } = JoinSchema.parse(req.data ?? {});
+    await db.runTransaction(async (tx) => {
+        const { ref, data: room } = await getRoomOrThrow(roomId);
+        const members = room.members ?? [];
+        if (!members.includes(uid)) {
+            // ya no está dentro: OK idempotente
+            return;
+        }
+        const newMembers = members.filter((m) => m !== uid);
+        if (newMembers.length === 0) {
+            // borrar sala y subcolección de mensajes (en lotes de PAGE_SIZE)
+            tx.delete(ref);
+            // Nota: no se puede borrar subcolección dentro de la misma transacción.
+        }
+        else {
+            // si se va el owner, transferir propiedad al primer restante
+            const newOwner = room.ownerId === uid ? newMembers[0] : room.ownerId;
+            tx.update(ref, {
+                members: newMembers,
+                ownerId: newOwner,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
+    });
+    // Borrado de subcolección messages si la sala quedó vacía:
+    // (fuera de la transacción)
+    const roomSnap = await db.doc(`rooms/${roomId}`).get();
+    if (!roomSnap.exists) {
+        // borrar mensajes por lotes
+        const msgsRef = db.collection(`rooms/${roomId}/messages`);
+        let last;
+        // simple paginado por lotes para no reventar timeouts
+        // (si tienes muchas, conviene una Cloud Task/trigger)
+        // aquí solo limpiamos hasta 1000 por seguridad
+        for (let i = 0; i < 20; i++) {
+            let q = msgsRef.orderBy('__name__').limit(PAGE_SIZE);
+            if (last)
+                q = q.startAfter(last);
+            const page = await q.get();
+            if (page.empty)
+                break;
+            const batch = db.batch();
+            page.docs.forEach((d) => batch.delete(d.ref));
+            await batch.commit();
+            last = page.docs[page.docs.length - 1];
+            if (page.size < PAGE_SIZE)
+                break;
+        }
     }
-    catch (error) { // Catch específico
-        console.error(`Error sending message to room ${roomId} by user ${uid}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError('internal', error.message || 'Failed to send message.');
-    }
+    return { success: true, message: 'Left room successfully' };
+});
+/** =========================================================
+ * sendMessageToRoom
+ * Sólo miembros pueden enviar. Guarda en rooms/{id}/messages.
+ * Devuelve { success, message }
+ * ======================================================= */
+exports.sendMessageToRoom = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { roomId, content } = SendMessageSchema.parse(req.data ?? {});
+    const { ref, data: room } = await getRoomOrThrow(roomId);
+    if (room.closed)
+        throw new https_1.HttpsError('failed-precondition', 'Room is closed.');
+    const members = room.members ?? [];
+    if (!members.includes(uid))
+        throw new https_1.HttpsError('permission-denied', 'You are not a member of this room.');
+    // (opcional) rate-limit básico: último mensaje del usuario hace X seg
+    // Se puede mejorar con Redis/Firestore counter; aquí lo dejamos simple.
+    const msgRef = ref.collection('messages').doc();
+    await msgRef.set({
+        senderId: uid,
+        content,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    // marca updatedAt en la sala para ordenar por actividad
+    await ref.update({
+        lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true, message: 'Message sent.' };
 });
 //# sourceMappingURL=rooms.js.map

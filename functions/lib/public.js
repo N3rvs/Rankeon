@@ -33,341 +33,322 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTeamMembers = exports.getManagedUsers = exports.getTournamentRankings = exports.getScrimRankings = exports.getHonorRankings = exports.getMarketTeams = exports.getMarketPlayers = exports.getFeaturedScrims = void 0;
+exports.getMarketTeams = exports.getMarketPlayers = exports.getFriendProfiles = exports.getManagedUsers = exports.getTournamentRankings = exports.getScrimRankings = exports.getFeaturedScrims = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
+const zod_1 = require("zod");
 const db = admin.firestore();
-const DEFAULT_PAGE_SIZE = 20;
-/* --------------------------- Utilidades de error --------------------------- */
-function mapErrorToHttpsError(ctx, err) {
-    var _a, _b;
-    const msg = String((_b = (_a = err === null || err === void 0 ? void 0 : err.message) !== null && _a !== void 0 ? _a : err) !== null && _b !== void 0 ? _b : 'Unexpected error');
-    console.error(`[${ctx}] ERROR:`, msg, err);
-    if (msg.includes('FAILED_PRECONDITION') || msg.toLowerCase().includes('index')) {
-        throw new https_1.HttpsError('failed-precondition', 'Falta un índice compuesto para esta consulta de Firestore. Crea el índice sugerido en la consola.');
-    }
-    if (msg.includes('Missing or insufficient permissions')) {
-        throw new https_1.HttpsError('permission-denied', 'Las reglas de Firestore denegaron la lectura.');
-    }
-    if (msg.includes('invalid-argument')) {
-        throw new https_1.HttpsError('invalid-argument', msg);
-    }
-    throw new https_1.HttpsError('internal', msg);
+const PAGE_SIZE = 20;
+// ---------- Helpers ----------
+function assertAuth(ctx) {
+    if (!ctx.auth?.uid)
+        throw new https_1.HttpsError('unauthenticated', 'You must be logged in.');
+    return ctx.auth.uid;
 }
-/* -------------------------- Featured Scrims (Top N) ------------------------ */
-exports.getFeaturedScrims = (0, https_1.onCall)({ enforceAppCheck: false, region: 'europe-west1' }, async () => {
+const toISO = (v) => {
+    if (!v)
+        return null;
+    if (typeof v?.toDate === 'function')
+        return v.toDate().toISOString(); // Firestore Timestamp
+    if (v instanceof Date)
+        return v.toISOString();
+    return null;
+};
+// ---------- Schemas ----------
+const PageInputSchema = zod_1.z.object({
+    lastId: zod_1.z.string().nullable().optional(),
+});
+/**
+ * ============= getFeaturedScrims =============
+ * Frontend espera: array plano de scrims.
+ */
+exports.getFeaturedScrims = (0, https_1.onCall)({ region: 'europe-west1' }, async (_req) => {
     try {
         const snap = await db
             .collection('scrims')
-            .where('status', '==', 'confirmed')
+            .where('featured', '==', true)
             .orderBy('date', 'desc')
-            .limit(10)
+            .limit(PAGE_SIZE)
             .get();
-        const scrims = snap.docs.map((d) => {
-            var _a, _b;
-            const s = d.data();
-            return Object.assign(Object.assign({}, s), { id: d.id, date: (_a = s.date) === null || _a === void 0 ? void 0 : _a.toDate().toISOString(), createdAt: (_b = s.createdAt) === null || _b === void 0 ? void 0 : _b.toDate().toISOString() });
-        });
-        return scrims;
-    }
-    catch (err) {
-        // *** CORRECCIÓN: Usar throw ***
-        throw mapErrorToHttpsError('getFeaturedScrims', err);
-    }
-});
-/* --------------------------- Market: Players (Paginado) -------------------------- */
-exports.getMarketPlayers = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    try {
-        if (!auth)
-            throw new https_1.HttpsError('unauthenticated', 'Authentication is required.');
-        const { lastId } = (data !== null && data !== void 0 ? data : {});
-        let q = db
-            .collection('users')
-            .where('lookingForTeam', '==', true)
-            .orderBy('name')
-            .limit(DEFAULT_PAGE_SIZE);
-        if (lastId) {
-            const lastDoc = await db.collection('users').doc(lastId).get();
-            if (lastDoc.exists)
-                q = q.startAfter(lastDoc);
-        }
-        const snap = await q.get();
-        const players = snap.docs.map((d) => {
-            var _a;
-            const u = d.data();
+        const items = snap.docs.map((d) => {
+            const x = d.data();
             return {
                 id: d.id,
-                name: u.name || '',
-                avatarUrl: u.avatarUrl || '',
-                primaryGame: u.primaryGame || '',
-                skills: u.skills || [],
-                rank: u.rank || '',
-                country: u.country || '',
-                lookingForTeam: u.lookingForTeam || false,
-                teamId: (_a = u.teamId) !== null && _a !== void 0 ? _a : null,
-                blocked: u.blocked || [], // Incluir solo si el cliente lo necesita para filtrar
+                ...x,
+                date: toISO(x.date),
+                createdAt: toISO(x.createdAt),
+                updatedAt: toISO(x.updatedAt),
             };
         });
-        const lastDoc = snap.docs[snap.docs.length - 1] || null;
-        return { players, nextLastId: lastDoc ? lastDoc.id : null };
+        return items; // array plano
     }
     catch (err) {
-        // *** CORRECCIÓN: Usar throw ***
-        throw mapErrorToHttpsError('getMarketPlayers', err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        console.error('getFeaturedScrims error:', err);
+        throw new https_1.HttpsError('internal', err.message ?? 'Unexpected error');
     }
 });
-/* ---------------------------- Market: Teams (Paginado) --------------------------- */
-exports.getMarketTeams = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
+/**
+ * ============= getScrimRankings =============
+ * Frontend espera: { rankings, nextLastId }
+ */
+exports.getScrimRankings = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
     try {
-        if (!auth)
-            throw new https_1.HttpsError('unauthenticated', 'Authentication is required.');
-        const { lastId } = (data !== null && data !== void 0 ? data : {});
+        const { lastId } = PageInputSchema.parse(req.data ?? {});
         let q = db
             .collection('teams')
-            .where('lookingForPlayers', '==', true)
-            .orderBy('createdAt', 'desc')
-            .limit(DEFAULT_PAGE_SIZE);
+            .orderBy('elo', 'desc')
+            .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+            .limit(PAGE_SIZE);
         if (lastId) {
-            const lastDoc = await db.collection('teams').doc(lastId).get();
-            if (lastDoc.exists)
-                q = q.startAfter(lastDoc);
+            const cur = await db.collection('teams').doc(lastId).get();
+            if (cur.exists)
+                q = q.startAfter(cur);
         }
-        const snap = await q.get();
-        const teams = snap.docs.map((d) => {
-            var _a;
-            const t = d.data();
-            // Excluir campos sensibles si es necesario antes de devolver
-            return {
-                // Incluye los campos que el mercado necesita
-                id: d.id,
-                name: t.name,
-                game: t.game,
-                country: t.country,
-                avatarUrl: t.avatarUrl,
-                bannerUrl: t.bannerUrl, // Opcional
-                lookingForPlayers: t.lookingForPlayers,
-                recruitingRoles: t.recruitingRoles,
-                rankMin: t.rankMin, // Opcional
-                rankMax: t.rankMax, // Opcional
-                createdAt: (_a = t.createdAt) === null || _a === void 0 ? void 0 : _a.toDate().toISOString(),
-            };
-        });
-        const lastDoc = snap.docs[snap.docs.length - 1] || null;
-        return { teams, nextLastId: lastDoc ? lastDoc.id : null };
-    }
-    catch (err) {
-        // *** CORRECCIÓN: Usar throw ***
-        throw mapErrorToHttpsError('getMarketTeams', err);
-    }
-});
-/* --------------------------- Honor Rankings (Paginado) --------------------------- */
-exports.getHonorRankings = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    try {
-        if (!auth)
-            throw new https_1.HttpsError('unauthenticated', 'Authentication is required.');
-        const { lastId } = (data !== null && data !== void 0 ? data : {});
-        let q = db
-            .collection('users')
-            .where('totalHonors', '>', 0)
-            .orderBy('totalHonors', 'desc')
-            .limit(DEFAULT_PAGE_SIZE);
-        if (lastId) {
-            const lastDoc = await db.collection('users').doc(lastId).get();
-            if (lastDoc.exists)
-                q = q.startAfter(lastDoc);
-        }
-        const snap = await q.get();
-        const rankings = snap.docs.map((d) => {
-            const u = d.data();
+        const res = await q.get();
+        const rankings = res.docs.map((d) => {
+            const x = d.data();
+            const played = Number(x.scrimsPlayed ?? x.played ?? 0);
+            const won = Number(x.scrimsWon ?? x.won ?? 0);
+            const winRate = played > 0 ? won / played : 0;
             return {
                 id: d.id,
-                name: u.name,
-                avatarUrl: u.avatarUrl,
-                totalHonors: u.totalHonors || 0,
-                isCertifiedStreamer: u.isCertifiedStreamer || false,
-            };
-        });
-        const lastDoc = snap.docs[snap.docs.length - 1] || null;
-        return { rankings, nextLastId: lastDoc ? lastDoc.id : null };
-    }
-    catch (err) {
-        // *** CORRECCIÓN: Usar throw ***
-        throw mapErrorToHttpsError('getHonorRankings', err);
-    }
-});
-/* --------------------------- Scrim Rankings (Paginado) --------------------------- */
-exports.getScrimRankings = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    try {
-        if (!auth)
-            throw new https_1.HttpsError('unauthenticated', 'Authentication is required.');
-        const { lastId } = (data !== null && data !== void 0 ? data : {});
-        let q = db
-            .collection('teams')
-            .where('stats.scrimsPlayed', '>', 0)
-            .orderBy('stats.scrimsPlayed') // Asegúrate que el índice existe
-            .orderBy('winRate', 'desc') // Asegúrate que el índice existe
-            .orderBy('stats.scrimsWon', 'desc') // Asegúrate que el índice existe
-            .limit(DEFAULT_PAGE_SIZE);
-        if (lastId) {
-            const lastDoc = await db.collection('teams').doc(lastId).get();
-            if (lastDoc.exists)
-                q = q.startAfter(lastDoc);
-        }
-        const snap = await q.get();
-        const rankings = snap.docs.map((d) => {
-            var _a, _b, _c;
-            const t = d.data();
-            const played = ((_a = t.stats) === null || _a === void 0 ? void 0 : _a.scrimsPlayed) || 0;
-            const won = ((_b = t.stats) === null || _b === void 0 ? void 0 : _b.scrimsWon) || 0;
-            const winRate = t.winRate || 0; // Asume campo denormalizado
-            return {
-                id: d.id,
-                name: t.name, // Añadir campos necesarios para UI
-                avatarUrl: t.avatarUrl, // Añadir campos necesarios para UI
-                winRate,
+                name: x.name ?? '',
+                logoUrl: x.logoUrl ?? null,
+                elo: x.elo ?? 0,
                 played,
                 won,
-                createdAt: (_c = t.createdAt) === null || _c === void 0 ? void 0 : _c.toDate().toISOString(),
+                winRate,
+                createdAt: toISO(x.createdAt),
+                updatedAt: toISO(x.updatedAt),
             };
         });
-        const lastDoc = snap.docs[snap.docs.length - 1] || null;
-        return { rankings, nextLastId: lastDoc ? lastDoc.id : null };
+        const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+        return { rankings, nextLastId };
     }
     catch (err) {
-        // *** CORRECCIÓN: Usar throw ***
-        throw mapErrorToHttpsError('getScrimRankings', err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        console.error('getScrimRankings error:', err);
+        throw new https_1.HttpsError('internal', err.message ?? 'Unexpected error');
     }
 });
-/* ----------------------- Tournament Rankings (Paginado) -------------------------- */
-exports.getTournamentRankings = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
+/**
+ * ============= getTournamentRankings =============
+ * Frontend espera: { tournaments, nextLastId }
+ */
+exports.getTournamentRankings = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
     try {
-        if (!auth)
-            throw new https_1.HttpsError('unauthenticated', 'Authentication is required.');
-        const { lastId } = (data !== null && data !== void 0 ? data : {});
+        const { lastId } = PageInputSchema.parse(req.data ?? {});
         let q = db
             .collection('tournaments')
-            .where('status', '==', 'completed')
-            .where('winnerId', '!=', null)
-            .orderBy('winnerId') // Asegúrate que el índice existe
-            .orderBy('startDate', 'desc') // Asegúrate que el índice existe
-            .limit(DEFAULT_PAGE_SIZE);
+            .orderBy('rating', 'desc') // cambia a 'elo' u otro si tu modelo no tiene 'rating'
+            .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+            .limit(PAGE_SIZE);
         if (lastId) {
-            const lastDoc = await db.collection('tournaments').doc(lastId).get();
-            if (lastDoc.exists)
-                q = q.startAfter(lastDoc);
+            const cur = await db.collection('tournaments').doc(lastId).get();
+            if (cur.exists)
+                q = q.startAfter(cur);
         }
-        const snap = await q.get();
-        const tournaments = snap.docs.map((d) => {
-            var _a;
-            const t = d.data();
-            // Devuelve solo los campos necesarios para el ranking
+        const res = await q.get();
+        const tournaments = res.docs.map((d) => {
+            const x = d.data();
             return {
                 id: d.id,
-                name: t.name,
-                winnerId: t.winnerId,
-                // Podrías añadir winnerName y winnerAvatar si los denormalizas en el torneo
-                startDate: (_a = t.startDate) === null || _a === void 0 ? void 0 : _a.toDate().toISOString(),
-                prize: t.prize, // Opcional
-                currency: t.currency, // Opcional
+                name: x.name ?? '',
+                game: x.game ?? null,
+                rating: x.rating ?? x.elo ?? 0,
+                participants: x.participants ?? x.participantsCount ?? 0,
+                startDate: toISO(x.startDate),
+                createdAt: toISO(x.createdAt),
+                updatedAt: toISO(x.updatedAt),
             };
         });
-        const lastDoc = snap.docs[snap.docs.length - 1] || null;
-        return { tournaments, nextLastId: lastDoc ? lastDoc.id : null };
+        const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+        return { tournaments, nextLastId };
     }
     catch (err) {
-        // *** CORRECCIÓN: Usar throw ***
-        throw mapErrorToHttpsError('getTournamentRankings', err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        console.error('getTournamentRankings error:', err);
+        throw new https_1.HttpsError('internal', err.message ?? 'Unexpected error');
     }
 });
-/* --------------------------- Managed Users (Paginado) ---------------------------- */
-exports.getManagedUsers = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: callerAuth, data }) => {
+/**
+ * ============= getManagedUsers =============
+ * Frontend espera: { users, nextLastId }
+ * Requiere admin/moderator.
+ */
+exports.getManagedUsers = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
     try {
-        if (!callerAuth)
-            throw new https_1.HttpsError('unauthenticated', 'You must be logged in.');
-        const { role } = callerAuth.token;
+        // const _uid = assertAuth(req);
+        const role = req.auth.token?.role;
         if (role !== 'admin' && role !== 'moderator') {
-            throw new https_1.HttpsError('permission-denied', 'You do not have permission.');
+            throw new https_1.HttpsError('permission-denied', 'Admin/Mod only');
         }
-        const { lastId } = (data !== null && data !== void 0 ? data : {});
-        let q = db.collection('users').orderBy('name').limit(DEFAULT_PAGE_SIZE);
+        const { lastId } = PageInputSchema.parse(req.data ?? {});
+        let q = db
+            .collection('users')
+            .orderBy('createdAt', 'desc')
+            .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+            .limit(PAGE_SIZE);
         if (lastId) {
-            const lastDoc = await db.collection('users').doc(lastId).get();
-            if (lastDoc.exists)
-                q = q.startAfter(lastDoc);
+            const cur = await db.collection('users').doc(lastId).get();
+            if (cur.exists)
+                q = q.startAfter(cur);
         }
-        const snap = await q.get();
-        const users = snap.docs.map((d) => {
-            var _a, _b, _c, _d, _e;
-            const u = d.data();
+        const res = await q.get();
+        const users = res.docs.map((d) => {
+            const x = d.data();
             return {
                 id: d.id,
-                name: u.name,
-                email: u.email,
-                role: u.role,
-                avatarUrl: u.avatarUrl,
-                isCertifiedStreamer: (_a = u.isCertifiedStreamer) !== null && _a !== void 0 ? _a : false,
-                disabled: (_b = u.disabled) !== null && _b !== void 0 ? _b : false,
-                createdAt: ((_c = u.createdAt) === null || _c === void 0 ? void 0 : _c.toDate().toISOString()) || null,
-                banUntil: ((_d = u.banUntil) === null || _d === void 0 ? void 0 : _d.toDate().toISOString()) || null,
-                _claimsRefreshedAt: ((_e = u._claimsRefreshedAt) === null || _e === void 0 ? void 0 : _e.toDate().toISOString()) || null,
+                name: x.name ?? x.displayName ?? '',
+                avatarUrl: x.avatarUrl ?? x.photoURL ?? null,
+                role: x.role ?? (x.customClaims?.role ?? 'player'),
+                disabled: !!x.disabled,
+                isCertifiedStreamer: !!x.isCertifiedStreamer,
+                createdAt: toISO(x.createdAt),
+                banUntil: toISO(x.banUntil),
+                _claimsRefreshedAt: toISO(x._claimsRefreshedAt),
             };
         });
-        const lastDoc = snap.docs[snap.docs.length - 1] || null;
-        return { users, nextLastId: lastDoc ? lastDoc.id : null };
+        const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+        return { users, nextLastId };
     }
     catch (err) {
-        throw mapErrorToHttpsError('getManagedUsers', err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        console.error('getManagedUsers error:', err);
+        throw new https_1.HttpsError('internal', err.message ?? 'Unexpected error');
     }
 });
-/* ----------------------------- Team Members (Sin Paginación - OK) --------------------------- */
-exports.getTeamMembers = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    var _a;
+/**
+ * ============= getFriendProfiles =============
+ * Frontend espera: array plano de perfiles de amigos del usuario autenticado.
+ * Usa colección 'friendships/{a_b}' con campo 'users: [a,b]'.
+ */
+exports.getFriendProfiles = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
     try {
-        const { teamId } = ((_a = request.data) !== null && _a !== void 0 ? _a : {});
-        if (!teamId)
-            throw new https_1.HttpsError('invalid-argument', 'Team ID is required.');
-        if (!request.auth)
-            throw new https_1.HttpsError('unauthenticated', 'Authentication is required.');
-        // Aquí podrías añadir una comprobación de permisos si solo miembros/staff pueden ver la lista
-        const membersSnap = await db.collection(`teams/${teamId}/members`).get();
-        const memberIds = membersSnap.docs.map((d) => d.id);
-        if (memberIds.length === 0)
-            return [];
-        // Advertencia si hay más de 30 miembros por la limitación de 'in'
-        if (memberIds.length > 30) {
-            console.warn(`getTeamMembers: Team ${teamId} has >30 members, fetching only first 30 user profiles.`);
-            // Considera implementar paginación aquí también si los equipos pueden ser muy grandes
-        }
-        // Obtiene datos de usuario para los primeros 30 miembros
-        const usersSnap = await db
-            .collection('users')
-            .where(admin.firestore.FieldPath.documentId(), 'in', memberIds.slice(0, 30))
+        const uid = assertAuth(req);
+        const fs = await db
+            .collection('friendships')
+            .where('users', 'array-contains', uid)
+            .limit(200)
             .get();
-        const usersMap = new Map(usersSnap.docs.map((d) => [d.id, d.data()]));
-        // Combina datos de miembro y usuario
-        return membersSnap.docs.map((d) => {
-            var _a, _b, _c;
-            const memberData = d.data();
-            const userData = usersMap.get(d.id) || {};
+        const friendIds = new Set();
+        fs.docs.forEach((d) => {
+            const arr = d.data().users ?? [];
+            arr.forEach((u) => {
+                if (u !== uid)
+                    friendIds.add(u);
+            });
+        });
+        if (friendIds.size === 0)
+            return [];
+        const userRefs = Array.from(friendIds).map((id) => db.doc(`users/${id}`));
+        const snaps = await db.getAll(...userRefs);
+        const profiles = snaps
+            .filter((s) => s.exists)
+            .map((s) => {
+            const x = s.data();
             return {
-                // Datos del miembro (subcolección)
-                id: d.id,
-                role: memberData.role,
-                isIGL: (_a = memberData.isIGL) !== null && _a !== void 0 ? _a : false,
-                joinedAt: (_b = memberData.joinedAt) === null || _b === void 0 ? void 0 : _b.toDate().toISOString(),
-                // Datos del usuario (colección /users)
-                name: userData.name,
-                avatarUrl: userData.avatarUrl,
-                country: userData.country,
-                rank: userData.rank,
-                skills: userData.skills,
-                isCertifiedStreamer: (_c = userData.isCertifiedStreamer) !== null && _c !== void 0 ? _c : false,
-                // Excluye datos sensibles como email, blocked, etc.
+                id: s.id,
+                name: x.name ?? x.displayName ?? '',
+                avatarUrl: x.avatarUrl ?? x.photoURL ?? null,
+                role: x.role ?? (x.customClaims?.role ?? 'player'),
+                isCertifiedStreamer: !!x.isCertifiedStreamer,
+                createdAt: toISO(x.createdAt),
+                banUntil: toISO(x.banUntil),
+                _claimsRefreshedAt: toISO(x._claimsRefreshedAt),
             };
         });
+        return profiles; // array plano
     }
     catch (err) {
-        throw mapErrorToHttpsError('getTeamMembers', err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        console.error('getFriendProfiles error:', err);
+        throw new https_1.HttpsError('internal', err.message ?? 'Unexpected error');
+    }
+});
+/**
+ * ============= getMarketPlayers =============
+ * Frontend espera: { players, nextLastId } o array? → tu action espera { players, nextLastId }.
+ * Si no usas flags de “mercado”, simplemente listamos usuarios más recientes.
+ */
+exports.getMarketPlayers = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    try {
+        const input = zod_1.z.object({ lastId: zod_1.z.string().nullable().optional() }).parse(req.data ?? {});
+        let q = db
+            .collection('users')
+            // si tienes un flag como isOnMarket / lft / marketOpen, descomenta:
+            // .where('isOnMarket', '==', true)
+            .orderBy('createdAt', 'desc')
+            .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+            .limit(PAGE_SIZE);
+        if (input.lastId) {
+            const cur = await db.collection('users').doc(input.lastId).get();
+            if (cur.exists)
+                q = q.startAfter(cur);
+        }
+        const res = await q.get();
+        const players = res.docs.map((d) => {
+            const x = d.data();
+            return {
+                id: d.id,
+                name: x.name ?? x.displayName ?? '',
+                avatarUrl: x.avatarUrl ?? x.photoURL ?? null,
+                isCertifiedStreamer: !!x.isCertifiedStreamer,
+                createdAt: toISO(x.createdAt),
+            };
+        });
+        const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+        return { players, nextLastId };
+    }
+    catch (err) {
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        console.error('getMarketPlayers error:', err);
+        throw new https_1.HttpsError('internal', err.message ?? 'Unexpected error');
+    }
+});
+/**
+ * ============= getMarketTeams =============
+ */
+exports.getMarketTeams = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    try {
+        const input = zod_1.z.object({ lastId: zod_1.z.string().nullable().optional() }).parse(req.data ?? {});
+        let q = db
+            .collection('teams')
+            // si tienes flag isRecruiting / marketOpen, puedes filtrar:
+            // .where('isRecruiting', '==', true)
+            .orderBy('createdAt', 'desc')
+            .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+            .limit(PAGE_SIZE);
+        if (input.lastId) {
+            const cur = await db.collection('teams').doc(input.lastId).get();
+            if (cur.exists)
+                q = q.startAfter(cur);
+        }
+        const res = await q.get();
+        const teams = res.docs.map((d) => {
+            const x = d.data();
+            return {
+                id: d.id,
+                name: x.name ?? '',
+                logoUrl: x.logoUrl ?? null,
+                createdAt: toISO(x.createdAt),
+            };
+        });
+        const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+        return { teams, nextLastId };
+    }
+    catch (err) {
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        console.error('getMarketTeams error:', err);
+        throw new https_1.HttpsError('internal', err.message ?? 'Unexpected error');
     }
 });
 //# sourceMappingURL=public.js.map

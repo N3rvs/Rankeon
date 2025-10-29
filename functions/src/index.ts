@@ -1,104 +1,76 @@
-// src/functions/index.ts
+
 import * as admin from 'firebase-admin';
 import { setGlobalOptions } from 'firebase-functions/v2';
 
-// Define región global ANTES de inicializar o importar
-setGlobalOptions({ region: 'europe-west1' });
+// ===== Opciones globales =====
+setGlobalOptions({
+  region: 'europe-west1',
+  memory: '256MiB',
+  timeoutSeconds: 60,
+  maxInstances: 50,
+  enforceAppCheck: true, // si tu cliente usa App Check
+});
 
-// Inicializa SDK
-admin.initializeApp();
+// ===== Inicialización Admin SDK =====
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+  try {
+    // Evita errores por campos undefined accidentales
+    admin.firestore().settings({ ignoreUndefinedProperties: true });
+  } catch {
+    /* no-op si ya estaba configurado */
+  }
+}
 
-// --- Importaciones (Añadir las nuevas) ---
-import { getChats, deleteChatHistory, sendMessageToFriend } from './chat';
-import { getFriendProfiles, sendFriendRequest, respondToFriendRequest, removeFriend, getFriendshipStatus } from './friends';
-import { giveHonor, revokeHonor } from './honors';
-import { addInboxNotification, markNotificationsAsRead, deleteNotifications, clearAllNotifications, blockUser, unblockUser } from './notifications';
-import { cleanUpOldData } from './cleanup';
-import { createGameRoom, joinRoom, leaveRoom, sendMessageToRoom } from './rooms';
-import { createScrim, acceptScrim, cancelScrim, challengeScrim, respondToScrimChallenge, reportScrimResult } from './scrims';
-import { createTeam, updateTeam, deleteTeam, kickTeamMember, setTeamIGL, updateTeamMemberRole, updateMemberSkills } from './teams';
-// *** AÑADIR NUEVA FUNCIÓN DE TORNEOS ***
-import { proposeTournament, reviewTournamentProposal, editTournament, deleteTournament, registerTeamForTournament, generateTournamentStructure, reportBracketMatchResult, reportRoundRobinMatchResult } from './tournaments';
-import { createSupportTicket, respondToTicket, resolveTicket } from './tickets';
-import { updateUserRole, updateUserStatus, updateUserCertification, updateUserPresence } from './users';
-import { getMarketPlayers, getMarketTeams, getHonorRankings, getScrimRankings, getTournamentRankings, getFeaturedScrims, getManagedUsers, getTeamMembers } from './public'; // getTeamMembers estaba en public.ts
-import { addTask, updateTaskStatus, deleteTask } from './task';
-// --- Exportaciones (Añadir las nuevas) ---
+/* ============================================================
+   Re-exports organizados
+   - Evitamos `export *` cuando puede haber colisiones.
+   - De lo contrario exportamos todo el módulo.
+   ============================================================ */
+
+// Módulos “seguros” sin colisiones conocidas
+export * from './rooms';
+export * from './scrims';
+export * from './tasks';
+export * from './cleanup';
+export * from './tickets';
+export * from './teams';
+export * from './tournaments';
+export * from './honors';
+export * from './friends';
+
+// --------- chat: dueño de DMs y bloqueo ---------
 export {
-  // Chat
-  getChats,
-  deleteChatHistory,
   sendMessageToFriend,
-  // Friends
-  getFriendProfiles,
-  sendFriendRequest,
-  respondToFriendRequest,
-  removeFriend,
-  getFriendshipStatus,
-  // Honors
-  giveHonor,
-  revokeHonor,
-  // Notifications
-  addInboxNotification,
-  markNotificationsAsRead,
-  deleteNotifications,
-  clearAllNotifications,
+  getChats,
+  getChatMessages,
+  markChatRead,
+  deleteChatHistory,
   blockUser,
   unblockUser,
-  // Cleanup
-  cleanUpOldData,
-  // Rooms
-  createGameRoom,
-  joinRoom,
-  leaveRoom,
-  sendMessageToRoom,
-  // Scrims 
-  createScrim,
-  acceptScrim,
-  cancelScrim,
-  challengeScrim,
-  respondToScrimChallenge,
-  reportScrimResult,
-  // Teams
-  createTeam,
-  updateTeam,
-  deleteTeam,
-  kickTeamMember,
-  setTeamIGL,
-  updateTeamMemberRole,
-  updateMemberSkills,
-  // Tournaments (*** AÑADIDA ***)
-  generateTournamentStructure,
-  reportBracketMatchResult,
-  reportRoundRobinMatchResult,
-  proposeTournament,
-  reviewTournamentProposal,
-  editTournament,
-  deleteTournament,
-  registerTeamForTournament,
-  generateTournamentStructure,
-  reportBracketMatchResult,
-  reportRoundRobinMatchResult,
-  // Tickets
-  createSupportTicket,
-  respondToTicket,
-  resolveTicket,
-  // Users
+} from './chat';
+
+// --------- users: dueño de presence y claims ---------
+export {
   updateUserRole,
   updateUserStatus,
+  updateUserPresence,      // <- añadida
   updateUserCertification,
-  updateUserPresence,
-  // Public
-  getMarketPlayers,
-  getMarketTeams,
-  getHonorRankings,
+} from './users';
+
+// --------- notifications: sólo las que no chocan ---------
+export {
+  addInboxNotification,
+  getInbox,
+  markNotificationsAsRead,
+  deleteNotifications,
+} from './notifications';
+
+// --------- public: funciones de listados/públicas ---------
+export {
+  getFeaturedScrims,
   getScrimRankings,
   getTournamentRankings,
-  getFeaturedScrims,
   getManagedUsers,
-  getTeamMembers // Asegúrate que getTeamMembers se importa desde public.ts si está allí
-  // Tasks
-  ,addTask,
-  updateTaskStatus,
-  deleteTask
-};
+  getFriendProfiles,
+} from './public';

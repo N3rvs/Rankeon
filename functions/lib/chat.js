@@ -33,187 +33,224 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendMessageToFriend = exports.deleteChatHistory = exports.getChats = void 0;
-// src/functions/chat.ts
+exports.unblockUser = exports.blockUser = exports.deleteChatHistory = exports.markChatRead = exports.getChatMessages = exports.getChats = exports.sendMessageToFriend = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
+const zod_1 = require("zod");
 const db = admin.firestore();
-const CHAT_PAGE_SIZE = 20;
-// *** Añadida región y paginación ***
-exports.getChats = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    var _a, _b, _c;
-    if (!auth)
-        throw new https_1.HttpsError("unauthenticated", "User must be logged in.");
-    const { uid } = auth;
-    const { lastTimestamp } = (data !== null && data !== void 0 ? data : {});
-    try {
-        let query = db.collection("chats")
-            .where("members", "array-contains", uid)
-            .orderBy("lastMessageAt", "desc")
-            .limit(CHAT_PAGE_SIZE);
-        if (lastTimestamp) {
-            const lastDate = new Date(lastTimestamp);
-            if (!isNaN(lastDate.getTime())) {
-                query = query.startAfter(admin.firestore.Timestamp.fromDate(lastDate));
-            }
-            else {
-                console.warn(`Invalid lastTimestamp received: ${lastTimestamp}`);
-            }
-        }
-        const chatsSnap = await query.get();
-        const chats = chatsSnap.docs.map(doc => {
-            var _a, _b;
-            const data = doc.data();
-            return {
-                id: doc.id,
-                members: data.members,
-                lastMessage: data.lastMessage,
-                lastMessageAt: ((_a = data.lastMessageAt) === null || _a === void 0 ? void 0 : _a.toDate().toISOString()) || null,
-                createdAt: ((_b = data.createdAt) === null || _b === void 0 ? void 0 : _b.toDate().toISOString()) || null,
-            };
-        });
-        const lastDocInBatch = chatsSnap.docs[chatsSnap.docs.length - 1];
-        const nextLastTimestamp = (_c = (_b = (_a = lastDocInBatch === null || lastDocInBatch === void 0 ? void 0 : lastDocInBatch.data()) === null || _a === void 0 ? void 0 : _a.lastMessageAt) === null || _b === void 0 ? void 0 : _b.toDate().toISOString()) !== null && _c !== void 0 ? _c : null;
-        return {
-            chats: chats,
-            nextLastTimestamp: nextLastTimestamp,
-        };
-    }
-    catch (error) {
-        console.error(`Error getting chats for user ${uid}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError("internal", error.message || "Failed to retrieve chat list.");
-    }
+const FV = admin.firestore.FieldValue;
+const Timestamp = admin.firestore.Timestamp;
+const PAGE_SIZE = 20;
+// ---------- Helpers ----------
+function assertAuth(ctx) {
+    if (!ctx.auth?.uid)
+        throw new https_1.HttpsError('unauthenticated', 'You must be logged in.');
+    return ctx.auth.uid;
+}
+function dmPairId(a, b) {
+    return [a, b].sort().join('_');
+}
+async function isBlocked(sender, recipient) {
+    const block = await db.doc(`blocks/${recipient}/targets/${sender}`).get();
+    return block.exists;
+}
+// (Opcional) exigir amistad para DM:
+const REQUIRE_FRIENDSHIP = false;
+async function assertAreFriends(a, b) {
+    if (!REQUIRE_FRIENDSHIP)
+        return;
+    const fid = dmPairId(a, b);
+    const fsRef = db.doc(`friendships/${fid}`);
+    const fs = await fsRef.get();
+    if (!fs.exists)
+        throw new https_1.HttpsError('permission-denied', 'You can only DM friends.');
+}
+// ---------- Schemas ----------
+const MessageSchema = zod_1.z.object({
+    to: zod_1.z.string().min(1), // receptor del DM
+    text: zod_1.z.string().trim().min(1).max(4000), // contenido
+    clientId: zod_1.z.string().min(8).max(64), // idempotencia
 });
-// *** Añadida región y corrección .empty ***
-exports.deleteChatHistory = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    if (!request.auth)
-        throw new https_1.HttpsError("unauthenticated", "User must be logged in.");
-    const { uid } = request.auth;
-    const { chatId } = request.data;
-    if (!chatId)
-        throw new https_1.HttpsError("invalid-argument", "Missing chat ID.");
-    const chatRef = db.collection("chats").doc(chatId);
-    try {
-        const chatSnap = await chatRef.get();
-        if (!chatSnap.exists) {
-            console.log(`Chat ${chatId} not found, possibly already deleted.`);
-            return { success: true, message: "Chat history already cleared or chat not found." };
-        }
-        const chatData = chatSnap.data();
-        if (!(chatData === null || chatData === void 0 ? void 0 : chatData.members.includes(uid))) {
-            throw new https_1.HttpsError("permission-denied", "You are not a member of this chat.");
-        }
-        // Borrar mensajes
-        console.log(`Deleting messages for chat ${chatId}...`);
-        await deleteCollection(db, `chats/${chatId}/messages`);
-        // Borrar notificaciones asociadas
-        console.log(`Deleting notifications for chat ${chatId}...`);
-        const members = chatData.members;
-        const notificationDeleteBatch = db.batch();
-        // *** CORRECCIÓN .empty ***
-        let notificationsToDeleteCount = 0; // 1. Inicializa contador
-        await Promise.all(members.map(async (memberId) => {
-            const notifSnap = await db.collection(`inbox/${memberId}/notifications`).where('chatId', '==', chatId).get();
-            notifSnap.forEach(doc => {
-                notificationDeleteBatch.delete(doc.ref);
-                notificationsToDeleteCount++; // 2. Incrementa contador
+const GetChatsSchema = zod_1.z.object({
+    cursor: zod_1.z.string().optional(),
+});
+const GetMessagesSchema = zod_1.z.object({
+    chatId: zod_1.z.string().min(1),
+    cursor: zod_1.z.string().optional(),
+});
+const DeleteChatHistorySchema = zod_1.z.object({
+    chatId: zod_1.z.string().min(1),
+});
+const MarkReadSchema = zod_1.z.object({
+    chatId: zod_1.z.string().min(1),
+});
+const BlockSchema = zod_1.z.object({
+    userId: zod_1.z.string().min(1),
+});
+// ---------- Enviar DM ----------
+exports.sendMessageToFriend = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { to, text, clientId } = MessageSchema.parse(req.data);
+    if (uid === to)
+        throw new https_1.HttpsError('failed-precondition', 'Cannot DM yourself.');
+    if (await isBlocked(uid, to))
+        throw new https_1.HttpsError('permission-denied', 'User has blocked you.');
+    await assertAreFriends(uid, to);
+    const pairId = dmPairId(uid, to);
+    const chatRef = db.doc(`chats/${pairId}`);
+    const msgsRef = chatRef.collection('messages');
+    const idempRef = db.doc(`idempotency/${uid}_dm_${clientId}`);
+    await db.runTransaction(async (tx) => {
+        const [idoc, cdoc] = await Promise.all([tx.get(idempRef), tx.get(chatRef)]);
+        if (idoc.exists)
+            return; // ya procesado
+        if (!cdoc.exists) {
+            tx.set(chatRef, {
+                id: pairId,
+                type: 'dm',
+                members: [uid, to],
+                createdAt: Timestamp.now(),
+                lastMessageAt: Timestamp.now(),
+                lastMessageText: text.slice(0, 200),
+                unread: { [to]: 1, [uid]: 0 }, // contador por miembro
+                lastReadAt: { [uid]: Timestamp.now() }, // el emisor lo tiene leído
             });
-        }));
-        // 3. Comprueba el contador antes de commitear
-        if (notificationsToDeleteCount > 0) {
-            await notificationDeleteBatch.commit();
-            console.log(`${notificationsToDeleteCount} notifications deleted for chat ${chatId}.`);
         }
-        else {
-            console.log(`No notifications found for chat ${chatId}.`);
-        }
-        // *** FIN CORRECCIÓN .empty ***
-        // Actualizar último mensaje
-        await chatRef.update({
-            lastMessage: { content: 'Historial de chat borrado.', sender: uid },
-            lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
+        const msgRef = msgsRef.doc();
+        tx.set(msgRef, {
+            id: msgRef.id,
+            from: uid,
+            to,
+            text,
+            createdAt: Timestamp.now(),
         });
-        console.log(`Chat history marked as cleared for chat ${chatId}.`);
-        return { success: true, message: "Chat history cleared." };
-    }
-    catch (error) {
-        console.error(`Error deleting chat history for chat ${chatId} by user ${uid}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError("internal", error.message || "Failed to delete chat history.");
-    }
+        tx.set(idempRef, { at: Timestamp.now(), msgId: msgRef.id });
+        // actualizar metadatos del chat
+        tx.set(chatRef, {
+            lastMessageAt: Timestamp.now(),
+            lastMessageText: text.slice(0, 200),
+            // incrementa unread del receptor y asegura mapa
+            unread: {
+                [to]: FV.increment(1),
+                [uid]: 0,
+            },
+        }, { merge: true });
+    });
+    return { ok: true };
 });
-// *** Añadida región ***
-exports.sendMessageToFriend = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth, data }) => {
-    var _a, _b;
-    const from = auth === null || auth === void 0 ? void 0 : auth.uid;
-    const { to, content } = data;
-    if (!from)
-        throw new https_1.HttpsError("unauthenticated", "You must be logged in.");
-    if (!to || !content)
-        throw new https_1.HttpsError("invalid-argument", "Missing recipient (to) or message content.");
-    if (content.length > 1000)
-        throw new https_1.HttpsError("invalid-argument", "Message content is too long (max 1000 chars).");
-    if (from === to)
-        throw new https_1.HttpsError("invalid-argument", "Cannot send message to yourself.");
-    try {
-        const senderDoc = await db.collection("users").doc(from).get();
-        const senderData = senderDoc.data();
-        if (!senderDoc.exists)
-            throw new https_1.HttpsError("not-found", "Your user profile was not found.");
-        if (!((_a = senderData === null || senderData === void 0 ? void 0 : senderData.friends) === null || _a === void 0 ? void 0 : _a.includes(to)))
-            throw new https_1.HttpsError("permission-denied", "You can only message your friends.");
-        // Comprobar bloqueo (opcional)
-        const recipientDoc = await db.collection("users").doc(to).get();
-        if (!recipientDoc.exists)
-            throw new https_1.HttpsError("not-found", "Recipient user profile was not found.");
-        const recipientData = recipientDoc.data();
-        if ((_b = recipientData === null || recipientData === void 0 ? void 0 : recipientData.blocked) === null || _b === void 0 ? void 0 : _b.includes(from)) {
-            console.log(`Message blocked: User ${to} has blocked user ${from}.`);
-            const membersForId = [from, to].sort(); // Necesario para el ID determinista
-            return { success: true, chatId: membersForId.join('_') }; // Éxito silencioso
-        }
-        const members = [from, to].sort();
-        const chatId = members.join('_');
-        const chatRef = db.collection("chats").doc(chatId);
-        const messageRef = chatRef.collection('messages').doc();
-        const timestamp = admin.firestore.FieldValue.serverTimestamp();
-        const lastMessage = { content, sender: from };
-        const notificationContent = content.length > 100 ? content.substring(0, 97) + '...' : content;
-        const batch = db.batch();
-        batch.set(chatRef, { members, lastMessageAt: timestamp, lastMessage }, { merge: true });
-        batch.set(messageRef, { sender: from, content, createdAt: timestamp });
-        const notificationRef = db.collection(`inbox/${to}/notifications`).doc();
-        batch.set(notificationRef, { type: "new_message", from, chatId, read: false, content: notificationContent, timestamp });
-        await batch.commit();
-        return { success: true, chatId };
+// ---------- Listar chats (con paginación) ----------
+exports.getChats = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { cursor } = GetChatsSchema.parse(req.data ?? {});
+    let q = db
+        .collection('chats')
+        .where('members', 'array-contains', uid)
+        .orderBy('lastMessageAt', 'desc')
+        .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+        .limit(PAGE_SIZE);
+    if (cursor) {
+        const cur = await db.collection('chats').doc(cursor).get();
+        if (cur.exists)
+            q = q.startAfter(cur);
     }
-    catch (error) {
-        console.error(`Error sending message from ${from} to ${to}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError('internal', error.message || 'Failed to send message.');
-    }
+    const res = await q.get();
+    return {
+        items: res.docs.map((d) => ({ id: d.id, ...d.data() })),
+        nextCursor: res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null,
+    };
 });
-// Helper para borrar colecciones
-async function deleteCollection(db, collectionPath, batchSize = 400) {
-    const collectionRef = db.collection(collectionPath);
-    let query = collectionRef.orderBy('__name__').limit(batchSize);
-    let docsDeleted = 0;
+// ---------- Obtener mensajes de un chat (paginación) ----------
+exports.getChatMessages = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { chatId, cursor } = GetMessagesSchema.parse(req.data ?? {});
+    const chatRef = db.doc(`chats/${chatId}`);
+    const chat = await chatRef.get();
+    if (!chat.exists)
+        throw new https_1.HttpsError('not-found', 'Chat not found');
+    const members = chat.data()?.members ?? [];
+    if (!members.includes(uid))
+        throw new https_1.HttpsError('permission-denied', 'Not a member of this chat.');
+    let q = chatRef
+        .collection('messages')
+        .orderBy('createdAt', 'desc')
+        .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+        .limit(PAGE_SIZE);
+    if (cursor) {
+        const cur = await chatRef.collection('messages').doc(cursor).get();
+        if (cur.exists)
+            q = q.startAfter(cur);
+    }
+    const res = await q.get();
+    return {
+        items: res.docs.map((d) => ({ id: d.id, ...d.data() })),
+        nextCursor: res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null,
+    };
+});
+// ---------- Marcar chat como leído ----------
+exports.markChatRead = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { chatId } = MarkReadSchema.parse(req.data ?? {});
+    const chatRef = db.doc(`chats/${chatId}`);
+    const chat = await chatRef.get();
+    if (!chat.exists)
+        throw new https_1.HttpsError('not-found', 'Chat not found');
+    const data = chat.data();
+    const members = data?.members ?? [];
+    if (!members.includes(uid))
+        throw new https_1.HttpsError('permission-denied', 'Not a member.');
+    await chatRef.set({
+        unread: { [uid]: 0 },
+        lastReadAt: { [uid]: Timestamp.now() },
+    }, { merge: true });
+    return { ok: true };
+});
+// ---------- Borrar historial (suave: limpia mensajes + resetea metadatos) ----------
+exports.deleteChatHistory = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { chatId } = DeleteChatHistorySchema.parse(req.data);
+    const chatRef = db.doc(`chats/${chatId}`);
+    const chat = await chatRef.get();
+    if (!chat.exists)
+        throw new https_1.HttpsError('not-found', 'Chat not found');
+    const members = chat.data().members || [];
+    if (!members.includes(uid))
+        throw new https_1.HttpsError('permission-denied', 'Not a member');
+    // Borrado en lotes de mensajes
+    const batchSize = 400;
     while (true) {
-        const snapshot = await query.get();
-        if (snapshot.size === 0)
+        const snap = await chatRef.collection('messages').orderBy(admin.firestore.FieldPath.documentId()).limit(batchSize).get();
+        if (snap.empty)
             break;
         const batch = db.batch();
-        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        snap.docs.forEach((d) => batch.delete(d.ref));
         await batch.commit();
-        docsDeleted += snapshot.size;
-        if (snapshot.size < batchSize)
-            break; // Optimization: exit if last batch was not full
-        query = collectionRef.orderBy('__name__').startAfter(snapshot.docs[snapshot.docs.length - 1]).limit(batchSize);
+        if (snap.size < batchSize)
+            break;
     }
-    console.log(`Finished deleting ${docsDeleted} documents from collection: ${collectionPath}`);
-}
+    // Reset de metadatos del chat (mantiene la sala DM)
+    await chatRef.set({
+        lastMessageText: null,
+        lastMessageAt: Timestamp.now(),
+        unread: members.reduce((acc, m) => ((acc[m] = 0), acc), {}),
+        lastReadAt: members.reduce((acc, m) => ((acc[m] = Timestamp.now()), acc), {}),
+    }, { merge: true });
+    return { ok: true };
+});
+// ---------- Bloquear / Desbloquear ----------
+exports.blockUser = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { userId } = BlockSchema.parse(req.data ?? {});
+    if (uid === userId)
+        throw new https_1.HttpsError('failed-precondition', 'Cannot block yourself.');
+    const ref = db.doc(`blocks/${uid}/targets/${userId}`);
+    await ref.set({ at: Timestamp.now() });
+    return { ok: true };
+});
+exports.unblockUser = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { userId } = BlockSchema.parse(req.data ?? {});
+    const ref = db.doc(`blocks/${uid}/targets/${userId}`);
+    await ref.delete();
+    return { ok: true };
+});
 //# sourceMappingURL=chat.js.map

@@ -32,91 +32,73 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMarketPlayers = exports.updateUserPresence = exports.updateUserCertification = exports.updateUserStatus = exports.updateUserRole = exports.resolveTicket = exports.respondToTicket = exports.createSupportTicket = exports.registerTeamForTournament = exports.deleteTournament = exports.editTournament = exports.reviewTournamentProposal = exports.proposeTournament = exports.reportRoundRobinMatchResult = exports.reportBracketMatchResult = exports.generateTournamentStructure = exports.updateMemberSkills = exports.updateTeamMemberRole = exports.setTeamIGL = exports.kickTeamMember = exports.deleteTeam = exports.updateTeam = exports.createTeam = exports.reportScrimResult = exports.respondToScrimChallenge = exports.challengeScrim = exports.cancelScrim = exports.acceptScrim = exports.createScrim = exports.sendMessageToRoom = exports.leaveRoom = exports.joinRoom = exports.createGameRoom = exports.cleanUpOldData = exports.unblockUser = exports.blockUser = exports.clearAllNotifications = exports.deleteNotifications = exports.markNotificationsAsRead = exports.addInboxNotification = exports.revokeHonor = exports.giveHonor = exports.getFriendshipStatus = exports.removeFriend = exports.respondToFriendRequest = exports.sendFriendRequest = exports.getFriendProfiles = exports.sendMessageToFriend = exports.deleteChatHistory = exports.getChats = void 0;
-exports.deleteTask = exports.updateTaskStatus = exports.addTask = exports.getTeamMembers = exports.getManagedUsers = exports.getFeaturedScrims = exports.getTournamentRankings = exports.getScrimRankings = exports.getHonorRankings = exports.getMarketTeams = void 0;
-// src/functions/index.ts
+exports.getFriendProfiles = exports.getManagedUsers = exports.getTournamentRankings = exports.getScrimRankings = exports.getFeaturedScrims = exports.deleteNotifications = exports.markNotificationsAsRead = exports.getInbox = exports.addInboxNotification = exports.updateUserCertification = exports.updateUserPresence = exports.updateUserStatus = exports.updateUserRole = exports.unblockUser = exports.blockUser = exports.deleteChatHistory = exports.markChatRead = exports.getChatMessages = exports.getChats = exports.sendMessageToFriend = void 0;
 const admin = __importStar(require("firebase-admin"));
 const v2_1 = require("firebase-functions/v2");
-// Define región global ANTES de inicializar o importar
-(0, v2_1.setGlobalOptions)({ region: 'europe-west1' });
-// Inicializa SDK
-admin.initializeApp();
-// --- Importaciones (Añadir las nuevas) ---
-const chat_1 = require("./chat");
-Object.defineProperty(exports, "getChats", { enumerable: true, get: function () { return chat_1.getChats; } });
-Object.defineProperty(exports, "deleteChatHistory", { enumerable: true, get: function () { return chat_1.deleteChatHistory; } });
+// ===== Opciones globales =====
+(0, v2_1.setGlobalOptions)({
+    region: 'europe-west1',
+    memory: '256MiB',
+    timeoutSeconds: 60,
+    maxInstances: 50,
+    enforceAppCheck: true, // si tu cliente usa App Check
+});
+// ===== Inicialización Admin SDK =====
+if (admin.apps.length === 0) {
+    admin.initializeApp();
+    try {
+        // Evita errores por campos undefined accidentales
+        admin.firestore().settings({ ignoreUndefinedProperties: true });
+    }
+    catch {
+        /* no-op si ya estaba configurado */
+    }
+}
+/* ============================================================
+   Re-exports organizados
+   - Evitamos `export *` cuando puede haber colisiones.
+   - De lo contrario exportamos todo el módulo.
+   ============================================================ */
+// Módulos “seguros” sin colisiones conocidas
+__exportStar(require("./rooms"), exports);
+__exportStar(require("./scrims"), exports);
+__exportStar(require("./tasks"), exports);
+__exportStar(require("./cleanup"), exports);
+__exportStar(require("./tickets"), exports);
+__exportStar(require("./teams"), exports);
+__exportStar(require("./tournaments"), exports);
+__exportStar(require("./honors"), exports);
+__exportStar(require("./friends"), exports);
+// --------- chat: dueño de DMs y bloqueo ---------
+var chat_1 = require("./chat");
 Object.defineProperty(exports, "sendMessageToFriend", { enumerable: true, get: function () { return chat_1.sendMessageToFriend; } });
-const friends_1 = require("./friends");
-Object.defineProperty(exports, "getFriendProfiles", { enumerable: true, get: function () { return friends_1.getFriendProfiles; } });
-Object.defineProperty(exports, "sendFriendRequest", { enumerable: true, get: function () { return friends_1.sendFriendRequest; } });
-Object.defineProperty(exports, "respondToFriendRequest", { enumerable: true, get: function () { return friends_1.respondToFriendRequest; } });
-Object.defineProperty(exports, "removeFriend", { enumerable: true, get: function () { return friends_1.removeFriend; } });
-Object.defineProperty(exports, "getFriendshipStatus", { enumerable: true, get: function () { return friends_1.getFriendshipStatus; } });
-const honors_1 = require("./honors");
-Object.defineProperty(exports, "giveHonor", { enumerable: true, get: function () { return honors_1.giveHonor; } });
-Object.defineProperty(exports, "revokeHonor", { enumerable: true, get: function () { return honors_1.revokeHonor; } });
-const notifications_1 = require("./notifications");
-Object.defineProperty(exports, "addInboxNotification", { enumerable: true, get: function () { return notifications_1.addInboxNotification; } });
-Object.defineProperty(exports, "markNotificationsAsRead", { enumerable: true, get: function () { return notifications_1.markNotificationsAsRead; } });
-Object.defineProperty(exports, "deleteNotifications", { enumerable: true, get: function () { return notifications_1.deleteNotifications; } });
-Object.defineProperty(exports, "clearAllNotifications", { enumerable: true, get: function () { return notifications_1.clearAllNotifications; } });
-Object.defineProperty(exports, "blockUser", { enumerable: true, get: function () { return notifications_1.blockUser; } });
-Object.defineProperty(exports, "unblockUser", { enumerable: true, get: function () { return notifications_1.unblockUser; } });
-const cleanup_1 = require("./cleanup");
-Object.defineProperty(exports, "cleanUpOldData", { enumerable: true, get: function () { return cleanup_1.cleanUpOldData; } });
-const rooms_1 = require("./rooms");
-Object.defineProperty(exports, "createGameRoom", { enumerable: true, get: function () { return rooms_1.createGameRoom; } });
-Object.defineProperty(exports, "joinRoom", { enumerable: true, get: function () { return rooms_1.joinRoom; } });
-Object.defineProperty(exports, "leaveRoom", { enumerable: true, get: function () { return rooms_1.leaveRoom; } });
-Object.defineProperty(exports, "sendMessageToRoom", { enumerable: true, get: function () { return rooms_1.sendMessageToRoom; } });
-// *** AÑADIR NUEVAS FUNCIONES DE SCRIMS ***
-const scrims_1 = require("./scrims");
-Object.defineProperty(exports, "createScrim", { enumerable: true, get: function () { return scrims_1.createScrim; } });
-Object.defineProperty(exports, "acceptScrim", { enumerable: true, get: function () { return scrims_1.acceptScrim; } });
-Object.defineProperty(exports, "cancelScrim", { enumerable: true, get: function () { return scrims_1.cancelScrim; } });
-Object.defineProperty(exports, "challengeScrim", { enumerable: true, get: function () { return scrims_1.challengeScrim; } });
-Object.defineProperty(exports, "respondToScrimChallenge", { enumerable: true, get: function () { return scrims_1.respondToScrimChallenge; } });
-Object.defineProperty(exports, "reportScrimResult", { enumerable: true, get: function () { return scrims_1.reportScrimResult; } });
-const teams_1 = require("./teams");
-Object.defineProperty(exports, "createTeam", { enumerable: true, get: function () { return teams_1.createTeam; } });
-Object.defineProperty(exports, "updateTeam", { enumerable: true, get: function () { return teams_1.updateTeam; } });
-Object.defineProperty(exports, "deleteTeam", { enumerable: true, get: function () { return teams_1.deleteTeam; } });
-Object.defineProperty(exports, "kickTeamMember", { enumerable: true, get: function () { return teams_1.kickTeamMember; } });
-Object.defineProperty(exports, "setTeamIGL", { enumerable: true, get: function () { return teams_1.setTeamIGL; } });
-Object.defineProperty(exports, "updateTeamMemberRole", { enumerable: true, get: function () { return teams_1.updateTeamMemberRole; } });
-Object.defineProperty(exports, "updateMemberSkills", { enumerable: true, get: function () { return teams_1.updateMemberSkills; } });
-// *** AÑADIR NUEVA FUNCIÓN DE TORNEOS ***
-const tournaments_1 = require("./tournaments");
-Object.defineProperty(exports, "proposeTournament", { enumerable: true, get: function () { return tournaments_1.proposeTournament; } });
-Object.defineProperty(exports, "reviewTournamentProposal", { enumerable: true, get: function () { return tournaments_1.reviewTournamentProposal; } });
-Object.defineProperty(exports, "editTournament", { enumerable: true, get: function () { return tournaments_1.editTournament; } });
-Object.defineProperty(exports, "deleteTournament", { enumerable: true, get: function () { return tournaments_1.deleteTournament; } });
-Object.defineProperty(exports, "registerTeamForTournament", { enumerable: true, get: function () { return tournaments_1.registerTeamForTournament; } });
-Object.defineProperty(exports, "generateTournamentStructure", { enumerable: true, get: function () { return tournaments_1.generateTournamentStructure; } });
-Object.defineProperty(exports, "reportBracketMatchResult", { enumerable: true, get: function () { return tournaments_1.reportBracketMatchResult; } });
-Object.defineProperty(exports, "reportRoundRobinMatchResult", { enumerable: true, get: function () { return tournaments_1.reportRoundRobinMatchResult; } });
-const tickets_1 = require("./tickets");
-Object.defineProperty(exports, "createSupportTicket", { enumerable: true, get: function () { return tickets_1.createSupportTicket; } });
-Object.defineProperty(exports, "respondToTicket", { enumerable: true, get: function () { return tickets_1.respondToTicket; } });
-Object.defineProperty(exports, "resolveTicket", { enumerable: true, get: function () { return tickets_1.resolveTicket; } });
-// *** AÑADIR NUEVA FUNCIÓN DE USUARIOS ***
-const users_1 = require("./users");
+Object.defineProperty(exports, "getChats", { enumerable: true, get: function () { return chat_1.getChats; } });
+Object.defineProperty(exports, "getChatMessages", { enumerable: true, get: function () { return chat_1.getChatMessages; } });
+Object.defineProperty(exports, "markChatRead", { enumerable: true, get: function () { return chat_1.markChatRead; } });
+Object.defineProperty(exports, "deleteChatHistory", { enumerable: true, get: function () { return chat_1.deleteChatHistory; } });
+Object.defineProperty(exports, "blockUser", { enumerable: true, get: function () { return chat_1.blockUser; } });
+Object.defineProperty(exports, "unblockUser", { enumerable: true, get: function () { return chat_1.unblockUser; } });
+// --------- users: dueño de presence y claims ---------
+var users_1 = require("./users");
 Object.defineProperty(exports, "updateUserRole", { enumerable: true, get: function () { return users_1.updateUserRole; } });
 Object.defineProperty(exports, "updateUserStatus", { enumerable: true, get: function () { return users_1.updateUserStatus; } });
-Object.defineProperty(exports, "updateUserCertification", { enumerable: true, get: function () { return users_1.updateUserCertification; } });
 Object.defineProperty(exports, "updateUserPresence", { enumerable: true, get: function () { return users_1.updateUserPresence; } });
-const public_1 = require("./public"); // getTeamMembers estaba en public.ts
-Object.defineProperty(exports, "getMarketPlayers", { enumerable: true, get: function () { return public_1.getMarketPlayers; } });
-Object.defineProperty(exports, "getMarketTeams", { enumerable: true, get: function () { return public_1.getMarketTeams; } });
-Object.defineProperty(exports, "getHonorRankings", { enumerable: true, get: function () { return public_1.getHonorRankings; } });
+Object.defineProperty(exports, "updateUserCertification", { enumerable: true, get: function () { return users_1.updateUserCertification; } });
+// --------- notifications: sólo las que no chocan ---------
+var notifications_1 = require("./notifications");
+Object.defineProperty(exports, "addInboxNotification", { enumerable: true, get: function () { return notifications_1.addInboxNotification; } });
+Object.defineProperty(exports, "getInbox", { enumerable: true, get: function () { return notifications_1.getInbox; } });
+Object.defineProperty(exports, "markNotificationsAsRead", { enumerable: true, get: function () { return notifications_1.markNotificationsAsRead; } });
+Object.defineProperty(exports, "deleteNotifications", { enumerable: true, get: function () { return notifications_1.deleteNotifications; } });
+// --------- public: funciones de listados/públicas ---------
+var public_1 = require("./public");
+Object.defineProperty(exports, "getFeaturedScrims", { enumerable: true, get: function () { return public_1.getFeaturedScrims; } });
 Object.defineProperty(exports, "getScrimRankings", { enumerable: true, get: function () { return public_1.getScrimRankings; } });
 Object.defineProperty(exports, "getTournamentRankings", { enumerable: true, get: function () { return public_1.getTournamentRankings; } });
-Object.defineProperty(exports, "getFeaturedScrims", { enumerable: true, get: function () { return public_1.getFeaturedScrims; } });
 Object.defineProperty(exports, "getManagedUsers", { enumerable: true, get: function () { return public_1.getManagedUsers; } });
-Object.defineProperty(exports, "getTeamMembers", { enumerable: true, get: function () { return public_1.getTeamMembers; } });
-const task_1 = require("./task");
-Object.defineProperty(exports, "addTask", { enumerable: true, get: function () { return task_1.addTask; } });
-Object.defineProperty(exports, "updateTaskStatus", { enumerable: true, get: function () { return task_1.updateTaskStatus; } });
-Object.defineProperty(exports, "deleteTask", { enumerable: true, get: function () { return task_1.deleteTask; } });
+Object.defineProperty(exports, "getFriendProfiles", { enumerable: true, get: function () { return public_1.getFriendProfiles; } });
 //# sourceMappingURL=index.js.map

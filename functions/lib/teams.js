@@ -32,383 +32,301 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setTeamIGL = exports.kickTeamMember = exports.updateTeamMemberRole = exports.deleteTeam = exports.updateTeam = exports.createTeam = exports.updateMemberSkills = void 0;
+exports.updateMemberSkills = exports.deleteTask = exports.updateTaskStatus = exports.addTask = exports.getTeamMembers = exports.respondToTeamApplication = exports.applyToTeam = exports.respondToTeamInvite = exports.sendTeamInvite = exports.setTeamIGL = exports.kickTeamMember = exports.deleteTeam = exports.updateTeam = exports.createTeam = void 0;
 // functions/src/teams.ts
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
+const zod_1 = require("zod");
 const db = admin.firestore();
-const auth = admin.auth();
-// --- FUNCIONES ---
-exports.updateMemberSkills = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: requestAuth, data }) => {
-    var _a;
-    if (!requestAuth)
-        throw new https_1.HttpsError("unauthenticated", "Falta autenticación.");
-    const { teamId, memberId, skills } = data;
-    if (!teamId || !memberId || !Array.isArray(skills)) {
-        throw new https_1.HttpsError("invalid-argument", "Faltan datos (teamId, memberId, skills).");
-    }
-    if (skills.length > 2) {
-        throw new https_1.HttpsError("invalid-argument", "Un jugador puede tener como máximo 2 roles.");
-    }
-    const teamRef = db.collection("teams").doc(teamId);
-    try {
-        // 1. Comprobar permisos
-        const callerMemberDoc = await teamRef.collection("members").doc(requestAuth.uid).get();
-        const callerRole = (_a = callerMemberDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
-        if (callerRole !== 'founder' && callerRole !== 'coach') {
-            throw new https_1.HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar los roles.");
-        }
-        // 2. Actualizar el documento del usuario
-        await db.collection('users').doc(memberId).update({ skills: skills });
-        return { success: true, message: "Roles de jugador actualizados." };
-    }
-    catch (error) {
-        console.error(`Error updating skills for member ${memberId} in team ${teamId}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error; // Re-lanza errores Https conocidos
-        throw new https_1.HttpsError('internal', error.message || 'No se pudieron actualizar los roles del jugador.');
-    }
+const nowTs = () => admin.firestore.FieldValue.serverTimestamp();
+// ---------- Helpers ----------
+function assertAuth(ctx) {
+    if (!ctx.auth?.uid)
+        throw new https_1.HttpsError('unauthenticated', 'You must be logged in.');
+    return ctx.auth.uid;
+}
+async function getMembership(teamId, uid) {
+    const snap = await db
+        .collection('teamMembers')
+        .where('teamId', '==', teamId)
+        .where('uid', '==', uid)
+        .limit(1)
+        .get();
+    return snap.docs[0]?.data();
+}
+function assertTeamAdmin(member) {
+    const role = member?.role ?? 'member';
+    const isAdmin = role === 'owner' || role === 'igl' || role === 'admin' || role === 'captain';
+    if (!isAdmin)
+        throw new https_1.HttpsError('permission-denied', 'Only team admin/IGL/owner can perform this action.');
+}
+// ---------- Schemas ----------
+const CreateTeamSchema = zod_1.z.object({
+    name: zod_1.z.string().min(3).max(50),
+    game: zod_1.z.string().min(1),
+    description: zod_1.z.string().max(500).optional(),
 });
-exports.createTeam = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: requestAuth, data }) => {
-    if (!requestAuth) {
-        throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión para crear un equipo.");
-    }
-    const uid = requestAuth.uid;
-    const claims = requestAuth.token || {};
-    const { name, game, description } = data;
-    if (!name || !game) {
-        throw new https_1.HttpsError("invalid-argument", "El nombre del equipo y el juego son obligatorios.");
-    }
-    const isPrivilegedUser = claims.role === 'admin' || claims.role === 'moderator';
-    if (claims.role === 'founder') {
-        throw new https_1.HttpsError('failed-precondition', 'Ya eres fundador de otro equipo. No puedes crear más de uno.');
-    }
-    const userRef = db.collection("users").doc(uid);
-    try {
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) {
-            throw new https_1.HttpsError('not-found', 'No se encontró tu perfil de usuario.');
-        }
-        const userData = userDoc.data();
-        const teamRef = db.collection("teams").doc();
-        const batch = db.batch();
-        batch.set(teamRef, {
-            id: teamRef.id,
-            name,
-            game,
-            description: description || '',
-            country: (userData === null || userData === void 0 ? void 0 : userData.country) || '',
-            avatarUrl: `https://placehold.co/100x100.png?text=${name.slice(0, 2)}`,
-            bannerUrl: 'https://placehold.co/1600x300.png', // Placeholder más panorámico
-            founder: uid,
-            memberIds: [uid], // Array inicial con el fundador
+const UpdateTeamSchema = zod_1.z.object({
+    teamId: zod_1.z.string().min(1),
+    name: zod_1.z.string().min(3).max(50),
+    description: zod_1.z.string().max(500).optional(),
+    lookingForPlayers: zod_1.z.boolean(),
+    recruitingRoles: zod_1.z.array(zod_1.z.string()).optional(),
+    videoUrl: zod_1.z.string().url().or(zod_1.z.literal('')).optional(),
+    avatarUrl: zod_1.z.string().url().optional(),
+    bannerUrl: zod_1.z.string().url().optional(),
+    discordUrl: zod_1.z.string().url().or(zod_1.z.literal('')).optional(),
+    twitchUrl: zod_1.z.string().url().or(zod_1.z.literal('')).optional(),
+    twitterUrl: zod_1.z.string().url().or(zod_1.z.literal('')).optional(),
+    rankMin: zod_1.z.string().optional(),
+    rankMax: zod_1.z.string().optional(),
+});
+const DeleteTeamSchema = zod_1.z.object({ teamId: zod_1.z.string().min(1) });
+const KickSchema = zod_1.z.object({ teamId: zod_1.z.string().min(1), memberId: zod_1.z.string().min(1) });
+const SetIglSchema = zod_1.z.object({ teamId: zod_1.z.string().min(1), memberId: zod_1.z.string().nullable() });
+const InviteSchema = zod_1.z.object({ toUserId: zod_1.z.string().min(1), teamId: zod_1.z.string().min(1) });
+const RespondInviteSchema = zod_1.z.object({ inviteId: zod_1.z.string().min(1), accept: zod_1.z.boolean() });
+const ApplySchema = zod_1.z.object({ teamId: zod_1.z.string().min(1) });
+const RespondApplicationSchema = zod_1.z.object({ applicationId: zod_1.z.string().min(1), accept: zod_1.z.boolean() });
+const GetMembersSchema = zod_1.z.object({ teamId: zod_1.z.string().min(1) });
+const AddTaskSchema = zod_1.z.object({ teamId: zod_1.z.string().min(1), title: zod_1.z.string().min(1).max(120) });
+const UpdateTaskStatusSchema = zod_1.z.object({
+    teamId: zod_1.z.string().min(1),
+    taskId: zod_1.z.string().min(1),
+    completed: zod_1.z.boolean(),
+});
+const DeleteTaskSchema = zod_1.z.object({ teamId: zod_1.z.string().min(1), taskId: zod_1.z.string().min(1) });
+const UpdateSkillsSchema = zod_1.z.object({
+    teamId: zod_1.z.string().min(1),
+    memberId: zod_1.z.string().min(1),
+    skills: zod_1.z.array(zod_1.z.string()),
+});
+// ---------- Functions ----------
+exports.createTeam = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const data = CreateTeamSchema.parse(req.data ?? {});
+    const teamRef = db.collection('teams').doc();
+    await db.runTransaction(async (tx) => {
+        tx.set(teamRef, {
+            name: data.name,
+            game: data.game,
+            description: data.description ?? '',
+            ownerId: uid,
+            createdAt: nowTs(),
+            updatedAt: nowTs(),
+            lookingForPlayers: true,
             recruitingRoles: [],
-            lookingForPlayers: false,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            videoUrl: '',
-            discordUrl: '',
-            twitchUrl: '',
-            twitterUrl: '',
-            // Inicializa stats si planeas usarlas
-            stats: { scrimsPlayed: 0, scrimsWon: 0 },
-            winRate: 0, // Inicializa winRate
         });
-        const memberRef = teamRef.collection("members").doc(uid);
-        batch.set(memberRef, {
-            role: "founder",
-            joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+        const memberRef = db.collection('teamMembers').doc();
+        tx.set(memberRef, {
+            teamId: teamRef.id,
+            uid,
+            role: 'owner',
+            joinedAt: nowTs(),
         });
-        const userUpdateData = { teamId: teamRef.id };
-        if (!isPrivilegedUser) {
-            userUpdateData.role = 'founder';
-        }
-        batch.update(userRef, userUpdateData);
-        if (!isPrivilegedUser) {
-            await auth.setCustomUserClaims(uid, Object.assign(Object.assign({}, claims), { role: 'founder' }));
-        }
-        await batch.commit();
-        return { success: true, teamId: teamRef.id, message: '¡Equipo creado con éxito!' };
-    }
-    catch (error) {
-        console.error("Error creating team:", error);
-        // Intenta revertir el claim si falla la creación del equipo
-        if (!isPrivilegedUser && claims.role !== 'founder') { // Solo revierte si no era founder antes
-            try {
-                await auth.setCustomUserClaims(uid, Object.assign(Object.assign({}, claims), { role: 'player' })); // Revierte a 'player' o al rol anterior
-            }
-            catch (rollbackError) {
-                console.error("CRITICAL: Failed to rollback claim on team creation failure:", rollbackError);
-            }
-        }
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError('internal', error.message || 'Ocurrió un error inesperado al crear el equipo.');
-    }
+    });
+    return { success: true, message: 'Equipo creado.', teamId: teamRef.id };
 });
-exports.updateTeam = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: requestAuth, data }) => {
-    var _a, _b;
-    if (!requestAuth) {
-        throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión para editar el equipo.");
-    }
-    const uid = requestAuth.uid;
-    const _c = data, { teamId } = _c, updateData = __rest(_c, ["teamId"]);
-    if (!teamId || !updateData.name) {
-        throw new https_1.HttpsError("invalid-argument", "Faltan datos del equipo (ID o nombre).");
-    }
-    const teamRef = db.collection("teams").doc(teamId);
-    try {
-        const teamDoc = await teamRef.get();
-        if (!teamDoc.exists) {
-            throw new https_1.HttpsError("not-found", "El equipo no existe.");
-        }
-        // Usa requestAuth.token?.role para evitar error si token no existe
-        if (((_a = teamDoc.data()) === null || _a === void 0 ? void 0 : _a.founder) !== uid && ((_b = requestAuth.token) === null || _b === void 0 ? void 0 : _b.role) !== 'admin') {
-            throw new https_1.HttpsError("permission-denied", "Solo el fundador o un administrador pueden editar este equipo.");
-        }
-        // Evita que se sobrescriban campos internos como stats o founder
-        const allowedUpdates = Object.assign({}, updateData);
-        delete allowedUpdates.stats;
-        delete allowedUpdates.founder;
-        delete allowedUpdates.memberIds;
-        delete allowedUpdates.id;
-        delete allowedUpdates.createdAt;
-        await teamRef.update(allowedUpdates);
-        return { success: true, message: "Equipo actualizado con éxito." };
-    }
-    catch (error) {
-        console.error("Error updating team:", error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError("internal", error.message || "No se pudo actualizar el equipo.");
-    }
+exports.updateTeam = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const data = UpdateTeamSchema.parse(req.data ?? {});
+    const member = await getMembership(data.teamId, uid);
+    assertTeamAdmin(member);
+    const update = { ...data };
+    delete update.teamId;
+    update.updatedAt = nowTs();
+    await db.doc(`teams/${data.teamId}`).update(update);
+    return { success: true, message: 'Equipo actualizado.' };
 });
-exports.deleteTeam = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: requestAuth, data }) => {
-    if (!requestAuth)
-        throw new https_1.HttpsError("unauthenticated", "Falta autenticación.");
-    const callerUid = requestAuth.uid;
-    const callerClaims = requestAuth.token || {};
-    const { teamId } = data;
-    if (!teamId)
-        throw new https_1.HttpsError("invalid-argument", "Falta ID del equipo.");
-    const teamRef = db.collection("teams").doc(teamId);
-    const teamDoc = await teamRef.get();
-    if (!teamDoc.exists)
-        return { success: true, message: "El equipo ya no existía." };
-    const teamData = teamDoc.data();
-    if (!teamData)
-        throw new https_1.HttpsError("not-found", "Datos del equipo inválidos."); // Cambiado de 'not-found'
-    const founderId = teamData.founder;
-    const isCallerFounder = founderId === callerUid;
-    const isCallerAdmin = callerClaims.role === 'admin';
-    if (!isCallerFounder && !isCallerAdmin) {
-        throw new https_1.HttpsError("permission-denied", "Solo el fundador del equipo o un administrador pueden eliminarlo.");
-    }
-    // Step 1: Revertir claim del fundador
-    let claimReverted = false;
-    try {
-        const founderAuth = await auth.getUser(founderId);
-        const founderClaims = founderAuth.customClaims || {};
-        if (founderClaims.role === 'founder') {
-            await auth.setCustomUserClaims(founderId, Object.assign(Object.assign({}, founderClaims), { role: "player" }));
-            claimReverted = true;
-        }
-    }
-    catch (error) {
-        console.error(`CRITICAL: Failed to revert claim for founder ${founderId}...`, error);
-        // No continuar si falla revertir el claim
-        throw new https_1.HttpsError('internal', 'No se pudo actualizar el rol del fundador. El equipo no fue eliminado.');
-    }
-    // Step 2: Borrar datos de Firestore
-    try {
-        const batch = db.batch();
-        const membersSnap = await teamRef.collection("members").get(); // Obtener miembros para iterar
-        // Actualiza documentos de usuario de todos los miembros
-        (teamData.memberIds || []).forEach((memberId) => {
-            const userRef = db.collection("users").doc(memberId);
-            const updateData = { teamId: admin.firestore.FieldValue.delete() };
-            // Si es el fundador, también revierte su rol en Firestore
-            if (memberId === founderId) {
-                updateData.role = "player";
-            }
-            batch.update(userRef, updateData);
-        });
-        // Borra documentos de la subcolección 'members'
-        membersSnap.forEach(doc => batch.delete(doc.ref));
-        // Borra el documento principal del equipo
-        batch.delete(teamRef);
-        await batch.commit();
-        return { success: true, message: "Equipo eliminado con éxito." };
-    }
-    catch (error) {
-        console.error("Error al eliminar los documentos del equipo:", error);
-        // Si revertir claim tuvo éxito pero falló el borrado, informa al usuario
-        if (claimReverted) {
-            return { success: false, message: "El rol del fundador fue actualizado, pero ocurrió un error al eliminar los datos del equipo." };
-        }
-        else {
-            throw new https_1.HttpsError("internal", "Ocurrió un error al eliminar los datos del equipo.");
-        }
-    }
+exports.deleteTeam = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { teamId } = DeleteTeamSchema.parse(req.data ?? {});
+    const team = await db.doc(`teams/${teamId}`).get();
+    if (!team.exists)
+        throw new https_1.HttpsError('not-found', 'Team not found');
+    if (team.get('ownerId') !== uid)
+        throw new https_1.HttpsError('permission-denied', 'Only owner can delete the team.');
+    // Elimina miembros y tareas básicas (simple, no exhaustivo)
+    const batch = db.batch();
+    const members = await db.collection('teamMembers').where('teamId', '==', teamId).get();
+    members.docs.forEach((d) => batch.delete(d.ref));
+    const tasks = await db.collection('teamTasks').where('teamId', '==', teamId).get();
+    tasks.docs.forEach((d) => batch.delete(d.ref));
+    batch.delete(team.ref);
+    await batch.commit();
+    return { success: true, message: 'Equipo eliminado.' };
 });
-exports.updateTeamMemberRole = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: requestAuth, data }) => {
-    var _a;
-    if (!requestAuth)
-        throw new https_1.HttpsError("unauthenticated", "Falta autenticación.");
-    const { teamId, memberId, role } = data;
-    if (!teamId || !memberId || !['coach', 'member'].includes(role)) { // Verifica roles válidos
-        throw new https_1.HttpsError("invalid-argument", "Faltan datos o rol inválido.");
-    }
-    const teamRef = db.collection("teams").doc(teamId);
-    try {
-        const teamDoc = await teamRef.get();
-        if (!teamDoc.exists)
-            throw new https_1.HttpsError("not-found", "El equipo no existe.");
-        const teamData = teamDoc.data();
-        if (!teamData)
-            throw new https_1.HttpsError("internal", "Datos del equipo inválidos.");
-        const callerMemberDoc = await teamRef.collection('members').doc(requestAuth.uid).get();
-        const callerRole = (_a = callerMemberDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
-        if (teamData.founder !== requestAuth.uid && callerRole !== 'coach') {
-            throw new https_1.HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar roles.");
-        }
-        if (teamData.founder === memberId) {
-            throw new https_1.HttpsError("permission-denied", "No puedes cambiar el rol del fundador.");
-        }
-        // Verifica que el miembro exista antes de intentar actualizar
-        const memberRefToUpdate = teamRef.collection('members').doc(memberId);
-        const memberDoc = await memberRefToUpdate.get();
-        if (!memberDoc.exists) {
-            throw new https_1.HttpsError("not-found", "El miembro no pertenece a este equipo.");
-        }
-        await memberRefToUpdate.update({ role });
-        return { success: true, message: "Rol del miembro actualizado." };
-    }
-    catch (error) {
-        console.error(`Error updating role for member ${memberId} in team ${teamId}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError('internal', error.message || 'No se pudo actualizar el rol del miembro.');
-    }
+exports.kickTeamMember = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { teamId, memberId } = KickSchema.parse(req.data ?? {});
+    const member = await getMembership(teamId, uid);
+    assertTeamAdmin(member);
+    // No patear al owner
+    const ownerId = (await db.doc(`teams/${teamId}`).get()).get('ownerId');
+    if (memberId === ownerId)
+        throw new https_1.HttpsError('failed-precondition', 'Cannot remove the owner.');
+    const snap = await db
+        .collection('teamMembers')
+        .where('teamId', '==', teamId)
+        .where('uid', '==', memberId)
+        .limit(1)
+        .get();
+    if (snap.empty)
+        throw new https_1.HttpsError('not-found', 'Member not found.');
+    await snap.docs[0].ref.delete();
+    return { success: true, message: 'Miembro expulsado.' };
 });
-exports.kickTeamMember = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: requestAuth, data }) => {
-    var _a, _b;
-    if (!requestAuth)
-        throw new https_1.HttpsError("unauthenticated", "Falta autenticación.");
-    const { teamId, memberId } = data;
-    if (!teamId || !memberId)
-        throw new https_1.HttpsError("invalid-argument", "Faltan datos (teamId, memberId).");
-    const teamRef = db.collection("teams").doc(teamId);
-    try {
-        const teamDoc = await teamRef.get();
-        if (!teamDoc.exists)
-            throw new https_1.HttpsError("not-found", "El equipo no existe.");
-        const teamData = teamDoc.data();
-        if (!teamData)
-            throw new https_1.HttpsError("internal", "Datos del equipo inválidos.");
-        const callerMemberDoc = await teamRef.collection("members").doc(requestAuth.uid).get();
-        if (!callerMemberDoc.exists) {
-            throw new https_1.HttpsError("permission-denied", "No eres miembro de este equipo.");
-        }
-        const callerRole = (_a = callerMemberDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
-        const memberToKickRef = teamRef.collection("members").doc(memberId);
-        const memberToKickDoc = await memberToKickRef.get();
-        if (!memberToKickDoc.exists) {
-            return { success: true, message: "El miembro ya no estaba en el equipo." };
-        }
-        const memberToKickRole = (_b = memberToKickDoc.data()) === null || _b === void 0 ? void 0 : _b.role;
-        if (memberId === teamData.founder) {
-            throw new https_1.HttpsError("permission-denied", "El fundador no puede ser expulsado.");
-        }
-        if (callerRole === 'founder') { /* Puede expulsar a coach o member */ }
-        else if (callerRole === 'coach') {
-            if (memberToKickRole !== 'member') {
-                throw new https_1.HttpsError("permission-denied", "Un coach solo puede expulsar a miembros ('member').");
-            }
-        }
-        else {
-            throw new https_1.HttpsError("permission-denied", "Solo el fundador o un coach pueden expulsar miembros.");
-        }
-        const batch = db.batch();
-        batch.delete(memberToKickRef); // Borra de subcolección
-        batch.update(teamRef, { memberIds: admin.firestore.FieldValue.arrayRemove(memberId) }); // Borra de array
-        batch.update(db.collection('users').doc(memberId), { teamId: admin.firestore.FieldValue.delete() }); // Quita teamId del usuario
-        await batch.commit();
-        return { success: true, message: "Miembro expulsado del equipo." };
-    }
-    catch (error) {
-        console.error(`Error kicking member ${memberId} from team ${teamId}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError('internal', error.message || 'No se pudo expulsar al miembro.');
-    }
+exports.setTeamIGL = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { teamId, memberId } = SetIglSchema.parse(req.data ?? {});
+    const member = await getMembership(teamId, uid);
+    assertTeamAdmin(member);
+    const teamRef = db.doc(`teams/${teamId}`);
+    await teamRef.update({ iglId: memberId ?? null, updatedAt: nowTs() });
+    return { success: true, message: 'IGL actualizado.' };
 });
-exports.setTeamIGL = (0, https_1.onCall)({ region: 'europe-west1' }, async ({ auth: requestAuth, data }) => {
-    var _a;
-    if (!requestAuth)
-        throw new https_1.HttpsError("unauthenticated", "Falta autenticación.");
-    const { teamId, memberId } = data; // memberId puede ser null para quitar IGL
-    if (!teamId)
-        throw new https_1.HttpsError("invalid-argument", "Falta ID del equipo.");
-    const teamRef = db.collection("teams").doc(teamId);
-    try {
-        const teamDoc = await teamRef.get();
-        if (!teamDoc.exists)
-            throw new https_1.HttpsError("not-found", "El equipo no existe.");
-        const callerMemberRef = teamRef.collection("members").doc(requestAuth.uid);
-        const callerMemberSnap = await callerMemberRef.get();
-        if (!callerMemberSnap.exists) {
-            throw new https_1.HttpsError("permission-denied", "No eres miembro de este equipo.");
+exports.sendTeamInvite = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { toUserId, teamId } = InviteSchema.parse(req.data ?? {});
+    const member = await getMembership(teamId, uid);
+    assertTeamAdmin(member);
+    const inviteRef = db.collection('teamInvites').doc();
+    await inviteRef.set({
+        teamId,
+        toUserId,
+        fromUserId: uid,
+        status: 'pending',
+        createdAt: nowTs(),
+        updatedAt: nowTs(),
+    });
+    return { success: true, message: 'Invitación enviada.' };
+});
+exports.respondToTeamInvite = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { inviteId, accept } = RespondInviteSchema.parse(req.data ?? {});
+    const ref = db.doc(`teamInvites/${inviteId}`);
+    const snap = await ref.get();
+    if (!snap.exists)
+        throw new https_1.HttpsError('not-found', 'Invite not found');
+    const inv = snap.data();
+    if (inv.toUserId !== uid)
+        throw new https_1.HttpsError('permission-denied', 'Not your invite');
+    if (inv.status !== 'pending')
+        throw new https_1.HttpsError('failed-precondition', 'Invite is not pending');
+    await db.runTransaction(async (tx) => {
+        tx.update(ref, { status: accept ? 'accepted' : 'rejected', updatedAt: nowTs() });
+        if (accept) {
+            const mRef = db.collection('teamMembers').doc();
+            tx.set(mRef, { teamId: inv.teamId, uid, role: 'member', joinedAt: nowTs() });
         }
-        const callerRole = (_a = callerMemberSnap.data()) === null || _a === void 0 ? void 0 : _a.role;
-        if (callerRole !== 'founder' && callerRole !== 'coach') {
-            throw new https_1.HttpsError("permission-denied", "Solo el fundador o un coach puede cambiar el rol de IGL.");
+    });
+    return { success: true, message: accept ? 'Invitación aceptada.' : 'Invitación rechazada.' };
+});
+exports.applyToTeam = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { teamId } = ApplySchema.parse(req.data ?? {});
+    const appRef = db.collection('teamApplications').doc();
+    await appRef.set({
+        teamId,
+        applicantId: uid,
+        status: 'pending',
+        createdAt: nowTs(),
+        updatedAt: nowTs(),
+    });
+    return { success: true, message: 'Solicitud enviada.' };
+});
+exports.respondToTeamApplication = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { applicationId, accept } = RespondApplicationSchema.parse(req.data ?? {});
+    const ref = db.doc(`teamApplications/${applicationId}`);
+    const snap = await ref.get();
+    if (!snap.exists)
+        throw new https_1.HttpsError('not-found', 'Application not found');
+    const app = snap.data();
+    const member = await getMembership(app.teamId, uid);
+    assertTeamAdmin(member);
+    if (app.status !== 'pending')
+        throw new https_1.HttpsError('failed-precondition', 'Application is not pending');
+    await db.runTransaction(async (tx) => {
+        tx.update(ref, { status: accept ? 'accepted' : 'rejected', updatedAt: nowTs() });
+        if (accept) {
+            const mRef = db.collection('teamMembers').doc();
+            tx.set(mRef, { teamId: app.teamId, uid: app.applicantId, role: 'member', joinedAt: nowTs() });
         }
-        // Si se va a asignar un nuevo IGL, verifica que sea miembro
-        if (memberId) {
-            const newIglRef = teamRef.collection("members").doc(memberId);
-            const newIglSnap = await newIglRef.get();
-            if (!newIglSnap.exists) {
-                throw new https_1.HttpsError("not-found", "El miembro seleccionado no pertenece al equipo.");
-            }
-        }
-        return db.runTransaction(async (transaction) => {
-            const membersRef = teamRef.collection("members");
-            // Obtener solo el IGL actual (si existe) para optimizar
-            const currentIglQuery = membersRef.where('isIGL', '==', true).limit(1);
-            const currentIglSnap = await transaction.get(currentIglQuery);
-            // 1. Quitar IGL anterior
-            if (!currentIglSnap.empty) {
-                const oldIglRef = currentIglSnap.docs[0].ref;
-                // Solo quita si el nuevo IGL no es el mismo que el anterior
-                if (oldIglRef.id !== memberId) {
-                    transaction.update(oldIglRef, { isIGL: admin.firestore.FieldValue.delete() });
-                }
-            }
-            // 2. Asignar nuevo IGL (si se proporcionó uno y no era ya el IGL)
-            if (memberId && (currentIglSnap.empty || currentIglSnap.docs[0].id !== memberId)) {
-                const newIglRef = membersRef.doc(memberId);
-                transaction.update(newIglRef, { isIGL: true });
-            }
-            return { success: true, message: "Rol de IGL actualizado." };
-        });
-    }
-    catch (error) {
-        console.error(`Error setting IGL for team ${teamId}:`, error);
-        if (error instanceof https_1.HttpsError)
-            throw error;
-        throw new https_1.HttpsError('internal', error.message || 'No se pudo actualizar el rol de IGL.');
-    }
+    });
+    return { success: true, message: accept ? 'Solicitud aceptada.' : 'Solicitud rechazada.' };
+});
+exports.getTeamMembers = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const { teamId } = GetMembersSchema.parse(req.data ?? {});
+    const q = await db.collection('teamMembers').where('teamId', '==', teamId).get();
+    const members = await Promise.all(q.docs.map(async (d) => {
+        const m = d.data();
+        const user = await db.doc(`users/${m.uid}`).get();
+        const u = user.data();
+        return {
+            id: d.id,
+            uid: m.uid,
+            role: m.role ?? 'member',
+            joinedAt: (m.joinedAt?.toDate?.() ?? null)?.toISOString?.() ?? null,
+            displayName: u?.name ?? u?.displayName ?? null,
+            avatarUrl: u?.avatarUrl ?? u?.photoURL ?? null,
+        };
+    }));
+    return members; // tu cliente rehidrata Timestamps
+});
+// ---------- Team Tasks ----------
+exports.addTask = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { teamId, title } = AddTaskSchema.parse(req.data ?? {});
+    const member = await getMembership(teamId, uid);
+    assertTeamAdmin(member);
+    const ref = db.collection('teamTasks').doc();
+    await ref.set({ teamId, title, completed: false, createdAt: nowTs(), updatedAt: nowTs() });
+    return { success: true, message: 'Task added' };
+});
+exports.updateTaskStatus = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { teamId, taskId, completed } = UpdateTaskStatusSchema.parse(req.data ?? {});
+    const member = await getMembership(teamId, uid);
+    assertTeamAdmin(member);
+    const ref = db.doc(`teamTasks/${taskId}`);
+    const snap = await ref.get();
+    if (!snap.exists)
+        throw new https_1.HttpsError('not-found', 'Task not found');
+    if (snap.get('teamId') !== teamId)
+        throw new https_1.HttpsError('permission-denied', 'Task does not belong to this team');
+    await ref.update({ completed, updatedAt: nowTs() });
+    return { success: true, message: 'Task updated' };
+});
+exports.deleteTask = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { teamId, taskId } = DeleteTaskSchema.parse(req.data ?? {});
+    const member = await getMembership(teamId, uid);
+    assertTeamAdmin(member);
+    const ref = db.doc(`teamTasks/${taskId}`);
+    const snap = await ref.get();
+    if (!snap.exists)
+        throw new https_1.HttpsError('not-found', 'Task not found');
+    if (snap.get('teamId') !== teamId)
+        throw new https_1.HttpsError('permission-denied', 'Task does not belong to this team');
+    await ref.delete();
+    return { success: true, message: 'Task deleted' };
+});
+exports.updateMemberSkills = (0, https_1.onCall)({ region: 'europe-west1' }, async (req) => {
+    const uid = assertAuth(req);
+    const { teamId, memberId, skills } = UpdateSkillsSchema.parse(req.data ?? {});
+    const member = await getMembership(teamId, uid);
+    assertTeamAdmin(member);
+    const snap = await db
+        .collection('teamMembers')
+        .where('teamId', '==', teamId)
+        .where('uid', '==', memberId)
+        .limit(1)
+        .get();
+    if (snap.empty)
+        throw new https_1.HttpsError('not-found', 'Member not found');
+    await snap.docs[0].ref.update({ skills, updatedAt: nowTs() });
+    return { success: true, message: 'Skills updated.' };
 });
 //# sourceMappingURL=teams.js.map

@@ -32,26 +32,56 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTournament = exports.editTournament = exports.reviewTournamentProposal = exports.proposeTournament = exports.registerTeamForTournament = exports.reportRoundRobinMatchResult = exports.reportBracketMatchResult = exports.generateTournamentStructure = void 0;
 // src/functions/tournaments.ts
-// *** CORRECCIÓN: Importar CallableRequest ***
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
-const zod_1 = require("zod"); // Asegúrate de tener 'zod' en tu package.json
+const zod_1 = require("zod");
 const db = admin.firestore();
-// --- Esquemas de Zod para validación ---
+// ---------------------- Enums y helpers ----------------------
+const MatchStatus = ['pending', 'awaiting_opponent', 'locked', 'completed'];
+// const TournamentStatus = ['upcoming','ongoing','completed'] as const;
+function requireAuth(req) {
+    if (!req.auth)
+        throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión.");
+    const role = req.auth.token?.role ?? 'user';
+    const isCertifiedStreamer = Boolean(req.auth.token?.isCertifiedStreamer);
+    return { uid: req.auth.uid, role, isCertifiedStreamer };
+}
+// ---------------------- Schemas Zod ----------------------
+const ProposeTournamentSchema = zod_1.z.object({
+    name: zod_1.z.string().min(3).max(80),
+    game: zod_1.z.string().min(1),
+    description: zod_1.z.string().min(10).max(5000),
+    proposedDate: zod_1.z.string().datetime(),
+    format: zod_1.z.enum(['single-elimination', 'round-robin']),
+    maxTeams: zod_1.z.number().int().min(2).max(128),
+    rankMin: zod_1.z.string().optional(),
+    rankMax: zod_1.z.string().optional(),
+    prize: zod_1.z.number().nonnegative().optional(),
+    currency: zod_1.z.string().length(3).optional(),
+});
+const ReviewTournamentSchema = zod_1.z.object({
+    proposalId: zod_1.z.string().min(1),
+    status: zod_1.z.enum(['approved', 'rejected']),
+});
+const EditTournamentSchema = zod_1.z.object({
+    tournamentId: zod_1.z.string().min(1),
+    name: zod_1.z.string().min(3).max(80).optional(),
+    description: zod_1.z.string().min(10).max(5000).optional(),
+    prize: zod_1.z.number().nonnegative().nullable().optional(),
+    currency: zod_1.z.string().length(3).nullable().optional(),
+    rankMin: zod_1.z.string().nullable().optional(),
+    rankMax: zod_1.z.string().nullable().optional(),
+});
+const DeleteTournamentSchema = zod_1.z.object({
+    tournamentId: zod_1.z.string().min(1),
+});
+const RegisterTeamSchema = zod_1.z.object({
+    tournamentId: zod_1.z.string().min(1),
+    teamId: zod_1.z.string().min(1),
+});
 const ReportBracketMatchResultSchema = zod_1.z.object({
     tournamentId: zod_1.z.string().min(1),
     matchId: zod_1.z.string().min(1),
@@ -63,16 +93,19 @@ const ReportRoundRobinMatchResultSchema = zod_1.z.object({
     winnerId: zod_1.z.string().min(1),
     loserId: zod_1.z.string().min(1),
 });
-// --- FUNCIONES ---
-// *** CORRECCIÓN: Tipar el request ***
-exports.generateTournamentStructure = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    if (!request.auth || !['admin', 'moderator'].includes(request.auth.token.role)) {
+// ---------------------- Funciones ----------------------
+/**
+ * Generar estructura de torneo (bracket o round-robin).
+ * Requiere rol admin/moderator.
+ */
+exports.generateTournamentStructure = (0, https_1.onCall)({ region: "europe-west1" }, async (request) => {
+    const { role } = requireAuth(request);
+    if (!['admin', 'moderator'].includes(role)) {
         throw new https_1.HttpsError('permission-denied', 'No tienes permiso.');
     }
-    const { tournamentId } = request.data; // <-- Ahora request.data está tipado
-    if (!tournamentId) {
+    const { tournamentId } = request.data ?? {};
+    if (!tournamentId)
         throw new https_1.HttpsError('invalid-argument', 'Falta Tournament ID.');
-    }
     const tournamentRef = db.doc(`tournaments/${tournamentId}`);
     try {
         const tournamentSnap = await tournamentRef.get();
@@ -80,88 +113,105 @@ exports.generateTournamentStructure = (0, https_1.onCall)({ region: 'europe-west
             throw new https_1.HttpsError('not-found', 'Torneo no encontrado.');
         const tournamentData = tournamentSnap.data();
         const { format } = tournamentData;
+        // Cargar equipos registrados
         const teamsSnap = await tournamentRef.collection('teams').get();
-        // *** CORRECCIÓN: Aplicar tipo RegisteredTeam ***
-        const teams = teamsSnap.docs.map(doc => (Object.assign({ id: doc.id }, doc.data())));
+        const teams = teamsSnap.docs.map(d => {
+            const data = d.data();
+            return {
+                id: d.id,
+                teamName: data.teamName ?? '',
+                teamAvatarUrl: data.teamAvatarUrl ?? null,
+                registeredAt: data.registeredAt ?? admin.firestore.Timestamp.now(),
+            };
+        });
         if (teams.length < 2)
             throw new https_1.HttpsError('failed-precondition', 'No hay suficientes equipos.');
         const batch = db.batch();
         if (format === 'single-elimination') {
-            const shuffledTeams = teams.sort(() => 0.5 - Math.random());
-            let round = 1;
+            // Mezclar equipos y crear primera ronda (gestiona BYEs)
+            const shuffled = [...teams].sort(() => Math.random() - 0.5);
             let currentRoundMatches = [];
-            let nextRoundMatchIds = [];
-            for (let i = 0; i < shuffledTeams.length; i += 2) {
+            for (let i = 0; i < shuffled.length; i += 2) {
                 const matchRef = tournamentRef.collection('matches').doc();
-                // *** CORREGIDO: TypeScript ahora sabe que .teamName y .teamAvatarUrl existen ***
-                const teamAData = { id: shuffledTeams[i].id, name: shuffledTeams[i].teamName, avatarUrl: shuffledTeams[i].teamAvatarUrl };
-                const teamBData = shuffledTeams[i + 1] ? { id: shuffledTeams[i + 1].id, name: shuffledTeams[i + 1].teamName, avatarUrl: shuffledTeams[i + 1].teamAvatarUrl } : null;
+                const teamA = { id: shuffled[i].id, name: shuffled[i].teamName, avatarUrl: shuffled[i].teamAvatarUrl };
+                const teamB = shuffled[i + 1]
+                    ? { id: shuffled[i + 1].id, name: shuffled[i + 1].teamName, avatarUrl: shuffled[i + 1].teamAvatarUrl }
+                    : null;
+                const hasBye = !teamB;
                 const matchData = {
-                    round: 1, teamA: teamAData, teamB: teamBData, nextMatchId: null,
-                    status: teamBData ? 'pending' : 'awaiting_opponent',
-                    winnerId: teamBData ? null : teamAData.id
+                    round: 1,
+                    teamA,
+                    teamB,
+                    nextMatchId: null,
+                    status: hasBye ? 'awaiting_opponent' : 'pending',
+                    winnerId: hasBye ? teamA.id : null,
                 };
-                currentRoundMatches.push(Object.assign({ id: matchRef.id }, matchData));
+                currentRoundMatches.push({ id: matchRef.id, ...matchData });
                 batch.set(matchRef, matchData);
             }
+            // Construir rondas siguientes, encadenando nextMatchId
             let matchesInCurrentRound = currentRoundMatches.length;
             while (matchesInCurrentRound > 1) {
-                round++;
                 const previousRoundMatches = [...currentRoundMatches];
                 currentRoundMatches = [];
-                nextRoundMatchIds = [];
+                // Crear siguientes partidos
                 for (let i = 0; i < matchesInCurrentRound; i += 2) {
-                    const matchRef = tournamentRef.collection('matches').doc();
-                    nextRoundMatchIds.push(matchRef.id);
-                    const matchData = { round: round, teamA: null, teamB: null, nextMatchId: null, status: 'locked' };
-                    currentRoundMatches.push(Object.assign({ id: matchRef.id }, matchData));
-                    batch.set(matchRef, matchData);
+                    const nextMatchRef = tournamentRef.collection('matches').doc();
+                    const nextMatchData = { round: (previousRoundMatches[0].round + 1), teamA: null, teamB: null, nextMatchId: null, status: 'locked' };
+                    currentRoundMatches.push({ id: nextMatchRef.id, ...nextMatchData });
+                    batch.set(nextMatchRef, nextMatchData);
                 }
+                // Ligar previous -> next y propagar BYEs a A o B según toque
                 for (let i = 0; i < previousRoundMatches.length; i++) {
-                    const matchIdToUpdate = previousRoundMatches[i].id;
-                    const nextMatchId = nextRoundMatchIds[Math.floor(i / 2)];
-                    batch.update(tournamentRef.collection('matches').doc(matchIdToUpdate), { nextMatchId: nextMatchId });
-                    // Avanzar equipos 'bye'
-                    if (previousRoundMatches[i].winnerId) {
-                        const winnerData = previousRoundMatches[i].teamA;
-                        const nextMatchRef = tournamentRef.collection('matches').doc(nextMatchId);
-                        if (i % 2 === 0) { // Si es el primer partido (par), va al slot A
-                            batch.update(nextMatchRef, { teamA: winnerData, status: 'awaiting_opponent' });
-                        }
-                        // (La lógica para el slot B se complica si AMBOS avanzan,
-                        // se manejará mejor en reportBracketMatchResult)
+                    const prev = previousRoundMatches[i];
+                    const nextId = currentRoundMatches[Math.floor(i / 2)].id;
+                    // Setear nextMatchId al partido previo
+                    batch.update(tournamentRef.collection('matches').doc(prev.id), { nextMatchId: nextId });
+                    // Si ya hay ganador por BYE, colocarlo en el slot correcto
+                    if (prev.winnerId) {
+                        const winnerData = prev.teamA && prev.teamA.id === prev.winnerId ? prev.teamA : prev.teamB;
+                        const slot = (i % 2 === 0) ? 'teamA' : 'teamB';
+                        const nextMatchRef = tournamentRef.collection('matches').doc(nextId);
+                        // Para evitar leer dentro del batch, determinamos el estado sin lookup extra:
+                        // - Si llenamos teamA y teamB ya está vacío -> awaiting_opponent
+                        // - Si llenamos teamB y A ya debe existir o no -> pending si ambos presentes
+                        // El estado final lo podemos normalizar más tarde en reportBracketMatchResult.
+                        batch.update(nextMatchRef, { [slot]: winnerData, status: (slot === 'teamA') ? 'awaiting_opponent' : 'pending' });
                     }
                 }
                 matchesInCurrentRound = Math.ceil(matchesInCurrentRound / 2);
             }
         }
         else if (format === 'round-robin') {
-            teams.forEach(team => {
+            // Tabla inicial de posiciones
+            for (const team of teams) {
                 const standingRef = tournamentRef.collection('standings').doc(team.id);
-                // *** CORREGIDO: TypeScript ahora sabe que team.teamName existe ***
                 batch.set(standingRef, {
-                    teamId: team.id, teamName: team.teamName, teamAvatarUrl: team.teamAvatarUrl,
-                    wins: 0, losses: 0, draws: 0, points: 0
+                    teamId: team.id,
+                    teamName: team.teamName,
+                    teamAvatarUrl: team.teamAvatarUrl ?? null,
+                    wins: 0, losses: 0, draws: 0, points: 0,
                 });
-            });
+            }
+            // Calendario: todos contra todos una vez
             for (let i = 0; i < teams.length; i++) {
                 for (let j = i + 1; j < teams.length; j++) {
-                    const matchRef = tournamentRef.collection('schedule').doc();
-                    // *** CORREGIDO: TypeScript ahora sabe que .teamName y .teamAvatarUrl existen ***
-                    batch.set(matchRef, {
-                        teamA: { id: teams[i].id, name: teams[i].teamName, avatarUrl: teams[i].teamAvatarUrl },
-                        teamB: { id: teams[j].id, name: teams[j].teamName, avatarUrl: teams[j].teamAvatarUrl },
-                        status: 'pending', winnerId: null,
+                    const scheduleRef = tournamentRef.collection('schedule').doc();
+                    batch.set(scheduleRef, {
+                        teamA: { id: teams[i].id, name: teams[i].teamName, avatarUrl: teams[i].teamAvatarUrl ?? null },
+                        teamB: { id: teams[j].id, name: teams[j].teamName, avatarUrl: teams[j].teamAvatarUrl ?? null },
+                        status: 'pending',
+                        winnerId: null,
                     });
                 }
             }
         }
         else {
-            throw new https_1.HttpsError('unimplemented', `The format "${format}" is not supported yet.`);
+            throw new https_1.HttpsError('unimplemented', `El formato "${format}" no está soportado.`);
         }
         batch.update(tournamentRef, { status: 'ongoing' });
         await batch.commit();
-        return { success: true, message: `Structure for ${format} tournament generated.` };
+        return { success: true, message: `Estructura generada para formato ${format}.` };
     }
     catch (error) {
         console.error('Error generating tournament structure:', error);
@@ -170,18 +220,18 @@ exports.generateTournamentStructure = (0, https_1.onCall)({ region: 'europe-west
         throw new https_1.HttpsError('internal', error.message || 'Failed to generate tournament structure.');
     }
 });
-// *** CORRECCIÓN: Tipar el request ***
+/** Reportar resultado en bracket (solo admin/mod) */
 exports.reportBracketMatchResult = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    if (!request.auth || !['admin', 'moderator'].includes(request.auth.token.role)) {
-        throw new https_1.HttpsError('permission-denied', 'You do not have permission to report results.');
+    const { role } = requireAuth(request);
+    if (!['admin', 'moderator'].includes(role)) {
+        throw new https_1.HttpsError('permission-denied', 'No tienes permiso.');
     }
     try {
-        // *** CORRECCIÓN: Zod parsea request.data (ahora tipado) ***
         const { tournamentId, matchId, winnerId } = ReportBracketMatchResultSchema.parse(request.data);
         const tournamentRef = db.doc(`tournaments/${tournamentId}`);
         const matchRef = tournamentRef.collection('matches').doc(matchId);
-        await db.runTransaction(async (transaction) => {
-            const matchDoc = await transaction.get(matchRef);
+        await db.runTransaction(async (tx) => {
+            const matchDoc = await tx.get(matchRef);
             if (!matchDoc.exists)
                 throw new https_1.HttpsError('not-found', 'Match not found.');
             const matchData = matchDoc.data();
@@ -189,25 +239,26 @@ exports.reportBracketMatchResult = (0, https_1.onCall)({ region: 'europe-west1' 
                 throw new https_1.HttpsError('failed-precondition', 'Match is not ready.');
             if (matchData.winnerId)
                 throw new https_1.HttpsError('failed-precondition', 'Match already has a winner.');
-            const winnerData = winnerId === matchData.teamA.id ? matchData.teamA : matchData.teamB;
+            const winnerData = winnerId === matchData.teamA.id ? matchData.teamA :
+                winnerId === matchData.teamB.id ? matchData.teamB : null;
             if (!winnerData)
                 throw new https_1.HttpsError('invalid-argument', 'Winner ID does not match teams.');
-            transaction.update(matchRef, { winnerId: winnerId, status: 'completed' });
+            tx.update(matchRef, { winnerId, status: 'completed' });
             if (matchData.nextMatchId) {
-                const nextMatchRef = tournamentRef.collection('matches').doc(matchData.nextMatchId);
-                const nextMatchDoc = await transaction.get(nextMatchRef);
-                if (!nextMatchDoc.exists)
+                const nextRef = tournamentRef.collection('matches').doc(matchData.nextMatchId);
+                const nextDoc = await tx.get(nextRef);
+                if (!nextDoc.exists)
                     throw new https_1.HttpsError('internal', 'Next match reference broken.');
-                const nextMatchData = nextMatchDoc.data();
-                if (!nextMatchData.teamA) {
-                    transaction.update(nextMatchRef, { teamA: winnerData, status: nextMatchData.teamB ? 'pending' : 'awaiting_opponent' });
+                const next = nextDoc.data();
+                if (!next.teamA) {
+                    tx.update(nextRef, { teamA: winnerData, status: next.teamB ? 'pending' : 'awaiting_opponent' });
                 }
-                else if (!nextMatchData.teamB) {
-                    transaction.update(nextMatchRef, { teamB: winnerData, status: 'pending' });
+                else if (!next.teamB) {
+                    tx.update(nextRef, { teamB: winnerData, status: 'pending' });
                 }
             }
             else {
-                transaction.update(tournamentRef, { winnerId: winnerId, status: 'completed' });
+                tx.update(tournamentRef, { winnerId, status: 'completed' });
             }
         });
         return { success: true, message: 'Match result reported.' };
@@ -221,30 +272,28 @@ exports.reportBracketMatchResult = (0, https_1.onCall)({ region: 'europe-west1' 
         throw new https_1.HttpsError('internal', error.message || 'Failed to report result.');
     }
 });
-// *** CORRECCIÓN: Tipar el request ***
+/** Reportar resultado en round-robin (solo admin/mod) */
 exports.reportRoundRobinMatchResult = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    if (!request.auth || !['admin', 'moderator'].includes(request.auth.token.role)) {
-        throw new https_1.HttpsError('permission-denied', 'You do not have permission.');
+    const { role } = requireAuth(request);
+    if (!['admin', 'moderator'].includes(role)) {
+        throw new https_1.HttpsError('permission-denied', 'No tienes permiso.');
     }
     try {
-        // *** CORRECCIÓN: Zod parsea request.data (ahora tipado) ***
         const { tournamentId, matchId, winnerId, loserId } = ReportRoundRobinMatchResultSchema.parse(request.data);
-        const tournamentRef = db.doc(`tournaments/${tournamentId}`);
-        const matchRef = tournamentRef.collection('schedule').doc(matchId);
-        const winnerStandingsRef = tournamentRef.collection('standings').doc(winnerId);
-        const loserStandingsRef = tournamentRef.collection('standings').doc(loserId);
-        await db.runTransaction(async (transaction) => {
-            var _a;
-            const [matchDoc, winnerDoc, loserDoc] = await Promise.all([
-                transaction.get(matchRef), transaction.get(winnerStandingsRef), transaction.get(loserStandingsRef)
-            ]);
-            if (!matchDoc.exists || ((_a = matchDoc.data()) === null || _a === void 0 ? void 0 : _a.status) === 'completed')
+        const tRef = db.doc(`tournaments/${tournamentId}`);
+        const mRef = tRef.collection('schedule').doc(matchId);
+        const winRef = tRef.collection('standings').doc(winnerId);
+        const losRef = tRef.collection('standings').doc(loserId);
+        await db.runTransaction(async (tx) => {
+            const [mDoc, wDoc, lDoc] = await Promise.all([tx.get(mRef), tx.get(winRef), tx.get(losRef)]);
+            if (!mDoc.exists || mDoc.data()?.status === 'completed') {
                 throw new https_1.HttpsError('failed-precondition', 'Match not reportable.');
-            if (!winnerDoc.exists || !loserDoc.exists)
+            }
+            if (!wDoc.exists || !lDoc.exists)
                 throw new https_1.HttpsError('not-found', 'Standings document not found.');
-            transaction.update(matchRef, { status: 'completed', winnerId: winnerId });
-            transaction.update(winnerStandingsRef, { wins: admin.firestore.FieldValue.increment(1) });
-            transaction.update(loserStandingsRef, { losses: admin.firestore.FieldValue.increment(1) });
+            tx.update(mRef, { status: 'completed', winnerId });
+            tx.update(winRef, { wins: admin.firestore.FieldValue.increment(1) });
+            tx.update(losRef, { losses: admin.firestore.FieldValue.increment(1) });
         });
         return { success: true, message: 'Match result reported.' };
     }
@@ -257,52 +306,43 @@ exports.reportRoundRobinMatchResult = (0, https_1.onCall)({ region: 'europe-west
         throw new https_1.HttpsError('internal', error.message || 'Failed to report result.');
     }
 });
-// *** CORRECCIÓN: Tipar el request ***
+/** Registrar equipo en torneo (control de concurrencia por límite) */
 exports.registerTeamForTournament = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    if (!request.auth)
-        throw new https_1.HttpsError("unauthenticated", "...");
-    const { uid } = request.auth;
-    const { tournamentId, teamId } = request.data; // <-- Tipado
-    if (!tournamentId || !teamId)
-        throw new https_1.HttpsError("invalid-argument", "...");
-    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const { uid } = requireAuth(request);
+    const { tournamentId, teamId } = RegisterTeamSchema.parse(request.data);
+    const tRef = db.collection("tournaments").doc(tournamentId);
     const teamRef = db.collection("teams").doc(teamId);
-    const memberRef = teamRef.collection("members").doc(uid);
-    const registrationRef = tournamentRef.collection("teams").doc(teamId);
+    const memberRef = teamRef.collection("members").doc(uid); // requiere subcolección con roles
+    const regRef = tRef.collection("teams").doc(teamId);
     try {
-        await db.runTransaction(async (transaction) => {
-            var _a;
-            const [tournamentSnap, teamSnap, memberSnap, registrationSnap] = await Promise.all([
-                transaction.get(tournamentRef),
-                transaction.get(teamRef),
-                transaction.get(memberRef),
-                transaction.get(registrationRef)
+        await db.runTransaction(async (tx) => {
+            const [tSnap, teamSnap, memberSnap, regSnap] = await Promise.all([
+                tx.get(tRef), tx.get(teamRef), tx.get(memberRef), tx.get(regRef)
             ]);
-            if (!tournamentSnap.exists)
+            if (!tSnap.exists)
                 throw new https_1.HttpsError("not-found", "El torneo no existe.");
             if (!teamSnap.exists)
-                throw new https_1.HttpsError("not-found", "Tu equipo no existe.");
-            if (!memberSnap.exists || !['founder', 'coach'].includes((_a = memberSnap.data()) === null || _a === void 0 ? void 0 : _a.role))
-                throw new https_1.HttpsError("permission-denied", "Solo staff puede registrar.");
-            if (registrationSnap.exists)
+                throw new https_1.HttpsError("not-found", "El equipo no existe.");
+            if (!memberSnap.exists || !['founder', 'coach'].includes(memberSnap.data()?.role)) {
+                throw new https_1.HttpsError("permission-denied", "Solo founder/coach puede registrar.");
+            }
+            if (regSnap.exists)
                 throw new https_1.HttpsError("already-exists", "Equipo ya registrado.");
-            const tournamentData = tournamentSnap.data();
-            const teamData = teamSnap.data();
-            if (tournamentData.status !== 'upcoming')
+            const td = tSnap.data();
+            if (td.status !== 'upcoming')
                 throw new https_1.HttpsError("failed-precondition", "Torneo no abierto.");
-            const currentTeamsCount = tournamentData.registeredTeamsCount || 0;
-            if (currentTeamsCount >= tournamentData.maxTeams)
+            // Control real del cupo dentro de la transacción
+            const regsSnap = await tx.get(tRef.collection("teams").limit(td.maxTeams));
+            if (regsSnap.size >= td.maxTeams)
                 throw new https_1.HttpsError("failed-precondition", "Torneo lleno.");
-            // ... Validación de Rango ...
-            transaction.set(registrationRef, {
-                teamId: teamId,
-                teamName: teamData.name,
-                teamAvatarUrl: teamData.avatarUrl,
+            tx.set(regRef, {
+                teamId,
+                teamName: teamSnap.data()?.name ?? '',
+                teamAvatarUrl: teamSnap.data()?.avatarUrl ?? null,
                 registeredAt: admin.firestore.FieldValue.serverTimestamp(),
             });
-            transaction.update(tournamentRef, {
-                registeredTeamsCount: admin.firestore.FieldValue.increment(1)
-            });
+            // increment para UI (no se confía en esto para el cupo)
+            tx.update(tRef, { registeredTeamsCount: admin.firestore.FieldValue.increment(1) });
         });
         return { success: true, message: "Equipo registrado." };
     }
@@ -313,36 +353,34 @@ exports.registerTeamForTournament = (0, https_1.onCall)({ region: 'europe-west1'
         throw new https_1.HttpsError('internal', error.message || 'Error al registrar.');
     }
 });
-// *** CORRECCIÓN: Tipar el request ***
+/** Proponer torneo (certificado o staff) */
 exports.proposeTournament = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    if (!request.auth)
-        throw new https_1.HttpsError("unauthenticated", "...");
-    const { uid, token } = request.auth;
-    if (!token.isCertifiedStreamer && token.role !== 'admin' && token.role !== 'moderator') {
+    const { uid, role, isCertifiedStreamer } = requireAuth(request);
+    if (!isCertifiedStreamer && !['admin', 'moderator'].includes(role)) {
         throw new https_1.HttpsError("permission-denied", "Solo usuarios certificados o staff pueden proponer.");
     }
-    // *** CORRECCIÓN: Acceder a request.data (ahora tipado) ***
-    const { name, game, description, proposedDate, format, maxTeams, rankMin, rankMax, prize, currency } = request.data;
-    if (!name || !game || !description || !proposedDate || !format || !maxTeams) {
-        throw new https_1.HttpsError("invalid-argument", "Faltan detalles requeridos.");
-    }
+    const data = ProposeTournamentSchema.parse(request.data);
     try {
         const userDoc = await db.collection('users').doc(uid).get();
         if (!userDoc.exists)
             throw new https_1.HttpsError("not-found", "Perfil no encontrado.");
         const userData = userDoc.data();
-        const proposerName = userData.name || 'Unknown User';
-        const proposerCountry = userData.country || '';
         const proposalRef = db.collection("tournamentProposals").doc();
         await proposalRef.set({
             id: proposalRef.id,
             proposerUid: uid,
-            proposerName: proposerName,
-            proposerCountry: proposerCountry,
-            tournamentName: name, game, description, format, maxTeams,
-            proposedDate: admin.firestore.Timestamp.fromDate(new Date(proposedDate)),
-            rankMin: rankMin || '', rankMax: rankMax || '',
-            prize: prize || null, currency: currency || '',
+            proposerName: userData?.name ?? 'Unknown User',
+            proposerCountry: userData?.country ?? '',
+            tournamentName: data.name,
+            game: data.game,
+            description: data.description,
+            format: data.format,
+            maxTeams: data.maxTeams,
+            proposedDate: admin.firestore.Timestamp.fromDate(new Date(data.proposedDate)),
+            rankMin: data.rankMin ?? '',
+            rankMax: data.rankMax ?? '',
+            prize: data.prize ?? null,
+            currency: data.currency ?? '',
             status: 'pending',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
@@ -355,35 +393,43 @@ exports.proposeTournament = (0, https_1.onCall)({ region: 'europe-west1' }, asyn
         throw new https_1.HttpsError('internal', error.message || 'Failed to submit proposal.');
     }
 });
-// *** CORRECCIÓN: Tipar el request ***
+/** Revisar propuesta (mod/admin). Si aprueba, crea torneo filtrando campos. */
 exports.reviewTournamentProposal = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    if (!request.auth)
-        throw new https_1.HttpsError("unauthenticated", "...");
-    const { uid, token } = request.auth;
-    if (token.role !== 'moderator' && token.role !== 'admin')
-        throw new https_1.HttpsError("permission-denied", "...");
-    // *** CORRECCIÓN: Acceder a request.data (ahora tipado) ***
-    const { proposalId, status } = request.data;
-    if (!proposalId || !['approved', 'rejected'].includes(status))
-        throw new https_1.HttpsError("invalid-argument", "...");
+    const { uid, role } = requireAuth(request);
+    if (!['moderator', 'admin'].includes(role))
+        throw new https_1.HttpsError("permission-denied", "No autorizado.");
+    const { proposalId, status } = ReviewTournamentSchema.parse(request.data);
     const proposalRef = db.collection("tournamentProposals").doc(proposalId);
     try {
-        await db.runTransaction(async (transaction) => {
-            const proposalSnap = await transaction.get(proposalRef);
-            if (!proposalSnap.exists)
-                throw new https_1.HttpsError("not-found", "...");
-            const proposalData = proposalSnap.data();
-            if (!proposalData || proposalData.status !== 'pending')
-                throw new https_1.HttpsError("failed-precondition", "...");
-            const reviewTimestamp = admin.firestore.Timestamp.now();
-            transaction.update(proposalRef, { status: status, reviewedBy: uid, reviewedAt: reviewTimestamp });
+        await db.runTransaction(async (tx) => {
+            const p = await tx.get(proposalRef);
+            if (!p.exists)
+                throw new https_1.HttpsError("not-found", "Propuesta no encontrada.");
+            const pr = p.data();
+            if (pr.status !== 'pending')
+                throw new https_1.HttpsError("failed-precondition", "Propuesta ya revisada.");
+            const reviewedAt = admin.firestore.Timestamp.now();
+            tx.update(proposalRef, { status, reviewedBy: uid, reviewedAt });
             if (status === 'approved') {
-                const { tournamentName, game, description, proposedDate, format, maxTeams } = proposalData;
+                const { tournamentName, game, description, proposedDate, format, maxTeams } = pr;
                 if (!tournamentName || !game || !description || !proposedDate || !format || !maxTeams) {
                     throw new https_1.HttpsError("failed-precondition", "Datos de propuesta inválidos.");
                 }
-                const tournamentRef = db.collection('tournaments').doc();
-                transaction.set(tournamentRef, Object.assign(Object.assign({}, proposalData), { id: tournamentRef.id, registeredTeamsCount: 0, winnerId: null, status: 'upcoming', createdAt: reviewTimestamp, proposalId: proposalId }));
+                const tRef = db.collection('tournaments').doc();
+                tx.set(tRef, {
+                    id: tRef.id,
+                    name: tournamentName,
+                    game,
+                    description,
+                    startsAt: proposedDate, // guardar como Timestamp ya viene desde la propuesta
+                    format,
+                    maxTeams,
+                    registeredTeamsCount: 0,
+                    winnerId: null,
+                    status: 'upcoming',
+                    createdAt: reviewedAt,
+                    proposalId,
+                });
             }
         });
         return { success: true, message: `Propuesta ${status}.` };
@@ -395,91 +441,82 @@ exports.reviewTournamentProposal = (0, https_1.onCall)({ region: 'europe-west1' 
         throw new https_1.HttpsError('internal', error.message || 'Error al procesar.');
     }
 });
-// *** CORRECCIÓN: Tipar el request ***
+/** Editar torneo (owner o staff), filtrando campos no editables */
 exports.editTournament = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    if (!request.auth)
-        throw new https_1.HttpsError("unauthenticated", "...");
-    const { uid, token } = request.auth;
-    // *** CORRECCIÓN: Acceder a request.data (ahora tipado) ***
-    const _a = request.data, { tournamentId } = _a, updateData = __rest(_a, ["tournamentId"]);
-    if (!tournamentId)
-        throw new https_1.HttpsError("invalid-argument", "...");
-    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const { uid, role } = requireAuth(request);
+    const data = EditTournamentSchema.parse(request.data);
+    const { tournamentId, ...updateData } = data;
+    const tRef = db.collection("tournaments").doc(tournamentId);
     try {
-        const tournamentSnap = await tournamentRef.get();
-        if (!tournamentSnap.exists)
-            throw new https_1.HttpsError("not-found", "...");
-        const tournamentData = tournamentSnap.data();
-        const isOwner = tournamentData.organizer.uid === uid;
-        const isModOrAdmin = token.role === 'moderator' || token.role === 'admin';
-        if (!isOwner && !isModOrAdmin)
-            throw new https_1.HttpsError("permission-denied", "...");
-        const allowedUpdates = Object.assign({}, updateData);
-        delete allowedUpdates.organizer;
-        delete allowedUpdates.status;
-        delete allowedUpdates.id;
-        // ... (etc.)
-        await tournamentRef.update(allowedUpdates);
-        return { success: true, message: "..." };
+        const tSnap = await tRef.get();
+        if (!tSnap.exists)
+            throw new https_1.HttpsError("not-found", "Torneo no encontrado.");
+        const tData = tSnap.data();
+        const isOwner = tData?.organizer?.uid === uid; // si usas organizer
+        const isModOrAdmin = ['moderator', 'admin'].includes(role);
+        if (!isOwner && !isModOrAdmin) {
+            throw new https_1.HttpsError("permission-denied", "No autorizado para editar.");
+        }
+        // Filtrar campos que no deben editarse
+        const forbidden = ['organizer', 'status', 'id', 'createdAt', 'proposalId', 'registeredTeamsCount', 'winnerId'];
+        forbidden.forEach((k) => delete updateData[k]);
+        await tRef.update(updateData);
+        return { success: true, message: "Torneo actualizado." };
     }
     catch (error) {
         console.error(`Error editing tournament ${tournamentId}:`, error);
         if (error instanceof https_1.HttpsError)
             throw error;
-        throw new https_1.HttpsError("internal", error.message || "...");
+        throw new https_1.HttpsError("internal", error.message || "No se pudo actualizar.");
     }
 });
-// *** CORRECCIÓN: Tipar el request ***
+/** Eliminar torneo (mod/admin) con borrado recursivo de subcolecciones */
 exports.deleteTournament = (0, https_1.onCall)({ region: 'europe-west1' }, async (request) => {
-    var _a;
-    if (!request.auth)
-        throw new https_1.HttpsError("unauthenticated", "...");
-    const { token } = request.auth;
-    if (token.role !== 'moderator' && token.role !== 'admin')
-        throw new https_1.HttpsError("permission-denied", "...");
-    // *** CORRECCIÓN: Acceder a request.data (ahora tipado) ***
-    const { tournamentId } = request.data;
-    if (!tournamentId)
-        throw new https_1.HttpsError("invalid-argument", "...");
-    const tournamentRef = db.collection("tournaments").doc(tournamentId);
+    const { role } = requireAuth(request);
+    if (!['moderator', 'admin'].includes(role))
+        throw new https_1.HttpsError("permission-denied", "No autorizado.");
+    const { tournamentId } = DeleteTournamentSchema.parse(request.data);
+    const tRef = db.collection("tournaments").doc(tournamentId);
     try {
-        const tournamentSnap = await tournamentRef.get();
-        if (!tournamentSnap.exists)
-            return { success: true, message: "..." };
-        const proposalId = (_a = tournamentSnap.data()) === null || _a === void 0 ? void 0 : _a.proposalId;
+        const tSnap = await tRef.get();
+        if (!tSnap.exists)
+            return { success: true, message: "Ya estaba borrado." };
+        const proposalId = tSnap.data()?.proposalId;
         await deleteCollection(db, `tournaments/${tournamentId}/teams`);
         await deleteCollection(db, `tournaments/${tournamentId}/matches`);
         await deleteCollection(db, `tournaments/${tournamentId}/schedule`);
         await deleteCollection(db, `tournaments/${tournamentId}/standings`);
         const batch = db.batch();
-        batch.delete(tournamentRef);
-        if (proposalId) {
+        batch.delete(tRef);
+        if (proposalId)
             batch.delete(db.collection("tournamentProposals").doc(proposalId));
-        }
         await batch.commit();
-        return { success: true, message: "..." };
+        return { success: true, message: "Torneo borrado." };
     }
     catch (error) {
         console.error(`Error deleting tournament ${tournamentId}:`, error);
         if (error instanceof https_1.HttpsError)
             throw error;
-        throw new https_1.HttpsError("internal", error.message || "...");
+        throw new https_1.HttpsError("internal", error.message || "No se pudo borrar el torneo.");
     }
 });
-// --- FUNCIÓN DE AYUDA (Helper) para borrar colecciones ---
-async function deleteCollection(db, collectionPath, batchSize = 400) {
-    const collectionRef = db.collection(collectionPath);
+// ---------------------- Helper: borrar colecciones en lotes ----------------------
+async function deleteCollection(dbi, collectionPath, batchSize = 400) {
+    const collectionRef = dbi.collection(collectionPath);
     let query = collectionRef.orderBy('__name__').limit(batchSize);
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         const snapshot = await query.get();
-        if (snapshot.size === 0)
+        if (snapshot.empty)
             break;
-        const batch = db.batch();
+        const batch = dbi.batch();
         snapshot.docs.forEach((doc) => batch.delete(doc.ref));
         await batch.commit();
         if (snapshot.size < batchSize)
             break;
-        query = collectionRef.orderBy('__name__').startAfter(snapshot.docs[snapshot.docs.length - 1]).limit(batchSize);
+        query = collectionRef.orderBy('__name__')
+            .startAfter(snapshot.docs[snapshot.docs.length - 1])
+            .limit(batchSize);
     }
     console.log(`Finished deleting collection: ${collectionPath}`);
 }

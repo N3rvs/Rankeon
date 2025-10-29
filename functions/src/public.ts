@@ -1,345 +1,331 @@
-
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
+import { z } from 'zod';
 
 const db = admin.firestore();
-const DEFAULT_PAGE_SIZE = 20;
+const PAGE_SIZE = 20 as const;
 
-/* --------------------------- Utilidades de error --------------------------- */
-function mapErrorToHttpsError(ctx: string, err: any): never {
-  const msg = String(err?.message ?? err ?? 'Unexpected error');
-  console.error(`[${ctx}] ERROR:`, msg, err);
-
-  if (msg.includes('FAILED_PRECONDITION') || msg.toLowerCase().includes('index')) {
-    throw new HttpsError(
-      'failed-precondition',
-      'Falta un índice compuesto para esta consulta de Firestore. Crea el índice sugerido en la consola.'
-    );
-  }
-  if (msg.includes('Missing or insufficient permissions')) {
-    throw new HttpsError('permission-denied', 'Las reglas de Firestore denegaron la lectura.');
-  }
-  if (msg.includes('invalid-argument')) {
-    throw new HttpsError('invalid-argument', msg);
-  }
-  throw new HttpsError('internal', msg);
+// ---------- Helpers ----------
+function assertAuth(ctx: any) {
+  if (!ctx.auth?.uid) throw new HttpsError('unauthenticated', 'You must be logged in.');
+  return ctx.auth.uid as string;
 }
 
-/* -------------------------- Featured Scrims (Top N) ------------------------ */
-export const getFeaturedScrims = onCall({ enforceAppCheck: false, region: 'europe-west1' }, async () => {
+const toISO = (v: any) => {
+  if (!v) return null;
+  if (typeof v?.toDate === 'function') return v.toDate().toISOString(); // Firestore Timestamp
+  if (v instanceof Date) return v.toISOString();
+  return null;
+};
+
+// ---------- Schemas ----------
+const PageInputSchema = z.object({
+  lastId: z.string().nullable().optional(),
+});
+
+/**
+ * ============= getFeaturedScrims =============
+ * Frontend espera: array plano de scrims.
+ */
+export const getFeaturedScrims = onCall({ region: 'europe-west1' }, async (_req) => {
   try {
     const snap = await db
       .collection('scrims')
-      .where('status', '==', 'confirmed')
+      .where('featured', '==', true)
       .orderBy('date', 'desc')
-      .limit(10)
+      .limit(PAGE_SIZE)
       .get();
 
-    const scrims = snap.docs.map((d) => {
-      const s = d.data();
+    const items = snap.docs.map((d) => {
+      const x = d.data() as any;
       return {
-        ...s,
         id: d.id,
-        date: s.date?.toDate().toISOString(),
-        createdAt: s.createdAt?.toDate().toISOString(),
+        ...x,
+        date: toISO(x.date),
+        createdAt: toISO(x.createdAt),
+        updatedAt: toISO(x.updatedAt),
       };
     });
-    return scrims;
-  } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
-    throw mapErrorToHttpsError('getFeaturedScrims', err);
+
+    return items; // array plano
+  } catch (err: any) {
+    if (err instanceof HttpsError) throw err;
+    console.error('getFeaturedScrims error:', err);
+    throw new HttpsError('internal', err.message ?? 'Unexpected error');
   }
 });
 
-/* --------------------------- Market: Players (Paginado) -------------------------- */
-export const getMarketPlayers = onCall({ region: 'europe-west1' }, async ({ auth, data }) => {
+/**
+ * ============= getScrimRankings =============
+ * Frontend espera: { rankings, nextLastId }
+ */
+export const getScrimRankings = onCall({ region: 'europe-west1' }, async (req) => {
   try {
-    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
-    const { lastId } = (data ?? {}) as { lastId: string | null };
+    const { lastId } = PageInputSchema.parse(req.data ?? {});
 
-    let q = db
-      .collection('users')
-      .where('lookingForTeam', '==', true)
-      .orderBy('name')
-      .limit(DEFAULT_PAGE_SIZE);
-
-    if (lastId) {
-      const lastDoc = await db.collection('users').doc(lastId).get();
-      if (lastDoc.exists) q = q.startAfter(lastDoc);
-    }
-
-    const snap = await q.get();
-    const players = snap.docs.map((d) => {
-      const u = d.data();
-      return {
-        id: d.id,
-        name: u.name || '',
-        avatarUrl: u.avatarUrl || '',
-        primaryGame: u.primaryGame || '',
-        skills: u.skills || [],
-        rank: u.rank || '',
-        country: u.country || '',
-        lookingForTeam: u.lookingForTeam || false,
-        teamId: u.teamId ?? null,
-        blocked: u.blocked || [], // Incluir solo si el cliente lo necesita para filtrar
-      };
-    });
-    const lastDoc = snap.docs[snap.docs.length - 1] || null;
-    return { players, nextLastId: lastDoc ? lastDoc.id : null };
-  } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
-    throw mapErrorToHttpsError('getMarketPlayers', err);
-  }
-});
-
-/* ---------------------------- Market: Teams (Paginado) --------------------------- */
-export const getMarketTeams = onCall({ region: 'europe-west1' }, async ({ auth, data }) => {
-  try {
-    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
-    const { lastId } = (data ?? {}) as { lastId: string | null };
-
-    let q = db
+    let q: FirebaseFirestore.Query = db
       .collection('teams')
-      .where('lookingForPlayers', '==', true)
-      .orderBy('createdAt', 'desc')
-      .limit(DEFAULT_PAGE_SIZE);
+      .orderBy('elo', 'desc')
+      .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+      .limit(PAGE_SIZE);
 
     if (lastId) {
-      const lastDoc = await db.collection('teams').doc(lastId).get();
-      if (lastDoc.exists) q = q.startAfter(lastDoc);
+      const cur = await db.collection('teams').doc(lastId).get();
+      if (cur.exists) q = q.startAfter(cur);
     }
 
-    const snap = await q.get();
-    const teams = snap.docs.map((d) => {
-      const t = d.data();
-      // Excluir campos sensibles si es necesario antes de devolver
-      return {
-        // Incluye los campos que el mercado necesita
-        id: d.id,
-        name: t.name,
-        game: t.game,
-        country: t.country,
-        avatarUrl: t.avatarUrl,
-        bannerUrl: t.bannerUrl, // Opcional
-        lookingForPlayers: t.lookingForPlayers,
-        recruitingRoles: t.recruitingRoles,
-        rankMin: t.rankMin, // Opcional
-        rankMax: t.rankMax, // Opcional
-        createdAt: t.createdAt?.toDate().toISOString(),
-      };
-    });
-    const lastDoc = snap.docs[snap.docs.length - 1] || null;
-    return { teams, nextLastId: lastDoc ? lastDoc.id : null };
-  } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
-    throw mapErrorToHttpsError('getMarketTeams', err);
-  }
-});
+    const res = await q.get();
+    const rankings = res.docs.map((d) => {
+      const x = d.data() as any;
+      const played = Number(x.scrimsPlayed ?? x.played ?? 0);
+      const won = Number(x.scrimsWon ?? x.won ?? 0);
+      const winRate = played > 0 ? won / played : 0;
 
-/* --------------------------- Honor Rankings (Paginado) --------------------------- */
-export const getHonorRankings = onCall({ region: 'europe-west1' }, async ({ auth, data }) => {
-  try {
-    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
-    const { lastId } = (data ?? {}) as { lastId: string | null };
-
-    let q = db
-      .collection('users')
-      .where('totalHonors', '>', 0)
-      .orderBy('totalHonors', 'desc')
-      .limit(DEFAULT_PAGE_SIZE);
-
-    if (lastId) {
-      const lastDoc = await db.collection('users').doc(lastId).get();
-      if (lastDoc.exists) q = q.startAfter(lastDoc);
-    }
-
-    const snap = await q.get();
-    const rankings = snap.docs.map((d) => {
-      const u = d.data();
       return {
         id: d.id,
-        name: u.name,
-        avatarUrl: u.avatarUrl,
-        totalHonors: u.totalHonors || 0,
-        isCertifiedStreamer: u.isCertifiedStreamer || false,
+        name: x.name ?? '',
+        logoUrl: x.logoUrl ?? null,
+        elo: x.elo ?? 0,
+        played,
+        won,
+        winRate,
+        createdAt: toISO(x.createdAt),
+        updatedAt: toISO(x.updatedAt),
       };
     });
-    const lastDoc = snap.docs[snap.docs.length - 1] || null;
-    return { rankings, nextLastId: lastDoc ? lastDoc.id : null };
-  } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
-    throw mapErrorToHttpsError('getHonorRankings', err);
+
+    const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+    return { rankings, nextLastId };
+  } catch (err: any) {
+    if (err instanceof HttpsError) throw err;
+    console.error('getScrimRankings error:', err);
+    throw new HttpsError('internal', err.message ?? 'Unexpected error');
   }
 });
 
-/* --------------------------- Scrim Rankings (Paginado) --------------------------- */
-export const getScrimRankings = onCall({ region: 'europe-west1' }, async ({ auth, data }) => {
+/**
+ * ============= getTournamentRankings =============
+ * Frontend espera: { tournaments, nextLastId }
+ */
+export const getTournamentRankings = onCall({ region: 'europe-west1' }, async (req) => {
   try {
-    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
-    const { lastId } = (data ?? {}) as { lastId: string | null };
+    const { lastId } = PageInputSchema.parse(req.data ?? {});
 
-    let q = db
-      .collection('teams')
-      .where('stats.scrimsPlayed', '>', 0)
-      .orderBy('winRate', 'desc')
-      .orderBy('stats.scrimsPlayed', 'desc')
-      .limit(DEFAULT_PAGE_SIZE);
-
-    if (lastId) {
-      const lastDoc = await db.collection('teams').doc(lastId).get();
-      if (lastDoc.exists) q = q.startAfter(lastDoc);
-    }
-
-    const snap = await q.get();
-    const rankings = snap.docs.map((d) => {
-       const t = d.data();
-       const played = t.stats?.scrimsPlayed || 0;
-       const won = t.stats?.scrimsWon || 0;
-       const winRate = t.winRate || 0; // Asume campo denormalizado
-       return {
-         id: d.id,
-         name: t.name, // Añadir campos necesarios para UI
-         avatarUrl: t.avatarUrl, // Añadir campos necesarios para UI
-         winRate,
-         played,
-         won,
-         createdAt: t.createdAt?.toDate().toISOString(),
-       };
-    });
-    const lastDoc = snap.docs[snap.docs.length - 1] || null;
-    return { rankings, nextLastId: lastDoc ? lastDoc.id : null };
-  } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
-    throw mapErrorToHttpsError('getScrimRankings', err);
-  }
-});
-
-/* ----------------------- Tournament Rankings (Paginado) -------------------------- */
-export const getTournamentRankings = onCall({ region: 'europe-west1' }, async ({ auth, data }) => {
-  try {
-    if (!auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
-    const { lastId } = (data ?? {}) as { lastId: string | null };
-
-    let q = db
+    let q: FirebaseFirestore.Query = db
       .collection('tournaments')
-      .where('status', '==', 'completed')
-      .where('winnerId', '!=', null)
-      .orderBy('winnerId') // Asegúrate que el índice existe
-      .orderBy('startDate', 'desc') // Asegúrate que el índice existe
-      .limit(DEFAULT_PAGE_SIZE);
+      .orderBy('rating', 'desc') // cambia a 'elo' u otro si tu modelo no tiene 'rating'
+      .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+      .limit(PAGE_SIZE);
 
     if (lastId) {
-      const lastDoc = await db.collection('tournaments').doc(lastId).get();
-      if (lastDoc.exists) q = q.startAfter(lastDoc);
+      const cur = await db.collection('tournaments').doc(lastId).get();
+      if (cur.exists) q = q.startAfter(cur);
     }
 
-    const snap = await q.get();
-    const tournaments = snap.docs.map((d) => {
-      const t = d.data();
-      // Devuelve solo los campos necesarios para el ranking
+    const res = await q.get();
+    const tournaments = res.docs.map((d) => {
+      const x = d.data() as any;
       return {
         id: d.id,
-        name: t.name,
-        winnerId: t.winnerId,
-        // Podrías añadir winnerName y winnerAvatar si los denormalizas en el torneo
-        startDate: t.startDate?.toDate().toISOString(),
-        prize: t.prize, // Opcional
-        currency: t.currency, // Opcional
+        name: x.name ?? '',
+        game: x.game ?? null,
+        rating: x.rating ?? x.elo ?? 0,
+        participants: x.participants ?? x.participantsCount ?? 0,
+        startDate: toISO(x.startDate),
+        createdAt: toISO(x.createdAt),
+        updatedAt: toISO(x.updatedAt),
       };
     });
-    const lastDoc = snap.docs[snap.docs.length - 1] || null;
-    return { tournaments, nextLastId: lastDoc ? lastDoc.id : null };
-  } catch (err) {
-    // *** CORRECCIÓN: Usar throw ***
-    throw mapErrorToHttpsError('getTournamentRankings', err);
+
+    const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+    return { tournaments, nextLastId };
+  } catch (err: any) {
+    if (err instanceof HttpsError) throw err;
+    console.error('getTournamentRankings error:', err);
+    throw new HttpsError('internal', err.message ?? 'Unexpected error');
   }
 });
 
-/* --------------------------- Managed Users (Paginado) ---------------------------- */
-export const getManagedUsers = onCall({ region: 'europe-west1' }, async ({ auth: callerAuth, data }) => {
+/**
+ * ============= getManagedUsers =============
+ * Frontend espera: { users, nextLastId }
+ * Requiere admin/moderator.
+ */
+export const getManagedUsers = onCall({ region: 'europe-west1' }, async (req) => {
   try {
-    if (!callerAuth) throw new HttpsError('unauthenticated', 'You must be logged in.');
-    const { role } = callerAuth.token as any;
+    // const _uid = assertAuth(req);
+    const role = (req.auth!.token as any)?.role;
     if (role !== 'admin' && role !== 'moderator') {
-      throw new HttpsError('permission-denied', 'You do not have permission.');
-    }
-    const { lastId } = (data ?? {}) as { lastId: string | null };
-    let q = db.collection('users').orderBy('name').limit(DEFAULT_PAGE_SIZE);
-    if (lastId) {
-        const lastDoc = await db.collection('users').doc(lastId).get();
-        if (lastDoc.exists) q = q.startAfter(lastDoc);
+      throw new HttpsError('permission-denied', 'Admin/Mod only');
     }
 
-    const snap = await q.get();
-    const users = snap.docs.map((d) => {
-       const u = d.data();
-       return {
-         id: d.id,
-         name: u.name,
-         email: u.email,
-         role: u.role,
-         avatarUrl: u.avatarUrl,
-         isCertifiedStreamer: u.isCertifiedStreamer ?? false,
-         disabled: u.disabled ?? false,
-         createdAt: u.createdAt?.toDate().toISOString() || null,
-         banUntil: u.banUntil?.toDate().toISOString() || null,
-         _claimsRefreshedAt: u._claimsRefreshedAt?.toDate().toISOString() || null,
-       };
+    const { lastId } = PageInputSchema.parse(req.data ?? {});
+
+    let q: FirebaseFirestore.Query = db
+      .collection('users')
+      .orderBy('createdAt', 'desc')
+      .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+      .limit(PAGE_SIZE);
+
+    if (lastId) {
+      const cur = await db.collection('users').doc(lastId).get();
+      if (cur.exists) q = q.startAfter(cur);
+    }
+
+    const res = await q.get();
+    const users = res.docs.map((d) => {
+      const x = d.data() as any;
+      return {
+        id: d.id,
+        name: x.name ?? x.displayName ?? '',
+        avatarUrl: x.avatarUrl ?? x.photoURL ?? null,
+        role: x.role ?? (x.customClaims?.role ?? 'player'),
+        disabled: !!x.disabled,
+        isCertifiedStreamer: !!x.isCertifiedStreamer,
+        createdAt: toISO(x.createdAt),
+        banUntil: toISO(x.banUntil),
+        _claimsRefreshedAt: toISO(x._claimsRefreshedAt),
+      };
     });
-    const lastDoc = snap.docs[snap.docs.length - 1] || null;
-    return { users, nextLastId: lastDoc ? lastDoc.id : null };
-  } catch (err) {
-    throw mapErrorToHttpsError('getManagedUsers', err);
+
+    const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+    return { users, nextLastId };
+  } catch (err: any) {
+    if (err instanceof HttpsError) throw err;
+    console.error('getManagedUsers error:', err);
+    throw new HttpsError('internal', err.message ?? 'Unexpected error');
   }
 });
 
-/* ----------------------------- Team Members (Sin Paginación - OK) --------------------------- */
-export const getTeamMembers = onCall({ region: 'europe-west1' }, async (request) => {
+/**
+ * ============= getFriendProfiles =============
+ * Frontend espera: array plano de perfiles de amigos del usuario autenticado.
+ * Usa colección 'friendships/{a_b}' con campo 'users: [a,b]'.
+ */
+export const getFriendProfiles = onCall({ region: 'europe-west1' }, async (req) => {
   try {
-    const { teamId } = (request.data ?? {}) as { teamId: string };
-    if (!teamId) throw new HttpsError('invalid-argument', 'Team ID is required.');
-    if (!request.auth) throw new HttpsError('unauthenticated', 'Authentication is required.');
+    const uid = assertAuth(req);
 
-    // Aquí podrías añadir una comprobación de permisos si solo miembros/staff pueden ver la lista
+    const fs = await db
+      .collection('friendships')
+      .where('users', 'array-contains', uid)
+      .limit(200)
+      .get();
 
-    const membersSnap = await db.collection(`teams/${teamId}/members`).get();
-    const memberIds = membersSnap.docs.map((d) => d.id);
-    if (memberIds.length === 0) return [];
+    const friendIds = new Set<string>();
+    fs.docs.forEach((d) => {
+      const arr: string[] = (d.data() as any).users ?? [];
+      arr.forEach((u) => {
+        if (u !== uid) friendIds.add(u);
+      });
+    });
 
-    // Advertencia si hay más de 30 miembros por la limitación de 'in'
-    if (memberIds.length > 30) {
-        console.warn(`getTeamMembers: Team ${teamId} has >30 members, fetching only first 30 user profiles.`);
-        // Considera implementar paginación aquí también si los equipos pueden ser muy grandes
+    if (friendIds.size === 0) return [];
+
+    const userRefs = Array.from(friendIds).map((id) => db.doc(`users/${id}`));
+    const snaps = await db.getAll(...userRefs);
+
+    const profiles = snaps
+      .filter((s) => s.exists)
+      .map((s) => {
+        const x = s.data() as any;
+        return {
+          id: s.id,
+          name: x.name ?? x.displayName ?? '',
+          avatarUrl: x.avatarUrl ?? x.photoURL ?? null,
+          role: x.role ?? (x.customClaims?.role ?? 'player'),
+          isCertifiedStreamer: !!x.isCertifiedStreamer,
+          createdAt: toISO(x.createdAt),
+          banUntil: toISO(x.banUntil),
+          _claimsRefreshedAt: toISO(x._claimsRefreshedAt),
+        };
+      });
+
+    return profiles; // array plano
+  } catch (err: any) {
+    if (err instanceof HttpsError) throw err;
+    console.error('getFriendProfiles error:', err);
+    throw new HttpsError('internal', err.message ?? 'Unexpected error');
+  }
+});
+
+/**
+ * ============= getMarketPlayers =============
+ * Frontend espera: { players, nextLastId } o array? → tu action espera { players, nextLastId }.
+ * Si no usas flags de “mercado”, simplemente listamos usuarios más recientes.
+ */
+export const getMarketPlayers = onCall({ region: 'europe-west1' }, async (req) => {
+  try {
+    const input = z.object({ lastId: z.string().nullable().optional() }).parse(req.data ?? {});
+    let q: FirebaseFirestore.Query = db
+      .collection('users')
+      // si tienes un flag como isOnMarket / lft / marketOpen, descomenta:
+      // .where('isOnMarket', '==', true)
+      .orderBy('createdAt', 'desc')
+      .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+      .limit(PAGE_SIZE);
+
+    if (input.lastId) {
+      const cur = await db.collection('users').doc(input.lastId).get();
+      if (cur.exists) q = q.startAfter(cur);
     }
 
-    // Obtiene datos de usuario para los primeros 30 miembros
-    const usersSnap = await db
-      .collection('users')
-      .where(admin.firestore.FieldPath.documentId(), 'in', memberIds.slice(0, 30))
-      .get();
-    const usersMap = new Map(usersSnap.docs.map((d) => [d.id, d.data()]));
-
-    // Combina datos de miembro y usuario
-    return membersSnap.docs.map((d) => {
-      const memberData = d.data();
-      const userData = usersMap.get(d.id) || {};
+    const res = await q.get();
+    const players = res.docs.map((d) => {
+      const x = d.data() as any;
       return {
-        // Datos del miembro (subcolección)
         id: d.id,
-        role: memberData.role,
-        isIGL: memberData.isIGL ?? false,
-        joinedAt: memberData.joinedAt?.toDate().toISOString(),
-        // Datos del usuario (colección /users)
-        name: userData.name,
-        avatarUrl: userData.avatarUrl,
-        country: userData.country,
-        rank: userData.rank,
-        skills: userData.skills,
-        isCertifiedStreamer: userData.isCertifiedStreamer ?? false,
-        // Excluye datos sensibles como email, blocked, etc.
+        name: x.name ?? x.displayName ?? '',
+        avatarUrl: x.avatarUrl ?? x.photoURL ?? null,
+        isCertifiedStreamer: !!x.isCertifiedStreamer,
+        createdAt: toISO(x.createdAt),
       };
     });
-  } catch (err) {
-    throw mapErrorToHttpsError('getTeamMembers', err);
+
+    const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+    return { players, nextLastId };
+  } catch (err: any) {
+    if (err instanceof HttpsError) throw err;
+    console.error('getMarketPlayers error:', err);
+    throw new HttpsError('internal', err.message ?? 'Unexpected error');
+  }
+});
+
+/**
+ * ============= getMarketTeams =============
+ */
+export const getMarketTeams = onCall({ region: 'europe-west1' }, async (req) => {
+  try {
+    const input = z.object({ lastId: z.string().nullable().optional() }).parse(req.data ?? {});
+    let q: FirebaseFirestore.Query = db
+      .collection('teams')
+      // si tienes flag isRecruiting / marketOpen, puedes filtrar:
+      // .where('isRecruiting', '==', true)
+      .orderBy('createdAt', 'desc')
+      .orderBy(admin.firestore.FieldPath.documentId(), 'desc')
+      .limit(PAGE_SIZE);
+
+    if (input.lastId) {
+      const cur = await db.collection('teams').doc(input.lastId).get();
+      if (cur.exists) q = q.startAfter(cur);
+    }
+
+    const res = await q.get();
+    const teams = res.docs.map((d) => {
+      const x = d.data() as any;
+      return {
+        id: d.id,
+        name: x.name ?? '',
+        logoUrl: x.logoUrl ?? null,
+        createdAt: toISO(x.createdAt),
+      };
+    });
+
+    const nextLastId = res.size === PAGE_SIZE ? res.docs[res.docs.length - 1].id : null;
+    return { teams, nextLastId };
+  } catch (err: any) {
+    if (err instanceof HttpsError) throw err;
+    console.error('getMarketTeams error:', err);
+    throw new HttpsError('internal', err.message ?? 'Unexpected error');
   }
 });

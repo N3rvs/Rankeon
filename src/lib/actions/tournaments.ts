@@ -1,187 +1,251 @@
-
-// src/lib/actions/tournaments.ts
-'use client';
-
-import { getFunctions, httpsCallable } from 'firebase/functions';
+// functions/src/tournaments.ts
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import * as admin from 'firebase-admin';
 import { z } from 'zod';
-import { app } from '../firebase/client';
 
-const functions = getFunctions(app, "europe-west1");
+const db = admin.firestore();
+const now = () => admin.firestore.FieldValue.serverTimestamp();
+const tsFromISO = (iso: string) => admin.firestore.Timestamp.fromDate(new Date(iso));
 
-const rankOrder: { [key: string]: number } = {
-    'Hierro': 1,
-    'Bronce': 2,
-    'Plata': 3,
-    'Oro': 4,
-    'Platino': 5,
-    'Ascendente': 6,
-    'Inmortal': 7,
-};
+function assertAuth(ctx: any) {
+  if (!ctx.auth?.uid) throw new HttpsError('unauthenticated', 'You must be logged in.');
+  return ctx.auth.uid as string;
+}
+function isStaff(req: any) {
+  const role = (req.auth?.token as any)?.role;
+  return role === 'admin' || role === 'moderator';
+}
 
-export const ProposeTournamentSchema = z.object({
-  name: z.string().min(5, 'Tournament name must be at least 5 characters.').max(100),
-  game: z.string().min(1, 'Game is required.'),
-  description: z.string().min(20, 'Please provide a detailed description.').max(1000),
-  proposedDate: z.date({ required_error: "Please select a date." }),
-  format: z.string().min(1, 'Please select a format.'),
-  maxTeams: z.coerce.number().int().min(2, "Must have at least 2 teams.").max(64, "Cannot exceed 64 teams."),
+/* ---------- Schemas que casan con tu front ---------- */
+
+const rankOrder = {
+  Hierro: 1, Bronce: 2, Plata: 3, Oro: 4, Platino: 5, Ascendente: 6, Inmortal: 7,
+} as const;
+
+const ProposeTournamentSchema = z.object({
+  name: z.string().min(5).max(100),
+  game: z.string().min(1),
+  description: z.string().min(20).max(1000),
+  proposedDate: z.string().datetime(), // en el front la envías como ISO
+  format: z.string().min(1),
+  maxTeams: z.number().int().min(2).max(64),
   rankMin: z.string().optional(),
   rankMax: z.string().optional(),
-  prize: z.coerce.number().positive().optional(),
+  prize: z.number().positive().optional(),
   currency: z.string().optional(),
-}).refine((data) => {
-    if (data.rankMin && !data.rankMax) {
-        data.rankMax = data.rankMin;
-    }
-    if (!data.rankMin && data.rankMax) {
-        data.rankMin = data.rankMax;
-    }
-    return true;
-}).refine((data) => {
-    if (data.rankMin && data.rankMax) {
-        return rankOrder[data.rankMin as keyof typeof rankOrder] <= rankOrder[data.rankMax as keyof typeof rankOrder];
-    }
-    return true;
-}, {
-    message: "Minimum rank cannot be higher than maximum rank.",
-    path: ["rankMin"],
-}).refine(data => {
-    if (data.prize && !data.currency) return false;
-    if (!data.prize && data.currency) return false;
-    return true;
-}, {
-    message: "Currency is required if a prize amount is set.",
-    path: ["currency"],
-});
-
-export type ProposeTournamentData = z.infer<typeof ProposeTournamentSchema>;
-
-export const ReviewTournamentSchema = z.object({
-    proposalId: z.string().min(1),
-    status: z.enum(['approved', 'rejected']),
-});
-export type ReviewTournamentData = z.infer<typeof ReviewTournamentSchema>;
-
-export const EditTournamentSchema = z.object({
-    tournamentId: z.string().min(1),
-    name: z.string().min(5, 'Tournament name must be at least 5 characters.').max(100),
-    description: z.string().min(20, 'Please provide a detailed description.').max(1000),
-    prize: z.coerce.number().positive().optional(),
-    currency: z.string().optional(),
-    rankMin: z.string().optional(),
-    rankMax: z.string().optional(),
-}).refine(data => {
-    if (data.prize && !data.currency) return false;
-    if (!data.prize && data.currency) return false;
-    return true;
-}, {
-    message: "Currency is required if a prize amount is set.",
-    path: ["currency"],
-});
-export type EditTournamentData = z.infer<typeof EditTournamentSchema>;
-
-
-type ActionResponse = {
-  success: boolean;
-  message: string;
-};
-
-export async function proposeTournament(values: ProposeTournamentData): Promise<ActionResponse> {
-  try {
-    const validatedFields = ProposeTournamentSchema.safeParse(values);
-    if (!validatedFields.success) {
-      return { success: false, message: 'Invalid form data.' };
-    }
-    
-    const dataToSend = {
-      ...validatedFields.data,
-      proposedDate: validatedFields.data.proposedDate.toISOString(),
-    };
-    
-    const proposeFunc = httpsCallable(functions, 'proposeTournament');
-    const result = await proposeFunc(dataToSend);
-    
-    return (result.data as ActionResponse) || { success: true, message: 'Proposal submitted.'};
-  } catch (error: any) {
-    console.error('Error proposing tournament:', error);
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+}).superRefine((d, ctx) => {
+  // emparejar rankMin/rankMax
+  if ((d.rankMin && !d.rankMax) || (!d.rankMin && d.rankMax)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'rankMin y rankMax deben ir juntos', path: ['rankMin'] });
   }
-}
-
-export async function reviewTournamentProposal(values: ReviewTournamentData): Promise<ActionResponse> {
-    try {
-        const validatedFields = ReviewTournamentSchema.safeParse(values);
-        if (!validatedFields.success) {
-            return { success: false, message: 'Invalid review data.' };
-        }
-        
-        const reviewFunc = httpsCallable(functions, 'reviewTournamentProposal');
-        const result = await reviewFunc(validatedFields.data);
-        
-        return (result.data as ActionResponse);
-    } catch (error: any) {
-        console.error('Error reviewing tournament proposal:', error);
-        return { success: false, message: error.message || 'An unexpected error occurred.' };
-    }
-}
-
-export async function editTournament(values: EditTournamentData): Promise<ActionResponse> {
-    try {
-        const validatedFields = EditTournamentSchema.safeParse(values);
-        if (!validatedFields.success) {
-            return { success: false, message: 'Invalid data provided.' };
-        }
-        
-        const editFunc = httpsCallable(functions, 'editTournament');
-        const result = await editFunc(validatedFields.data);
-        
-        return (result.data as ActionResponse);
-    } catch (error: any) {
-        console.error('Error editing tournament:', error);
-        return { success: false, message: error.message || 'An unexpected error occurred.' };
-    }
-}
-
-export async function deleteTournament(values: { tournamentId: string }): Promise<ActionResponse> {
-    try {
-        const deleteFunc = httpsCallable(functions, 'deleteTournament');
-        const result = await deleteFunc(values);
-        return (result.data as ActionResponse);
-    } catch (error: any) {
-        console.error('Error deleting tournament:', error);
-        return { success: false, message: error.message || 'An unexpected error occurred.' };
-    }
-}
-
-export async function registerTeamForTournament(values: { tournamentId: string; teamId: string }): Promise<ActionResponse> {
-  try {
-    const registerFunc = httpsCallable(functions, 'registerTeamForTournament');
-    const result = await registerFunc(values);
-    return (result.data as ActionResponse);
-  } catch (error: any) {
-    console.error('Error registering team:', error);
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  // validar orden de rango
+  if (d.rankMin && d.rankMax) {
+    const ok = (rankOrder as any)[d.rankMin] <= (rankOrder as any)[d.rankMax];
+    if (!ok) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'rankMin no puede ser > rankMax', path: ['rankMin'] });
   }
-}
+  // premio/moneda ligados
+  if ((d.prize && !d.currency) || (!d.prize && d.currency)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Currency es obligatoria si hay prize', path: ['currency'] });
+  }
+});
 
-export async function generateTournamentStructure(values: { tournamentId: string }): Promise<ActionResponse> {
-    try {
-        const generateFunc = httpsCallable(functions, 'generateTournamentStructure');
-        const result = await generateFunc(values);
-        return result.data as ActionResponse;
-    } catch (error: any) {
-        console.error('Error generating tournament structure:', error);
-        return { success: false, message: error.message || 'An unexpected error occurred.' };
-    }
-}
+const ReviewTournamentSchema = z.object({
+  proposalId: z.string().min(1),
+  status: z.enum(['approved', 'rejected']),
+});
 
-export async function reportBracketMatchResult(values: { tournamentId: string, matchId: string, winnerId: string }): Promise<ActionResponse> {
-    try {
-        const reportFunc = httpsCallable(functions, 'reportBracketMatchResult');
-        const result = await reportFunc(values);
-        return result.data as ActionResponse;
-    } catch (error: any) {
-        console.error('Error reporting bracket match result:', error);
-        return { success: false, message: error.message || 'An unexpected error occurred.' };
-    }
-}
+const EditTournamentSchema = z.object({
+  tournamentId: z.string().min(1),
+  name: z.string().min(5).max(100),
+  description: z.string().min(20).max(1000),
+  prize: z.number().positive().optional(),
+  currency: z.string().optional(),
+  rankMin: z.string().optional(),
+  rankMax: z.string().optional(),
+}).superRefine((d, ctx) => {
+  if ((d.prize && !d.currency) || (!d.prize && d.currency)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Currency es obligatoria si hay prize', path: ['currency'] });
+  }
+});
+
+const DeleteSchema = z.object({ tournamentId: z.string().min(1) });
+const RegisterSchema = z.object({ tournamentId: z.string().min(1), teamId: z.string().min(1) });
+const GenerateSchema = z.object({ tournamentId: z.string().min(1) });
+const ReportBracketMatchSchema = z.object({
+  tournamentId: z.string().min(1),
+  matchId: z.string().min(1),
+  winnerId: z.string().min(1),
+});
+
+/* ---------- Implementaciones ---------- */
+
+// Crea una propuesta de torneo
+export const proposeTournament = onCall({ region: 'europe-west1' }, async (req) => {
+  const uid = assertAuth(req);
+  const data = ProposeTournamentSchema.parse(req.data ?? {});
+  const ref = db.collection('tournamentProposals').doc();
+  await ref.set({
+    ownerId: uid,
+    ...data,
+    proposedDate: tsFromISO(data.proposedDate),
+    status: 'pending', // pending | approved | rejected
+    createdAt: now(),
+    updatedAt: now(),
+  });
+  return { success: true, message: 'Proposal submitted.' };
+});
+
+// Aprueba/Rechaza una propuesta (solo staff)
+export const reviewTournamentProposal = onCall({ region: 'europe-west1' }, async (req) => {
+  assertAuth(req);
+  if (!isStaff(req)) throw new HttpsError('permission-denied', 'Staff only.');
+  const { proposalId, status } = ReviewTournamentSchema.parse(req.data ?? {});
+  const pRef = db.doc(`tournamentProposals/${proposalId}`);
+  const pSnap = await pRef.get();
+  if (!pSnap.exists) throw new HttpsError('not-found', 'Proposal not found');
+  const proposal = pSnap.data() as any;
+
+  await pRef.update({ status, updatedAt: now() });
+
+  if (status === 'approved') {
+    // Crear torneo a partir de la propuesta
+    const tRef = db.collection('tournaments').doc();
+    await tRef.set({
+      name: proposal.name,
+      game: proposal.game,
+      description: proposal.description,
+      format: proposal.format,
+      maxTeams: proposal.maxTeams,
+      rankMin: proposal.rankMin ?? null,
+      rankMax: proposal.rankMax ?? null,
+      prize: proposal.prize ?? null,
+      currency: proposal.currency ?? null,
+      startDate: proposal.proposedDate, // ya es Timestamp
+      status: 'draft', // draft | active | finished | canceled
+      createdBy: proposal.ownerId,
+      createdAt: now(),
+      updatedAt: now(),
+      participantsCount: 0,
+    });
+  }
+
+  return { success: true, message: `Proposal ${status}.` };
+});
+
+// Edita datos de un torneo (owner o staff)
+export const editTournament = onCall({ region: 'europe-west1' }, async (req) => {
+  const uid = assertAuth(req);
+  const data = EditTournamentSchema.parse(req.data ?? {});
+  const tRef = db.doc(`tournaments/${data.tournamentId}`);
+  const tSnap = await tRef.get();
+  if (!tSnap.exists) throw new HttpsError('not-found', 'Tournament not found');
+  const t = tSnap.data() as any;
+  if (t.createdBy !== uid && !isStaff(req)) throw new HttpsError('permission-denied', 'Not allowed');
+
+  await tRef.update({
+    name: data.name,
+    description: data.description,
+    prize: data.prize ?? null,
+    currency: data.currency ?? null,
+    rankMin: data.rankMin ?? null,
+    rankMax: data.rankMax ?? null,
+    updatedAt: now(),
+  });
+
+  return { success: true, message: 'Tournament updated.' };
+});
+
+// Elimina un torneo (owner o staff)
+export const deleteTournament = onCall({ region: 'europe-west1' }, async (req) => {
+  const uid = assertAuth(req);
+  const { tournamentId } = DeleteSchema.parse(req.data ?? {});
+  const tRef = db.doc(`tournaments/${tournamentId}`);
+  const tSnap = await tRef.get();
+  if (!tSnap.exists) throw new HttpsError('not-found', 'Tournament not found');
+  const t = tSnap.data() as any;
+  if (t.createdBy !== uid && !isStaff(req)) throw new HttpsError('permission-denied', 'Not allowed');
+
+  await tRef.delete();
+  return { success: true, message: 'Tournament deleted.' };
+});
+
+// Registro de equipo en torneo
+export const registerTeamForTournament = onCall({ region: 'europe-west1' }, async (req) => {
+  const uid = assertAuth(req);
+  const { tournamentId, teamId } = RegisterSchema.parse(req.data ?? {});
+  // (opcional) verificar que uid pertenece al teamId…
+
+  const regRef = db.doc(`tournaments/${tournamentId}/registrations/${teamId}`);
+  const tRef = db.doc(`tournaments/${tournamentId}`);
+
+  await db.runTransaction(async (tx) => {
+    const tSnap = await tx.get(tRef);
+    if (!tSnap.exists) throw new HttpsError('not-found', 'Tournament not found');
+    const t = tSnap.data() as any;
+
+    const already = await tx.get(regRef);
+    if (already.exists) throw new HttpsError('already-exists', 'Team already registered');
+    if (t.participantsCount >= t.maxTeams) throw new HttpsError('failed-precondition', 'Tournament is full');
+
+    tx.set(regRef, { teamId, createdBy: uid, createdAt: now() });
+    tx.update(tRef, {
+      participantsCount: admin.firestore.FieldValue.increment(1),
+      updatedAt: now(),
+    });
+  });
+
+  return { success: true, message: 'Team registered.' };
+});
+
+// Genera estructura (bracket simple placeholder)
+export const generateTournamentStructure = onCall({ region: 'europe-west1' }, async (req) => {
+  assertAuth(req);
+  if (!isStaff(req)) throw new HttpsError('permission-denied', 'Staff only.');
+  const { tournamentId } = GenerateSchema.parse(req.data ?? {});
+
+  const tRef = db.doc(`tournaments/${tournamentId}`);
+  const regsSnap = await db.collection(`tournaments/${tournamentId}/registrations`).get();
+  const teams = regsSnap.docs.map(d => d.id);
+
+  if (teams.length < 2) throw new HttpsError('failed-precondition', 'Not enough teams');
+
+  // crear emparejamientos básicos team[i] vs team[i+1]
+  const batch = db.batch();
+  for (let i = 0; i < teams.length; i += 2) {
+    if (!teams[i + 1]) break;
+    const mRef = db.collection(`tournaments/${tournamentId}/matches`).doc();
+    batch.set(mRef, {
+      teamA: teams[i],
+      teamB: teams[i + 1],
+      round: 1,
+      status: 'pending', // pending | reported
+      createdAt: now(),
+    });
+  }
+  batch.update(tRef, { status: 'active', updatedAt: now() });
+  await batch.commit();
+
+  return { success: true, message: 'Structure generated.' };
+});
+
+// Reportar ganador de un match del bracket
+export const reportBracketMatchResult = onCall({ region: 'europe-west1' }, async (req) => {
+  assertAuth(req);
+  const { tournamentId, matchId, winnerId } = ReportBracketMatchSchema.parse(req.data ?? {});
+
+  const mRef = db.doc(`tournaments/${tournamentId}/matches/${matchId}`);
+  const mSnap = await mRef.get();
+  if (!mSnap.exists) throw new HttpsError('not-found', 'Match not found');
+  const m = mSnap.data() as any;
+  if (![m.teamA, m.teamB].includes(winnerId)) {
+    throw new HttpsError('failed-precondition', 'Winner must be one of the teams');
+  }
+
+  await mRef.update({
+    winnerId,
+    status: 'reported',
+    reportedAt: now(),
+  });
+
+  return { success: true, message: 'Result reported.' };
+});
