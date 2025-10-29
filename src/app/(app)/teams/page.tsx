@@ -30,6 +30,8 @@ import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
 import { UpcomingScrimsCard } from '@/components/teams/upcoming-scrims-card';
 import { Spinner } from '@/components/ui/spinner';
 import { TeamTasksDialog } from '@/components/teams/TeamTasksDialog';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
@@ -57,7 +59,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 newSkills = [...currentSkills, toggledRole];
             }
 
-            // *** CORRECCIÓN APLICADA: Llamar a la acción del backend ***
             const result = await updateMemberSkills(team.id, member.id, newSkills);
 
             if (result.success) {
@@ -72,7 +73,6 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                     variant: 'destructive',
                 });
             }
-            // *** FIN CORRECCIÓN ***
         });
     };
 
@@ -181,11 +181,11 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     );
 }
 
-function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- CORRECCIÓN 2: Añadido userProfile
+function TeamDisplay({ team, members, currentUserRole, userProfile }: {
     team: Team,
     members: TeamMember[],
     currentUserRole: 'founder' | 'coach' | 'member',
-    userProfile: UserProfile | null // <-- CORRECCIÓN 2: Añadido tipo
+    userProfile: UserProfile | null
 }) {
     const { t } = useI18n();
     const { toast } = useToast();
@@ -358,7 +358,12 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
                                 <div className="flex items-center gap-2 shrink-0">
                                     <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary"> <Edit className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.edit')}</span> </Button>
                                     <AlertDialog>
-                                        <AlertDialogTrigger asChild><Button variant="destructive" size="icon"> <Trash2 className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.delete')}</span> </Button></AlertDialogTrigger>
+                                        <AlertDialogTrigger asChild>
+                                          <Button variant="destructive" size="icon">
+                                            <Trash2 className="h-4 w-4" />
+                                            <span className="sr-only">{t('TeamsPage.delete')}</span>
+                                          </Button>
+                                        </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
@@ -471,7 +476,7 @@ function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
 
 
 export default function TeamsPage() {
-    const { userProfile, loading: authLoading } = useAuth(); // <--- userProfile existe aquí
+    const { userProfile, loading: authLoading } = useAuth();
     const [team, setTeam] = useState<Team | null>(null);
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loadingTeam, setLoadingTeam] = useState(true);
@@ -512,8 +517,11 @@ export default function TeamsPage() {
                 setLoadingTeam(false);
                 }
             }, (error) => {
-                console.error("Error fetching team: ", error);
-                toast({ title: 'Error', description: "Could not load your team's data.", variant: 'destructive' });
+                const permissionError = new FirestorePermissionError({
+                    path: teamRef.path,
+                    operation: 'get',
+                });
+                errorEmitter.emit('permission-error', permissionError);
                 setTeam(null);
                 setMembers([]);
                 setLoadingTeam(false);
@@ -564,7 +572,6 @@ export default function TeamsPage() {
                 )}
             </div>
 
-            {/* --- CORRECCIÓN APLICADA: Pasa userProfile como prop aquí --- */}
             {team && currentUserMembership ?
                 <TeamDisplay
                     team={team}
