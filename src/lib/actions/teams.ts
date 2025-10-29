@@ -246,25 +246,24 @@ export async function deleteTask(teamId: string, taskId: string): Promise<Action
 }
 
 export async function updateMemberSkills(teamId: string, memberId: string, skills: string[]): Promise<ActionResponse> {
-    const userDocRef = doc(db, 'users', memberId);
-    const payload = { skills };
-    try {
-        await updateDoc(userDocRef, payload)
-        .catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: userDocRef.path,
-                operation: 'update',
-                requestResourceData: payload,
-            } satisfies SecurityRuleContext);
-
-            errorEmitter.emit('permission-error', permissionError);
-            
-            // We need to re-throw something to be caught by the outer try/catch
-            throw new Error(`Permission denied: ${permissionError.message}`);
-        });
-        return { success: true, message: 'Skills updated.' };
-    } catch (error: any) {
-        console.error('Error updating member skills:', error);
-        return { success: false, message: error.message || 'An unexpected error occurred.' };
+  const userDocRef = doc(db, 'users', memberId);
+  const payload = { skills };
+  
+  try {
+    await updateDoc(userDocRef, payload);
+    return { success: true, message: 'Skills updated.' };
+  } catch (serverError: any) {
+    if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'update',
+            requestResourceData: payload,
+        } satisfies SecurityRuleContext);
+        
+        errorEmitter.emit('permission-error', permissionError);
     }
+    
+    console.error('Error updating member skills:', serverError);
+    return { success: false, message: serverError.message || 'An unexpected error occurred.' };
+  }
 }
