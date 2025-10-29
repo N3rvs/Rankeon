@@ -3,9 +3,11 @@
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { z } from 'zod';
-import { app } from '../firebase/client';
+import { app, db } from '../firebase/client';
 import type { TeamMember } from '../types';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { errorEmitter } from '../firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '../firebase/errors';
 
 const functions = getFunctions(app, "europe-west1");
 
@@ -244,12 +246,25 @@ export async function deleteTask(teamId: string, taskId: string): Promise<Action
 }
 
 export async function updateMemberSkills(teamId: string, memberId: string, skills: string[]): Promise<ActionResponse> {
+    const userDocRef = doc(db, 'users', memberId);
+    const payload = { skills };
     try {
-        const updateSkillsFunc = httpsCallable(functions, 'updateMemberSkills');
-        await updateSkillsFunc({ teamId, memberId, skills });
+        await updateDoc(userDocRef, payload)
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: userDocRef.path,
+                operation: 'update',
+                requestResourceData: payload,
+            } satisfies SecurityRuleContext);
+
+            errorEmitter.emit('permission-error', permissionError);
+            
+            // We need to re-throw something to be caught by the outer try/catch
+            throw new Error(`Permission denied: ${permissionError.message}`);
+        });
         return { success: true, message: 'Skills updated.' };
     } catch (error: any) {
         console.error('Error updating member skills:', error);
-        return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }

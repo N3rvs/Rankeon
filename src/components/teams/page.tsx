@@ -8,12 +8,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield, Twitch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
-import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers } from '@/lib/actions/teams';
+import { deleteTeam, kickTeamMember, setTeamIGL, getTeamMembers, updateMemberSkills } from '@/lib/actions/teams';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EditTeamDialog } from '@/components/teams/edit-team-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -55,22 +55,23 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
                 newSkills = [...currentSkills, toggledRole];
             }
 
-            try {
-                const userDocRef = doc(db, 'users', member.id);
-                await updateDoc(userDocRef, { skills: newSkills });
+            const result = await updateMemberSkills(team.id, member.id, newSkills);
+
+            if (result.success) {
                 toast({
                     title: 'Roles actualizados',
                     description: `Se han actualizado los roles de ${member.name}.`
                 });
-            } catch (error: any) {
+            } else {
                 toast({
                     title: 'Error',
-                    description: `No se pudieron actualizar los roles: ${error.message}`,
+                    description: result.message || 'No se pudieron actualizar los roles',
                     variant: 'destructive',
                 });
             }
         });
     };
+
 
     const handleKick = () => {
         startTransition(async () => {
@@ -83,7 +84,7 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
             setKickAlertOpen(false);
         });
     }
-    
+
     const handleSetIGL = () => {
         startTransition(async () => {
             const result = await setTeamIGL(team.id, member.isIGL ? null : member.id);
@@ -176,7 +177,12 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     );
 }
 
-function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: TeamMember[], currentUserRole: 'founder' | 'coach' | 'member' }) {
+function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- CORRECCIÓN 2: Añadido userProfile
+    team: Team,
+    members: TeamMember[],
+    currentUserRole: 'founder' | 'coach' | 'member',
+    userProfile: UserProfile | null // <-- CORRECCIÓN 2: Añadido tipo
+}) {
     const { t } = useI18n();
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
@@ -220,10 +226,10 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
             }
         });
     };
-    
+
     const isStaff = currentUserRole === 'founder' || currentUserRole === 'coach';
     const isFounder = currentUserRole === 'founder';
-    
+
     const rankRange = team.rankMin && team.rankMax
         ? team.rankMin === team.rankMax
             ? team.rankMin
@@ -231,10 +237,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
         : null;
 
     const renderVideo = (videoUrl?: string) => {
-        if (!videoUrl) {
-          return null;
-        }
-        
+        if (!videoUrl) return null;
         let embedUrl = '';
         if (videoUrl.includes("youtube.com/watch?v=")) {
           const videoId = videoUrl.split('v=')[1].split('&')[0];
@@ -246,13 +249,13 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
 
         const videoNode = embedUrl ? (
              <div className="aspect-video">
-              <iframe
-                className="w-full h-full rounded-lg"
-                src={embedUrl}
-                title="Team Showcase Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              ></iframe>
+               <iframe
+                 className="w-full h-full rounded-lg"
+                 src={embedUrl}
+                 title="Team Showcase Video"
+                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                 allowFullScreen
+               ></iframe>
             </div>
         ) : (
             <video controls src={videoUrl} className="w-full aspect-video rounded-lg bg-black" />
@@ -288,19 +291,11 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             {roleIcons[member.role] || null}
                             <span className="capitalize">{member.role}</span>
-                            {member.isIGL && (
-                                <>
-                                    <span className="mx-1">·</span>
-                                    <BrainCircuit className="h-4 w-4 text-sky-400" />
-                                    <span>IGL</span>
-                                </>
-                            )}
+                            {member.isIGL && ( <> <span className="mx-1">·</span> <BrainCircuit className="h-4 w-4 text-sky-400" /> <span>IGL</span> </> )}
                         </div>
                         {member.skills && member.skills.length > 0 && (
                             <div className="flex items-center gap-1 mt-1">
-                                {member.skills.map(skill => (
-                                    <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                                ))}
+                                {member.skills.map(skill => ( <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge> ))}
                             </div>
                         )}
                     </div>
@@ -350,55 +345,24 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                             <div>
                                 <CardTitle className="text-3xl lg:text-4xl font-headline">{team.name}</CardTitle>
                                 <CardDescription className="flex items-center gap-4 pt-1 flex-wrap">
-                                    <span className="flex items-center gap-2">
-                                        <Gamepad2 className="h-4 w-4" />
-                                        <span>{t('TeamsPage.playing')} {team.game}</span>
-                                    </span>
-                                    {team.country && (
-                                        <>
-                                            <span className="text-muted-foreground/50">|</span>
-                                            <span className="flex items-center gap-2">
-                                                <Globe className="h-4 w-4" />
-                                                <span>{team.country}</span>
-                                            </span>
-                                        </>
-                                    )}
-                                     {rankRange && (
-                                        <>
-                                            <span className="text-muted-foreground/50">|</span>
-                                            <span className="flex items-center gap-2">
-                                                <Shield className="h-4 w-4" />
-                                                <span>{rankRange}</span>
-                                            </span>
-                                        </>
-                                    )}
+                                    <span className="flex items-center gap-2"> <Gamepad2 className="h-4 w-4" /> <span>{t('TeamsPage.playing')} {team.game}</span> </span>
+                                    {team.country && ( <> <span className="text-muted-foreground/50">|</span> <span className="flex items-center gap-2"> <Globe className="h-4 w-4" /> <span>{team.country}</span> </span> </> )}
+                                     {rankRange && ( <> <span className="text-muted-foreground/50">|</span> <span className="flex items-center gap-2"> <Shield className="h-4 w-4" /> <span>{rankRange}</span> </span> </> )}
                                 </CardDescription>
                             </div>
                             {isFounder && (
                                 <div className="flex items-center gap-2 shrink-0">
-                                    <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary">
-                                        <Edit className="h-4 w-4" />
-                                        <span className="sr-only">{t('TeamsPage.edit')}</span>
-                                    </Button>
+                                    <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary"> <Edit className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.edit')}</span> </Button>
                                     <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="destructive" size="icon">
-                                                <Trash2 className="h-4 w-4" />
-                                                <span className="sr-only">{t('TeamsPage.delete')}</span>
-                                            </Button>
-                                        </AlertDialogTrigger>
+                                        <AlertDialogTrigger asChild><Button variant="destructive" size="icon"> <Trash2 className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.delete')}</span> </Button></AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    {t('TeamsPage.delete_confirm_desc')}
-                                                </AlertDialogDescription>
+                                                <AlertDialogDescription> {t('TeamsPage.delete_confirm_desc')} </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>{t('MemberManager.cancel')}</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                                    {isPending ? t('TeamsPage.deleting') : t('TeamsPage.delete_confirm_button')}
-                                                </AlertDialogAction>
+                                                <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90"> {isPending ? t('TeamsPage.deleting') : t('TeamsPage.delete_confirm_button')} </AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -429,10 +393,7 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline flex items-center gap-2">
-                                <Trophy className="h-5 w-5" />
-                                {t('TeamsPage.achievements_title')}
-                            </CardTitle>
+                            <CardTitle className="font-headline flex items-center gap-2"> <Trophy className="h-5 w-5" /> {t('TeamsPage.achievements_title')} </CardTitle>
                             <CardDescription>{t('TeamsPage.achievements_desc')}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -446,7 +407,8 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                                             <div key={tourney.id} className="flex items-center gap-2 p-2 rounded-md bg-muted/50 text-sm">
                                                 <Trophy className="h-4 w-4 text-yellow-500" />
                                                 <p className="font-semibold flex-1 truncate">{t('TeamsPage.tournament_champion', { tournamentName: tourney.name })}</p>
-                                                <p className="text-xs text-muted-foreground">{format(tourney.startDate.toDate(), "d MMM")}</p>
+                                                {/* Asegura que startDate exista antes de llamar a toDate() */}
+                                                <p className="text-xs text-muted-foreground">{tourney.startDate ? format(tourney.startDate.toDate(), "d MMM") : 'N/A'}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -463,18 +425,13 @@ function TeamDisplay({ team, members, currentUserRole }: { team: Team, members: 
                     {isStaff && (
                         <Card>
                             <CardHeader>
-                                <CardTitle className="font-headline flex items-center gap-2">
-                                    <Settings className="h-5 w-5" />
-                                    {t('TeamsPage.management_title')}
-                                </CardTitle>
+                                <CardTitle className="font-headline flex items-center gap-2"> <Settings className="h-5 w-5" /> {t('TeamsPage.management_title')} </CardTitle>
                                 <CardDescription>{t('TeamsPage.management_desc')}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-2">
-                                <Button variant="secondary" onClick={() => setIsTasksDialogOpen(true)}>
-                                    <ClipboardList className="mr-2 h-4 w-4" />
-                                    {t('TeamsPage.team_tasks')}
-                                </Button>
-                                <CreateScrimDialog teamId={team.id} />
+                                <Button variant="secondary" onClick={() => setIsTasksDialogOpen(true)}> <ClipboardList className="mr-2 h-4 w-4" /> {t('TeamsPage.team_tasks')} </Button>
+                                {/* --- CORRECCIÓN 2 APLICADA: Pasa userProfile?.country --- */}
+                                <CreateScrimDialog teamId={team.id} teamCountry={userProfile?.country} />
                             </CardContent>
                         </Card>
                     )}
@@ -492,28 +449,17 @@ function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center h-full mt-24">
             <Users className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-xl font-semibold">{t('TeamsPage.no_team_title')}</h3>
-            
             {canCreateTeam ? (
                  <>
-                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                        {t('TeamsPage.no_team_subtitle')}
-                    </p>
-                    <CreateTeamDialog />
+                   <p className="mb-4 mt-2 text-sm text-muted-foreground"> {t('TeamsPage.no_team_subtitle')} </p>
+                   <CreateTeamDialog />
                  </>
             ) : (
-                <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                    {t('TeamsPage.no_team_subtitle_generic')}
-                </p>
+                <p className="mb-4 mt-2 text-sm text-muted-foreground"> {t('TeamsPage.no_team_subtitle_generic')} </p>
             )}
-
-            <p className="mb-4 mt-8 text-sm text-muted-foreground">
-                {t('TeamsPage.no_team_join_prompt')}
-            </p>
+            <p className="mb-4 mt-8 text-sm text-muted-foreground"> {t('TeamsPage.no_team_join_prompt')} </p>
             <Button asChild>
-                <Link href="/dashboard">
-                    <Store className="mr-2 h-4 w-4" />
-                    {t('TeamsPage.join_a_team')}
-                </Link>
+                <Link href="/dashboard"> <Store className="mr-2 h-4 w-4" /> {t('TeamsPage.join_a_team')} </Link>
             </Button>
         </div>
     );
@@ -521,7 +467,7 @@ function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
 
 
 export default function TeamsPage() {
-    const { userProfile, loading: authLoading } = useAuth();
+    const { userProfile, loading: authLoading } = useAuth(); // <--- userProfile existe aquí
     const [team, setTeam] = useState<Team | null>(null);
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loadingTeam, setLoadingTeam] = useState(true);
@@ -614,7 +560,16 @@ export default function TeamsPage() {
                 )}
             </div>
 
-            {team && currentUserMembership ? <TeamDisplay team={team} members={members} currentUserRole={currentUserMembership.role} /> : <NoTeamDisplay userProfile={userProfile} />}
+            {/* --- CORRECCIÓN APLICADA: Pasa userProfile como prop aquí --- */}
+            {team && currentUserMembership ?
+                <TeamDisplay
+                    team={team}
+                    members={members}
+                    currentUserRole={currentUserMembership.role}
+                    userProfile={userProfile}
+                 /> :
+                 <NoTeamDisplay userProfile={userProfile} />
+             }
         </div>
     );
 }
