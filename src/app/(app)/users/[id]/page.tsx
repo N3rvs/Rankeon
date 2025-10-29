@@ -20,6 +20,8 @@ import { FriendshipButton } from '@/components/friends/friendship-button';
 import { PerformanceAnalysisCard } from '@/components/profile/performance-analysis-card';
 import { RecentMatchesCard } from '@/components/profile/recent-matches-card';
 import { Spinner } from '@/components/ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -46,7 +48,11 @@ export default function UserProfilePage() {
         }
         setLoading(false);
       }, (error) => {
-        console.error("Error fetching user profile:", error);
+        const permissionError = new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'get',
+        });
+        errorEmitter.emit('permission-error', permissionError);
         setUserProfile(null);
         setLoading(false);
       });

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -32,6 +33,8 @@ import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
 import { EditTournamentDialog } from '@/components/tournaments/edit-tournament-dialog';
 import { Spinner } from '../ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 
 function getStatusBadgeVariant(status: Tournament['status']) {
@@ -137,8 +140,9 @@ export function TournamentManagementList() {
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
     setLoading(true);
+    const tournamentsRef = collection(db, 'tournaments');
     const q = query(
-      collection(db, 'tournaments'),
+      tournamentsRef,
       orderBy('startDate', 'desc')
     );
     unsubscribe = onSnapshot(
@@ -151,7 +155,11 @@ export function TournamentManagementList() {
         setLoading(false);
       },
       (error) => {
-        console.error('Error fetching tournaments:', error);
+        const permissionError = new FirestorePermissionError({
+            path: tournamentsRef.path,
+            operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
         setLoading(false);
       }
     );

@@ -1,3 +1,4 @@
+
 // src/components/friends/chat-dialog.tsx
 'use client';
 
@@ -22,6 +23,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useI18n } from '@/contexts/i18n-context';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '../ui/skeleton';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 interface ChatDialogProps {
   recipient: UserProfile | null;
@@ -68,7 +71,11 @@ export function ChatDialog({ recipient, open, onOpenChange }: ChatDialogProps) {
       setMessages(msgs);
       setLoading(false);
     }, (error) => {
-      console.error('Error fetching chat messages:', error);
+      const permissionError = new FirestorePermissionError({
+        path: `chats/${chatId}/messages`,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
       setMessages([]);
       setLoading(false);
     });

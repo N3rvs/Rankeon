@@ -19,6 +19,8 @@ import { Button } from '../ui/button';
 import { Check, Gavel, X } from 'lucide-react';
 import { reviewTournamentProposal } from '@/lib/actions/tournaments';
 import { Spinner } from '../ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 function ProposalCard({ proposal }: { proposal: TournamentProposal }) {
     const { toast } = useToast();
@@ -83,8 +85,9 @@ export function TournamentProposalsList() {
   useEffect(() => {
     let unsubscribe: Unsubscribe | undefined;
     setLoading(true);
+    const proposalsRef = collection(db, 'tournamentProposals');
     const q = query(
-      collection(db, 'tournamentProposals'),
+      proposalsRef,
       where('status', '==', 'pending'),
       orderBy('createdAt', 'desc')
     );
@@ -98,7 +101,11 @@ export function TournamentProposalsList() {
         setLoading(false);
       },
       (error) => {
-        console.error('Error fetching proposals:', error);
+        const permissionError = new FirestorePermissionError({
+            path: proposalsRef.path,
+            operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
         setLoading(false);
       }
     );

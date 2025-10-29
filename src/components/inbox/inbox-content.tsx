@@ -31,6 +31,8 @@ import {
   TooltipTrigger,
 } from '../ui/tooltip';
 import { Spinner } from '../ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 export function InboxContent() {
   const { user } = useAuth();
@@ -45,9 +47,9 @@ export function InboxContent() {
 
     if (user) {
       setLoading(true);
-      // Query all notifications, sorted by time.
+      const notificationsRef = collection(db, 'inbox', user.uid, 'notifications');
       const q = query(
-        collection(db, 'inbox', user.uid, 'notifications'),
+        notificationsRef,
         orderBy('timestamp', 'desc'),
         limit(50)
       );
@@ -58,13 +60,16 @@ export function InboxContent() {
           const allNotifs = snapshot.docs.map(
             (doc) => ({ id: doc.id, ...doc.data() } as Notification)
           );
-          // We only show non-message notifications in this specific popover UI.
           const filteredNotifs = allNotifs.filter(n => n.type !== 'new_message');
           setNotifications(filteredNotifs);
           setLoading(false);
         },
         (error) => {
-          console.error('Error fetching notifications:', error);
+          const permissionError = new FirestorePermissionError({
+            path: notificationsRef.path,
+            operation: 'list',
+          });
+          errorEmitter.emit('permission-error', permissionError);
           setLoading(false);
         }
       );

@@ -1,3 +1,4 @@
+
 // src/app/(app)/scrims/page.tsx
 'use client';
 
@@ -18,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import { getFlagEmoji } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Spinner } from '@/components/ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 function ScrimList({ scrims, loading }: { scrims: Scrim[], loading: boolean }) {
     const { t } = useI18n();
@@ -120,7 +123,11 @@ export default function ScrimsPage() {
       setAvailableScrims(data);
       setLoadingAvailable(false);
     }, (error) => {
-      console.error("Error fetching available scrims:", error);
+      const permissionError = new FirestorePermissionError({
+        path: 'scrims',
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
       setLoadingAvailable(false);
     });
 
@@ -151,7 +158,11 @@ export default function ScrimsPage() {
         setMyScrims(filteredData);
         setLoadingMyScrims(false);
     }, (error) => {
-        console.error("Error fetching user's scrims:", error);
+        const permissionError = new FirestorePermissionError({
+            path: 'scrims',
+            operation: 'list',
+          });
+        errorEmitter.emit('permission-error', permissionError);
         setLoadingMyScrims(false);
     });
 
@@ -172,7 +183,11 @@ export default function ScrimsPage() {
       setConfirmedScrims(data);
       setLoadingConfirmed(false);
     }, (error) => {
-      console.error("Error fetching confirmed scrims:", error);
+      const permissionError = new FirestorePermissionError({
+        path: 'scrims',
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
       setLoadingConfirmed(false);
     });
 

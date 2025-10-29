@@ -1,3 +1,4 @@
+
 // src/components/moderator/support-tickets-list.tsx
 'use client';
 
@@ -13,6 +14,8 @@ import { Badge } from '../ui/badge';
 import { useI18n } from '@/contexts/i18n-context';
 import { RespondToTicketDialog } from './RespondToTicketDialog';
 import { Spinner } from '../ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 function TicketCard({ ticket }: { ticket: SupportTicket }) {
   const { t } = useI18n();
@@ -54,7 +57,8 @@ export function SupportTicketsList() {
 
   useEffect(() => {
     setLoading(true);
-    const q = query(collection(db, 'supportTickets'), orderBy('createdAt', 'desc'));
+    const ticketsRef = collection(db, 'supportTickets');
+    const q = query(ticketsRef, orderBy('createdAt', 'desc'));
     const unsubscribe: Unsubscribe = onSnapshot(q,
       (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SupportTicket));
@@ -62,7 +66,11 @@ export function SupportTicketsList() {
         setLoading(false);
       },
       (error) => {
-        console.error('Error fetching support tickets:', error);
+        const permissionError = new FirestorePermissionError({
+          path: ticketsRef.path,
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
         setLoading(false);
       }
     );

@@ -1,3 +1,4 @@
+
 // src/components/teams/team-applications.tsx
 'use client';
 
@@ -14,6 +15,8 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { respondToTeamApplication } from '@/lib/actions/teams';
 import { Spinner } from '../ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 function ApplicationCard({ application }: { application: TeamApplication }) {
     const { toast } = useToast();
@@ -71,8 +74,9 @@ export function TeamApplications({ teamId }: { teamId: string }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const appsRef = collection(db, 'teamApplications');
         const q = query(
-            collection(db, 'teamApplications'),
+            appsRef,
             where('teamId', '==', teamId),
             where('status', '==', 'pending')
         );
@@ -82,7 +86,11 @@ export function TeamApplications({ teamId }: { teamId: string }) {
             setApplications(apps);
             setLoading(false);
         }, (error) => {
-            console.error("Error fetching applications: ", error);
+            const permissionError = new FirestorePermissionError({
+                path: appsRef.path,
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
             setLoading(false);
         });
 

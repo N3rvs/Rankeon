@@ -1,3 +1,4 @@
+
 // src/components/teams/upcoming-scrims-card.tsx
 'use client';
 
@@ -14,6 +15,8 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '../ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 function UpcomingScrimsCard({ teamId }: { teamId: string }) {
     const { t } = useI18n();
@@ -24,21 +27,37 @@ function UpcomingScrimsCard({ teamId }: { teamId: string }) {
 
     useEffect(() => {
         setLoadingA(true);
-        const q = query(collection(db, 'scrims'), where('teamAId', '==', teamId), where('status', '==', 'confirmed'));
+        const scrimsRef = collection(db, 'scrims');
+        const q = query(scrimsRef, where('teamAId', '==', teamId), where('status', '==', 'confirmed'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             setScrimsAsA(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scrim)));
             setLoadingA(false);
-        }, () => setLoadingA(false));
+        }, (error) => {
+            const permissionError = new FirestorePermissionError({
+                path: scrimsRef.path,
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            setLoadingA(false);
+        });
         return () => unsubscribe();
     }, [teamId]);
 
     useEffect(() => {
         setLoadingB(true);
-        const q = query(collection(db, 'scrims'), where('teamBId', '==', teamId), where('status', '==', 'confirmed'));
+        const scrimsRef = collection(db, 'scrims');
+        const q = query(scrimsRef, where('teamBId', '==', teamId), where('status', '==', 'confirmed'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             setScrimsAsB(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scrim)));
             setLoadingB(false);
-        }, () => setLoadingB(false));
+        }, (error) => {
+            const permissionError = new FirestorePermissionError({
+                path: scrimsRef.path,
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            setLoadingB(false);
+        });
         return () => unsubscribe();
     }, [teamId]);
 
