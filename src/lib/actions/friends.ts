@@ -1,3 +1,4 @@
+
 // src/lib/actions/friends.ts
 'use client';
 import { getFunctions, httpsCallable } from 'firebase/functions';

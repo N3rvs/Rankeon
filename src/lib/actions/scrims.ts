@@ -1,8 +1,11 @@
+
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { z } from 'zod';
 import { app } from '../firebase/client';
+import { errorEmitter } from '../firebase/error-emitter';
+import { FirestorePermissionError } from '../firebase/errors';
 
 const functions = getFunctions(app, "europe-west1");
 
@@ -38,6 +41,14 @@ export async function createScrimAction(values: CreateScrimData): Promise<Action
     const result = await createScrimFunc(dataToSend);
     return result.data as ActionResponse;
   } catch (error: any) {
+     if (error.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: 'scrims',
+        operation: 'create',
+        requestResourceData: values,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error creating scrim:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
@@ -49,6 +60,14 @@ export async function challengeScrimAction(scrimId: string, challengingTeamId: s
     const result = await challengeScrimFunc({ scrimId, challengingTeamId });
     return result.data as ActionResponse;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: `scrims/${scrimId}`,
+        operation: 'update',
+        requestResourceData: { challengerTeamId: challengingTeamId },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error challenging scrim:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
@@ -60,6 +79,14 @@ export async function respondToScrimChallengeAction(scrimId: string, accept: boo
         const result = await respondFunc({ scrimId, accept });
         return result.data as ActionResponse;
     } catch (error: any) {
+        if (error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: `scrims/${scrimId}`,
+            operation: 'update',
+            requestResourceData: { status: accept ? 'confirmed' : 'pending' },
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        }
         console.error('Error responding to scrim challenge:', error);
         return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
@@ -71,6 +98,14 @@ export async function cancelScrimAction(scrimId: string): Promise<ActionResponse
     const result = await cancelScrimFunc({ scrimId });
     return result.data as ActionResponse;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: `scrims/${scrimId}`,
+        operation: 'update',
+        requestResourceData: { status: 'cancelled' },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error canceling scrim:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
@@ -82,6 +117,14 @@ export async function reportScrimResultAction(scrimId: string, winnerId: string)
         const result = await reportResultFunc({ scrimId, winnerId });
         return result.data as ActionResponse;
     } catch (error: any) {
+        if (error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: `scrims/${scrimId}`,
+            operation: 'update',
+            requestResourceData: { winnerId, status: 'completed' },
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        }
         console.error('Error reporting scrim result:', error);
         return { success: false, message: error.message || 'An unexpected error occurred.' };
     }

@@ -1,3 +1,4 @@
+
 // src/lib/actions/teams.ts
 'use client';
 
@@ -86,6 +87,14 @@ export async function createTeam(values: CreateTeamData): Promise<ActionResponse
     
     return result.data;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teams`,
+            operation: 'create',
+            requestResourceData: values,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error calling createTeam function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
@@ -104,6 +113,14 @@ export async function updateTeam(values: UpdateTeamData): Promise<ActionResponse
     
     return result.data;
   } catch (error: any) {
+     if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teams/${values.teamId}`,
+            operation: 'update',
+            requestResourceData: values,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error calling updateTeam function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
@@ -121,6 +138,13 @@ export async function deleteTeam(values: { teamId: string }): Promise<ActionResp
 
         return result.data as ActionResponse;
     } catch (error: any) {
+        if (error.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: `teams/${values.teamId}`,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
         console.error('Error calling deleteTeam function:', error);
         return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
     }
@@ -132,6 +156,13 @@ export async function kickTeamMember(teamId: string, memberId: string): Promise<
     const result = await kickFunc({ teamId, memberId });
     return result.data as ActionResponse;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teamMembers/{teamMemberId}`,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error calling kickTeamMember function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
@@ -143,6 +174,14 @@ export async function setTeamIGL(teamId: string, memberId: string | null): Promi
     const result = await setIglFunc({ teamId, memberId });
     return result.data as ActionResponse;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teams/${teamId}`,
+            operation: 'update',
+            requestResourceData: { iglId: memberId },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error calling setTeamIGL function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
@@ -154,6 +193,14 @@ export async function sendTeamInvite(toUserId: string, teamId: string): Promise<
     const result = await sendInviteFunc({ toUserId, teamId });
     return result.data as ActionResponse;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teamInvites`,
+            operation: 'create',
+            requestResourceData: { toUserId, teamId },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error calling sendTeamInvite function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
@@ -165,6 +212,14 @@ export async function respondToTeamInvite(inviteId: string, accept: boolean): Pr
     const result = await respondFunc({ inviteId, accept });
     return result.data as ActionResponse;
   } catch (error: any) {
+     if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teamInvites/${inviteId}`,
+            operation: 'update',
+            requestResourceData: { status: accept ? 'accepted' : 'rejected' },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error calling respondToTeamInvite function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
@@ -176,6 +231,14 @@ export async function applyToTeam(teamId: string): Promise<ActionResponse> {
     const result = await applyFunc({ teamId });
     return result.data as ActionResponse;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teamApplications`,
+            operation: 'create',
+            requestResourceData: { teamId },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error calling applyToTeam function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
@@ -187,6 +250,14 @@ export async function respondToTeamApplication(values: { applicationId: string; 
     const result = await respondFunc(values);
     return result.data as ActionResponse;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teamApplications/${values.applicationId}`,
+            operation: 'update',
+            requestResourceData: { status: values.accept ? 'accepted' : 'rejected' },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error calling respondToTeamApplication function:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
   }
@@ -221,6 +292,14 @@ export async function addTask(teamId: string, title: string): Promise<ActionResp
     await func({ teamId, title });
     return { success: true, message: 'Task added' };
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teams/${teamId}/tasks`,
+            operation: 'create',
+            requestResourceData: { title },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message };
   }
 }
@@ -231,6 +310,14 @@ export async function updateTaskStatus(teamId: string, taskId: string, completed
     await func({ teamId, taskId, completed });
     return { success: true, message: 'Task updated' };
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teams/${teamId}/tasks/${taskId}`,
+            operation: 'update',
+            requestResourceData: { completed },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message };
   }
 }
@@ -241,6 +328,13 @@ export async function deleteTask(teamId: string, taskId: string): Promise<Action
     await func({ teamId, taskId });
     return { success: true, message: 'Task deleted' };
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `teams/${teamId}/tasks/${taskId}`,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     return { success: false, message: error.message };
   }
 }
