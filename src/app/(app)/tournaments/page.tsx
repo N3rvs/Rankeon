@@ -18,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { getFlagEmoji } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 export default function TournamentsPage() {
   const { claims } = useAuth();
@@ -109,8 +111,9 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     setLoading(true);
+    const tournamentsRef = collection(db, 'tournaments');
     const q = query(
-      collection(db, 'tournaments'),
+      tournamentsRef,
       orderBy('startDate', 'desc')
     );
 
@@ -119,7 +122,11 @@ export default function TournamentsPage() {
       setTournaments(data);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching tournaments:", error);
+      const permissionError = new FirestorePermissionError({
+        path: tournamentsRef.path,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
       setLoading(false);
     });
 

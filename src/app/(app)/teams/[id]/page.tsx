@@ -1,3 +1,4 @@
+
 // src/app/(app)/teams/[id]/page.tsx
 'use client';
 
@@ -22,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Spinner } from '@/components/ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[] }) {
     const { t } = useI18n();
@@ -37,8 +40,9 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
             return;
         }
         setLoadingTrophies(true);
+        const tournamentsRef = collection(db, 'tournaments');
         const q = query(
-            collection(db, 'tournaments'),
+            tournamentsRef,
             where('winnerId', '==', team.id),
             orderBy('startDate', 'desc')
         );
@@ -47,7 +51,11 @@ function PublicTeamProfile({ team, members }: { team: Team, members: TeamMember[
             setWonTournaments(tournaments);
             setLoadingTrophies(false);
         }, (error) => {
-            console.error("Error fetching won tournaments:", error);
+            const permissionError = new FirestorePermissionError({
+                path: tournamentsRef.path,
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
             setLoadingTrophies(false);
         });
         return () => unsubscribe();
@@ -297,7 +305,11 @@ export default function TeamPage() {
             // We can consider loading done when team data arrives
             setLoading(false); 
         }, (error) => {
-            console.error("Error fetching team: ", error);
+            const permissionError = new FirestorePermissionError({
+                path: teamRef.path,
+                operation: 'get',
+            });
+            errorEmitter.emit('permission-error', permissionError);
             setTeam(null);
             setLoading(false);
         });

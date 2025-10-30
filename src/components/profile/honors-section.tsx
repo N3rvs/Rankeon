@@ -1,3 +1,4 @@
+
 // src/components/profile/honors-section.tsx
 'use client';
 
@@ -14,6 +15,8 @@ import { db } from '@/lib/firebase/client';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/contexts/i18n-context';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 interface HonorsSectionProps {
   targetUser: UserProfile;
@@ -52,6 +55,13 @@ export function HonorsSection({ targetUser }: HonorsSectionProps) {
           setGivenHonors([]);
         }
         setLoadingGiven(false);
+      }, (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: honorDocRef.path,
+            operation: 'get',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          setLoadingGiven(false);
       });
 
     } else {
