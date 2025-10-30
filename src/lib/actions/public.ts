@@ -1,3 +1,4 @@
+
 // src/lib/actions/public.ts
 'use client';
 
@@ -9,11 +10,6 @@ import { FirestorePermissionError } from '../firebase/errors';
 import { Timestamp } from 'firebase/firestore';
 
 const functions = getFunctions(app, 'europe-west1');
-
-type HonorRankingPlayer = Pick<
-  UserProfile,
-  'id' | 'name' | 'avatarUrl' | 'isCertifiedStreamer'
-> & { totalHonors: number };
 
 type ApiPage<T> = { items: T[]; nextCursor: string | null };
 
@@ -46,13 +42,14 @@ async function fetchPaginatedData<T>(functionName: string, dataKey: string): Pro
       message: `${dataKey} fetched.` 
     };
   } catch (error: any) {
-    console.error(`Error fetching ${dataKey}:`, error);
-    if (error.code === 'permission-denied') {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({ path: `/${dataKey}`, operation: 'list' })
-      );
+    if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
+        const permissionError = new FirestorePermissionError({
+            path: `public data for ${dataKey}`,
+            operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
     }
+    console.error(`Error fetching ${dataKey}:`, error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -94,6 +91,13 @@ export async function getManagedUsers(): Promise<{ success: boolean; data?: User
     }));
     return { success: true, data: users as UserProfile[], message: 'Users fetched.' };
   } catch (error: any) {
+    if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
+        const permissionError = new FirestorePermissionError({
+            path: 'users',
+            operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error getting managed users:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
