@@ -1,4 +1,3 @@
-// src/lib/actions/teams.ts
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -9,7 +8,7 @@ import { Timestamp } from 'firebase/firestore';
 
 const functions = getFunctions(app, "europe-west1");
 
-// Schema for creating a team
+
 export const CreateTeamSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.').max(50),
   game: z.string().min(1, 'El juego es obligatorio.').default('Valorant'),
