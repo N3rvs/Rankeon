@@ -1,3 +1,4 @@
+
 // src/lib/actions/messages.ts
 'use client';
 
@@ -5,6 +6,8 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 import type { Chat } from '../types';
 import { Timestamp } from 'firebase/firestore';
+import { errorEmitter } from '../firebase/error-emitter';
+import { FirestorePermissionError } from '../firebase/errors';
 
 // Si no usas ya un uuid en el proyecto, un mini-id es suficiente:
 const randId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -51,6 +54,13 @@ export async function getChats(cursor?: string): Promise<{
 
     return { success: true, data: { items: chats, nextCursor: data.nextCursor ?? null }, message: 'Chats obtenidos.' };
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: 'chats',
+            operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error al obtener chats:', error);
     return { success: false, message: error?.message || 'Ocurrió un error inesperado.' };
   }
@@ -63,6 +73,13 @@ export async function deleteChatHistory({ chatId }: { chatId: string }): Promise
     const { data } = await fn({ chatId });
     return data;
   } catch (error: any) {
+     if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: `chats/${chatId}/messages`,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error al borrar el historial del chat:', error);
     return { success: false, message: error?.message || 'Ocurrió un error inesperado.' };
   }
@@ -88,6 +105,14 @@ export async function sendMessageToFriend({
     const { data } = await fn(payload);
     return data;
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: 'chats/{chatId}/messages',
+            operation: 'create',
+            requestResourceData: { to, content }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error al enviar mensaje:', error);
     return { success: false, message: error?.message || 'Ocurrió un error inesperado.' };
   }

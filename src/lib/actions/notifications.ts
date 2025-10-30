@@ -1,7 +1,10 @@
+
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '@/lib/firebase/client';
+import { errorEmitter } from '../firebase/error-emitter';
+import { FirestorePermissionError } from '../firebase/errors';
 
 type ActionResponse = {
   success: boolean;
@@ -37,6 +40,14 @@ export async function markNotificationsAsRead(
     const { data } = await markFunc({ ids: notificationIds });
     return mapOk(data, 'Notifications marked as read.');
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: 'notifications',
+            operation: 'update',
+            requestResourceData: { read: true },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error marking notifications as read:', error);
     return { success: false, message: error?.message || 'An unexpected error occurred.' };
   }
@@ -55,6 +66,13 @@ export async function deleteNotifications(
     const { data } = await deleteFunc({ ids: notificationIds });
     return mapOk(data, 'Notifications deleted.');
   } catch (error: any) {
+     if (error.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: 'notifications',
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error deleting notifications:', error);
     return { success: false, message: error?.message || 'An unexpected error occurred.' };
   }
