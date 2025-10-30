@@ -214,7 +214,11 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: {
             setWonTournaments(tournaments);
             setLoadingTrophies(false);
         }, (error) => {
-            console.error("Error fetching won tournaments:", error);
+            const permissionError = new FirestorePermissionError({
+                path: `tournaments`,
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
             setLoadingTrophies(false);
         });
         return () => unsubscribe();
@@ -358,12 +362,7 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: {
                                 <div className="flex items-center gap-2 shrink-0">
                                     <Button onClick={() => setIsEditDialogOpen(true)} size="icon" variant="secondary"> <Edit className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.edit')}</span> </Button>
                                     <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                          <Button variant="destructive" size="icon">
-                                            <Trash2 className="h-4 w-4" />
-                                            <span className="sr-only">{t('TeamsPage.delete')}</span>
-                                          </Button>
-                                        </AlertDialogTrigger>
+                                        <AlertDialogTrigger asChild><Button variant="destructive" size="icon"> <Trash2 className="h-4 w-4" /> <span className="sr-only">{t('TeamsPage.delete')}</span> </Button></AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>{t('TeamsPage.delete_confirm_title')}</AlertDialogTitle>
@@ -476,7 +475,7 @@ function NoTeamDisplay({ userProfile }: { userProfile: UserProfile | null }) {
 
 
 export default function TeamsPage() {
-    const { userProfile, loading: authLoading } = useAuth();
+    const { userProfile, loading: authLoading } = useAuth(); // <--- userProfile existe aquí
     const [team, setTeam] = useState<Team | null>(null);
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loadingTeam, setLoadingTeam] = useState(true);
@@ -572,6 +571,7 @@ export default function TeamsPage() {
                 )}
             </div>
 
+            {/* --- CORRECCIÓN APLICADA: Pasa userProfile como prop aquí --- */}
             {team && currentUserMembership ?
                 <TeamDisplay
                     team={team}
@@ -584,3 +584,4 @@ export default function TeamsPage() {
         </div>
     );
 }
+
