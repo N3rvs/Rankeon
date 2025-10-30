@@ -14,12 +14,13 @@ function assertAuth(ctx: any) {
 
 async function getMembership(teamId: string, uid: string) {
   const snap = await db
-    .collection('teamMembers')
-    .where('teamId', '==', teamId)
-    .where('uid', '==', uid)
-    .limit(1)
+    .collection('teams')
+    .doc(teamId)
     .get();
-  return snap.docs[0]?.data() as any | undefined;
+    
+  if (!snap.exists) return undefined;
+  const teamData = snap.data() as any;
+  return teamData?.members?.[uid] ? { role: teamData.members[uid] } : undefined;
 }
 
 function assertTeamAdmin(member: any) {
@@ -104,14 +105,6 @@ export const createTeam = onCall({ region: 'europe-west1' }, async (req) => {
         [uid]: 'owner'
       }
     });
-
-    const memberRef = db.collection('teamMembers').doc();
-    tx.set(memberRef, {
-      teamId: teamRef.id,
-      uid,
-      role: 'owner',
-      joinedAt: nowTs(),
-    });
   });
 
   return { success: true, message: 'Equipo creado.', teamId: teamRef.id };
@@ -123,11 +116,12 @@ export const updateTeam = onCall({ region: 'europe-west1' }, async (req) => {
   const member = await getMembership(data.teamId, uid);
   assertTeamAdmin(member);
 
+  const teamRef = db.doc(`teams/${data.teamId}`);
   const update: any = { ...data };
   delete update.teamId;
   update.updatedAt = nowTs();
 
-  await db.doc(`teams/${data.teamId}`).update(update);
+  await teamRef.set(update, { merge: true });
   return { success: true, message: 'Equipo actualizado.' };
 });
 
@@ -156,19 +150,17 @@ export const kickTeamMember = onCall({ region: 'europe-west1' }, async (req) => 
   const member = await getMembership(teamId, uid);
   assertTeamAdmin(member);
 
-  // No patear al owner
-  const ownerId = (await db.doc(`teams/${teamId}`).get()).get('ownerId');
-  if (memberId === ownerId) throw new HttpsError('failed-precondition', 'Cannot remove the owner.');
+  const teamRef = db.doc(`teams/${teamId}`);
+  const teamDoc = await teamRef.get();
+  const teamData = teamDoc.data() as any;
 
-  const snap = await db
-    .collection('teamMembers')
-    .where('teamId', '==', teamId)
-    .where('uid', '==', memberId)
-    .limit(1)
-    .get();
-
-  if (snap.empty) throw new HttpsError('not-found', 'Member not found.');
-  await snap.docs[0].ref.delete();
+  if (memberId === teamData.ownerId) throw new HttpsError('failed-precondition', 'Cannot remove the owner.');
+  
+  if (teamData.members && teamData.members[memberId]) {
+      const newMembers = { ...teamData.members };
+      delete newMembers[memberId];
+      await teamRef.update({ members: newMembers });
+  }
 
   return { success: true, message: 'Miembro expulsado.' };
 });
@@ -216,8 +208,8 @@ export const respondToTeamInvite = onCall({ region: 'europe-west1' }, async (req
   await db.runTransaction(async (tx) => {
     tx.update(ref, { status: accept ? 'accepted' : 'rejected', updatedAt: nowTs() });
     if (accept) {
-      const mRef = db.collection('teamMembers').doc();
-      tx.set(mRef, { teamId: inv.teamId, uid, role: 'member', joinedAt: nowTs() });
+      const teamRef = db.doc(`teams/${inv.teamId}`);
+      tx.update(teamRef, { [`members.${uid}`]: 'member' });
     }
   });
 
@@ -256,8 +248,8 @@ export const respondToTeamApplication = onCall({ region: 'europe-west1' }, async
   await db.runTransaction(async (tx) => {
     tx.update(ref, { status: accept ? 'accepted' : 'rejected', updatedAt: nowTs() });
     if (accept) {
-      const mRef = db.collection('teamMembers').doc();
-      tx.set(mRef, { teamId: app.teamId, uid: app.applicantId, role: 'member', joinedAt: nowTs() });
+      const teamRef = db.doc(`teams/${app.teamId}`);
+      tx.update(teamRef, { [`members.${app.applicantId}`]: 'member' });
     }
   });
 
@@ -266,25 +258,38 @@ export const respondToTeamApplication = onCall({ region: 'europe-west1' }, async
 
 export const getTeamMembers = onCall({ region: 'europe-west1' }, async (req) => {
   const { teamId } = GetMembersSchema.parse(req.data ?? {});
-  const q = await db.collection('teamMembers').where('teamId', '==', teamId).get();
+  const teamDoc = await db.doc(`teams/${teamId}`).get();
+  if (!teamDoc.exists) {
+      return [];
+  }
+  const teamData = teamDoc.data() as any;
+  const memberMap = teamData.members || {};
+  const memberIds = Object.keys(memberMap);
 
-  const members = await Promise.all(
-    q.docs.map(async (d) => {
-      const m = d.data() as any;
-      const user = await db.doc(`users/${m.uid}`).get();
-      const u = user.data() as any | undefined;
+  if (memberIds.length === 0) {
+      return [];
+  }
+
+  const userDocs = await db.getAll(...memberIds.map(id => doc(db, 'users', id)));
+
+  const members = userDocs.map(userDoc => {
+      if (!userDoc.exists) return null;
+      const user = userDoc.data() as any;
+      const uid = userDoc.id;
       return {
-        id: d.id,
-        uid: m.uid,
-        role: m.role ?? 'member',
-        joinedAt: (m.joinedAt?.toDate?.() ?? null)?.toISOString?.() ?? null,
-        displayName: u?.name ?? u?.displayName ?? null,
-        avatarUrl: u?.avatarUrl ?? u?.photoURL ?? null,
+        id: uid,
+        uid: uid,
+        role: memberMap[uid] ?? 'member',
+        joinedAt: (teamData.createdAt?.toDate?.() ?? null)?.toISOString?.() ?? null,
+        displayName: user?.name ?? user?.displayName ?? null,
+        avatarUrl: user?.avatarUrl ?? user?.photoURL ?? null,
+        isIGL: teamData.iglId === uid,
+        skills: user.skills || [],
+        isCertifiedStreamer: user.isCertifiedStreamer || false,
       };
-    })
-  );
+  }).filter(Boolean);
 
-  return members; // tu cliente rehidrata Timestamps
+  return members;
 });
 
 // ---------- Team Tasks ----------
@@ -335,14 +340,8 @@ export const updateMemberSkills = onCall({ region: 'europe-west1' }, async (req)
   const member = await getMembership(teamId, uid);
   assertTeamAdmin(member);
 
-  const snap = await db
-    .collection('teamMembers')
-    .where('teamId', '==', teamId)
-    .where('uid', '==', memberId)
-    .limit(1)
-    .get();
-  if (snap.empty) throw new HttpsError('not-found', 'Member not found');
+  const userRef = db.doc(`users/${memberId}`);
+  await userRef.update({ skills });
 
-  await snap.docs[0].ref.update({ skills, updatedAt: nowTs() });
   return { success: true, message: 'Skills updated.' };
 });

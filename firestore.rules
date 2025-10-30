@@ -2,52 +2,114 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper functions
+  
+    // Helper Functions
     function isSignedIn() {
       return request.auth != null;
     }
-
+    
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
     
-    function isTeamFounder(teamId) {
-      return get(/databases/$(database)/documents/teams/$(teamId)).data.ownerId == request.auth.uid;
-    }
-    
     function isTeamStaff(teamId) {
-      // Correctly checks for role within the team's 'members' map
-      return get(/databases/$(database)/documents/teams/$(teamId)).data.members[request.auth.uid] in ['owner', 'coach', 'admin'];
+        let teamData = get(/databases/$(database)/documents/teams/$(teamId)).data;
+        let userRole = teamData.members[request.auth.uid];
+        return userRole == 'owner' || userRole == 'coach' || userRole == 'admin' || userRole == 'captain';
     }
 
-    // USERS
+    // User Profiles
     match /users/{userId} {
-      allow read: if true;
-      allow create: if isOwner(userId);
-      // Correctly use isTeamStaff with the user's teamId
-      allow update: if isOwner(userId) || (resource.data.teamId != null && isTeamStaff(resource.data.teamId));
-      allow delete: if false;
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId) || isTeamStaff(get(/databases/$(database)/documents/users/$(userId)).data.teamId);
     }
 
-    // TEAMS
+    // Teams
     match /teams/{teamId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update: if isTeamFounder(teamId);
-      allow delete: if isTeamFounder(teamId);
+      allow update: if isTeamStaff(teamId);
+      allow delete: if get(/databases/$(database)/documents/teams/$(teamId)).data.ownerId == request.auth.uid;
+      
+      // Team subcollections
+      match /tasks/{taskId} {
+        allow read, write: if isTeamStaff(teamId);
+      }
     }
     
+    // Team Members (obsolete, but kept for safety)
     match /teamMembers/{membershipId} {
         allow read: if true;
+        allow create, delete: if isSignedIn(); // Simplified for now
+    }
+
+    // Team Applications
+    match /teamApplications/{applicationId} {
+        allow read: if isSignedIn(); // Staff or applicant
         allow create: if isSignedIn();
-        allow delete: if isTeamFounder(get(/databases/$(database)/documents/teamMembers/$(membershipId)).data.teamId);
-        allow update: if isTeamStaff(get(/databases/$(database)/documents/teamMembers/$(membershipId)).data.teamId);
+        allow update: if isTeamStaff(get(/databases/$(database)/documents/teamApplications/$(applicationId)).data.teamId);
     }
     
-    // OTHER COLLECTIONS
-    match /{document=**} {
-      allow read, write: if false;
+    // Scrims
+    match /scrims/{scrimId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); // Let backend logic handle permissions
+    }
+
+    // Tournaments
+    match /tournaments/{tournamentId} {
+        allow read: if true;
+        
+        match /teams/{teamId} {
+            allow read: if true;
+            allow create: if isTeamStaff(teamId);
+        }
+        
+        match /matches/{matchId} {
+            allow read: if true;
+            allow update: if isSignedIn(); // Let backend handle staff roles
+        }
+    }
+    
+    // Friendships & Requests
+    match /friendships/{friendshipId} {
+        allow read: if isSignedIn() && request.auth.uid in resource.data.users;
+    }
+
+    match /friendRequests/{requestId} {
+        allow read: if isSignedIn() && (request.auth.uid == resource.data.from || request.auth.uid == resource.data.to);
+    }
+    
+    // Chats & Messages
+    match /chats/{chatId} {
+        allow read, write: if isSignedIn() && request.auth.uid in resource.data.members;
+
+        match /messages/{messageId} {
+            allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+        }
+    }
+    
+    // Honors
+    match /honors/{honorId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow delete: if get(/databases/$(database)/documents/honors/$(honorId)).data.from == request.auth.uid;
+    }
+    
+    match /honorsGiven/{givenId} {
+        allow read: if isSignedIn() && resource.data.giverId == request.auth.uid;
+        allow write: if isSignedIn() && request.resource.data.giverId == request.auth.uid;
+    }
+    
+     // Support tickets
+    match /supportTickets/{ticketId} {
+      allow read, create: if isSignedIn() && (resource.data.userId == request.auth.uid || request.auth.token.role in ['admin', 'moderator']);
+      allow update: if request.auth.token.role in ['admin', 'moderator'];
+      
+      match /conversation/{messageId} {
+        allow read, create: if isSignedIn() && (get(/databases/$(database)/documents/supportTickets/$(ticketId)).data.userId == request.auth.uid || request.auth.token.role in ['admin', 'moderator']);
+      }
     }
   }
 }
