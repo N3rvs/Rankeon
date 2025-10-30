@@ -1,6 +1,6 @@
 
-// src/lib/actions/friends.ts
 'use client';
+
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 import type { UserProfile } from '../types';
@@ -8,12 +8,10 @@ import { Timestamp } from 'firebase/firestore';
 import { errorEmitter } from '../firebase/error-emitter';
 import { FirestorePermissionError } from '../firebase/errors';
 
-
 type ActionResponse = {
   success: boolean;
   message: string;
 };
-
 
 export type FriendshipStatus =
   | 'loading'
@@ -26,24 +24,31 @@ export type FriendshipStatus =
 type GetFriendshipStatusResponse = {
   status: FriendshipStatus;
   requestId?: string | null;
-}
+};
 
 type FriendshipStatusActionResponse = {
-    success: boolean;
-    data?: GetFriendshipStatusResponse;
-    message: string;
-}
+  success: boolean;
+  data?: GetFriendshipStatusResponse;
+  message: string;
+};
 
-const functions = getFunctions(app, "europe-west1");
+const functions = getFunctions(app, 'europe-west1');
 
-
-export async function getFriendshipStatus(targetUserId: string): Promise<FriendshipStatusActionResponse> {
+export async function getFriendshipStatus(
+  targetUserId: string
+): Promise<FriendshipStatusActionResponse> {
   try {
-    const getStatusFunc = httpsCallable< { targetUserId: string }, GetFriendshipStatusResponse>(functions, 'getFriendshipStatus');
+    const getStatusFunc = httpsCallable<
+      { targetUserId: string },
+      GetFriendshipStatusResponse
+    >(functions, 'getFriendshipStatus');
     const result = await getStatusFunc({ targetUserId });
-    return { success: true, data: result.data, message: "Status fetched successfully." };
-  } catch (error: any)
-  {
+    return {
+      success: true,
+      data: result.data,
+      message: 'Status fetched successfully.',
+    };
+  } catch (error: any) {
     console.error('Error fetching friendship status:', error);
     if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
       const permissionError = new FirestorePermissionError({
@@ -52,7 +57,12 @@ export async function getFriendshipStatus(targetUserId: string): Promise<Friends
       });
       errorEmitter.emit('permission-error', permissionError);
     }
-    return { success: false, message: error.message || 'An unexpected error occurred while fetching friendship status.' };
+    return {
+      success: false,
+      message:
+        error.message ||
+        'An unexpected error occurred while fetching friendship status.',
+    };
   }
 }
 
@@ -62,7 +72,10 @@ export async function sendFriendRequest(
   try {
     const sendRequest = httpsCallable(functions, 'sendFriendRequest');
     const result = await sendRequest({ to: recipientId });
-    return (result.data as ActionResponse) || { success: true, message: 'Friend request sent.' };
+    return (result.data as ActionResponse) || {
+      success: true,
+      message: 'Friend request sent.',
+    };
   } catch (error: any) {
     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
@@ -73,7 +86,10 @@ export async function sendFriendRequest(
       errorEmitter.emit('permission-error', permissionError);
     }
     console.error('Error sending friend request:', error);
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
   }
 }
 
@@ -87,9 +103,12 @@ export async function respondToFriendRequest({
   try {
     const respond = httpsCallable(functions, 'respondToFriendRequest');
     const result = await respond({ requestId, accept });
-    return (result.data as ActionResponse) || { success: true, message: `Request ${accept ? 'accepted' : 'rejected'}.` };
+    return (result.data as ActionResponse) || {
+      success: true,
+      message: `Request ${accept ? 'accepted' : 'rejected'}.`,
+    };
   } catch (error: any) {
-     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
         path: `/friendRequests/${requestId}`,
         operation: 'update',
@@ -98,40 +117,50 @@ export async function respondToFriendRequest({
       errorEmitter.emit('permission-error', permissionError);
     }
     console.error('Error responding to friend request:', error);
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
   }
 }
 
 export async function removeFriend(friendId: string): Promise<ActionResponse> {
   try {
     const remove = httpsCallable(functions, 'removeFriend');
-    const result = await remove({ friendUid: friendId });
-    return (result.data as ActionResponse) || { success: true, message: 'Friend removed.' };
+    const result = await remove({ userId: friendId });
+    return (result.data as ActionResponse) || {
+      success: true,
+      message: 'Friend removed.',
+    };
   } catch (error: any) {
-     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
-        path: `/users/{userId}`,
-        operation: 'update',
-        requestResourceData: { friends: { 'array-remove': friendId } },
+        path: `/friendships/{friendshipId}`,
+        operation: 'delete',
       });
       errorEmitter.emit('permission-error', permissionError);
     }
     console.error('Error removing friend:', error);
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
+    return {
+      success: false,
+      message: error.message || 'An unexpected error occurred.',
+    };
   }
 }
 
 export async function blockUser(userId: string): Promise<ActionResponse> {
   try {
     const block = httpsCallable(functions, 'blockUser');
-    const result = await block({ blockedUid: userId });
-    return (result.data as ActionResponse) || { success: true, message: 'User blocked.' };
+    const result = await block({ userId });
+    return (result.data as ActionResponse) || {
+      success: true,
+      message: 'User blocked.',
+    };
   } catch (error: any) {
     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
-        path: `/users/{userId}`,
-        operation: 'update',
-        requestResourceData: { blocked: { 'array-union': userId } },
+        path: `/blocks/{userId}/targets/{targetId}`,
+        operation: 'create',
       });
       errorEmitter.emit('permission-error', permissionError);
     }
@@ -146,14 +175,16 @@ export async function blockUser(userId: string): Promise<ActionResponse> {
 export async function unblockUser(userId: string): Promise<ActionResponse> {
   try {
     const unblock = httpsCallable(functions, 'unblockUser');
-    const result = await unblock({ blockedUid: userId });
-    return (result.data as ActionResponse) || { success: true, message: 'User unblocked.' };
+    const result = await unblock({ userId });
+    return (result.data as ActionResponse) || {
+      success: true,
+      message: 'User unblocked.',
+    };
   } catch (error: any) {
-     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
-        path: `/users/{userId}`,
-        operation: 'update',
-        requestResourceData: { blocked: { 'array-remove': userId } },
+        path: `/blocks/{userId}/targets/{targetId}`,
+        operation: 'delete',
       });
       errorEmitter.emit('permission-error', permissionError);
     }
@@ -165,18 +196,31 @@ export async function unblockUser(userId: string): Promise<ActionResponse> {
   }
 }
 
-export async function getFriends(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
+export async function getFriends(): Promise<{
+  success: boolean;
+  data?: UserProfile[];
+  message: string;
+}> {
   try {
-    const getFriendsFunc = httpsCallable<void, any[]>(functions, 'getFriendProfiles');
+    const getFriendsFunc = httpsCallable<void, any[]>(
+      functions,
+      'getFriendProfiles'
+    );
     const result = await getFriendsFunc();
     // Deserialize timestamps
-    const profiles = result.data.map(p => ({
+    const profiles = result.data.map((p) => ({
       ...p,
       createdAt: p.createdAt ? Timestamp.fromDate(new Date(p.createdAt)) : undefined,
       banUntil: p.banUntil ? Timestamp.fromDate(new Date(p.banUntil)) : undefined,
-      _claimsRefreshedAt: p._claimsRefreshedAt ? Timestamp.fromDate(new Date(p._claimsRefreshedAt)) : undefined,
+      _claimsRefreshedAt: p._claimsRefreshedAt
+        ? Timestamp.fromDate(new Date(p._claimsRefreshedAt))
+        : undefined,
     }));
-    return { success: true, data: profiles as UserProfile[], message: 'Friends fetched.' };
+    return {
+      success: true,
+      data: profiles as UserProfile[],
+      message: 'Friends fetched.',
+    };
   } catch (error: any) {
     console.error('Error getting friends:', error);
     if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
