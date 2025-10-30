@@ -1,11 +1,14 @@
+// src/lib/actions/friends.ts
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
-import type { UserProfile } from '../types';
+import type { UserProfile, Friendship } from '../types';
 import { Timestamp } from 'firebase/firestore';
 import { errorEmitter } from '../firebase/error-emitter';
 import { FirestorePermissionError } from '../firebase/errors';
+
+const functions = getFunctions(app, 'europe-west1');
 
 type ActionResponse = {
   success: boolean;
@@ -30,8 +33,6 @@ type FriendshipStatusActionResponse = {
   data?: GetFriendshipStatusResponse;
   message: string;
 };
-
-const functions = getFunctions(app, 'europe-west1');
 
 // This function seems to be missing from the backend, we will skip it for now.
 // It might be part of a larger social feature.
