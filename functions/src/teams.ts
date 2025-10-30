@@ -2,6 +2,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { z } from 'zod';
+import { doc } from 'firebase/firestore';
 
 const db = admin.firestore();
 const nowTs = () => admin.firestore.FieldValue.serverTimestamp();
@@ -91,8 +92,7 @@ export const createTeam = onCall({ region: 'europe-west1' }, async (req) => {
   const data = CreateTeamSchema.parse(req.data ?? {});
   const teamRef = db.collection('teams').doc();
 
-  await db.runTransaction(async (tx) => {
-    tx.set(teamRef, {
+  await teamRef.set({
       name: data.name,
       game: data.game,
       description: data.description ?? '',
@@ -105,7 +105,6 @@ export const createTeam = onCall({ region: 'europe-west1' }, async (req) => {
         [uid]: 'owner'
       }
     });
-  });
 
   return { success: true, message: 'Equipo creado.', teamId: teamRef.id };
 });
@@ -270,7 +269,7 @@ export const getTeamMembers = onCall({ region: 'europe-west1' }, async (req) => 
       return [];
   }
 
-  const userDocs = await db.getAll(...memberIds.map(id => doc(db, 'users', id)));
+  const userDocs = await Promise.all(memberIds.map(id => db.doc(`users/${id}`).get()));
 
   const members = userDocs.map(userDoc => {
       if (!userDoc.exists) return null;
