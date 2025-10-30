@@ -2,114 +2,146 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Helper Functions
+
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
-    
+
     function isOwner(userId) {
       return request.auth.uid == userId;
+    }
+
+    function getRole(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getRole(request.auth.uid) == 'admin';
+    }
+
+    function isModerator() {
+      return isSignedIn() && (getRole(request.auth.uid) == 'admin' || getRole(request.auth.uid) == 'moderator');
     }
     
     function isTeamStaff(teamId) {
         let teamData = get(/databases/$(database)/documents/teams/$(teamId)).data;
-        let userRole = teamData.members[request.auth.uid];
-        return userRole == 'owner' || userRole == 'coach' || userRole == 'admin' || userRole == 'captain';
+        let userRoleInTeam = teamData.members[request.auth.uid];
+        return userRoleInTeam == 'owner' || userRoleInTeam == 'coach';
     }
 
-    // User Profiles
+    // Matches
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isOwner(userId) || isTeamStaff(get(/databases/$(database)/documents/users/$(userId)).data.teamId);
+      allow read: if true;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if (isSignedIn() && isOwner(userId)) || (isModerator() && !(userId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles)) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    match /honorStats/{userId} {
+      allow read: if true;
+      allow create, update, delete: if false; // Managed by backend functions
+    }
+    
+    match /honorsGiven/{giverId}_{recipientId} {
+        allow read: if isSignedIn() && (request.auth.uid == giverId || request.auth.uid == recipientId);
+        allow create, update: if isSignedIn() && request.auth.uid == giverId;
+        allow delete: if false;
     }
 
-    // Teams
     match /teams/{teamId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update: if isTeamStaff(teamId);
-      allow delete: if get(/databases/$(database)/documents/teams/$(teamId)).data.ownerId == request.auth.uid;
-      
-      // Team subcollections
-      match /tasks/{taskId} {
-        allow read, write: if isTeamStaff(teamId);
-      }
-    }
-    
-    // Team Members (obsolete, but kept for safety)
-    match /teamMembers/{membershipId} {
-        allow read: if true;
-        allow create, delete: if isSignedIn(); // Simplified for now
+      allow update: if isSignedIn() && isTeamStaff(teamId);
+      allow delete: if isSignedIn() && get(/databases/$(database)/documents/teams/$(teamId)).data.ownerId == request.auth.uid;
     }
 
-    // Team Applications
     match /teamApplications/{applicationId} {
-        allow read: if isSignedIn(); // Staff or applicant
-        allow create: if isSignedIn();
-        allow update: if isTeamStaff(get(/databases/$(database)/documents/teamApplications/$(applicationId)).data.teamId);
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isTeamStaff(get(/databases/$(database)/documents/teamApplications/$(applicationId)).data.teamId);
+      allow delete: if false;
     }
     
-    // Scrims
+     match /teamInvites/{inviteId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isTeamStaff(request.resource.data.teamId);
+      allow update: if isSignedIn();
+      allow delete: if false;
+    }
+    
     match /scrims/{scrimId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update: if isSignedIn(); // Let backend logic handle permissions
-    }
-
-    // Tournaments
-    match /tournaments/{tournamentId} {
-        allow read: if true;
-        
-        match /teams/{teamId} {
-            allow read: if true;
-            allow create: if isTeamStaff(teamId);
-        }
-        
-        match /matches/{matchId} {
-            allow read: if true;
-            allow update: if isSignedIn(); // Let backend handle staff roles
-        }
+      allow update, delete: if isSignedIn();
     }
     
-    // Friendships & Requests
-    match /friendships/{friendshipId} {
-        allow read: if isSignedIn() && request.auth.uid in resource.data.users;
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow create, update, delete: if isModerator();
+      
+      match /teams/{teamId} {
+        allow read, create, update, delete: if isSignedIn();
+      }
+       match /matches/{matchId} {
+        allow read: if true;
+        allow create, update, delete: if isModerator();
+      }
+       match /schedule/{scheduleId} {
+        allow read: if true;
+        allow create, update, delete: if isModerator();
+      }
+       match /standings/{teamId} {
+        allow read: if true;
+        allow create, update, delete: if isModerator();
+      }
+    }
+    
+    match /tournamentProposals/{proposalId} {
+      allow read: if isModerator();
+      allow create: if isSignedIn();
+      allow update, delete: if isModerator();
+    }
+    
+    match /supportTickets/{ticketId} {
+      allow read, update: if isSignedIn() && (request.auth.uid == resource.data.userId || isModerator());
+      allow create: if isSignedIn();
+      
+       match /conversation/{messageId} {
+          allow read, create: if isSignedIn() && (request.auth.uid == get(/databases/$(database)/documents/supportTickets/$(ticketId)).data.userId || isModerator());
+       }
+    }
+    
+    match /chats/{chatId} {
+      allow read, update: if isSignedIn() && request.auth.uid in resource.data.members;
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.members;
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.from;
+        allow update, delete: if false;
+      }
     }
 
     match /friendRequests/{requestId} {
-        allow read: if isSignedIn() && (request.auth.uid == resource.data.from || request.auth.uid == resource.data.to);
+      allow read, create, update: if isSignedIn();
+      allow delete: if false;
     }
     
-    // Chats & Messages
-    match /chats/{chatId} {
-        allow read, write: if isSignedIn() && request.auth.uid in resource.data.members;
-
-        match /messages/{messageId} {
-            allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
-        }
+    match /friendships/{friendshipId} {
+        allow read: if isSignedIn() && request.auth.uid in resource.data.users;
+        allow create, delete: if isSignedIn();
+        allow update: if false;
     }
     
-    // Honors
-    match /honors/{honorId} {
-        allow read: if true;
-        allow create: if isSignedIn();
-        allow delete: if get(/databases/$(database)/documents/honors/$(honorId)).data.from == request.auth.uid;
+    match /blocks/{userId}/targets/{targetId} {
+      allow read, create, delete: if isOwner(userId);
+      allow update: if false;
     }
     
-    match /honorsGiven/{givenId} {
-        allow read: if isSignedIn() && resource.data.giverId == request.auth.uid;
-        allow write: if isSignedIn() && request.resource.data.giverId == request.auth.uid;
-    }
-    
-     // Support tickets
-    match /supportTickets/{ticketId} {
-      allow read, create: if isSignedIn() && (resource.data.userId == request.auth.uid || request.auth.token.role in ['admin', 'moderator']);
-      allow update: if request.auth.token.role in ['admin', 'moderator'];
-      
-      match /conversation/{messageId} {
-        allow read, create: if isSignedIn() && (get(/databases/$(database)/documents/supportTickets/$(ticketId)).data.userId == request.auth.uid || request.auth.token.role in ['admin', 'moderator']);
-      }
+    match /inbox/{userId}/{document=**} {
+      allow read, create, update, delete: if isOwner(userId);
     }
   }
 }

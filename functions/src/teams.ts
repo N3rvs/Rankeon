@@ -133,8 +133,6 @@ export const deleteTeam = onCall({ region: 'europe-west1' }, async (req) => {
 
   // Elimina miembros y tareas básicas (simple, no exhaustivo)
   const batch = db.batch();
-  const members = await db.collection('teamMembers').where('teamId', '==', teamId).get();
-  members.docs.forEach((d) => batch.delete(d.ref));
   const tasks = await db.collection('teamTasks').where('teamId', '==', teamId).get();
   tasks.docs.forEach((d) => batch.delete(d.ref));
   batch.delete(team.ref);
