@@ -53,8 +53,7 @@ export {
 // --------- users: dueño de presence y claims ---------
 export {
   updateUserRole,
-  updateUserStatus,
-  updateUserPresence,      // <- añadida
+  updateUserStatus,      // <- añadida
   updateUserCertification,
 } from './users';
 

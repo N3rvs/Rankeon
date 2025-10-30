@@ -2,7 +2,8 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+// ⬇️ CAMBIO: usa initializeFirestore en vez de getFirestore
+import { initializeFirestore /* , memoryLocalCache */ } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase } from 'firebase/database';
 import {
@@ -14,13 +15,12 @@ import {
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // ------------------------------------
-// Config desde variables de entorno
+// Config
 // ------------------------------------
 const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 const databaseURL =
   process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
   (projectId ? `https://${projectId}-default-rtdb.europe-west1.firebasedatabase.app` : undefined);
-// Nota: ajusta la región del RTDB si tu instancia no es europe-west1.
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -33,11 +33,18 @@ const firebaseConfig = {
 };
 
 // ------------------------------------
-// Singleton de app + SDKs
+// App + SDKs
 // ------------------------------------
 export const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// ⬇️ CAMBIO: inicialización “robusta” (evita el assert)
+//    Si persiste, prueba la línea comentada con memoryLocalCache()
+export const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+  // localCache: memoryLocalCache(), // <- prueba temporal si aún falla
+});
+
 export const storage = getStorage(app);
 export const rtdb = getDatabase(app);
 
@@ -47,17 +54,13 @@ export const rtdb = getDatabase(app);
 let _appCheckStarted = false;
 let _appCheckInstance: AppCheck | null = null;
 
-/**
- * Arranca App Check en navegador. Idempotente.
- * Devuelve la instancia para poder usar getToken() si hiciera falta.
- */
 export function ensureAppCheck(): AppCheck | null {
   if (typeof window === 'undefined') return null;
   if (_appCheckStarted) return _appCheckInstance;
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
     (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN =
-      process.env.NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN ;
+      process.env.NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN; // <- fijo, sin "|| true"
   }
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
@@ -75,10 +78,6 @@ export function ensureAppCheck(): AppCheck | null {
   return _appCheckInstance;
 }
 
-/**
- * (Opcional) Espera a que exista un token de App Check antes de llamadas críticas.
- * Útil para evitar carreras en el primer render.
- */
 export async function ensureAppCheckToken(forceRefresh = false): Promise<string | null> {
   const ac = ensureAppCheck();
   if (!ac) return null;
@@ -90,25 +89,20 @@ export async function ensureAppCheckToken(forceRefresh = false): Promise<string 
   }
 }
 
-// Auto-inicio en el navegador
+// Auto-inicio en navegador
 ensureAppCheck();
 
 // ------------------------------------
-// Helper de Functions en europe-west1
+// Functions (EU)
 // ------------------------------------
 export function getFunctionsEU() {
   return getFunctions(app, 'europe-west1');
 }
 
-/**
- * Helper para callables con región fija.
- * Ejemplo: const getMarketPlayers = callable<'input','output'>('getMarketPlayers');
- */
 export function callable<I = unknown, O = unknown>(name: string) {
   const fn = httpsCallable<I, O>(getFunctionsEU(), name);
   return async (data: I) => {
-    // (Opcional) asegura token antes de la primera llamada
-    await ensureAppCheckToken();
+    await ensureAppCheckToken(); // evita carreras
     return fn(data);
   };
 }

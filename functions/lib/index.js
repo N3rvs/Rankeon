@@ -36,7 +36,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getFriendProfiles = exports.getManagedUsers = exports.getTournamentRankings = exports.getScrimRankings = exports.getFeaturedScrims = exports.deleteNotifications = exports.markNotificationsAsRead = exports.getInbox = exports.addInboxNotification = exports.updateUserCertification = exports.updateUserPresence = exports.updateUserStatus = exports.updateUserRole = exports.unblockUser = exports.blockUser = exports.deleteChatHistory = exports.markChatRead = exports.getChatMessages = exports.getChats = exports.sendMessageToFriend = void 0;
+exports.getFriendProfiles = exports.getManagedUsers = exports.getTournamentRankings = exports.getScrimRankings = exports.getFeaturedScrims = exports.deleteNotifications = exports.markNotificationsAsRead = exports.getInbox = exports.addInboxNotification = exports.updateUserCertification = exports.updateUserStatus = exports.updateUserRole = exports.unblockUser = exports.blockUser = exports.deleteChatHistory = exports.markChatRead = exports.getChatMessages = exports.getChats = exports.sendMessageToFriend = void 0;
 const admin = __importStar(require("firebase-admin"));
 const v2_1 = require("firebase-functions/v2");
 // ===== Opciones globales =====
@@ -86,7 +86,6 @@ Object.defineProperty(exports, "unblockUser", { enumerable: true, get: function 
 var users_1 = require("./users");
 Object.defineProperty(exports, "updateUserRole", { enumerable: true, get: function () { return users_1.updateUserRole; } });
 Object.defineProperty(exports, "updateUserStatus", { enumerable: true, get: function () { return users_1.updateUserStatus; } });
-Object.defineProperty(exports, "updateUserPresence", { enumerable: true, get: function () { return users_1.updateUserPresence; } });
 Object.defineProperty(exports, "updateUserCertification", { enumerable: true, get: function () { return users_1.updateUserCertification; } });
 // --------- notifications: sólo las que no chocan ---------
 var notifications_1 = require("./notifications");

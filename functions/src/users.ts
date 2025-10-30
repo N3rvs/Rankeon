@@ -1,143 +1,139 @@
-// functions/src/users.ts
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
-import { z } from 'zod';
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
+
+type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
 
 const db = admin.firestore();
-const now = () => admin.firestore.FieldValue.serverTimestamp();
+const auth = admin.auth();
 
-function assertAuth(ctx: any) {
-  if (!ctx.auth?.uid) throw new HttpsError('unauthenticated', 'You must be logged in.');
-  return ctx.auth.uid as string;
+const VALID_ROLES: UserRole[] = ['admin', 'moderator', 'player', 'founder', 'coach'];
+
+const checkAdmin = (auth: any) => {
+    if (!auth || auth.token.role !== 'admin') {
+        throw new HttpsError('permission-denied', 'This action requires administrator privileges.');
+    }
+};
+
+const checkModOrAdmin = (auth: any) => {
+    if (!auth || (auth.token.role !== 'admin' && auth.token.role !== 'moderator')) {
+        throw new HttpsError('permission-denied', 'This action requires moderator or administrator privileges.');
+    }
+};
+
+export const updateUserRole = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: UpdateRoleData }) => {
+    checkAdmin(callerAuth);
+    
+    const { uid, role } = data;
+    if (!uid || !role || !VALID_ROLES.includes(role)) {
+        throw new HttpsError('invalid-argument', 'Invalid arguments provided.');
+    }
+    try {
+        const userToUpdate = await auth.getUser(uid);
+        const existingClaims = userToUpdate.customClaims || {};
+
+        // Step 1: Set the secure custom claim. This is the source of truth.
+        await auth.setCustomUserClaims(uid, { ...existingClaims, role });
+        // Step 2: Update the denormalized role in Firestore for client display.
+        await db.collection('users').doc(uid).set({ role }, { merge: true });
+
+        return { success: true, message: `Role "${role}" assigned to user ${uid}` };
+    } catch (error: any) {
+        console.error('Error updating role:', error);
+        throw new HttpsError('internal', `Failed to update role: ${error.message}`);
+    }
+});
+
+interface UpdateStatusData {
+    uid: string;
+    disabled: boolean;
+    duration?: number; // in hours
 }
-function assertStaff(req: any) {
-  const role = (req.auth?.token as any)?.role;
-  if (role !== 'admin' && role !== 'moderator') {
-    throw new HttpsError('permission-denied', 'Admin/Moderator only.');
-  }
+interface UpdateRoleData {
+    uid: string;
+    role: UserRole;
 }
 
-const UpdateRoleSchema = z.object({
-  uid: z.string().min(1),
-  // Aceptamos cualquier string no vacío por compatibilidad con tu tipo UserRole del front
-  role: z.string().min(1),
+export const updateUserStatus = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: UpdateStatusData }) => {
+    checkModOrAdmin(callerAuth);
+
+    const { uid, disabled, duration } = data;
+     if (!uid) {
+        throw new HttpsError('invalid-argument', 'User ID is required.');
+    }
+
+    if (callerAuth.uid === uid) {
+        throw new HttpsError('failed-precondition', 'You cannot change your own status.');
+    }
+
+    try {
+        const userToUpdate = await auth.getUser(uid);
+        const targetClaims = userToUpdate.customClaims || {};
+        const targetRole = targetClaims.role;
+        const callerRole = callerAuth.token.role;
+
+        // Rule: Moderators can't ban other moderators or admins.
+        if (callerRole === 'moderator' && (targetRole === 'admin' || targetRole === 'moderator')) {
+            throw new HttpsError('permission-denied', 'Moderators cannot ban other moderators or admins.');
+        }
+
+        const userDocRef = db.collection('users').doc(uid);
+        let banUntil: admin.firestore.Timestamp | null = null;
+
+        if (disabled && duration) {
+            // Temporary ban
+            const now = admin.firestore.Timestamp.now();
+            banUntil = admin.firestore.Timestamp.fromMillis(now.toMillis() + duration * 60 * 60 * 1000);
+        }
+
+        // Update Auth
+        await auth.updateUser(uid, { disabled });
+
+        // Update Firestore
+        if (disabled) { // Banning
+             await userDocRef.update({ 
+                disabled, 
+                banUntil: banUntil // Will be null for permanent, or a timestamp for temporary
+            });
+        } else { // Unbanning
+            await userDocRef.update({ 
+                disabled, 
+                banUntil: admin.firestore.FieldValue.delete() 
+            });
+        }
+        
+        const action = disabled ? (duration ? 'temporarily banned' : 'banned') : 'unbanned';
+        return { success: true, message: `User ${action} successfully.` };
+    } catch (error: any) {
+        console.error('Error updating user status:', error);
+        throw new HttpsError('internal', `Failed to update user status: ${error.message}`);
+    }
 });
 
-const UpdateStatusSchema = z.object({
-  uid: z.string().min(1),
-  disabled: z.boolean(),
-  // horas opcionales
-  duration: z.number().int().positive().optional(),
+
+interface UpdateCertificationData {
+    uid: string;
+    isCertified: boolean;
+}
+
+export const updateUserCertification = onCall(async ({ auth: callerAuth, data }: { auth?: any, data: UpdateCertificationData }) => {
+    checkModOrAdmin(callerAuth);
+    
+    const { uid, isCertified } = data;
+    if (!uid) {
+        throw new HttpsError('invalid-argument', 'User ID is required.');
+    }
+    try {
+        const userToUpdate = await auth.getUser(uid);
+        const existingClaims = userToUpdate.customClaims || {};
+        // Step 1: Set the secure custom claim.
+        await auth.setCustomUserClaims(uid, { ...existingClaims, isCertifiedStreamer: isCertified });
+        // Step 2: Update the denormalized field in Firestore for client display.
+        await db.collection('users').doc(uid).update({ isCertifiedStreamer: isCertified });
+        return { success: true, message: `User certification status updated successfully.` };
+    } catch (error: any) {
+        console.error('Error updating user certification:', error);
+        throw new HttpsError('internal', `Failed to update certification: ${error.message}`);
+    }
 });
 
-const UpdateCertificationSchema = z.object({
-  uid: z.string().min(1),
-  isCertified: z.boolean(),
-});
 
-// Estados de presencia comunes; si prefieres más flexibilidad, cámbialo por z.string().min(1)
-const PresenceSchema = z.object({
-  status: z.enum(['online', 'offline', 'busy', 'away', 'in_game']),
-});
-
-/**
- * Actualiza el rol del usuario (Auth custom claims + espejo en /users)
- */
-export const updateUserRole = onCall({ region: 'europe-west1' }, async (req) => {
-  assertAuth(req);
-  assertStaff(req);
-
-  const { uid, role } = UpdateRoleSchema.parse(req.data ?? {});
-
-  // 1) Custom claims
-  const user = await admin.auth().getUser(uid);
-  const existing = user.customClaims ?? {};
-  await admin.auth().setCustomUserClaims(uid, { ...existing, role });
-
-  // 2) Espejo en Firestore
-  const uRef = db.doc(`users/${uid}`);
-  await uRef.set(
-    {
-      role,
-      customClaims: { ...(existing as any), role },
-      _claimsRefreshedAt: now(),
-      updatedAt: now(),
-    },
-    { merge: true }
-  );
-
-  return { success: true, message: 'User role updated.' };
-});
-
-/**
- * Deshabilita/Habilita usuario en Auth y marca banUntil (si duration)
- */
-export const updateUserStatus = onCall({ region: 'europe-west1' }, async (req) => {
-  assertAuth(req);
-  assertStaff(req);
-
-  const { uid, disabled, duration } = UpdateStatusSchema.parse(req.data ?? {});
-  await admin.auth().updateUser(uid, { disabled });
-
-  const uRef = db.doc(`users/${uid}`);
-  const updates: Record<string, any> = { updatedAt: now(), disabled };
-
-  if (disabled && duration) {
-    const until = new Date(Date.now() + duration * 60 * 60 * 1000);
-    updates.banUntil = admin.firestore.Timestamp.fromDate(until);
-  } else if (!disabled) {
-    updates.banUntil = null;
-  }
-
-  await uRef.set(updates, { merge: true });
-  return { success: true, message: `User ${disabled ? 'disabled' : 'enabled'}.` };
-});
-
-/**
- * Marca/Desmarca al usuario como streamer certificado
- */
-export const updateUserCertification = onCall({ region: 'europe-west1' }, async (req) => {
-  assertAuth(req);
-  assertStaff(req);
-
-  const { uid, isCertified } = UpdateCertificationSchema.parse(req.data ?? {});
-  const user = await admin.auth().getUser(uid);
-  const existing = user.customClaims ?? {};
-  await admin.auth().setCustomUserClaims(uid, { ...existing, isCertifiedStreamer: isCertified });
-
-  const uRef = db.doc(`users/${uid}`);
-  await uRef.set(
-    {
-      isCertifiedStreamer: isCertified,
-      customClaims: { ...(existing as any), isCertifiedStreamer: isCertified },
-      _claimsRefreshedAt: now(),
-      updatedAt: now(),
-    },
-    { merge: true }
-  );
-
-  return { success: true, message: 'User certification updated.' };
-});
-
-/**
- * Actualiza presencia del usuario autenticado
- * Front: updateUserPresence({ status })
- */
-export const updateUserPresence = onCall({ region: 'europe-west1' }, async (req) => {
-  const uid = assertAuth(req);
-  const { status } = PresenceSchema.parse(req.data ?? {});
-
-  const uRef = db.doc(`users/${uid}`);
-  await uRef.set(
-    {
-      presence: {
-        status,
-        lastActiveAt: now(),
-      },
-      updatedAt: now(),
-    },
-    { merge: true }
-  );
-
-  return { success: true, message: 'Presence updated.' };
-});
