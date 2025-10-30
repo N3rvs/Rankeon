@@ -1,9 +1,10 @@
-// src/lib/actions/tickets.ts
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { z } from 'zod';
 import { app } from '../firebase/client';
+import { errorEmitter } from '../firebase/error-emitter';
+import { FirestorePermissionError } from '../firebase/errors';
 
 const functions = getFunctions(app, "europe-west1");
 
@@ -30,6 +31,14 @@ export async function createSupportTicket(values: CreateTicketData): Promise<Act
     
     return (result.data as ActionResponse);
   } catch (error: any) {
+     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+      const permissionError = new FirestorePermissionError({
+        path: 'tickets',
+        operation: 'create',
+        requestResourceData: values,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error creating support ticket:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
@@ -41,6 +50,14 @@ export async function respondToTicket(ticketId: string, content: string): Promis
     const result = await respondFunc({ ticketId, content });
     return (result.data as ActionResponse);
   } catch (error: any) {
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+      const permissionError = new FirestorePermissionError({
+        path: `tickets/${ticketId}/messages`,
+        operation: 'create',
+        requestResourceData: { content },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error responding to ticket:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
@@ -52,6 +69,14 @@ export async function resolveTicket(ticketId: string): Promise<ActionResponse> {
     const result = await resolveFunc({ ticketId });
     return (result.data as ActionResponse);
   } catch (error: any) {
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+      const permissionError = new FirestorePermissionError({
+        path: `tickets/${ticketId}`,
+        operation: 'update',
+        requestResourceData: { status: 'resolved' },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error resolving ticket:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }

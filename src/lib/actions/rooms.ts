@@ -3,10 +3,12 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { z } from 'zod';
 import { app } from '../firebase/client';
+import { errorEmitter } from '../firebase/error-emitter';
+import { FirestorePermissionError } from '../firebase/errors';
 
 const functions = getFunctions(app, "europe-west1");
 
-const CreateRoomSchema = z.object({
+export const CreateRoomSchema = z.object({
   name: z.string().min(3).max(50),
   game: z.string().min(1),
   server: z.string().min(1),
@@ -14,7 +16,7 @@ const CreateRoomSchema = z.object({
   partySize: z.string().min(1),
 });
 
-type CreateRoomData = z.infer<typeof CreateRoomSchema>;
+export type CreateRoomData = z.infer<typeof CreateRoomSchema>;
 
 type ActionResponse = {
   success: boolean;
@@ -29,7 +31,7 @@ export async function createRoom(
     const validatedFields = CreateRoomSchema.safeParse(values);
 
     if (!validatedFields.success) {
-      return { success: false, message: 'Datos de formulario no válidos.' };
+      return { success: false, message: 'Invalid form data.' };
     }
 
     const createRoomFunc = httpsCallable<CreateRoomData, ActionResponse>(
@@ -43,20 +45,28 @@ export async function createRoom(
     if (responseData.success) {
       return {
         success: true,
-        message: 'Sala creada con éxito.',
+        message: 'Room created successfully.',
         roomId: responseData.roomId,
       };
     } else {
       return {
         success: false,
-        message: responseData.message || 'Ocurrió un error desconocido en el servidor.',
+        message: responseData.message || 'An unknown server error occurred.',
       };
     }
   } catch (error: any) {
-    console.error('Error al llamar a la función createRoom:', error);
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+        const permissionError = new FirestorePermissionError({
+            path: 'rooms',
+            operation: 'create',
+            requestResourceData: values,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
+    console.error('Error calling createRoom function:', error);
     return {
       success: false,
-      message: error.message || 'Ocurrió un error inesperado.',
+      message: error.message || 'An unexpected error occurred.',
     };
   }
 }
@@ -64,9 +74,16 @@ export async function createRoom(
 export async function joinRoom(roomId: string): Promise<{ success: boolean; message: string }> {
   try {
     const joinRoomFunc = httpsCallable(functions, 'joinRoom');
-    await joinRoomFunc({ roomId });
-    return { success: true, message: 'Joined room successfully' };
+    const result = await joinRoomFunc({ roomId });
+    return (result.data as ActionResponse);
   } catch (error: any) {
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+        const permissionError = new FirestorePermissionError({
+            path: `rooms/${roomId}`,
+            operation: 'update',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error joining room:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
@@ -75,9 +92,16 @@ export async function joinRoom(roomId: string): Promise<{ success: boolean; mess
 export async function leaveRoom(roomId: string): Promise<{ success: boolean; message: string }> {
   try {
     const leaveRoomFunc = httpsCallable(functions, 'leaveRoom');
-    await leaveRoomFunc({ roomId });
-    return { success: true, message: 'Left room successfully' };
+    const result = await leaveRoomFunc({ roomId });
+    return (result.data as ActionResponse);
   } catch (error: any) {
+     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+        const permissionError = new FirestorePermissionError({
+            path: `rooms/${roomId}`,
+            operation: 'update',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error leaving room:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
@@ -92,9 +116,17 @@ export async function sendMessageToRoom({
 }): Promise<{ success: boolean; message: string }> {
   try {
     const sendMessageFunc = httpsCallable(functions, 'sendMessageToRoom');
-    await sendMessageFunc({ roomId, content });
-    return { success: true, message: 'Message sent.' };
+    const result = await sendMessageFunc({ roomId, content });
+    return (result.data as ActionResponse);
   } catch (error: any) {
+     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+        const permissionError = new FirestorePermissionError({
+            path: `rooms/${roomId}/messages`,
+            operation: 'create',
+            requestResourceData: { content },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    }
     console.error('Error sending message to room:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
