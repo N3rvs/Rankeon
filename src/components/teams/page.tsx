@@ -1,3 +1,4 @@
+
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -8,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield, Twitch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
-import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
 import Image from 'next/image';
@@ -28,6 +29,8 @@ import { TeamScrimStatsCard } from '@/components/teams/team-scrim-stats-card';
 import { UpcomingScrimsCard } from '@/components/teams/upcoming-scrims-card';
 import { Spinner } from '@/components/ui/spinner';
 import { TeamTasksDialog } from '@/components/teams/TeamTasksDialog';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 function MemberManager({ team, member, currentUserRole }: { team: Team, member: TeamMember, currentUserRole: 'founder' | 'coach' | 'member' }) {
     const { t } = useI18n();
@@ -177,11 +180,11 @@ function MemberManager({ team, member, currentUserRole }: { team: Team, member: 
     );
 }
 
-function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- CORRECCIÓN 2: Añadido userProfile
+function TeamDisplay({ team, members, currentUserRole, userProfile }: {
     team: Team,
     members: TeamMember[],
     currentUserRole: 'founder' | 'coach' | 'member',
-    userProfile: UserProfile | null // <-- CORRECCIÓN 2: Añadido tipo
+    userProfile: UserProfile | null
 }) {
     const { t } = useI18n();
     const { toast } = useToast();
@@ -210,7 +213,11 @@ function TeamDisplay({ team, members, currentUserRole, userProfile }: { // <-- C
             setWonTournaments(tournaments);
             setLoadingTrophies(false);
         }, (error) => {
-            console.error("Error fetching won tournaments:", error);
+            const permissionError = new FirestorePermissionError({
+                path: `tournaments`,
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
             setLoadingTrophies(false);
         });
         return () => unsubscribe();
@@ -508,8 +515,11 @@ export default function TeamsPage() {
                 setLoadingTeam(false);
                 }
             }, (error) => {
-                console.error("Error fetching team: ", error);
-                toast({ title: 'Error', description: "Could not load your team's data.", variant: 'destructive' });
+                const permissionError = new FirestorePermissionError({
+                    path: teamRef.path,
+                    operation: 'get',
+                });
+                errorEmitter.emit('permission-error', permissionError);
                 setTeam(null);
                 setMembers([]);
                 setLoadingTeam(false);
@@ -573,3 +583,4 @@ export default function TeamsPage() {
         </div>
     );
 }
+
