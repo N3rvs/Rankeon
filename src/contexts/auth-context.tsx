@@ -1,3 +1,4 @@
+
 // src/contexts/auth-context.tsx
 'use client';
 
@@ -21,6 +22,8 @@ import {
 import { auth, db, rtdb } from '@/lib/firebase/client';
 import { UserProfile } from '@/lib/types';
 import { ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from 'firebase/database';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 
 interface AuthContextType {
@@ -137,7 +140,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           },
           (error) => {
-            console.error('Auth context profile listener error:', error);
+            const permissionError = new FirestorePermissionError({
+              path: userDocRef.path,
+              operation: 'get',
+            });
+            errorEmitter.emit('permission-error', permissionError);
             setUserProfile(null);
             setLoading(false);
           }

@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { useI18n } from '@/contexts/i18n-context';
 import { TournamentDashboard } from '@/components/tournaments/TournamentDashboard';
 import { Spinner } from '@/components/ui/spinner';
+import { errorEmitter } from '@/lib/firebase/error-emitter';
+import { FirestorePermissionError } from '@/lib/firebase/errors';
 
 export default function TournamentPage() {
   const params = useParams();
@@ -23,7 +25,8 @@ export default function TournamentPage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    const unsub = onSnapshot(doc(db, 'tournaments', id), (docSnap) => {
+    const tournamentRef = doc(db, 'tournaments', id);
+    const unsub = onSnapshot(tournamentRef, (docSnap) => {
       if (docSnap.exists()) {
         setTournament({ id: docSnap.id, ...docSnap.data() } as Tournament);
       } else {
@@ -31,7 +34,11 @@ export default function TournamentPage() {
       }
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching tournament:", error);
+      const permissionError = new FirestorePermissionError({
+        path: tournamentRef.path,
+        operation: 'get',
+      });
+      errorEmitter.emit('permission-error', permissionError);
       setLoading(false);
     });
     return () => unsub();
