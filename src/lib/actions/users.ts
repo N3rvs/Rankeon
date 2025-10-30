@@ -1,3 +1,4 @@
+// src/lib/actions/users.ts
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -70,52 +71,28 @@ export async function updateUserCertification({
 
 export async function updateUserPresence(status: UserStatus): Promise<ActionResponse> {
   try {
-    // ESTA FUNCIÓN NO EXISTE EN EL BACKEND PROPORCIONADO
-    const updateUserPresenceFunc = httpsCallable(functions, 'updateUserPresence');
+    const updateUserPresenceFunc = httpsCallable<{status: UserStatus}, ActionResponse>(functions, 'updateUserPresence');
     const result = await updateUserPresenceFunc({ status });
-    return (result.data as ActionResponse);
+    return result.data;
   } catch (error: any) {
     console.error('Error updating user presence:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
 
-
-// *** FALLITO #2 CORREGIDO: getManagedUsers ahora usa paginación ***
-/**
- * Obtiene usuarios gestionados de forma paginada.
- * @param lastId El ID del último usuario obtenido en el lote anterior, o null para la primera página.
- * @returns Un objeto que contiene los usuarios de la página y el ID para la siguiente página.
- */
-export async function getManagedUsers(lastId: string | null): Promise<{
-    success: boolean;
-    data?: { users: UserProfile[]; nextLastId: string | null };
-    message: string;
-}> {
-    try {
-        // Llama a la función paginada del backend (asegúrate que se llame así en public.ts)
-        const getManagedUsersFunc = httpsCallable<{ lastId: string | null }, { users: any[]; nextLastId: string | null }>(functions, 'getManagedUsers');
-        const result = await getManagedUsersFunc({ lastId });
-
-        // Convierte Timestamps ISO strings a objetos Timestamp
-        const users = result.data.users.map(u => ({
-            ...u,
-            createdAt: u.createdAt ? Timestamp.fromDate(new Date(u.createdAt)) : undefined,
-            banUntil: u.banUntil ? Timestamp.fromDate(new Date(u.banUntil)) : undefined,
-            // Mantén _claimsRefreshedAt si lo necesitas para refrescar tokens
-            _claimsRefreshedAt: u._claimsRefreshedAt ? Timestamp.fromDate(new Date(u._claimsRefreshedAt)) : undefined,
-        }));
-
-        return {
-            success: true,
-            data: {
-                users: users as UserProfile[],
-                nextLastId: result.data.nextLastId, // Devuelve el ID para la siguiente página
-            },
-            message: 'Usuarios obtenidos.',
-        };
-    } catch (error: any) {
-        console.error('Error al obtener usuarios gestionados:', error);
-        return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
-    }
+export async function getManagedUsers(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
+  try {
+    const fn = httpsCallable<void, { users: any[] }>(functions, 'getManagedUsers');
+    const { data } = await fn();
+    const users = data.users.map((u: any) => ({
+      ...u,
+      createdAt: u.createdAt ? Timestamp.fromDate(new Date(u.createdAt)) : undefined,
+      banUntil: u.banUntil ? Timestamp.fromDate(new Date(u.banUntil)) : undefined,
+      _claimsRefreshedAt: u._claimsRefreshedAt ? Timestamp.fromDate(new Date(u._claimsRefreshedAt)) : undefined,
+    }));
+    return { success: true, data: users as UserProfile[], message: 'Users fetched.' };
+  } catch (error: any) {
+    console.error('Error getting managed users:', error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
 }

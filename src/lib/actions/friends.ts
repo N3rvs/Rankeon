@@ -1,3 +1,5 @@
+// src/lib/actions/friends.ts
+'use client';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
 import type { UserProfile } from '../types';
@@ -61,8 +63,7 @@ export async function sendFriendRequest(
     const result = await sendRequest({ to: recipientId });
     return (result.data as ActionResponse) || { success: true, message: 'Friend request sent.' };
   } catch (error: any) {
-    console.error('Error sending friend request:', error);
-    if (error.code === 'permission-denied') {
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
         path: `/friendRequests`,
         operation: 'create',
@@ -70,6 +71,7 @@ export async function sendFriendRequest(
       });
       errorEmitter.emit('permission-error', permissionError);
     }
+    console.error('Error sending friend request:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -86,8 +88,7 @@ export async function respondToFriendRequest({
     const result = await respond({ requestId, accept });
     return (result.data as ActionResponse) || { success: true, message: `Request ${accept ? 'accepted' : 'rejected'}.` };
   } catch (error: any) {
-    console.error('Error responding to friend request:', error);
-    if (error.code === 'permission-denied') {
+     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
         path: `/friendRequests/${requestId}`,
         operation: 'update',
@@ -95,6 +96,7 @@ export async function respondToFriendRequest({
       });
       errorEmitter.emit('permission-error', permissionError);
     }
+    console.error('Error responding to friend request:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -105,8 +107,7 @@ export async function removeFriend(friendId: string): Promise<ActionResponse> {
     const result = await remove({ friendUid: friendId });
     return (result.data as ActionResponse) || { success: true, message: 'Friend removed.' };
   } catch (error: any) {
-    console.error('Error removing friend:', error);
-     if (error.code === 'permission-denied') {
+     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
         path: `/users/{userId}`,
         operation: 'update',
@@ -114,6 +115,7 @@ export async function removeFriend(friendId: string): Promise<ActionResponse> {
       });
       errorEmitter.emit('permission-error', permissionError);
     }
+    console.error('Error removing friend:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -124,8 +126,7 @@ export async function blockUser(userId: string): Promise<ActionResponse> {
     const result = await block({ blockedUid: userId });
     return (result.data as ActionResponse) || { success: true, message: 'User blocked.' };
   } catch (error: any) {
-    console.error('Error blocking user:', error);
-    if (error.code === 'permission-denied') {
+    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
         path: `/users/{userId}`,
         operation: 'update',
@@ -133,6 +134,7 @@ export async function blockUser(userId: string): Promise<ActionResponse> {
       });
       errorEmitter.emit('permission-error', permissionError);
     }
+    console.error('Error blocking user:', error);
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',
@@ -146,8 +148,7 @@ export async function unblockUser(userId: string): Promise<ActionResponse> {
     const result = await unblock({ blockedUid: userId });
     return (result.data as ActionResponse) || { success: true, message: 'User unblocked.' };
   } catch (error: any) {
-    console.error('Error unblocking user:', error);
-     if (error.code === 'permission-denied') {
+     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
       const permissionError = new FirestorePermissionError({
         path: `/users/{userId}`,
         operation: 'update',
@@ -155,6 +156,7 @@ export async function unblockUser(userId: string): Promise<ActionResponse> {
       });
       errorEmitter.emit('permission-error', permissionError);
     }
+    console.error('Error unblocking user:', error);
     return {
       success: false,
       message: error.message || 'An unexpected error occurred.',

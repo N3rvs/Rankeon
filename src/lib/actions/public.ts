@@ -1,16 +1,15 @@
-// src/lib/actions/market-and-rankings.ts
+// src/lib/actions/public.ts
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase/client';
-import type { UserProfile, Team /*, Tournament, Scrim */ } from '../types';
+import type { UserProfile, Team, Tournament, Scrim } from '../types';
 import { errorEmitter } from '../firebase/error-emitter';
 import { FirestorePermissionError } from '../firebase/errors';
 import { Timestamp } from 'firebase/firestore';
 
 const functions = getFunctions(app, 'europe-west1');
 
-// Tipos “paginados” que usa tu UI
 type HonorRankingPlayer = Pick<
   UserProfile,
   'id' | 'name' | 'avatarUrl' | 'isCertifiedStreamer'
@@ -18,110 +17,84 @@ type HonorRankingPlayer = Pick<
 
 type ApiPage<T> = { items: T[]; nextCursor: string | null };
 
-// =======================
-// EXISTENTES EN BACKEND
-// =======================
-
-export async function getMarketPlayers(): Promise<{
+type PaginatedResponse<T> = {
   success: boolean;
-  data?: UserProfile[];
+  data?: T[];
   nextCursor?: string | null;
   message: string;
-}> {
-  try {
-    const fn = httpsCallable<void, ApiPage<any>>(functions, 'getMarketPlayers');
-    const { data } = await fn();
+};
 
-    const players = data.items.map((p) => ({
-      ...p,
-      createdAt: p.createdAt ? Timestamp.fromDate(new Date(p.createdAt)) : undefined,
-      banUntil: p.banUntil ? Timestamp.fromDate(new Date(p.banUntil)) : undefined,
-      _claimsRefreshedAt: p._claimsRefreshedAt
-        ? Timestamp.fromDate(new Date(p._claimsRefreshedAt))
-        : undefined,
+// Generic fetcher to reduce repetition
+async function fetchPaginatedData<T>(functionName: string, dataKey: string): Promise<PaginatedResponse<T>> {
+  try {
+    const func = httpsCallable<void, ApiPage<any>>(functions, functionName);
+    const { data } = await func();
+    
+    const items = (data.items || []).map((item: any) => ({
+      ...item,
+      // Handle potential date fields if they exist
+      ...(item.createdAt && { createdAt: Timestamp.fromDate(new Date(item.createdAt)) }),
+      ...(item.updatedAt && { updatedAt: Timestamp.fromDate(new Date(item.updatedAt)) }),
+      ...(item.startDate && { startDate: Timestamp.fromDate(new Date(item.startDate)) }),
+      ...(item.date && { date: Timestamp.fromDate(new Date(item.date)) }),
     }));
 
-    return { success: true, data: players as UserProfile[], nextCursor: data.nextCursor, message: 'Players fetched.' };
+    return { 
+      success: true, 
+      data: items as T[], 
+      nextCursor: data.nextCursor, 
+      message: `${dataKey} fetched.` 
+    };
   } catch (error: any) {
-    console.error('Error fetching market players:', error);
+    console.error(`Error fetching ${dataKey}:`, error);
     if (error.code === 'permission-denied') {
       errorEmitter.emit(
         'permission-error',
-        new FirestorePermissionError({ path: '/marketPlayers', operation: 'list' })
+        new FirestorePermissionError({ path: `/${dataKey}`, operation: 'list' })
       );
     }
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
 
-export async function getMarketTeams(): Promise<{
-  success: boolean;
-  data?: Team[];
-  nextCursor?: string | null;
-  message: string;
-}> {
-  try {
-    const fn = httpsCallable<void, ApiPage<any>>(functions, 'getMarketTeams');
-    const { data } = await fn();
 
-    const teams = data.items.map((t) => ({
-      ...t,
-      createdAt: t.createdAt ? Timestamp.fromDate(new Date(t.createdAt)) : undefined,
+export async function getMarketPlayers(): Promise<PaginatedResponse<UserProfile>> {
+  return fetchPaginatedData<UserProfile>('getMarketPlayers', 'players');
+}
+
+export async function getMarketTeams(): Promise<PaginatedResponse<Team>> {
+  return fetchPaginatedData<Team>('getMarketTeams', 'teams');
+}
+
+export async function getHonorRankings(): Promise<PaginatedResponse<HonorRankingPlayer>> {
+  return fetchPaginatedData<HonorRankingPlayer>('getHonorRankings', 'honor rankings');
+}
+
+export async function getScrimRankings(): Promise<PaginatedResponse<any>> {
+    return fetchPaginatedData<any>('getScrimRankings', 'scrim rankings');
+}
+
+export async function getTournamentRankings(): Promise<PaginatedResponse<Tournament>> {
+    return fetchPaginatedData<Tournament>('getTournamentRankings', 'tournament rankings');
+}
+
+export async function getFeaturedScrims(): Promise<PaginatedResponse<Scrim>> {
+    return fetchPaginatedData<Scrim>('getFeaturedScrims', 'featured scrims');
+}
+
+export async function getManagedUsers(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {
+  try {
+    const fn = httpsCallable<void, { users: any[] }>(functions, 'getManagedUsers');
+    const { data } = await fn();
+    const users = data.users.map((u: any) => ({
+      ...u,
+      createdAt: u.createdAt ? Timestamp.fromDate(new Date(u.createdAt)) : undefined,
+      banUntil: u.banUntil ? Timestamp.fromDate(new Date(u.banUntil)) : undefined,
+      _claimsRefreshedAt: u._claimsRefreshedAt ? Timestamp.fromDate(new Date(u._claimsRefreshedAt)) : undefined,
     }));
-
-    return { success: true, data: teams as Team[], nextCursor: data.nextCursor, message: 'Teams fetched.' };
+    return { success: true, data: users as UserProfile[], message: 'Users fetched.' };
   } catch (error: any) {
-    console.error('Error fetching market teams:', error);
-    if (error.code === 'permission-denied') {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({ path: '/marketTeams', operation: 'list' })
-      );
-    }
+    console.error('Error getting managed users:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
-}
-
-export async function getHonorRankings(): Promise<{
-  success: boolean;
-  data?: HonorRankingPlayer[];
-  nextCursor?: string | null;
-  message: string;
-}> {
-  try {
-    const fn = httpsCallable<void, ApiPage<HonorRankingPlayer>>(functions, 'getHonorRankings');
-    const { data } = await fn();
-    return { success: true, data: data.items, nextCursor: data.nextCursor, message: 'Honor rankings fetched.' };
-  } catch (error: any) {
-    console.error('Error fetching honor rankings:', error);
-    if (error.code === 'permission-denied') {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({ path: '/honorsAgg', operation: 'list' })
-      );
-    }
-    return { success: false, message: error.message || 'An unexpected error occurred.' };
-  }
-}
-
-// ===================================
-// ENDPOINTS ELIMINADOS EN EL BACKEND
-// ===================================
-// Si siguen referenciados en la UI, reemplázalos por llamadas reales existentes,
-// o muestra una pantalla vacía con CTA. Mientras tanto devolvemos un mensaje claro.
-
-export async function getFeaturedScrims() {
-  return { success: false, message: 'getFeaturedScrims is not available on the server.' };
-}
-
-export async function getScrimRankings() {
-  return { success: false, message: 'getScrimRankings is not available on the server.' };
-}
-
-export async function getTournamentRankings() {
-  return { success: false, message: 'getTournamentRankings is not available on the server.' };
-}
-
-export async function getManagedUsers(/* lastId?: string | null */) {
-  return { success: false, message: 'getManagedUsers is not available on the server.' };
 }

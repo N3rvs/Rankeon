@@ -1,3 +1,4 @@
+// src/lib/actions/honors.ts
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -30,15 +31,15 @@ export async function giveHonorToUser(
     const response = await giveHonor({ to: recipientId, type: honorType });
     return response.data;
   } catch (error: any) {
-    console.error('Error giving honor:', error);
     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
         const permissionError = new FirestorePermissionError({
-            path: `/honors/{honorId}`,
+            path: `/honorsGiven/{honorId}`,
             operation: 'create',
             requestResourceData: { to: recipientId, type: honorType },
         });
         errorEmitter.emit('permission-error', permissionError);
     }
+    console.error('Error giving honor:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
@@ -59,14 +60,14 @@ export async function revokeHonorFromUser(
     const response = await revokeHonor({ to: recipientId });
     return response.data;
   } catch (error: any) {
-    console.error('Error revoking honor:', error);
      if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
         const permissionError = new FirestorePermissionError({
-            path: `/honors/{honorId}`,
+            path: `/honorsGiven/{honorId}`,
             operation: 'delete',
         });
         errorEmitter.emit('permission-error', permissionError);
     }
+    console.error('Error revoking honor:', error);
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
