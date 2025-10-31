@@ -50,7 +50,7 @@ export async function createScrimAction(values: CreateScrimData): Promise<Action
 
 export async function challengeScrimAction(scrimId: string, challengingTeamId: string): Promise<ActionResponse> {
   try {
-    const challengeScrimFunc = httpsCallable(functions, 'scrimsChallenge');
+    const challengeScrimFunc = httpsCallable(functions, 'challengeScrim');
     const result = await challengeScrimFunc({ scrimId, challengingTeamId });
     return result.data as ActionResponse;
   } catch (error: any) {

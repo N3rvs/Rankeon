@@ -1,4 +1,3 @@
-
 // src/lib/actions/friends.ts
 'use client';
 
@@ -38,28 +37,35 @@ type FriendshipStatusActionResponse = {
 export async function getFriendshipStatus(
   targetUserId: string
 ): Promise<FriendshipStatusActionResponse> {
-  // This needs to be implemented or adjusted based on the new data models
-  // For now, it will return not_friends to avoid breaking UI that depends on it.
-  return Promise.resolve({
-    success: true,
-    data: { status: 'not_friends' },
-    message: 'Status mocked as not_friends.',
-  });
+    try {
+        const func = httpsCallable< { targetUserId: string }, GetFriendshipStatusResponse>(functions, 'getFriendshipStatus');
+        const result = await func({ targetUserId });
+        return { success: true, data: result.data, message: 'Status fetched' };
+    } catch (error: any) {
+        if (error.code === 'permission-denied') {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: 'friendships',
+                operation: 'get',
+            }));
+        }
+        console.error("Error fetching friendship status:", error);
+        return { success: false, message: error.message || 'Could not fetch status.' };
+    }
 }
 
 export async function sendFriendRequest(
-  targetUid: string
+  toUserId: string
 ): Promise<ActionResponse> {
   try {
     const func = httpsCallable(functions, 'sendFriendRequest');
-    const result = await func({ to: targetUid });
+    const result = await func({ toUserId });
     return (result.data as ActionResponse) || { success: true, message: 'Friend request sent.' };
   } catch (error: any) {
     if (error.code === 'permission-denied') {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: 'friendRequests',
             operation: 'create',
-            requestResourceData: { to: targetUid }
+            requestResourceData: { to: toUserId }
         }));
     }
     console.error('Error sending friend request:', error);
@@ -71,7 +77,7 @@ export async function respondToFriendRequest({
   requesterUid,
   accept,
 }: {
-  requesterUid: string; // The UID of the person who sent the request
+  requesterUid: string;
   accept: boolean;
 }): Promise<ActionResponse> {
     try {

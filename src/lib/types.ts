@@ -1,4 +1,3 @@
-
 import { Timestamp } from 'firebase/firestore';
 
 // Base Document Types from Firestore
@@ -26,6 +25,7 @@ export interface UserDoc {
   honorCounts?: { [key: string]: number };
   blocked?: string[];
   friends?: string[];
+  skills?: string[]; // Added from edit-profile-form
 }
 
 export interface NotificationDoc {
@@ -37,6 +37,7 @@ export interface NotificationDoc {
   read: boolean;
   createdAt: Timestamp;
   readAt?: Timestamp;
+  timestamp?: Timestamp; // From old inbox component
   // This is a client-side addition for rendering, not in DB schema
   fromUser?: {
     name: string;
@@ -57,6 +58,7 @@ export interface RoomDoc {
   lastMessageAt?: Timestamp;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  createdBy?: string; // From room card
 }
 
 export interface RoomMessageDoc {
@@ -64,6 +66,7 @@ export interface RoomMessageDoc {
   senderId: string;
   content: string;
   createdAt: Timestamp;
+  sender?: string; // From room chat
 }
 
 export interface TicketDoc {
@@ -88,7 +91,8 @@ export interface TicketMessageDoc {
   content: string;
   createdAt: Timestamp;
   // Client-side additions
-  senderName?: string;
+  senderName: string;
+  senderId: string;
 }
 
 export interface TaskDoc {
@@ -142,11 +146,11 @@ export interface ScrimDoc {
 
 
 export interface TournamentDoc {
-  id?: string;
+  id: string;
   name: string;
   game: string;
   description: string;
-  format: 'single-elimination'|'round-robin';
+  format: 'single-elimination'|'round-robin' | 'double-elim' | 'swiss';
   maxTeams: number;
   registeredTeamsCount: number;
   rankMin?: string | null;
@@ -188,8 +192,8 @@ export interface BracketMatch {
 
 export interface RRSchedule {
   id?: string;
-  teamA: MatchTeam;
-  teamB: MatchTeam;
+  teamA: { id: string; name: string; avatarUrl?: string | null };
+  teamB: { id: string; name: string; avatarUrl?: string | null };
   status: 'pending'|'completed';
   winnerId?: string | null;
 }
@@ -232,10 +236,12 @@ export interface TeamDoc {
     scrimsWon: number;
   };
   members: Record<string, Omit<TeamMemberDoc, 'uid'>>;
+  primaryGame?: string;
 }
 
 export interface TeamMemberDoc {
   uid: string;
+  id: string;
   role: 'founder'|'coach'|'player'|'member';
   gameRoles?: string[];
   joinedAt: Timestamp;
@@ -245,7 +251,6 @@ export interface TeamMemberDoc {
   avatarUrl: string;
   isCertifiedStreamer?: boolean;
   skills?: string[];
-  id: string;
 }
 
 export interface FriendRequestDoc {
@@ -288,6 +293,7 @@ export interface ChatMessageDoc {
   text: string;
   content: string;
   createdAt: Timestamp;
+  senderId?: string;
 }
 
 export interface HonorDoc {
@@ -305,6 +311,15 @@ export interface HonorStatsDoc {
   updatedAt: Timestamp;
 }
 
+export interface TournamentProposal {
+    id: string;
+    tournamentName: string;
+    proposerName: string;
+    game: string;
+    format: 'single-elim' | 'double-elim' | 'round-robin' | 'swiss';
+    description: string;
+    proposedDate: Timestamp;
+}
 
 // UI Types (using UserDoc as the base for UserProfile)
 export type UserProfile = UserDoc;
@@ -361,3 +376,14 @@ export type UserRole = 'admin' | 'moderator' | 'player' | 'founder' | 'coach';
 
 export type ScrimUI = ReplaceTimestampsWithDates<Scrim>;
 export type TournamentUI = ReplaceTimestampsWithDates<Tournament>;
+
+
+// src/lib/time-types.ts
+import { Timestamp as FirestoreTimestamp } from 'firebase/firestore';
+
+/** Reemplaza recursivamente Firestore Timestamp -> JS Date */
+export type ReplaceTimestampsWithDates<T> =
+  T extends FirestoreTimestamp ? Date
+  : T extends (infer U)[] ? ReplaceTimestampsWithDates<U>[]
+  : T extends object ? { [K in keyof T]: ReplaceTimestampsWithDates<T[K]> }
+  : T;

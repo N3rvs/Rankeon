@@ -84,9 +84,9 @@ export async function getManagedUsers(): Promise<{ success: boolean; data?: User
     const { data } = await fn();
     const users = data.users.map((u: any) => ({
       ...u,
-      createdAt: u.createdAt ? Timestamp.fromDate(new Date(u.createdAt)) : undefined,
-      banUntil: u.banUntil ? Timestamp.fromDate(new Date(u.banUntil)) : undefined,
-      _claimsRefreshedAt: u._claimsRefreshedAt ? Timestamp.fromDate(new Date(u._claimsRefreshedAt)) : undefined,
+      createdAt: u.createdAt ? Timestamp.fromMillis(u.createdAt) : undefined,
+      banUntil: u.banUntil ? Timestamp.fromMillis(u.banUntil) : undefined,
+      _claimsRefreshedAt: u._claimsRefreshedAt ? Timestamp.fromMillis(u._claimsRefreshedAt) : undefined,
     }));
     return { success: true, data: users as UserProfile[], message: 'Users fetched.' };
   } catch (error: any) {
