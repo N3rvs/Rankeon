@@ -73,8 +73,8 @@ export async function revokeHonorFromUser(
     }
     return { success: false, message: response.data.message || "Failed to revoke honor."};
 
-  } catch (error: any)
-      if (error.code === 'permission-denied') {
+  } catch (error: any) {
+    if (error.code === 'permission-denied') {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: `honors/${honorId}`,
             operation: 'delete',
