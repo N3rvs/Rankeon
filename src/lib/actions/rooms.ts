@@ -28,32 +28,14 @@ export async function createRoom(
   values: CreateRoomData
 ): Promise<ActionResponse> {
   try {
-    const validatedFields = CreateRoomSchema.safeParse(values);
-
-    if (!validatedFields.success) {
-      return { success: false, message: 'Invalid form data.' };
-    }
-
     const createRoomFunc = httpsCallable<CreateRoomData, ActionResponse>(
       functions,
-      'createGameRoom'
+      'roomsCreate'
     );
-    const result = await createRoomFunc(validatedFields.data);
+    const result = await createRoomFunc(values);
 
-    const responseData = result.data;
+    return result.data;
 
-    if (responseData.success) {
-      return {
-        success: true,
-        message: 'Room created successfully.',
-        roomId: responseData.roomId,
-      };
-    } else {
-      return {
-        success: false,
-        message: responseData.message || 'An unknown server error occurred.',
-      };
-    }
   } catch (error: any) {
     if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
         const permissionError = new FirestorePermissionError({
@@ -73,7 +55,7 @@ export async function createRoom(
 
 export async function joinRoom(roomId: string): Promise<{ success: boolean; message: string }> {
   try {
-    const joinRoomFunc = httpsCallable(functions, 'joinRoom');
+    const joinRoomFunc = httpsCallable(functions, 'roomsJoin');
     const result = await joinRoomFunc({ roomId });
     return (result.data as ActionResponse);
   } catch (error: any) {
@@ -91,7 +73,7 @@ export async function joinRoom(roomId: string): Promise<{ success: boolean; mess
 
 export async function leaveRoom(roomId: string): Promise<{ success: boolean; message: string }> {
   try {
-    const leaveRoomFunc = httpsCallable(functions, 'leaveRoom');
+    const leaveRoomFunc = httpsCallable(functions, 'roomsLeave');
     const result = await leaveRoomFunc({ roomId });
     return (result.data as ActionResponse);
   } catch (error: any) {
@@ -115,7 +97,7 @@ export async function sendMessageToRoom({
   content: string;
 }): Promise<{ success: boolean; message: string }> {
   try {
-    const sendMessageFunc = httpsCallable(functions, 'sendMessageToRoom');
+    const sendMessageFunc = httpsCallable(functions, 'roomsSendMessage');
     const result = await sendMessageFunc({ roomId, content });
     return (result.data as ActionResponse);
   } catch (error: any) {

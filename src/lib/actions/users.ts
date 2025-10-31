@@ -12,7 +12,6 @@ type ActionResponse = {
   message: string;
 };
 
-// --- Funciones updateUserRole, updateUserStatus, updateUserCertification (Sin cambios necesarios) ---
 export async function updateUserRole({
   uid,
   role,
@@ -21,8 +20,8 @@ export async function updateUserRole({
   role: UserRole;
 }): Promise<ActionResponse> {
   try {
-    const updateUserRoleFunc = httpsCallable<{uid: string; role: UserRole}, ActionResponse>(functions, 'updateUserRole');
-    const result = await updateUserRoleFunc({ uid, role });
+    const func = httpsCallable<{uid: string; role: UserRole}, ActionResponse>(functions, 'setGlobalRole');
+    const result = await func({ uid, role });
     return result.data;
   } catch (error: any) {
     console.error('Error al actualizar el rol del usuario:', error);
@@ -33,16 +32,16 @@ export async function updateUserRole({
 export async function updateUserStatus({
   uid,
   disabled,
-  duration, // en horas
+  duration,
 }: {
   uid: string;
   disabled: boolean;
   duration?: number;
 }): Promise<ActionResponse> {
   try {
-    const updateUserStatusFunc = httpsCallable<{uid: string; disabled: boolean; duration?: number}, ActionResponse>(functions, 'updateUserStatus');
-    const result = await updateUserStatusFunc({ uid, disabled, duration });
-    return result.data;
+    const func = httpsCallable(functions, 'adminUpdateUserStatus');
+    const result = await func({ uid, disabled, duration });
+    return result.data as ActionResponse;
   } catch (error: any) {
     console.error('Error al actualizar el estado del usuario:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
@@ -57,9 +56,9 @@ export async function updateUserCertification({
   isCertified: boolean;
 }): Promise<ActionResponse> {
   try {
-    const updateUserCertificationFunc = httpsCallable<{uid: string; isCertified: boolean}, ActionResponse>(functions, 'updateUserCertification');
-    const result = await updateUserCertificationFunc({ uid, isCertified });
-    return result.data;
+    const func = httpsCallable(functions, 'updateUserCertification');
+    const result = await func({ uid, isCertified });
+    return result.data as ActionResponse;
   } catch (error: any) {
     console.error('Error al actualizar la certificación del usuario:', error);
     return { success: false, message: error.message || 'Ocurrió un error inesperado.' };
@@ -70,8 +69,8 @@ export async function updateUserCertification({
 
 export async function updateUserPresence(status: UserStatus): Promise<ActionResponse> {
   try {
-    const updateUserPresenceFunc = httpsCallable<{status: UserStatus}, ActionResponse>(functions, 'updateUserPresence');
-    const result = await updateUserPresenceFunc({ status });
+    const func = httpsCallable<{status: UserStatus}, ActionResponse>(functions, 'updateUserPresence');
+    const result = await func({ status });
     return result.data;
   } catch (error: any) {
     console.error('Error updating user presence:', error);
