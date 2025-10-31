@@ -1,3 +1,4 @@
+
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -28,13 +29,12 @@ export async function giveHonorToUser(
   honorType: string
 ): Promise<{success: boolean, message: string}> {
   try {
-    const kind = ['MVP', 'FAIR_PLAY', 'LEADERSHIP'].includes(honorType) ? 'pos' : 'neg';
     const giveHonor = httpsCallable<
-      { to: string; type: string; kind: 'pos' | 'neg' },
+      { to: string; type: string },
       ActionResponse
-    >(functions, 'honorGive');
+    >(functions, 'giveHonor');
     
-    const response = await giveHonor({ to: recipientId, type: honorType, kind });
+    const response = await giveHonor({ to: recipientId, type: honorType });
 
     if (response.data.ok || response.data.success) {
         return { success: true, message: "Honor awarded." };
@@ -42,6 +42,13 @@ export async function giveHonorToUser(
     return { success: false, message: response.data.message || "Failed to award honor."};
 
   } catch (error: any) {
+    if (error.code === 'permission-denied') {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: 'honors',
+            operation: 'create',
+            requestResourceData: { to: recipientId, type: honorType }
+        }));
+    }
     console.error('Error giving honor:', error);
     return {
       success: false,
@@ -51,28 +58,28 @@ export async function giveHonorToUser(
 }
 
 export async function revokeHonorFromUser(
-  recipientId: string
+  honorId: string
 ): Promise<{success: boolean, message: string}> {
   try {
-    // This is a simplification. The backend needs the specific honorId to revoke.
-    // The client would first need to fetch which honor was given to this user by the current user.
-    // Since that's complex, we'll assume the backend is adapted or this will fail gracefully.
     const revokeHonor = httpsCallable<{ honorId: string }, ActionResponse>(
       functions,
-      'honorRevoke'
+      'revokeHonor'
     );
     
-    // We don't have the honorId on the client, so this call will likely fail.
-    // This is where a more complex implementation would be needed.
-    // For now, it will demonstrate the error handling.
-    const response = await revokeHonor({ honorId: `mock_id_from_${auth.currentUser!.uid}_to_${recipientId}` });
+    const response = await revokeHonor({ honorId });
     
     if (response.data.ok || response.data.success) {
         return { success: true, message: "Honor revoked." };
     }
     return { success: false, message: response.data.message || "Failed to revoke honor."};
 
-  } catch (error: any) {
+  } catch (error: any)
+      if (error.code === 'permission-denied') {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `honors/${honorId}`,
+            operation: 'delete',
+        }));
+    }
     console.error('Error revoking honor:', error);
     return {
       success: false,
