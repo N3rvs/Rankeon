@@ -1,0 +1,19 @@
+
+{
+  "indexes": [
+    {
+      "collectionGroup": "scrims",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "featured",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ]
+}
