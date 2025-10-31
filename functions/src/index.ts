@@ -1,75 +1,83 @@
+import "./lib/admin";
 
-import * as admin from 'firebase-admin';
-import { setGlobalOptions } from 'firebase-functions/v2';
+// ========== Admin ==========
+export { setGlobalRole } from "./api/admin/setGlobalRole";
+export { grantFounder } from "./api/admin/grantFounder";
+export { getManagedUsers } from "./api/admin/getManagedUsers";
+export { updateUserPresence } from "./api/admin/updateUserPresence";
+export { updateUserStatus } from "./api/admin/updateUserStatus";
+// Si tuvieras una callable separada para adminUpdateUserStatus:
+export { adminUpdateUserStatus } from "./api/admin/adminUpdateUserStatus";
 
-// ===== Opciones globales =====
-setGlobalOptions({
-  region: 'europe-west1',
-  memory: '256MiB',
-  timeoutSeconds: 60,
-  maxInstances: 50,
-  enforceAppCheck: true, // si tu cliente usa App Check
-});
+// ========== Honor ==========
+export { honorGive } from "./api/honor/honorGive";
+export { honorRevoke } from "./api/honor/honorRevoke";
+export { honorGetRankings } from "./api/honor/honorGetRankings";
+export { honorGetStats } from "./api/honor/honorGetStats";
 
-// ===== Inicialización Admin SDK =====
-if (admin.apps.length === 0) {
-  admin.initializeApp();
-  try {
-    // Evita errores por campos undefined accidentales
-    admin.firestore().settings({ ignoreUndefinedProperties: true });
-  } catch {
-    /* no-op si ya estaba configurado */
-  }
-}
+// ========== Notify / Inbox ==========
+// ========= Notify / Inbox =========
+export { inboxAdd }       from "./api/notify/inboxAdd";
+export { inboxMarkRead }  from "./api/notify/inboxMarkRead";
+export { inboxDelete }    from "./api/notify/inboxDelete";
 
-/* ============================================================
-   Re-exports organizados
-   - Evitamos `export *` cuando puede haber colisiones.
-   - De lo contrario exportamos todo el módulo.
-   ============================================================ */
 
-// Módulos “seguros” sin colisiones conocidas
-export * from './rooms';
-export * from './scrims';
-export * from './tasks';
-export * from './cleanup';
-export * from './tickets';
-export * from './teams';
-export * from './tournaments';
-export * from './honors';
-export * from './friends';
 
-// --------- chat: dueño de DMs y bloqueo ---------
+// ========== Maintenance / Limpiezas ==========
+export { nightlyCleanup } from "./api/maintenance/cleanup";
+export { cleanupNotifications } from "./api/maintenance/cleanupNotifications";
+export { unbanExpiredUsers } from "./api/maintenance/unbanExpiredUsers";
+
+// ========== Rooms / Salas ==========
 export {
-  sendMessageToFriend,
-  getChats,
-  getChatMessages,
-  markChatRead,
-  deleteChatHistory,
-  blockUser,
-  unblockUser,
-} from './chat';
+  roomsCreate,
+  roomsJoin,
+  roomsLeave,
+  roomsSendMessage,
+  roomsClose,
+  roomsList,
+  roomsListMessages,
+} from "./api/rooms/rooms";
 
-// --------- users: dueño de presence y claims ---------
-export {
-  updateUserRole,
-  updateUserStatus,      // <- añadida
-  updateUserCertification,
-} from './users';
+// ========== Scrims ==========
+export { scrimsChallenge } from "./api/scrims/challengeScrim";
 
-// --------- notifications: sólo las que no chocan ---------
+// ========== Support / Tickets ==========
 export {
-  addInboxNotification,
-  getInbox,
-  markNotificationsAsRead,
-  deleteNotifications,
-} from './notifications';
+  supportCreateTicket,
+  supportRespondTicket,
+  supportResolveTicket,
+  supportListMyTickets,
+  supportListAllTickets,
+  supportListMessages,
+} from "./api/support/tickets";
 
-// --------- public: funciones de listados/públicas ---------
+// ========== Tasks ==========
 export {
-  getFeaturedScrims,
-  getScrimRankings,
-  getTournamentRankings,
-  getManagedUsers,
-  getFriendProfiles,
-} from './public';
+  taskCreate,
+  taskListMine,
+  taskUpdate,
+  taskDelete,
+  subtaskAdd,
+  subtaskToggle,
+  subtaskDelete,
+} from "./api/tasks";
+
+// ========== Tournaments ==========
+export { tournamentsGenerateStructure} from "./api/tournaments/generateStructure";
+export { tournamentsReportBracketResult } from "./api/tournaments/reportBracketResult";
+export { tournamentsReportResult } from "./api/tournaments/reportRoundRobinResult";
+export { tournamentsRegisterTeam } from "./api/tournaments/registerTeam";
+export { tournamentsPropose } from "./api/tournaments/proposeTournament";
+export { tournamentsReviewProposal } from "./api/tournaments/reviewProposal";
+export { editTournament } from "./api/tournaments/editTournament";
+export { tournamentsDelete } from "./api/tournaments/deleteTournament";
+
+// ========== Rankings / Clasificaciones (si ya las tienes) ==========
+export { clasificacionesGetTorneos }  from "./api/rankings/getTorneos";
+export { clasificacionesGetScrims }   from "./api/rankings/getScrims";
+export { clasificacionesGetHonores }  from "./api/rankings/getHonores";
+
+// ========== User / Market (si existen) ==========
+export { userListPlayers } from "./api/user/userListPlayers";
+export { userListTeams }   from "./api/user/userListTeams";
