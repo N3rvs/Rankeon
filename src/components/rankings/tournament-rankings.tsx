@@ -23,7 +23,7 @@ export function TournamentRankings() {
     setLoading(true);
     getTournamentRankings().then(result => {
         if (result.success && result.data) {
-            setCompletedTournaments(result.data);
+            setCompletedTournaments(result.data.filter(t => t.status === 'completed' && t.winnerId));
         } else {
             toast({ title: "Error", description: "Could not load tournament rankings.", variant: "destructive"});
         }
@@ -65,7 +65,7 @@ export function TournamentRankings() {
                 <div>
                   <Link href={`/tournaments/${tournament.id}`} className="font-semibold hover:underline">{tournament.name}</Link>
                   <p className="text-sm text-muted-foreground">
-                    {t('RankingsPage.tournament_won_on', { date: format(tournament.startDate, "PPP") })}
+                    {t('RankingsPage.tournament_won_on', { date: format(tournament.startDate.toDate(), "PPP") })}
                   </p>
                 </div>
               </div>

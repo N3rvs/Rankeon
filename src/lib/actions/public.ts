@@ -1,4 +1,3 @@
-
 // src/lib/actions/public.ts
 'use client';
 
@@ -11,7 +10,7 @@ import { Timestamp } from 'firebase/firestore';
 
 const functions = getFunctions(app, 'europe-west1');
 
-type ApiPage<T> = { items: T[]; nextCursor: string | null };
+type ApiPage<T> = { items: T[]; rankings?: T[]; tournaments?: T[]; players?: T[]; teams?: T[]; nextCursor?: string | null; nextLastId?: string | null; };
 
 type PaginatedResponse<T> = {
   success: boolean;
@@ -20,25 +19,26 @@ type PaginatedResponse<T> = {
   message: string;
 };
 
-// Generic fetcher to reduce repetition
 async function fetchPaginatedData<T>(functionName: string, dataKey: string): Promise<PaginatedResponse<T>> {
   try {
     const func = httpsCallable<void, ApiPage<any>>(functions, functionName);
     const { data } = await func();
     
-    const items = (data.items || []).map((item: any) => ({
+    const itemsList = data[dataKey as keyof typeof data] || data.items || data.rankings || data.tournaments || data.players || data.teams || [];
+    
+    const items = (itemsList).map((item: any) => ({
       ...item,
-      // Handle potential date fields if they exist
       ...(item.createdAt && { createdAt: Timestamp.fromDate(new Date(item.createdAt)) }),
       ...(item.updatedAt && { updatedAt: Timestamp.fromDate(new Date(item.updatedAt)) }),
       ...(item.startDate && { startDate: Timestamp.fromDate(new Date(item.startDate)) }),
+       ...(item.startsAt && { startDate: Timestamp.fromDate(new Date(item.startsAt)) }), // Alias for tournaments
       ...(item.date && { date: Timestamp.fromDate(new Date(item.date)) }),
     }));
 
     return { 
       success: true, 
       data: items as T[], 
-      nextCursor: data.nextCursor, 
+      nextCursor: data.nextCursor || data.nextLastId, 
       message: `${dataKey} fetched.` 
     };
   } catch (error: any) {
@@ -54,29 +54,28 @@ async function fetchPaginatedData<T>(functionName: string, dataKey: string): Pro
   }
 }
 
-
 export async function getMarketPlayers(): Promise<PaginatedResponse<UserProfile>> {
-  return fetchPaginatedData<UserProfile>('getMarketPlayers', 'players');
+  return fetchPaginatedData<UserProfile>('userListPlayers', 'items');
 }
 
 export async function getMarketTeams(): Promise<PaginatedResponse<Team>> {
-  return fetchPaginatedData<Team>('getMarketTeams', 'teams');
+  return fetchPaginatedData<Team>('userListTeams', 'items');
 }
 
-export async function getHonorRankings(): Promise<PaginatedResponse<HonorRankingPlayer>> {
-  return fetchPaginatedData<HonorRankingPlayer>('getHonorRankings', 'honor rankings');
+export async function getHonorRankings(): Promise<PaginatedResponse<any>> {
+  return fetchPaginatedData<any>('clasificacionesGetHonores', 'rankings');
 }
 
 export async function getScrimRankings(): Promise<PaginatedResponse<any>> {
-    return fetchPaginatedData<any>('getScrimRankings', 'scrim rankings');
+    return fetchPaginatedData<any>('clasificacionesGetScrims', 'rankings');
 }
 
 export async function getTournamentRankings(): Promise<PaginatedResponse<Tournament>> {
-    return fetchPaginatedData<Tournament>('getTournamentRankings', 'tournament rankings');
+    return fetchPaginatedData<Tournament>('clasificacionesGetTorneos', 'tournaments');
 }
 
 export async function getFeaturedScrims(): Promise<PaginatedResponse<Scrim>> {
-    return fetchPaginatedData<Scrim>('getFeaturedScrims', 'featured scrims');
+    return fetchPaginatedData<Scrim>('getFeaturedScrims', 'items');
 }
 
 export async function getManagedUsers(): Promise<{ success: boolean; data?: UserProfile[]; message: string }> {

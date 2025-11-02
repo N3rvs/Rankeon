@@ -1,4 +1,3 @@
-
 // src/app/(app)/teams/page.tsx
 'use client';
 
@@ -9,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Trash2, Edit, Crown, MoreVertical, ShieldCheck, UserMinus, UserCog, Gamepad2, Info, Target, BrainCircuit, Globe, Store, Trophy, ClipboardList, Settings, Swords, Shield, Twitch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useTransition } from 'react';
+// updateDoc ya no es necesario aquí para skills
 import { collection, query, onSnapshot, Unsubscribe, doc, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import type { Team, TeamMember, UserProfile, Tournament } from '@/lib/types';
@@ -583,4 +583,3 @@ export default function TeamsPage() {
         </div>
     );
 }
-

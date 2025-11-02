@@ -88,13 +88,15 @@ export function NotificationItem({
     if (notification.extraData?.requestId) {
         return notification.extraData.requestId;
     }
+    // This part is tricky because friend requests might be stored differently.
+    // Assuming a `friendRequests` collection.
     if (notification.type === 'friend_request' && user) {
         try {
             const q = query(
                 collection(db, "friendRequests"),
                 where("from", "==", notification.from),
                 where("to", "==", user.uid),
-                where("status", "==", "pending")
+                where("status", "==", "PENDING")
             );
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) return querySnapshot.docs[0].id;
@@ -109,10 +111,11 @@ export function NotificationItem({
     if (notification.extraData?.inviteId) {
         return notification.extraData.inviteId;
     }
+    // This is also tricky and depends on your data model for team invites.
     if (notification.type === 'team_invite_received' && user) {
         try {
             const q = query(
-                collection(db, "teamInvitations"),
+                collection(db, "teamInvitations"), // Assumed collection name
                 where("fromTeamId", "==", notification.from),
                 where("toUserId", "==", user.uid),
                 where("status", "==", "pending")
@@ -128,13 +131,9 @@ export function NotificationItem({
 
   const handleFriendRequestResponse = (accept: boolean) => {
     startResponding(async () => {
-        const requestId = await findRequestId();
-        if (!requestId) {
-            toast({ title: 'Request Unavailable', description: 'This friend request may have been resolved already.' });
-            await deleteNotifications([notification.id]);
-            return;
-        }
-        const result = await respondToFriendRequest({ requestId, accept });
+        const requesterUid = notification.from;
+        if (!requesterUid) return;
+        const result = await respondToFriendRequest({ requesterUid, accept });
         if (result.success) {
             setIsActionTaken(true);
             toast({ title: 'Success', description: `Friend request ${accept ? 'accepted' : 'rejected'}.` });
@@ -217,7 +216,7 @@ export function NotificationItem({
       <div className="flex-1 space-y-1">
         <p className="text-sm leading-tight">{message}</p>
         <p className="text-xs text-muted-foreground">
-          {notification.timestamp ? formatDistanceToNow(notification.timestamp.toDate(), { addSuffix: true }) : ''}
+          {notification.createdAt ? formatDistanceToNow(notification.createdAt.toDate(), { addSuffix: true }) : ''}
         </p>
 
         {notification.type === 'friend_request' && !isActionTaken && (
@@ -269,7 +268,7 @@ export function NotificationItem({
         )}
         {(notification.type === 'team_application_accepted' || notification.type === 'team_application_rejected') && (
             <div className="flex gap-2 pt-1">
-                <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/teams/${notification.extraData.teamId}`)} disabled={isDismissing}>
+                <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleDismissAndNavigate(`/teams/${notification.extraData?.teamId}`)} disabled={isDismissing}>
                     <Users className="h-4 w-4 mr-1" />
                     {isDismissing ? "Loading..." : "View Team"}
                 </Button>

@@ -30,7 +30,7 @@ interface UserManagementTableProps {
   currentUserRole: 'admin' | 'moderator';
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 const getStatusBadge = (user: UserProfile) => {
     if (!user.disabled) {
@@ -56,7 +56,7 @@ const getStatusBadge = (user: UserProfile) => {
     return <Badge variant="destructive">Banned</Badge>;
 };
 
-const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderator' | 'player' | 'founder' | 'coach' => {
+const getRoleBadgeVariant = (role?: UserRole): 'premium' | 'secondary' | 'moderator' | 'player' | 'founder' | 'coach' => {
   const roleVariantMap: { [key in UserRole]?: 'premium' | 'player' | 'moderator' | 'founder' | 'coach' } = {
     admin: 'premium',
     moderator: 'moderator',
@@ -64,7 +64,7 @@ const getRoleBadgeVariant = (role: UserRole): 'premium' | 'secondary' | 'moderat
     founder: 'founder',
     coach: 'coach',
   };
-  return roleVariantMap[role] || 'secondary';
+  return role ? roleVariantMap[role] || 'secondary' : 'secondary';
 };
 
 
@@ -111,7 +111,7 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
     if (!filter) return users;
     return users.filter(user =>
       user.name?.toLowerCase().includes(filter.toLowerCase()) ||
-      user.email?.toLowerCase().includes(filter.toLowerCase()) ||
+      user.displayName?.toLowerCase().includes(filter.toLowerCase()) ||
       user.country?.toLowerCase().includes(filter.toLowerCase())
     );
   }, [users, filter]);
@@ -195,13 +195,12 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person avatar" />
-                        <AvatarFallback>{user.name?.slice(0, 2) || user.email?.slice(0, 2)}</AvatarFallback>
+                        <AvatarFallback>{user.name?.slice(0, 2) || user.displayName?.slice(0,2)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <Link href={`/users/${user.id}`} className="font-medium hover:underline">
-                          {user.name}
+                          {user.name || user.displayName}
                         </Link>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
                   </TableCell>
@@ -265,5 +264,3 @@ export function UserManagementTable({ currentUserRole }: UserManagementTableProp
     </div>
   );
 }
-
-    

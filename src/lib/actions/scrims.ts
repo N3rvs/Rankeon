@@ -1,4 +1,3 @@
-
 'use client';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -28,13 +27,8 @@ export type CreateScrimData = z.infer<typeof CreateScrimSchema>;
 
 export async function createScrimAction(values: CreateScrimData): Promise<ActionResponse> {
   try {
-    const validatedData = CreateScrimSchema.omit({ teamId: true }).safeParse(values);
-    if (!validatedData.success) {
-      return { success: false, message: "Invalid form data." };
-    }
     const dataToSend = {
-      ...validatedData.data,
-      teamId: values.teamId,
+      ...values,
       date: values.date.toISOString(),
     };
     const createScrimFunc = httpsCallable(functions, 'createScrim');

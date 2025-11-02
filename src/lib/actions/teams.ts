@@ -49,6 +49,7 @@ export const UpdateTeamSchema = z.object({
             'Platino': 5,
             'Ascendente': 6,
             'Inmortal': 7,
+            'Radiante': 8,
         };
         return rankOrder[data.rankMin as keyof typeof rankOrder] <= rankOrder[data.rankMax as keyof typeof rankOrder];
     }
@@ -197,7 +198,7 @@ export async function getTeamMembers(teamId: string): Promise<{ success: boolean
     // Re-hydrate timestamps
     const members = (result.data || []).map(m => ({
         ...m,
-        joinedAt: m.joinedAt ? Timestamp.fromDate(new Date(m.joinedAt)) : undefined,
+        joinedAt: m.joinedAt ? Timestamp.fromMillis(m.joinedAt._seconds * 1000 + m.joinedAt._nanoseconds / 1000000) : undefined,
     }));
     
     return { success: true, data: members as TeamMember[], message: 'Members fetched.' };
