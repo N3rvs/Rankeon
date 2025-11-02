@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../admin";
+
 
 const positiveTypes = ["MVP","FAIR_PLAY","LEADERSHIP"] as const;
 const negativeTypes = ["TOXIC","GRIEFING","AFK"] as const; // añade las que necesites

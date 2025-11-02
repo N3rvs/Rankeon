@@ -1,6 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
-import "../../admin";
 import { requireAuth, requireModOrAdmin } from "./_auth";
 
 // ---- Tipos de estado del match

@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.teamGenerateInvite = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
-require("../../lib/admin");
 function code8() { return Math.random().toString(36).slice(2, 10); }
 exports.teamGenerateInvite = (0, https_1.onCall)({ region: "europe-west1", enforceAppCheck: true }, async (req) => {
     if (!req.auth)

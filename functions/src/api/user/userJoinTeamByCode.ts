@@ -2,8 +2,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../admin";
-import { defaultOpts } from "../_options"; // mismo archivo de opciones que usas en /api/user
+import { w4 } from "../_options";
 
 const db = getFirestore();
 
@@ -27,7 +26,7 @@ const Input = z.object({
 //  * teams/{teamId}/members/{uid} -> { role: "player" | "coach" | "founder", gameRoles?: string[], joinedAt: Timestamp }
 //  * users/{uid} -> (opcional) currentTeamId
 //  */
-export const userJoinTeamByCode = onCall(defaultOpts, async (req) => {
+export const userJoinTeamByCode = onCall(w4, async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Debes iniciar sesión.");
   const uid = req.auth.uid;
   const { code } = Input.parse(req.data ?? {});

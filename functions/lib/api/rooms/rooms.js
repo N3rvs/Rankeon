@@ -4,7 +4,6 @@ exports.roomsListMessages = exports.roomsList = exports.roomsClose = exports.roo
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
 const db = (0, firestore_1.getFirestore)();
 const PAGE_SIZE = 50;
 function assertAuth(req) {

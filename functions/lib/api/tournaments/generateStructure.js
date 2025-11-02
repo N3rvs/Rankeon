@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.tournamentsGenerateStructure = exports.MATCH_STATUS = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
-require("../../lib/admin");
 const _auth_1 = require("./_auth");
 // ---- Tipos de estado del match
 exports.MATCH_STATUS = ["pending", "awaiting_opponent", "locked", "completed"];

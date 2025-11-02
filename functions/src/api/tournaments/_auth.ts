@@ -1,4 +1,3 @@
-// functions/src/api/tournaments/_auth.ts
 import { HttpsError } from "firebase-functions/v2/https";
 
 export type Role = "owner" | "admin" | "moderator" | "founder" | "coach" | "player";

@@ -4,7 +4,6 @@ exports.teamJoinRequestCreate = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
 const _notify_1 = require("../notify/_notify");
 const Input = zod_1.z.object({ teamId: zod_1.z.string() });
 exports.teamJoinRequestCreate = (0, https_1.onCall)({ region: "europe-west1", enforceAppCheck: true }, async (req) => {

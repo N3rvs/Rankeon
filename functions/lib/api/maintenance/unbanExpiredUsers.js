@@ -37,7 +37,6 @@ exports.unbanExpiredUsers = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const admin = __importStar(require("firebase-admin"));
-require("../../lib/admin");
 const _options_1 = require("../_options");
 const _auth_1 = require("../tournaments/_auth");
 const db = (0, firestore_1.getFirestore)();
@@ -49,7 +48,7 @@ const db = (0, firestore_1.getFirestore)();
  * Seguridad: solo staff (owner/admin/mod) puede ejecutarla.
  * Devuelve conteos de cambios aplicados.
  */
-exports.unbanExpiredUsers = (0, https_1.onCall)(_options_1.longOpts, async (req) => {
+exports.unbanExpiredUsers = (0, https_1.onCall)(_options_1.w4Long, async (req) => {
     const { role } = (0, _auth_1.requireAuth)(req);
     if (!(0, _auth_1.isStaff)(role)) {
         throw new https_1.HttpsError("permission-denied", "Solo staff puede ejecutar esta acción.");

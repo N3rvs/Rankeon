@@ -4,7 +4,6 @@ exports.inboxMarkRead = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
 const Input = zod_1.z.object({ ids: zod_1.z.array(zod_1.z.string().min(1)).min(1).max(100) });
 exports.inboxMarkRead = (0, https_1.onCall)({ region: "europe-west1", enforceAppCheck: true }, async (req) => {
     if (!req.auth)

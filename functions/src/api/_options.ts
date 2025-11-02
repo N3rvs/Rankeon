@@ -1,27 +1,27 @@
 // functions/src/api/_options.ts
 import { defineSecret } from "firebase-functions/params";
-import type { CallableOptions } from "firebase-functions/v2/https";
 
 export const OWNER_UID = defineSecret("OWNER_UID");
 
-// No uses `as const` aquí
-const common = {
-  region: "europe-west4",
+// opciones comunes
+const base = {
   enforceAppCheck: true,
-  secrets: [OWNER_UID], // inferencia OK, no importes SecretParam
+  secrets: [OWNER_UID],
 };
 
-export const defaultOpts: CallableOptions = {
-  ...common,
+// Firestore (tu DB está en west4)
+export const w4 = {
+  ...base,
+  region: "europe-west4" as const,
   timeoutSeconds: 15,
 };
+export const w4Long = { ...w4, timeoutSeconds: 60 };
+export const w4XL = { ...w4, timeoutSeconds: 120 };
 
-export const longOpts: CallableOptions = {
-  ...common,
-  timeoutSeconds: 60,
+// RTDB vive en west1
+export const w1 = {
+  ...base,
+  region: "europe-west1" as const,
+  timeoutSeconds: 15,
 };
-
-export const longTimeoutOpts: CallableOptions = {
-  ...common,
-  timeoutSeconds: 120,
-};
+export const w1Long = { ...w1, timeoutSeconds: 60 };

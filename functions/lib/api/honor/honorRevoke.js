@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.honorRevoke = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
-require("../lib/admin");
 function starsFromPosNeg(pos, neg) {
     const n = Math.max(0, (pos | 0) + (neg | 0));
     const m = 10, p0 = 0.7;

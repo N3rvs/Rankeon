@@ -1,8 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
-import "../../admin";
-import { longOpts } from "../_options";
+import { w4Long  } from "../_options";
 import { requireAuth, isStaff } from "../tournaments/_auth";
 
 const db = getFirestore();
@@ -15,7 +14,7 @@ const db = getFirestore();
  * Seguridad: solo staff (owner/admin/mod) puede ejecutarla.
  * Devuelve conteos de cambios aplicados.
  */
-export const unbanExpiredUsers = onCall(longOpts, async (req) => {
+export const unbanExpiredUsers = onCall(w4Long , async (req) => {
     const { role } = requireAuth(req);
     if (!isStaff(role)) {
         throw new HttpsError("permission-denied", "Solo staff puede ejecutar esta acción.");

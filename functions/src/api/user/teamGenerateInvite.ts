@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import "../../admin";
+
 
 function code8() { return Math.random().toString(36).slice(2, 10); }
 

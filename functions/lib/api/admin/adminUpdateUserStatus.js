@@ -5,7 +5,6 @@ const https_1 = require("firebase-functions/v2/https");
 const auth_1 = require("firebase-admin/auth");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
 const OWNER_UID = process.env.OWNER_UID ?? "OWNER_UID_GOES_HERE";
 const Input = zod_1.z.object({
     uid: zod_1.z.string().min(1),

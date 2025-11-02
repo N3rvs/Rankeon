@@ -4,7 +4,6 @@ exports.requireAuth = requireAuth;
 exports.isStaff = isStaff;
 exports.requireStaff = requireStaff;
 exports.requireModOrAdmin = requireModOrAdmin;
-// functions/src/api/tournaments/_auth.ts
 const https_1 = require("firebase-functions/v2/https");
 function requireAuth(req) {
     if (!req.auth)

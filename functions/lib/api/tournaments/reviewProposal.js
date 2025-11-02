@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.tournamentsReviewProposal = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
-require("../../lib/admin");
 const _auth_1 = require("./_auth");
 const _types_1 = require("./_types");
 exports.tournamentsReviewProposal = (0, https_1.onCall)({ region: "europe-west1", enforceAppCheck: true, timeoutSeconds: 15 }, async (req) => {

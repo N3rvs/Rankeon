@@ -5,7 +5,6 @@ exports.editTournament = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
 const _options_1 = require("../_options");
 const _auth_1 = require("./_auth");
 const db = (0, firestore_1.getFirestore)();
@@ -21,7 +20,7 @@ const EditTournamentSchema = zod_1.z.object({
     // Si quieres permitir mover la fecha:
     // startsAt: z.string().datetime().optional(),
 });
-exports.editTournament = (0, https_1.onCall)(_options_1.defaultOpts, async (req) => {
+exports.editTournament = (0, https_1.onCall)(_options_1.w4, async (req) => {
     const { uid, role } = (0, _auth_1.requireAuth)(req);
     const payload = EditTournamentSchema.parse(req.data ?? {});
     const { tournamentId, ...candidateUpdate } = payload;

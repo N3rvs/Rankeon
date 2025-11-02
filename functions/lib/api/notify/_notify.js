@@ -4,7 +4,6 @@ exports.createNotification = createNotification;
 // api/notify/_notify.ts
 const firestore_1 = require("firebase-admin/firestore");
 const messaging_1 = require("firebase-admin/messaging");
-require("../../lib/admin");
 async function createNotification(to, from, type, extra = {}) {
     const db = (0, firestore_1.getFirestore)();
     // block check

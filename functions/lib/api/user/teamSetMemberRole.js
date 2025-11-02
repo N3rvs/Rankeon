@@ -4,7 +4,6 @@ exports.teamSetMemberRole = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
 const Input = zod_1.z.object({
     teamId: zod_1.z.string(),
     targetUid: zod_1.z.string(),

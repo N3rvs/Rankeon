@@ -1,8 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../admin";
-import { defaultOpts } from "../_options";
+import { w4 } from "../_options";
 
 const db = getFirestore();
 
@@ -10,7 +9,7 @@ const Input = z.object({
   ids: z.array(z.string().min(1)).min(1).max(100),
 });
 
-export const inboxDelete = onCall(defaultOpts, async (req) => {
+export const inboxDelete = onCall(w4, async (req) => {
   // auth requerida
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Debes iniciar sesión.");

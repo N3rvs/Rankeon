@@ -1,6 +1,6 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { getFirestore } from "firebase-admin/firestore";
-import "../../lib/admin";
+
 
 export const cleanupNotifications = onSchedule(
   { schedule: "every day 04:00", region: "europe-west1", timeZone: "Europe/Madrid" },

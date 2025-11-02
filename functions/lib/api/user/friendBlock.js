@@ -4,7 +4,6 @@ exports.friendBlock = void 0;
 // friendBlock.ts
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
-require("../../lib/admin");
 exports.friendBlock = (0, https_1.onCall)({ region: "europe-west1", enforceAppCheck: true }, async (req) => {
     if (!req.auth)
         throw new https_1.HttpsError("unauthenticated", "Login requerido.");

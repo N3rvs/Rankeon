@@ -4,7 +4,6 @@ exports.honorGive = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../lib/admin");
 const positiveTypes = ["MVP", "FAIR_PLAY", "LEADERSHIP"];
 const negativeTypes = ["TOXIC", "GRIEFING", "AFK"]; // añade las que necesites
 const Input = zod_1.z.object({

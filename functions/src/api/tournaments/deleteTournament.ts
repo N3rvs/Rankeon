@@ -1,6 +1,5 @@
 import { onCall } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import "../../admin";
 import { requireAuth, requireModOrAdmin } from "./_auth";
 import { DeleteTournamentSchema } from "./_types";
 

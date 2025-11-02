@@ -1,7 +1,7 @@
 import { onCall} from "firebase-functions/v2/https";
 import { getFirestore, FieldPath } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../admin";
+
 
 const Input = z.object({ cursor: z.string().optional(), pageSize: z.number().int().min(1).max(50).default(20) });
 

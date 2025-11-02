@@ -1,6 +1,4 @@
 // functions/src/index.ts
-import "./admin";
-
 /* ========= ADMIN ========= */
 export * from "./api/admin/setGlobalRole";
 export * from "./api/admin/grantFounder";

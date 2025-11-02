@@ -1,6 +1,5 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { getFirestore } from "firebase-admin/firestore";
-import "../../admin";
 
 export const nightlyCleanup = onSchedule(
   { schedule: "every day 03:00", region: "europe-west1", timeZone: "Europe/Madrid" },

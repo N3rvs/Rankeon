@@ -4,13 +4,12 @@ exports.inboxDelete = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
 const _options_1 = require("../_options");
 const db = (0, firestore_1.getFirestore)();
 const Input = zod_1.z.object({
     ids: zod_1.z.array(zod_1.z.string().min(1)).min(1).max(100),
 });
-exports.inboxDelete = (0, https_1.onCall)(_options_1.defaultOpts, async (req) => {
+exports.inboxDelete = (0, https_1.onCall)(_options_1.w4, async (req) => {
     // auth requerida
     const uid = req.auth?.uid;
     if (!uid)

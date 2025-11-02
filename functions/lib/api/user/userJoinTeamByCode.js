@@ -5,8 +5,7 @@ exports.userJoinTeamByCode = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
-const _options_1 = require("../_options"); // mismo archivo de opciones que usas en /api/user
+const _options_1 = require("../_options");
 const db = (0, firestore_1.getFirestore)();
 const Input = zod_1.z.object({
     code: zod_1.z.string().trim().min(6).max(32),
@@ -27,7 +26,7 @@ const Input = zod_1.z.object({
 //  * teams/{teamId}/members/{uid} -> { role: "player" | "coach" | "founder", gameRoles?: string[], joinedAt: Timestamp }
 //  * users/{uid} -> (opcional) currentTeamId
 //  */
-exports.userJoinTeamByCode = (0, https_1.onCall)(_options_1.defaultOpts, async (req) => {
+exports.userJoinTeamByCode = (0, https_1.onCall)(_options_1.w4, async (req) => {
     if (!req.auth)
         throw new https_1.HttpsError("unauthenticated", "Debes iniciar sesión.");
     const uid = req.auth.uid;

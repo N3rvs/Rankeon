@@ -2,8 +2,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../admin";
-import { defaultOpts } from "../_options";
+import { w4 } from "../_options";
 import { requireAuth, isStaff } from "./_auth";
 
 
@@ -24,7 +23,7 @@ const EditTournamentSchema = z.object({
 
 type EditInput = z.infer<typeof EditTournamentSchema>;
 
-export const editTournament = onCall(defaultOpts, async (req) => {
+export const editTournament = onCall(w4, async (req) => {
   const { uid, role } = requireAuth(req);
   const payload: EditInput = EditTournamentSchema.parse(req.data ?? {});
 

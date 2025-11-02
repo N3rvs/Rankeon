@@ -4,7 +4,6 @@ exports.scrimsChallenge = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const zod_1 = require("zod");
-require("../../lib/admin");
 const ChallengeSchema = zod_1.z.object({
     scrimId: zod_1.z.string().min(1),
     challengingTeamId: zod_1.z.string().min(1),

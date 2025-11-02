@@ -4,7 +4,6 @@ exports.userListTeams = void 0;
 const zod_1 = require("zod");
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
-require("../../lib/admin");
 const Filters = zod_1.z.object({
     q: zod_1.z.string().max(64).optional(), // búsqueda por nombre (prefijo)
     country: zod_1.z.string().length(2).optional(),

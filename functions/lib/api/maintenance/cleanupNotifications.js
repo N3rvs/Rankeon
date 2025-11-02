@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.cleanupNotifications = void 0;
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firestore_1 = require("firebase-admin/firestore");
-require("../../lib/admin");
+require("../..");
 exports.cleanupNotifications = (0, scheduler_1.onSchedule)({ schedule: "every day 04:00", region: "europe-west1", timeZone: "Europe/Madrid" }, async () => {
     const db = (0, firestore_1.getFirestore)();
     const now = Date.now();
