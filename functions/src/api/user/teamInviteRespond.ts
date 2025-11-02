@@ -1,7 +1,7 @@
 // functions/src/api/user/teamInviteRespond.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import { z } from "zod";
+import { z } from "zod
 import { createNotification } from "../notify/_notify";
 
 const Input = z.object({ teamId: z.string(), accept: z.boolean() });
