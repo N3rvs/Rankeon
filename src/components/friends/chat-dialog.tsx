@@ -57,16 +57,15 @@ export function ChatDialog({ recipient, open, onOpenChange }: ChatDialogProps) {
   useEffect(() => {
     if (!chatId || !open) {
       setMessages([]);
+      setLoading(true);
       return;
     }
 
     setLoading(true);
-    let unsubscribe: Unsubscribe | undefined;
-
     const messagesRef = collection(db, 'chats', chatId, 'messages');
     const q = query(messagesRef, orderBy('createdAt', 'asc'));
 
-    unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
       setMessages(msgs);
       setLoading(false);
@@ -76,12 +75,13 @@ export function ChatDialog({ recipient, open, onOpenChange }: ChatDialogProps) {
         operation: 'list',
       });
       errorEmitter.emit('permission-error', permissionError);
+      console.error("Original error in chat listener:", error);
       setMessages([]);
       setLoading(false);
     });
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      unsubscribe();
     };
   }, [chatId, open]);
 
