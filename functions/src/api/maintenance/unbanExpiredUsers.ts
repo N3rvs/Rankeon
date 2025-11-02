@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
-import "../../lib/admin";
+import "../../admin";
 import { longOpts } from "../_options";
 import { requireAuth, isStaff } from "../tournaments/_auth";
 

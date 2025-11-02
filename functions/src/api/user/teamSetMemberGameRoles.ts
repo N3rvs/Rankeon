@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../lib/admin";
+import "../../admin";
 
 const Input = z.object({
   teamId: z.string(),

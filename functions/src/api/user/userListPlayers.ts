@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import "../../lib/admin";
+import "../../admin";
 
 const Filters = z.object({
   q: z.string().max(64).optional(),

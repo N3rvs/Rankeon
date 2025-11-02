@@ -1,7 +1,7 @@
 // api/notify/_notify.ts
 import { getFirestore } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
-import "../../lib/admin";
+import "../../admin";
 
 export type NotifType =
   | "TEAM_INVITE" | "TEAM_INVITE_ACCEPTED" | "TEAM_INVITE_REJECTED"

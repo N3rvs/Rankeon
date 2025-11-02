@@ -1,6 +1,6 @@
 import { onValueWritten } from "firebase-functions/v2/database";
 import { getFirestore } from "firebase-admin/firestore";
-import "../lib/admin";
+import "../../admin";
 
 export const rtdbPresenceMirror = onValueWritten(
   { ref: "status/{uid}", region: "europe-west1" },

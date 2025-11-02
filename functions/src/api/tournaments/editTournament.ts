@@ -2,7 +2,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../lib/admin";
+import "../../admin";
 import { defaultOpts } from "../_options";
 import { requireAuth, isStaff } from "./_auth";
 

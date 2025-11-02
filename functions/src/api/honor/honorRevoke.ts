@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import "../lib/admin";
+import "../../admin";
 
 function starsFromPosNeg(pos: number, neg: number) {
   const n = Math.max(0, (pos|0) + (neg|0));

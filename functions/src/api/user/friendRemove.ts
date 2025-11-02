@@ -1,7 +1,7 @@
 // friendRemove.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import "../../lib/admin";
+import "../../admin";
 
 export const friendRemove = onCall({ region:"europe-west1", enforceAppCheck:true }, async (req)=>{
   if(!req.auth) throw new HttpsError("unauthenticated","Login requerido.");

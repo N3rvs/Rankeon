@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue, FieldPath } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../lib/admin";
+import "../../admin";
 
 const db = getFirestore();
 const PAGE_SIZE = 50 as const;
