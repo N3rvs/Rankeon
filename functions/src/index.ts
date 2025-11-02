@@ -1,5 +1,5 @@
 // functions/src/index.ts
-import "./lib/admin";
+import "./admin";
 
 /* ========= ADMIN ========= */
 export { setGlobalRole }         from "./api/admin/setGlobalRole";
