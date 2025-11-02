@@ -2,7 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
-import "../../lib/admin";
+
 
 
 const OWNER_UID = process.env.OWNER_UID ?? "OWNER_UID_GOES_HERE";

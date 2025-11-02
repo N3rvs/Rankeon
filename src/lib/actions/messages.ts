@@ -85,7 +85,6 @@ export async function deleteChatHistory({ chatId }: { chatId: string }): Promise
   }
 }
 
-/** Enviar DM a un amigo/usuario (usa idempotencia con clientId) */
 export async function sendMessageToFriend({
   to,
   content,

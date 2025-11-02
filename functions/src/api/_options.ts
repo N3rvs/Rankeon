@@ -6,7 +6,7 @@ export const OWNER_UID = defineSecret("OWNER_UID");
 
 // No uses `as const` aquí
 const common = {
-  region: "europe-west1",
+  region: "europe-west4",
   enforceAppCheck: true,
   secrets: [OWNER_UID], // inferencia OK, no importes SecretParam
 };
